@@ -1,0 +1,8 @@
+{
+  "name": "Verdeorto Golive3",
+  "description": "Système moderne de gestion commerciale ERP et POS Restaurant connecté à PostgreSQL Neon (Vercel).",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

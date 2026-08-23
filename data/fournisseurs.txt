@@ -1,0 +1,9 @@
+N° Enr.;NumFournisseur;Societe;Civilite;Nom;Prénom;Adresse;CodePostal;Ville;Pays;Telephone;GSM;Fax;EMail;Observations;ICE
+2;3;NBNBNB;;",NBB";;Jbbj;;;;;;;;;
+3;4;JGHHGHJ;Melle;;;;;;;;;;;;
+4;5;NBNBN;;;;;;;;;;;;;
+5;6;JJGJNVBVB;;;;;;;;;;;;;
+6;7;LLJKJK;;;;;;;;;;;;;
+1;9;COPRALIM;Mme;;LAILA;"BUREAU;28,Rue 305 Hay My Abdellah";;CASABLANCA;;0522970102;;0522970597;;;
+7;10;VERDEORTO;Melle;;;;40000;MARRAKECH;;0524439498;;;;;000194441000024
+8;11;COOPERATIVE AL OULFA;Melle;NAIMA;;"";40000;MARRAKECH;;;0654262309;;;;

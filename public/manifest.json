@@ -1,0 +1,29 @@
+{
+  "name": "Verde Orto - POS Restaurant & Caisse iPad",
+  "short_name": "Verde Orto POS",
+  "description": "Système de Caisse Enregistreuse POS et Gestion Commerciale 100% Hors-Ligne pour iPad et Tablettes",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#020617",
+  "theme_color": "#059669",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "categories": ["business", "productivity", "food"]
+}
