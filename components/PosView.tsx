@@ -769,7 +769,7 @@ export const PosView: React.FC<PosViewProps> = ({
 
       setLastSale(completedSale);
       if (getTicketPrinterSettings().autoPrint) {
-        printPosTicket(completedSale, company, 'TICKET_FINAL');
+        printPosTicket(completedSale, companyInfo, 'TICKET_FINAL');
       }
       setReceiptType('TICKET_FINAL');
       setShowReceiptModal(true);
@@ -1793,7 +1793,7 @@ export const PosView: React.FC<PosViewProps> = ({
                 <button
                   type="button"
                   onClick={() => {
-                    if (!printPosTicket(lastSale, company, receiptType)) {
+                    if (!printPosTicket(lastSale, companyInfo, receiptType)) {
                       showToast('Autorisez les fenêtres contextuelles pour imprimer le ticket.', 'error');
                     }
                   }}

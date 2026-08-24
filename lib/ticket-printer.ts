@@ -41,7 +41,7 @@ function escapeHtml(value: unknown): string {
 
 export function printPosTicket(
   sale: PosSale,
-  company: CompanyInfo,
+  company: CompanyInfo | null,
   receiptType: 'ADDITION' | 'TICKET_FINAL' = 'TICKET_FINAL'
 ): boolean {
   const settings = getTicketPrinterSettings();
@@ -69,8 +69,8 @@ export function printPosTicket(
   td:last-child { text-align: right; white-space: nowrap; }
   .total { font-size: 15px; font-weight: 800; border-top: 1px solid #000; padding-top: 5px; }
 </style></head><body>
-  <h1>${escapeHtml(company.nom || 'VerdeOrto')}</h1>
-  <div class="center small">${escapeHtml(company.adresse || '')}<br>${escapeHtml(company.telephone || '')}</div>
+  <h1>${escapeHtml(company?.nom || 'VerdeOrto')}</h1>
+  <div class="center small">${escapeHtml(company?.adresse || '')}<br>${escapeHtml(company?.telephone || '')}</div>
   <div class="rule"></div>
   <div class="center"><strong>${receiptType === 'ADDITION' ? 'NOTE D’ADDITION' : 'TICKET DE CAISSE'}</strong><br>${escapeHtml(sale.numero_ticket)}</div>
   <div class="rule"></div>
