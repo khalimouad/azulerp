@@ -32,15 +32,13 @@ export const SyncStatusBadge: React.FC<SyncStatusBadgeProps> = ({
       setDbState(state);
     });
 
-    // Periodically test health
-    testNeonConnection();
-    const interval = setInterval(() => {
+    // Check health once on client mount
+    if (typeof window !== 'undefined') {
       testNeonConnection();
-    }, 30000);
+    }
 
     return () => {
       unsub();
-      clearInterval(interval);
     };
   }, []);
 
@@ -52,16 +50,19 @@ export const SyncStatusBadge: React.FC<SyncStatusBadgeProps> = ({
         type="button"
         id="postgres-db-status-btn"
         onClick={() => setIsModalOpen(true)}
-        className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-lg border transition shadow-xs active:scale-95 bg-emerald-950/80 text-emerald-300 border-emerald-700/80 hover:bg-emerald-900"
+        className={`flex items-center gap-1.5 min-h-[38px] sm:min-h-[32px] px-2 sm:px-2.5 py-1 text-xs font-semibold rounded-lg sm:rounded-md border transition shadow-xs active:scale-95 bg-emerald-950/90 text-emerald-300 border-emerald-700/80 hover:bg-emerald-900 touch-manipulation ${
+          compact ? 'px-2' : ''
+        }`}
+        aria-label="État de la connexion PostgreSQL Neon"
         title="Base de données PostgreSQL Neon - Cliquez pour voir les détails de la connexion"
       >
-        <div className="relative flex items-center justify-center">
+        <div className="relative flex items-center justify-center shrink-0">
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
         </div>
-        <Server className="w-3.5 h-3.5 text-emerald-300" />
-        <span className="hidden sm:inline font-mono">PostgreSQL Neon</span>
+        <Server className="w-3.5 h-3.5 text-emerald-300 shrink-0" />
+        <span className="hidden sm:inline font-mono font-medium text-[11px]">PostgreSQL Neon</span>
         {dbState.latencyMs > 0 && (
-          <span className="hidden md:inline text-[10px] opacity-75 font-mono">
+          <span className="hidden md:inline text-[10px] text-emerald-400 font-mono">
             {dbState.latencyMs}ms
           </span>
         )}

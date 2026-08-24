@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getNeonSql, getNeonDatabaseUrl, initNeonPostgresSchema } from '@/lib/neon-postgres';
+import { getNeonSql, getNeonDatabaseUrl, initNeonPostgresSchema, importDataToNeon } from '@/lib/neon-postgres';
 import {
   OFFICIAL_CATEGORIES,
   OFFICIAL_FAMILLES,
@@ -634,6 +634,16 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ success: false, error: 'Code PIN incorrect' });
         }
 
+        // --- IMPORT DATABASE TO NEON ---
+        case 'import_db': {
+          const result = await importDataToNeon({
+            data: payload.data,
+            sql: payload.sql,
+            mode: payload.mode || 'merge',
+          });
+          return NextResponse.json(result);
+        }
+
         default:
           return NextResponse.json({ success: false, error: `Action inconnue: ${action}` }, { status: 400 });
       }
@@ -732,6 +742,28 @@ export async function POST(req: NextRequest) {
           const user = store.app_users.find((u) => u.pin_code === pin.trim());
           if (user) return NextResponse.json({ success: true, user });
           return NextResponse.json({ success: false, error: 'Code PIN incorrect' });
+        }
+
+        case 'import_db': {
+          if (payload.data && typeof payload.data === 'object') {
+            if (payload.data.clients) store.clients = payload.data.clients;
+            if (payload.data.produits) store.produits = payload.data.produits;
+            if (payload.data.fournisseurs) store.fournisseurs = payload.data.fournisseurs;
+            if (payload.data.bons_livraison) store.bons_livraison = payload.data.bons_livraison;
+            if (payload.data.factures) store.factures = payload.data.factures;
+            if (payload.data.company) store.company_info = [payload.data.company];
+          }
+          return NextResponse.json({
+            success: true,
+            mode: payload.mode || 'merge',
+            message: 'Données importées avec succès dans la base',
+            counts: {
+              clients: store.clients.length,
+              produits: store.produits.length,
+              factures: store.factures.length,
+              bons_livraison: store.bons_livraison.length,
+            },
+          });
         }
 
         default:

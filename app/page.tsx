@@ -85,7 +85,7 @@ import { AuthView } from '@/components/AuthView';
 import { UserManagementModal } from '@/components/UserManagementModal';
 import { LockScreenModal } from '@/components/LockScreenModal';
 import { DatabaseProgressModal } from '@/components/DatabaseProgressModal';
-import { Database, Sparkles, HardDrive, CheckCircle2, RefreshCw } from 'lucide-react';
+import { Database, Sparkles, HardDrive, CheckCircle2, RefreshCw, Store, Truck, FileText, Package, Menu as MenuIcon } from 'lucide-react';
 
 // Full Page Creation & Edit Views
 import { CreateBlView } from '@/components/CreateBlView';
@@ -645,7 +645,7 @@ export default function Home() {
         />
 
         {/* Viewport Content */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-7 max-w-7xl w-full mx-auto overflow-x-hidden">
+        <main className="flex-1 p-3 sm:p-6 lg:p-7 max-w-7xl w-full mx-auto overflow-x-hidden pb-24 lg:pb-7">
           {/* 1. DASHBOARD */}
           {currentTab === 'dashboard' && (
             <DashboardView
@@ -1287,6 +1287,97 @@ export default function Home() {
           )}
         </main>
       </div>
+
+      {/* Mobile Sticky Bottom Navigation Bar */}
+      <nav
+        id="mobile-bottom-nav"
+        className="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-slate-900/95 backdrop-blur-md border-t border-slate-800 px-1 py-1 shadow-2xl flex items-center justify-around select-none safe-area-bottom"
+        aria-label="Navigation rapide mobile"
+      >
+        <button
+          type="button"
+          onClick={() => {
+            setPreviousTab(currentTab);
+            setCurrentTab('pos');
+          }}
+          className={`flex flex-col items-center justify-center min-w-[56px] min-h-[48px] py-1 px-2 rounded-xl transition touch-manipulation active:scale-95 ${
+            currentTab.startsWith('pos')
+              ? 'text-blue-400 bg-blue-950/60 font-bold'
+              : 'text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          <Store className="w-5 h-5 mb-0.5" />
+          <span className="text-[10px] leading-tight">Caisse</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            setPreviousTab(currentTab);
+            setCurrentTab('bl');
+          }}
+          className={`flex flex-col items-center justify-center relative min-w-[56px] min-h-[48px] py-1 px-2 rounded-xl transition touch-manipulation active:scale-95 ${
+            currentTab === 'bl' || currentTab === 'create-bl'
+              ? 'text-blue-400 bg-blue-950/60 font-bold'
+              : 'text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          <Truck className="w-5 h-5 mb-0.5" />
+          <span className="text-[10px] leading-tight">BL</span>
+          {stats.bl_en_attente_count > 0 && (
+            <span className="absolute top-1 right-1.5 w-4 h-4 bg-amber-500 text-slate-950 text-[9px] font-black rounded-full flex items-center justify-center">
+              {stats.bl_en_attente_count}
+            </span>
+          )}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            setPreviousTab(currentTab);
+            setCurrentTab('factures');
+          }}
+          className={`flex flex-col items-center justify-center min-w-[56px] min-h-[48px] py-1 px-2 rounded-xl transition touch-manipulation active:scale-95 ${
+            currentTab === 'factures' || currentTab === 'create-facture'
+              ? 'text-blue-400 bg-blue-950/60 font-bold'
+              : 'text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          <FileText className="w-5 h-5 mb-0.5" />
+          <span className="text-[10px] leading-tight">Factures</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            setPreviousTab(currentTab);
+            setCurrentTab('produits');
+          }}
+          className={`flex flex-col items-center justify-center relative min-w-[56px] min-h-[48px] py-1 px-2 rounded-xl transition touch-manipulation active:scale-95 ${
+            currentTab === 'produits' || currentTab === 'create-produit'
+              ? 'text-blue-400 bg-blue-950/60 font-bold'
+              : 'text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          <Package className="w-5 h-5 mb-0.5" />
+          <span className="text-[10px] leading-tight">Stocks</span>
+          {stats.stock_alerts_count > 0 && (
+            <span className="absolute top-1 right-1.5 w-4 h-4 bg-rose-500 text-white text-[9px] font-black rounded-full flex items-center justify-center">
+              {stats.stock_alerts_count}
+            </span>
+          )}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setMobileMenuOpen(true)}
+          className="flex flex-col items-center justify-center min-w-[56px] min-h-[48px] py-1 px-2 rounded-xl text-slate-400 hover:text-slate-200 transition touch-manipulation active:scale-95"
+          aria-label="Ouvrir tous les menus"
+        >
+          <MenuIcon className="w-5 h-5 mb-0.5" />
+          <span className="text-[10px] leading-tight">Menu</span>
+        </button>
+      </nav>
     </div>
   );
 }

@@ -26,6 +26,7 @@ import {
   LogOut,
   UserCheck,
   ShieldCheck,
+  X,
 } from 'lucide-react';
 import { AppUser } from '@/lib/types';
 
@@ -152,17 +153,35 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Sidebar Container */}
       <aside
-        className={`fixed lg:sticky top-0 lg:top-[57px] bottom-0 left-0 z-40 w-64 bg-slate-900 text-slate-300 border-r border-slate-800 flex flex-col transition-transform duration-200 ease-in-out lg:translate-x-0 ${
-          mobileOpen ? 'translate-x-0' : '-translate-x-full'
+        className={`fixed lg:sticky top-0 lg:top-[57px] bottom-0 left-0 z-40 w-72 sm:w-64 bg-slate-900 text-slate-300 border-r border-slate-800 flex flex-col transition-transform duration-200 ease-in-out lg:translate-x-0 ${
+          mobileOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'
         } h-screen lg:h-[calc(100vh-57px)] overflow-y-auto`}
       >
-        <div className="p-3.5 flex-1 flex flex-col gap-6">
+        {/* Mobile-Only Drawer Header with explicit Close button */}
+        <div className="lg:hidden px-4 py-3 border-b border-slate-800 flex items-center justify-between bg-slate-950/80">
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center font-bold text-xs text-white">
+              GI
+            </div>
+            <span className="font-bold text-sm text-white">Menu Navigation</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setMobileOpen(false)}
+            className="min-w-[44px] min-h-[44px] flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 active:bg-slate-700 rounded-xl transition touch-manipulation active:scale-95"
+            aria-label="Fermer le menu"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div className="p-3 sm:p-3.5 flex-1 flex flex-col gap-5 sm:gap-6">
           {navSections.map((section, sIdx) => (
             <div key={sIdx} className="space-y-1.5">
-              <div className="text-[11px] font-semibold tracking-wider uppercase text-slate-400 px-3">
+              <div className="text-[10px] sm:text-[11px] font-bold tracking-wider uppercase text-slate-400 px-3">
                 {section.title}
               </div>
-              <div className="space-y-0.5">
+              <div className="space-y-1 sm:space-y-0.5">
                 {section.items.map((item) => {
                   const Icon = item.icon;
                   const isActive = currentTab === item.id;
@@ -170,7 +189,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     <button
                       key={item.id}
                       onClick={() => handleSelect(item.id)}
-                      className={`w-full flex items-center justify-between px-3 py-2 text-xs sm:text-sm font-medium rounded-lg transition text-left ${
+                      className={`w-full flex items-center justify-between px-3 py-2.5 sm:py-2 min-h-[44px] sm:min-h-[38px] text-xs sm:text-sm font-medium rounded-xl sm:rounded-lg transition text-left touch-manipulation active:scale-[0.98] ${
                         isActive
                           ? 'bg-blue-600 text-white shadow-sm font-semibold'
                           : item.highlight

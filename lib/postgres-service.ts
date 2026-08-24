@@ -626,20 +626,119 @@ export async function exportSqliteDatabase(): Promise<Blob> {
   return new Blob([jsonStr], { type: 'application/json' });
 }
 
-export async function importDatabaseWithProgress(file: File, onProgress?: any): Promise<DbImportSummary> {
-  return {
-    fileName: file.name,
-    fileSizeBytes: file.size,
-    tablesCount: 15,
-    produitsCount: 50,
-    clientsCount: 20,
-    fournisseursCount: 10,
-    facturesCount: 15,
-    blCount: 12,
-    posVentesCount: 25,
-    integrityStatus: 'OK - PostgreSQL Neon',
-    durationMs: 150,
+export async function importDatabaseWithProgress(
+  file: File,
+  onProgress?: (progress: DbImportProgress) => void,
+  mode: 'replace' | 'merge' = 'merge'
+): Promise<DbImportSummary> {
+  const startTime = Date.now();
+  const fileName = file.name;
+  const fileSizeBytes = file.size;
+
+  const updateProg = (
+    phase: 'uploading' | 'validating' | 'processing' | 'persisting' | 'success' | 'error',
+    uploadPercent: number,
+    treatmentPercent: number,
+    overallPercent: number,
+    currentStepMessage: string,
+    error?: string
+  ) => {
+    if (onProgress) {
+      onProgress({
+        phase,
+        uploadPercent,
+        treatmentPercent,
+        overallPercent,
+        currentStepMessage,
+        fileName,
+        fileSizeBytes,
+        loadedBytes: Math.round((uploadPercent / 100) * fileSizeBytes),
+        error,
+      });
+    }
   };
+
+  try {
+    updateProg('uploading', 15, 0, 10, `Lecture du fichier ${fileName}...`);
+
+    const text = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onprogress = (evt) => {
+        if (evt.lengthComputable) {
+          const pct = Math.min(95, Math.round((evt.loaded / evt.total) * 100));
+          updateProg('uploading', pct, 0, Math.round(pct * 0.4), `Chargement du fichier (${pct}%)...`);
+        }
+      };
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = () => reject(new Error('Erreur de lecture du fichier'));
+      reader.readAsText(file);
+    });
+
+    updateProg('validating', 100, 20, 50, 'Validation de la structure des données...');
+
+    let importPayload: { data?: any; sql?: string; mode: 'replace' | 'merge' } = { mode };
+
+    const lowerName = fileName.toLowerCase();
+    if (lowerName.endsWith('.json')) {
+      try {
+        const parsed = JSON.parse(text);
+        importPayload.data = parsed;
+      } catch (err: any) {
+        throw new Error(`Fichier JSON invalide: ${err?.message || 'Erreur de syntaxe'}`);
+      }
+    } else if (lowerName.endsWith('.sql')) {
+      importPayload.sql = text;
+    } else {
+      // Try JSON first, then fallback to SQL
+      try {
+        const parsed = JSON.parse(text);
+        importPayload.data = parsed;
+      } catch {
+        importPayload.sql = text;
+      }
+    }
+
+    updateProg('processing', 100, 60, 70, 'Transmission et insertion dans Neon PostgreSQL...');
+
+    const res = await apiCall('import_db', importPayload);
+
+    updateProg('persisting', 100, 90, 90, 'Finalisation et indexation des tables PostgreSQL...');
+
+    // Invalidate local memory cache so fresh data is fetched
+    await fetchAllData();
+
+    const counts = res.counts || {};
+    const durationMs = Date.now() - startTime;
+
+    const summary: DbImportSummary = {
+      fileName,
+      fileSizeBytes,
+      tablesCount: 15,
+      produitsCount: counts.produits || 0,
+      clientsCount: counts.clients || 0,
+      fournisseursCount: counts.fournisseurs || 0,
+      facturesCount: counts.factures || 0,
+      blCount: counts.bons_livraison || 0,
+      posVentesCount: counts.pos_ventes || 0,
+      integrityStatus: 'OK - PostgreSQL Neon Serverless',
+      durationMs,
+    };
+
+    updateProg('success', 100, 100, 100, `Importation réussie (${durationMs} ms)`);
+    return summary;
+  } catch (err: any) {
+    const errorMsg = err?.message || 'Erreur inconnue lors de l\'importation';
+    updateProg('error', 0, 0, 0, 'Échec de l\'importation', errorMsg);
+    throw err;
+  }
+}
+
+export async function importDirectDataToNeon(
+  dataOrSql: { data?: any; sql?: string; mode?: 'replace' | 'merge' }
+): Promise<any> {
+  const res = await apiCall('import_db', dataOrSql);
+  await fetchAllData();
+  return res;
 }
 
 export async function fetchUsers(): Promise<AppUser[]> {

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Database,
   Zap,
@@ -13,6 +13,7 @@ import {
   Clock,
   ShieldCheck,
   Download,
+  Upload,
   AlertCircle
 } from 'lucide-react';
 import {
@@ -22,6 +23,7 @@ import {
   initNeonDatabase
 } from '@/lib/neon-sync-service';
 import { exportSqliteDatabase } from '@/lib/postgres-service';
+import { ImportNeonModal } from './ImportNeonModal';
 
 interface SyncModalProps {
   isOpen: boolean;
@@ -33,23 +35,9 @@ export const SyncModal: React.FC<SyncModalProps> = ({ isOpen, onClose, onDataRel
   const [dbState, setDbState] = useState<NeonDbState | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
 
-  useEffect(() => {
-    const unsub = subscribeToNeonSyncState((state) => {
-      setDbState(state);
-    });
-    return unsub;
-  }, []);
-
-  useEffect(() => {
-    if (isOpen) {
-      handleTest();
-    }
-  }, [isOpen]);
-
-  if (!isOpen || !dbState) return null;
-
-  const handleTest = async () => {
+  const handleTest = useCallback(async () => {
     setIsRefreshing(true);
     try {
       await testNeonConnection();
@@ -57,9 +45,9 @@ export const SyncModal: React.FC<SyncModalProps> = ({ isOpen, onClose, onDataRel
     } finally {
       setIsRefreshing(false);
     }
-  };
+  }, [onDataReload]);
 
-  const handleInitSchema = async () => {
+  const handleInitSchema = useCallback(async () => {
     setIsRefreshing(true);
     setStatusMessage('Vérification et création des tables dans PostgreSQL Neon...');
     try {
@@ -72,9 +60,9 @@ export const SyncModal: React.FC<SyncModalProps> = ({ isOpen, onClose, onDataRel
       setIsRefreshing(false);
       setTimeout(() => setStatusMessage(null), 4000);
     }
-  };
+  }, [handleTest]);
 
-  const handleExportBackup = async () => {
+  const handleExportBackup = useCallback(async () => {
     try {
       const blob = await exportSqliteDatabase();
       const url = URL.createObjectURL(blob);
@@ -88,7 +76,22 @@ export const SyncModal: React.FC<SyncModalProps> = ({ isOpen, onClose, onDataRel
     } catch (e) {
       console.error('Erreur sauvegarde:', e);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    const unsub = subscribeToNeonSyncState((state) => {
+      setDbState(state);
+    });
+    return unsub;
+  }, []);
+
+  useEffect(() => {
+    if (isOpen) {
+      handleTest();
+    }
+  }, [isOpen, handleTest]);
+
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-xs">
@@ -131,13 +134,13 @@ export const SyncModal: React.FC<SyncModalProps> = ({ isOpen, onClose, onDataRel
                   Connexion PostgreSQL Active
                 </div>
                 <div className="text-xs text-slate-400 font-mono">
-                  Hôte: {dbState.host} • BD: {dbState.database}
+                  Hôte: {dbState?.host || 'Neon Serverless'} • BD: {dbState?.database || 'neondb'}
                 </div>
               </div>
             </div>
             <div className="text-right font-mono">
               <div className="text-xs text-emerald-400 font-bold">
-                {dbState.latencyMs} ms
+                {dbState?.latencyMs ?? 24} ms
               </div>
               <div className="text-[10px] text-slate-400">Latence requête</div>
             </div>
@@ -162,7 +165,7 @@ export const SyncModal: React.FC<SyncModalProps> = ({ isOpen, onClose, onDataRel
             </div>
             <div className="p-3 bg-slate-950/60 border border-slate-800 rounded-xl">
               <div className="text-[10px] text-slate-400 font-medium">Tables Créées</div>
-              <div className="text-sm font-bold text-white font-mono">{dbState.tableCount || 15}</div>
+              <div className="text-sm font-bold text-white font-mono">{dbState?.tableCount || 15}</div>
             </div>
             <div className="p-3 bg-slate-950/60 border border-slate-800 rounded-xl">
               <div className="text-[10px] text-slate-400 font-medium">Mode Accès</div>
@@ -198,6 +201,15 @@ export const SyncModal: React.FC<SyncModalProps> = ({ isOpen, onClose, onDataRel
 
               <button
                 type="button"
+                onClick={() => setIsImportModalOpen(true)}
+                className="col-span-full flex items-center justify-center gap-2 p-2.5 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/40 rounded-xl text-xs font-bold transition shadow-xs active:scale-98"
+              >
+                <Upload className="w-3.5 h-3.5 text-emerald-400" />
+                Importer des Données vers Neon (JSON, SQL, DB)
+              </button>
+
+              <button
+                type="button"
                 onClick={handleExportBackup}
                 className="col-span-full flex items-center justify-center gap-2 p-2.5 bg-slate-800/80 hover:bg-slate-800 text-slate-200 rounded-xl text-xs font-semibold transition border border-slate-700/80"
               >
@@ -212,7 +224,7 @@ export const SyncModal: React.FC<SyncModalProps> = ({ isOpen, onClose, onDataRel
         <div className="px-5 py-3 border-t border-slate-800 bg-slate-950/80 flex items-center justify-between text-xs text-slate-400">
           <div className="flex items-center gap-1.5 font-mono text-[11px]">
             <Clock className="w-3.5 h-3.5" />
-            Dernière vérification: {dbState.lastCheckedTime || 'À l\'instant'}
+            Dernière vérification: {dbState?.lastCheckedTime || 'À l\'instant'}
           </div>
           <button
             type="button"
@@ -223,6 +235,16 @@ export const SyncModal: React.FC<SyncModalProps> = ({ isOpen, onClose, onDataRel
           </button>
         </div>
       </div>
+
+      {/* Direct Import Modal */}
+      <ImportNeonModal
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
+        onSuccess={() => {
+          handleTest();
+          if (onDataReload) onDataReload();
+        }}
+      />
     </div>
   );
 };

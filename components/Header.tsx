@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { AppUser } from '@/lib/types';
 import { SyncStatusBadge } from './SyncStatusBadge';
+import { ImportNeonModal } from './ImportNeonModal';
 
 interface HeaderProps {
   currentTab: string;
@@ -66,6 +67,7 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [userDropdownOpen, setUserDropdownOpen] = React.useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = React.useState(false);
   const dropdownRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
@@ -85,34 +87,38 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   return (
-    <header className="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-30 shadow-md">
+    <header className="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-30 shadow-md select-none">
       {/* Primary Top Bar */}
-      <div className="px-3 sm:px-4 py-2 sm:py-2.5 flex items-center justify-between gap-2 sm:gap-4">
+      <div className="px-2.5 sm:px-4 py-2 sm:py-2.5 flex items-center justify-between gap-1.5 sm:gap-4">
         {/* Left: Mobile Toggle & Brand */}
-        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+        <div className="flex items-center gap-1.5 sm:gap-3 shrink-0 min-w-0">
           <button
             type="button"
             id="mobile-menu-toggle-btn"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="lg:hidden min-w-[40px] min-h-[40px] flex items-center justify-center text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg transition active:scale-95"
+            className="lg:hidden min-w-[44px] min-h-[44px] flex items-center justify-center text-slate-300 hover:text-white hover:bg-slate-800/90 active:bg-slate-700 rounded-xl transition touch-manipulation active:scale-95 shrink-0"
             aria-label="Ouvrir le menu de navigation"
             title="Menu"
           >
             <Menu className="w-5 h-5" />
           </button>
 
-          <div className="flex items-center gap-2 sm:gap-2.5">
-            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-blue-600 flex items-center justify-center font-black text-xs sm:text-sm text-white shadow-inner tracking-wider">
+          <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-blue-600 flex items-center justify-center font-black text-xs sm:text-sm text-white shadow-inner tracking-wider shrink-0">
               GI
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="font-extrabold text-sm sm:text-base tracking-tight text-white flex items-center gap-1">
-                  Gest Commerciale <span className="text-blue-400 font-bold">ERP</span>
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <h1 className="font-extrabold text-xs sm:text-base tracking-tight text-white flex items-center gap-1 truncate">
+                  <span className="hidden xs:inline">Gest Commerciale</span>
+                  <span className="xs:hidden">Gest ERP</span>
+                  <span className="text-blue-400 font-bold hidden xs:inline">ERP</span>
                 </h1>
-                <SyncStatusBadge onDataReload={onDataReload} />
+                <div className="shrink-0">
+                  <SyncStatusBadge onDataReload={onDataReload} compact />
+                </div>
               </div>
-              <p className="text-[11px] text-slate-400 hidden lg:block">
+              <p className="text-[11px] text-slate-400 hidden lg:block truncate">
                 Bons de Livraison (BL) • Facturation • Suivi Clients & Stocks
               </p>
             </div>
@@ -129,13 +135,13 @@ export const Header: React.FC<HeaderProps> = ({
               placeholder="Recherche rapide (N° BL, Facture, Client, ICE, Produit)..."
               value={globalSearch}
               onChange={(e) => setGlobalSearch(e.target.value)}
-              className="w-full pl-9 pr-8 py-1.5 text-xs bg-slate-800/90 text-slate-100 placeholder-slate-400 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+              className="w-full pl-9 pr-8 py-2 text-xs bg-slate-800/90 text-slate-100 placeholder-slate-400 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
             />
             {globalSearch && (
               <button
                 type="button"
                 onClick={() => setGlobalSearch('')}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-slate-400 hover:text-white p-0.5"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-slate-400 hover:text-white p-1 rounded-md"
                 title="Effacer"
               >
                 ✕
@@ -148,7 +154,7 @@ export const Header: React.FC<HeaderProps> = ({
               id="year-select-desktop"
               value={selectedYear}
               onChange={(e) => setSelectedYear(e.target.value)}
-              className="bg-slate-800 text-slate-200 text-xs font-semibold py-1.5 px-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+              className="bg-slate-800 text-slate-200 text-xs font-semibold py-2 px-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
             >
               <option value="2026">Exercice 2026</option>
               <option value="2025">Exercice 2025</option>
@@ -157,19 +163,19 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
 
-        {/* Right: Quick Action Buttons (Always visible and un-cramped) */}
-        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+        {/* Right: Quick Action Buttons (Touch-friendly and responsive) */}
+        <div className="flex items-center gap-1 sm:gap-2 shrink-0">
           {/* Quick Create BL */}
           <button
             type="button"
             id="header-create-bl-btn"
             onClick={onOpenNewBl}
-            className="flex items-center justify-center gap-1.5 px-2.5 sm:px-3 py-1.5 sm:py-2 min-h-[38px] sm:min-h-[40px] rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-xs transition active:scale-95 whitespace-nowrap"
+            className="flex items-center justify-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 min-h-[44px] rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white shadow-xs transition touch-manipulation active:scale-95 whitespace-nowrap"
             title="Créer un nouveau Bon de Livraison"
           >
-            <Truck className="w-3.5 h-3.5" />
+            <Truck className="w-4 h-4 shrink-0" />
             <span className="hidden sm:inline">+ Nouveau BL</span>
-            <span className="sm:hidden">+ BL</span>
+            <span className="sm:hidden font-semibold text-[11px]">+ BL</span>
           </button>
 
           {/* Quick Create Facture */}
@@ -177,15 +183,15 @@ export const Header: React.FC<HeaderProps> = ({
             type="button"
             id="header-create-facture-btn"
             onClick={onOpenNewFacture}
-            className="flex items-center justify-center gap-1.5 px-2.5 sm:px-3 py-1.5 sm:py-2 min-h-[38px] sm:min-h-[40px] rounded-lg text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white shadow-xs transition active:scale-95 whitespace-nowrap"
+            className="flex items-center justify-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 min-h-[44px] rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white shadow-xs transition touch-manipulation active:scale-95 whitespace-nowrap"
             title="Créer une nouvelle Facture"
           >
-            <FileText className="w-3.5 h-3.5" />
+            <FileText className="w-4 h-4 shrink-0" />
             <span className="hidden sm:inline">+ Nouvelle Facture</span>
-            <span className="sm:hidden">+ Facture</span>
+            <span className="sm:hidden font-semibold text-[11px]">+ Facture</span>
           </button>
 
-          {/* SQLite DB backup tools (Desktop) */}
+          {/* DB backup & import tools (Desktop) */}
           <div className="hidden xl:flex items-center gap-1 border-l border-slate-700/80 pl-2">
             <button
               type="button"
@@ -201,7 +207,7 @@ export const Header: React.FC<HeaderProps> = ({
               type="button"
               id="header-export-db-btn"
               onClick={onExportSqlite}
-              title="Exporter la base SQLite (.sqlite)"
+              title="Exporter la base de données (JSON / SQL)"
               className="p-2 text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg transition"
             >
               <Download className="w-4 h-4" />
@@ -209,32 +215,34 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               type="button"
               id="header-import-db-btn"
-              onClick={() => fileInputRef.current?.click()}
-              title="Importer une sauvegarde SQLite"
-              className="p-2 text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg transition"
+              onClick={() => setIsImportModalOpen(true)}
+              title="Importer une base de données vers Neon (JSON, SQL, DB)"
+              className="px-2 py-1.5 text-slate-200 hover:text-white bg-slate-800/90 hover:bg-slate-700 border border-slate-700/80 rounded-lg transition flex items-center gap-1.5 text-xs font-semibold"
             >
-              <Upload className="w-4 h-4" />
+              <Upload className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Importer DB</span>
             </button>
             <input
               type="file"
               ref={fileInputRef}
               onChange={handleFileChange}
-              accept=".sqlite,.db"
+              accept=".json,.sql,.sqlite,.db,.txt,.csv"
               className="hidden"
             />
           </div>
 
           {/* User Profile & Session Menu */}
           {currentUser && (
-            <div className="relative pl-1 border-l border-slate-700/80" ref={dropdownRef}>
+            <div className="relative pl-0.5 sm:pl-1 border-l border-slate-700/80" ref={dropdownRef}>
               <button
                 type="button"
                 id="header-user-menu-btn"
                 onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-                className="flex items-center gap-2 p-1 sm:px-2 sm:py-1 rounded-xl bg-slate-800/80 hover:bg-slate-700/90 border border-slate-700/80 text-white transition active:scale-95"
+                className="flex items-center justify-center gap-2 min-h-[44px] min-w-[44px] p-1 sm:px-2.5 sm:py-1 rounded-xl bg-slate-800/80 hover:bg-slate-700/90 active:bg-slate-700 border border-slate-700/80 text-white transition touch-manipulation active:scale-95"
                 title="Options utilisateur & session"
+                aria-label="Menu utilisateur"
               >
-                <div className={`w-7 h-7 rounded-lg flex items-center justify-center font-bold text-xs ${
+                <div className={`w-7 h-7 sm:w-7 sm:h-7 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 ${
                   currentUser.role === 'ADMIN'
                     ? 'bg-emerald-500/30 text-emerald-300 border border-emerald-500/40'
                     : currentUser.role === 'CAISSE'
@@ -256,11 +264,11 @@ export const Header: React.FC<HeaderProps> = ({
 
               {/* Dropdown Menu */}
               {userDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-56 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl py-2 z-50 animate-fadeIn">
-                  <div className="px-3 py-2 border-b border-slate-800/80">
+                <div className="absolute right-0 mt-2 w-64 max-w-[calc(100vw-20px)] bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl py-2 z-50 animate-fadeIn">
+                  <div className="px-3.5 py-2.5 border-b border-slate-800/80">
                     <div className="font-bold text-xs text-white">{currentUser.nom_complet}</div>
                     <div className="text-[11px] text-slate-400 font-mono">@{currentUser.username}</div>
-                    <div className="mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold bg-slate-800 text-slate-300 border border-slate-700">
+                    <div className="mt-1.5 inline-flex items-center gap-1 px-2 py-0.5 rounded text-[9px] font-bold bg-slate-800 text-slate-300 border border-slate-700">
                       <ShieldCheck className="w-2.5 h-2.5 text-emerald-400" />
                       Rôle : {currentUser.role}
                     </div>
@@ -275,9 +283,9 @@ export const Header: React.FC<HeaderProps> = ({
                           setUserDropdownOpen(false);
                           onLockScreen();
                         }}
-                        className="w-full px-3 py-2 text-xs text-slate-300 hover:text-white hover:bg-slate-800/80 flex items-center gap-2.5 transition text-left"
+                        className="w-full min-h-[44px] px-3.5 py-2 text-xs text-slate-300 hover:text-white hover:bg-slate-800/80 flex items-center gap-2.5 transition text-left touch-manipulation"
                       >
-                        <Lock className="w-3.5 h-3.5 text-amber-400" />
+                        <Lock className="w-4 h-4 text-amber-400 shrink-0" />
                         <span>Verrouiller l'écran</span>
                       </button>
                     )}
@@ -290,9 +298,9 @@ export const Header: React.FC<HeaderProps> = ({
                           setUserDropdownOpen(false);
                           onOpenUserManagement();
                         }}
-                        className="w-full px-3 py-2 text-xs text-slate-300 hover:text-white hover:bg-slate-800/80 flex items-center gap-2.5 transition text-left"
+                        className="w-full min-h-[44px] px-3.5 py-2 text-xs text-slate-300 hover:text-white hover:bg-slate-800/80 flex items-center gap-2.5 transition text-left touch-manipulation"
                       >
-                        <Users className="w-3.5 h-3.5 text-blue-400" />
+                        <Users className="w-4 h-4 text-blue-400 shrink-0" />
                         <span>Gestion des utilisateurs</span>
                       </button>
                     )}
@@ -307,9 +315,9 @@ export const Header: React.FC<HeaderProps> = ({
                           setUserDropdownOpen(false);
                           onLogout();
                         }}
-                        className="w-full px-3 py-2 text-xs text-rose-400 hover:text-rose-300 hover:bg-rose-950/30 flex items-center gap-2.5 transition text-left font-medium"
+                        className="w-full min-h-[44px] px-3.5 py-2 text-xs text-rose-400 hover:text-rose-300 hover:bg-rose-950/30 flex items-center gap-2.5 transition text-left font-medium touch-manipulation"
                       >
-                        <LogOut className="w-3.5 h-3.5" />
+                        <LogOut className="w-4 h-4 shrink-0" />
                         <span>Déconnexion</span>
                       </button>
                     </div>
@@ -322,22 +330,23 @@ export const Header: React.FC<HeaderProps> = ({
       </div>
 
       {/* Mobile Second Row: Search + Year Selector */}
-      <div className="md:hidden px-3 pb-2.5 pt-0.5 flex items-center gap-2 border-t border-slate-800/60 bg-slate-900/95">
+      <div className="md:hidden px-2.5 pb-2.5 pt-1 flex items-center gap-2 border-t border-slate-800/60 bg-slate-900/95">
         <div className="relative flex-1">
-          <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input
             id="global-search-mobile"
             type="text"
             placeholder="Rechercher BL, Facture, Client..."
             value={globalSearch}
             onChange={(e) => setGlobalSearch(e.target.value)}
-            className="w-full pl-8 pr-7 py-1.5 text-xs bg-slate-800 text-slate-100 placeholder-slate-400 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full pl-9 pr-9 min-h-[44px] text-xs bg-slate-800 text-slate-100 placeholder-slate-400 rounded-xl border border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           {globalSearch && (
             <button
               type="button"
               onClick={() => setGlobalSearch('')}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-slate-400 hover:text-white"
+              className="absolute right-1 top-1/2 -translate-y-1/2 min-w-[36px] min-h-[36px] flex items-center justify-center text-xs text-slate-400 hover:text-white rounded-lg active:scale-95"
+              aria-label="Effacer la recherche"
             >
               ✕
             </button>
@@ -348,13 +357,22 @@ export const Header: React.FC<HeaderProps> = ({
           id="year-select-mobile"
           value={selectedYear}
           onChange={(e) => setSelectedYear(e.target.value)}
-          className="bg-slate-800 text-slate-200 text-xs font-semibold py-1.5 px-2 rounded-lg border border-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-500 shrink-0"
+          className="bg-slate-800 text-slate-200 text-xs font-semibold min-h-[44px] px-2.5 rounded-xl border border-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-500 shrink-0 touch-manipulation cursor-pointer"
         >
           <option value="2026">2026</option>
           <option value="2025">2025</option>
           <option value="TOUS">Tous</option>
         </select>
       </div>
+
+      {/* Direct Import Modal from Header */}
+      <ImportNeonModal
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
+        onSuccess={() => {
+          if (onDataReload) onDataReload();
+        }}
+      />
     </header>
   );
 };

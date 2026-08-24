@@ -31,6 +31,7 @@ import {
   Server,
 } from 'lucide-react';
 import { DatabaseProgressModal } from './DatabaseProgressModal';
+import { ImportNeonModal } from './ImportNeonModal';
 import { DbImportProgress, DbImportSummary, DatabaseHealthInfo } from '@/lib/types';
 
 interface SqliteConsoleViewProps {
@@ -51,6 +52,7 @@ export const SqliteConsoleView: React.FC<SqliteConsoleViewProps> = ({ onDatabase
 
   // Progress Modal state
   const [isProgressModalOpen, setIsProgressModalOpen] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [importProgress, setImportProgress] = useState<DbImportProgress | null>(null);
   const [importSummary, setImportSummary] = useState<DbImportSummary | null>(null);
 
@@ -158,6 +160,14 @@ export const SqliteConsoleView: React.FC<SqliteConsoleViewProps> = ({ onDatabase
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isRefreshingHealth ? 'animate-spin' : ''}`} />
             Actualiser
+          </button>
+          <button
+            type="button"
+            onClick={() => setIsImportModalOpen(true)}
+            className="flex items-center gap-2 px-3.5 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-semibold shadow-sm transition"
+          >
+            <Upload className="w-3.5 h-3.5" />
+            Importer DB vers Neon
           </button>
           <button
             type="button"
@@ -313,6 +323,16 @@ export const SqliteConsoleView: React.FC<SqliteConsoleViewProps> = ({ onDatabase
           onClose={() => setIsProgressModalOpen(false)}
         />
       )}
+
+      {/* Direct Import to Neon Modal */}
+      <ImportNeonModal
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
+        onSuccess={() => {
+          refreshHealth();
+          onDatabaseChanged();
+        }}
+      />
     </div>
   );
 };
