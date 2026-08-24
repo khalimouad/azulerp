@@ -173,6 +173,10 @@ export default function Home() {
     br_en_attente_count: 0,
     br_en_attente_total: 0,
     clients_count: 0,
+    produits_count: 0,
+    fournisseurs_count: 0,
+    familles_count: 0,
+    categories_count: 0,
     stock_alerts_count: 0,
   });
   const [supplierAlertsCount, setSupplierAlertsCount] = useState(0);
@@ -239,6 +243,10 @@ export default function Home() {
         setClients(data.clients || []);
         setProduits(data.produits || []);
         setFournisseurs(data.fournisseurs || []);
+        setBonsLivraison(data.bons_livraison || []);
+        setFactures(data.factures || []);
+        setIsBlLoaded(true);
+        setIsFacturesLoaded(true);
         setDevisList(data.devis || []);
         setReglements(data.reglements || []);
         setStockMouvements(data.stock_mouvements || []);
@@ -276,6 +284,10 @@ export default function Home() {
           br_en_attente_count: (data.bons_retour || []).filter((b: any) => b.statut === 'En attente').length,
           br_en_attente_total: (data.bons_retour || []).filter((b: any) => b.statut === 'En attente').reduce((sum: number, b: any) => sum + Number(b.total_ttc || 0), 0),
           clients_count: clientsList.length,
+          produits_count: produitsList.length,
+          fournisseurs_count: (data.fournisseurs || []).length,
+          familles_count: (data.familles || []).length,
+          categories_count: (data.categories || []).length,
           stock_alerts_count: stockAlerts,
         });
 

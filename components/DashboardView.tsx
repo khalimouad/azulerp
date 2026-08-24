@@ -53,15 +53,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 Exercice 2026
               </span>
               <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
-                Base Officielle Active
+                Neon PostgreSQL connecté
               </span>
-              <span className="text-xs text-slate-400 hidden sm:inline">Dernière synchro SQLite : Instantanée</span>
+              <span className="text-xs text-slate-400 hidden sm:inline">Dernière synchronisation cloud : instantanée</span>
             </div>
             <h2 className="text-xl sm:text-2xl font-bold tracking-tight mt-1 text-white">
               Tableau de Bord Commercial & Ventes
             </h2>
             <p className="text-xs text-slate-300 mt-0.5">
-              Base de données officielle chargée : 792 Articles · 215 Clients · 24 Fournisseurs · 110 Familles
+              Données Neon en direct : {stats.produits_count ?? 0} articles · {stats.clients_count} clients · {stats.fournisseurs_count ?? 0} fournisseurs · {stats.familles_count ?? 0} familles
             </p>
           </div>
 
@@ -100,7 +100,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           >
             <div>
               <div className="text-[10px] text-slate-400 uppercase font-semibold">Catalogue Articles</div>
-              <div className="text-sm font-bold text-emerald-400">792 Produits</div>
+              <div className="text-sm font-bold text-emerald-400">{stats.produits_count ?? 0} Produits</div>
             </div>
             <Package className="w-4 h-4 text-slate-400" />
           </button>
@@ -111,7 +111,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           >
             <div>
               <div className="text-[10px] text-slate-400 uppercase font-semibold">Clients B2B</div>
-              <div className="text-sm font-bold text-blue-400">{stats.clients_count || 215} Clients</div>
+              <div className="text-sm font-bold text-blue-400">{stats.clients_count} Clients</div>
             </div>
             <Users className="w-4 h-4 text-slate-400" />
           </button>
@@ -122,7 +122,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           >
             <div>
               <div className="text-[10px] text-slate-400 uppercase font-semibold">Fournisseurs</div>
-              <div className="text-sm font-bold text-amber-400">24 Fournisseurs</div>
+              <div className="text-sm font-bold text-amber-400">{stats.fournisseurs_count ?? 0} Fournisseurs</div>
             </div>
             <Truck className="w-4 h-4 text-slate-400" />
           </button>
@@ -133,7 +133,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           >
             <div>
               <div className="text-[10px] text-slate-400 uppercase font-semibold">Structure Produits</div>
-              <div className="text-sm font-bold text-purple-400">110 Familles · 10 Cat.</div>
+              <div className="text-sm font-bold text-purple-400">{stats.familles_count ?? 0} Familles · {stats.categories_count ?? 0} Cat.</div>
             </div>
             <Workflow className="w-4 h-4 text-slate-400" />
           </button>

@@ -378,6 +378,10 @@ export interface DashboardStats {
   br_en_attente_count?: number;
   br_en_attente_total?: number;
   clients_count: number;
+  produits_count?: number;
+  fournisseurs_count?: number;
+  familles_count?: number;
+  categories_count?: number;
   stock_alerts_count: number;
 }
 
