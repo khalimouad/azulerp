@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Facture, Client } from '@/lib/types';
 import { formatCurrency } from '@/lib/utils';
 import {
@@ -11,19 +11,22 @@ import {
   Calendar,
   DollarSign,
   FileText,
+  Search,
 } from 'lucide-react';
 
 interface PaymentViewProps {
   facture?: Facture | null;
+  factures: Facture[];
   clients: Client[];
   onBack: () => void;
   onSave: (paymentData: {
     facture_id?: number;
+    facture_numero?: string;
     client_id: number;
     client_nom: string;
     date: string;
     montant: number;
-    mode: string;
+    mode_reglement: string;
     reference_paiement?: string;
     banque?: string;
     notes?: string;
@@ -32,6 +35,7 @@ interface PaymentViewProps {
 
 export const PaymentView: React.FC<PaymentViewProps> = ({
   facture,
+  factures,
   clients,
   onBack,
   onSave,
@@ -40,6 +44,7 @@ export const PaymentView: React.FC<PaymentViewProps> = ({
     facture?.client_id || clients[0]?.id || 0
   );
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [factureId, setFactureId] = useState<number>(facture?.id || 0);
   const [montant, setMontant] = useState<number>(
     facture ? (facture.reste_a_payer > 0 ? facture.reste_a_payer : facture.total_ttc) : 0
   );
@@ -47,9 +52,51 @@ export const PaymentView: React.FC<PaymentViewProps> = ({
   const [banque, setBanque] = useState<string>('Attijariwafa Bank');
   const [refPaiement, setRefPaiement] = useState<string>('');
   const [notes, setNotes] = useState<string>('');
+  const [clientQuery, setClientQuery] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
-  const selectedClient = clients.find((c) => c.id === clientId) || clients[0];
+  const selectedClient = clients.find((c) => c.id === clientId);
+  const visibleClients = useMemo(() => {
+    const query = clientQuery.trim().toLocaleLowerCase('fr');
+    if (!query) return clients;
+    return clients.filter((client) =>
+      `${client.nom} ${client.code || ''} ${client.ville || ''} ${client.ice || ''}`
+        .toLocaleLowerCase('fr')
+        .includes(query)
+    );
+  }, [clientQuery, clients]);
+  const payableFactures = useMemo(
+    () =>
+      factures
+        .filter(
+          (item) =>
+            Number(item.client_id) === Number(clientId) &&
+            Number(item.reste_a_payer || 0) > 0.009 &&
+            item.etat !== 'Annulé'
+        )
+        .sort((a, b) => b.date.localeCompare(a.date) || Number(b.id) - Number(a.id)),
+    [clientId, factures]
+  );
+  const selectedFacture = facture || payableFactures.find((item) => Number(item.id) === factureId);
+
+  useEffect(() => {
+    if (!facture && !selectedClient && clients[0]) setClientId(clients[0].id);
+  }, [clients, facture, selectedClient]);
+
+  useEffect(() => {
+    if (facture) {
+      setFactureId(facture.id);
+      setClientId(facture.client_id);
+      return;
+    }
+    const stillAvailable = payableFactures.some((item) => Number(item.id) === factureId);
+    if (!stillAvailable) setFactureId(payableFactures[0]?.id || 0);
+  }, [facture, factureId, payableFactures]);
+
+  useEffect(() => {
+    if (!selectedFacture) return;
+    setMontant(Number(selectedFacture.reste_a_payer || selectedFacture.total_ttc || 0));
+  }, [selectedFacture]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,21 +104,29 @@ export const PaymentView: React.FC<PaymentViewProps> = ({
       alert('Le montant du règlement doit être supérieur à zéro.');
       return;
     }
+    if (!selectedClient) {
+      alert('Veuillez sélectionner un client valide.');
+      return;
+    }
+    if (!selectedFacture) {
+      alert('Veuillez sélectionner une facture impayée pour associer cet encaissement.');
+      return;
+    }
 
     setIsSaving(true);
     try {
       await onSave({
-        facture_id: facture?.id,
+        facture_id: selectedFacture.id,
+        facture_numero: selectedFacture.numero,
         client_id: selectedClient.id,
         client_nom: selectedClient.nom,
         date,
         montant,
-        mode,
+        mode_reglement: mode,
         reference_paiement: refPaiement,
         banque,
         notes,
       });
-      onBack();
     } catch (err: any) {
       alert('Erreur: ' + (err?.message || 'Erreur inconnue'));
     } finally {
@@ -117,7 +172,7 @@ export const PaymentView: React.FC<PaymentViewProps> = ({
           <button
             type="button"
             onClick={handleSubmit}
-            disabled={isSaving}
+            disabled={isSaving || !selectedClient || !selectedFacture}
             className="flex items-center gap-1.5 px-5 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-xs transition active:scale-95 disabled:opacity-50"
           >
             <Save className="w-4 h-4" />
@@ -129,20 +184,20 @@ export const PaymentView: React.FC<PaymentViewProps> = ({
       {/* Main Form */}
       <form onSubmit={handleSubmit} className="space-y-5">
         {/* Facture Info Banner if linked */}
-        {facture && (
+        {selectedFacture && (
           <div className="bg-blue-50 p-4 rounded-xl border border-blue-200 flex flex-wrap items-center justify-between gap-3 text-xs">
             <div>
-              <span className="font-bold text-blue-900 text-sm">Facture N° {facture.numero}</span>
-              <p className="text-blue-700 mt-0.5">Date : {facture.date} • Client : {facture.client_nom}</p>
+              <span className="font-bold text-blue-900 text-sm">Facture N° {selectedFacture.numero}</span>
+              <p className="text-blue-700 mt-0.5">Date : {selectedFacture.date} • Client : {selectedFacture.client_nom}</p>
             </div>
             <div className="flex items-center gap-4">
               <div className="text-right">
                 <span className="text-slate-500 block">Total Facture TTC</span>
-                <strong className="text-slate-900 font-mono text-sm">{formatCurrency(facture.total_ttc)}</strong>
+                <strong className="text-slate-900 font-mono text-sm">{formatCurrency(selectedFacture.total_ttc)}</strong>
               </div>
               <div className="text-right">
                 <span className="text-slate-500 block">Reste à Payer</span>
-                <strong className="text-red-600 font-mono text-sm">{formatCurrency(facture.reste_a_payer)}</strong>
+                <strong className="text-red-600 font-mono text-sm">{formatCurrency(selectedFacture.reste_a_payer)}</strong>
               </div>
             </div>
           </div>
@@ -152,15 +207,50 @@ export const PaymentView: React.FC<PaymentViewProps> = ({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1.5">Client *</label>
+              {!facture && (
+                <div className="relative mb-2">
+                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="search"
+                    value={clientQuery}
+                    onChange={(e) => setClientQuery(e.target.value)}
+                    placeholder="Rechercher par nom, code, ville ou ICE…"
+                    className="w-full rounded-lg border border-slate-300 bg-white py-2 pl-9 pr-3 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+              )}
               <select
                 value={clientId}
                 onChange={(e) => setClientId(Number(e.target.value))}
                 disabled={!!facture}
                 className="w-full px-3.5 py-2 text-xs bg-white rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium disabled:bg-slate-100"
               >
-                {clients.map((c) => (
+                {visibleClients.length === 0 && <option value="">Aucun client trouvé</option>}
+                {visibleClients.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.nom} {c.ville ? `(${c.ville})` : ''} - Solde: {formatCurrency(c.solde || 0)}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                Facture impayée à encaisser *
+              </label>
+              <select
+                value={selectedFacture?.id || ''}
+                onChange={(e) => setFactureId(Number(e.target.value))}
+                disabled={!!facture}
+                required
+                className="w-full px-3.5 py-2 text-xs bg-white rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium disabled:bg-slate-100"
+              >
+                {payableFactures.length === 0 && !facture && (
+                  <option value="">Aucune facture impayée pour ce client</option>
+                )}
+                {(facture ? [facture] : payableFactures).map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.numero} — {item.date} — Reste {formatCurrency(item.reste_a_payer)}
                   </option>
                 ))}
               </select>
@@ -263,7 +353,7 @@ export const PaymentView: React.FC<PaymentViewProps> = ({
           <button
             type="button"
             onClick={handleSubmit}
-            disabled={isSaving}
+            disabled={isSaving || !selectedClient || !selectedFacture}
             className="flex items-center gap-2 px-6 py-2.5 text-xs sm:text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-xs transition active:scale-95 disabled:opacity-50"
           >
             <Save className="w-4 h-4" />

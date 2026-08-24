@@ -161,6 +161,10 @@ export const DocumentPreviewView: React.FC<DocumentPreviewViewProps> = ({
     }
     if (company.ville) addrLines.push(company.ville);
   }
+  const blocLineIndex = addrLines.findIndex((line) => /^bloc\s+f$/i.test(line));
+  if (blocLineIndex >= 0 && /^magasin\s+n[°ºo]?\s*20$/i.test(addrLines[blocLineIndex + 1] || '')) {
+    addrLines.splice(blocLineIndex, 2, `${addrLines[blocLineIndex]}, ${addrLines[blocLineIndex + 1]}`);
+  }
 
   // Partner / coop lines
   const partnerLines = (company.partenaire_coop || '')
@@ -250,7 +254,7 @@ export const DocumentPreviewView: React.FC<DocumentPreviewViewProps> = ({
         }`}
       >
         {/* 1. TOP HEADER (3 Columns: Company Info / Logo, Emblem Logo, Legal Details) */}
-        <div className="grid grid-cols-[34%_40%_26%] gap-2 items-start pb-1">
+        <div className="grid grid-cols-[33%_37%_30%] gap-2 items-start pb-1">
           {/* Left: Company Logo / Name & address */}
           <div className="text-[10.5px] leading-[1.2] space-y-0.5 text-slate-950 font-semibold text-left">
             {company.logo_image && company.logo_placement !== 'center' ? (
@@ -320,35 +324,35 @@ export const DocumentPreviewView: React.FC<DocumentPreviewViewProps> = ({
           </div>
 
           {/* Right: Legal & Fiscal Identifiers */}
-          <div className="text-[10.5px] leading-relaxed text-left font-semibold space-y-0.5 pl-2">
+          <div className="min-w-0 text-[10px] leading-relaxed text-left font-semibold space-y-0.5 pl-1">
             {company.rc && (
-              <div className="grid grid-cols-[42px_1fr] gap-1">
+              <div className="grid grid-cols-[38px_minmax(0,1fr)] gap-1">
                 <span className="font-bold text-slate-800">RC :</span>
                 <span>{company.rc}</span>
               </div>
             )}
             {company.if_fiscal && (
-              <div className="grid grid-cols-[42px_1fr] gap-1">
+              <div className="grid grid-cols-[38px_minmax(0,1fr)] gap-1">
                 <span className="font-bold text-slate-800">IF :</span>
                 <span>{company.if_fiscal}</span>
               </div>
             )}
             {company.patente && (
-              <div className="grid grid-cols-[42px_1fr] gap-1">
+              <div className="grid grid-cols-[38px_minmax(0,1fr)] gap-1">
                 <span className="font-bold text-slate-800">PAT :</span>
                 <span>{company.patente}</span>
               </div>
             )}
             {company.cnss && (
-              <div className="grid grid-cols-[42px_1fr] gap-1">
+              <div className="grid grid-cols-[38px_minmax(0,1fr)] gap-1">
                 <span className="font-bold text-slate-800">CNSS :</span>
                 <span>{company.cnss}</span>
               </div>
             )}
             {company.ice && (
-              <div className="grid grid-cols-[42px_1fr] gap-1">
+              <div className="grid grid-cols-[38px_minmax(0,1fr)] gap-1">
                 <span className="font-bold text-slate-800">ICE :</span>
-                <span className="font-bold text-slate-950">{company.ice}</span>
+                <span className="whitespace-nowrap text-[9.5px] tracking-[-0.025em] font-bold text-slate-950">{company.ice}</span>
               </div>
             )}
           </div>

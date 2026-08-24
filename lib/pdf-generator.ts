@@ -88,8 +88,14 @@ function drawVerdeOrtoHeader(
       .map((l) => l.trim())
       .filter(Boolean);
   } else {
-    if (company.adresse) addrLines.push(company.adresse);
+    if (company.adresse) {
+      addrLines.push(...company.adresse.split(',').map((line) => line.trim()).filter(Boolean));
+    }
     if (company.ville) addrLines.push(company.ville);
+  }
+  const blocLineIndex = addrLines.findIndex((line) => /^bloc\s+f$/i.test(line));
+  if (blocLineIndex >= 0 && /^magasin\s+n[°ºo]?\s*20$/i.test(addrLines[blocLineIndex + 1] || '')) {
+    addrLines.splice(blocLineIndex, 2, `${addrLines[blocLineIndex]}, ${addrLines[blocLineIndex + 1]}`);
   }
 
   for (const line of addrLines) {

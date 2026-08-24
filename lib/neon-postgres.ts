@@ -82,7 +82,7 @@ CREATE TABLE IF NOT EXISTS company_info (
   code_postal VARCHAR(20) DEFAULT '40000',
   ville VARCHAR(100) DEFAULT 'Marrakech',
   pays VARCHAR(100) DEFAULT 'Maroc',
-  telephone VARCHAR(50) DEFAULT '0808551156',
+  telephone VARCHAR(50) DEFAULT '0808551156 / 0678301643',
   fax VARCHAR(50),
   email VARCHAR(150) DEFAULT 'verdeorto@gmail.com',
   site_web VARCHAR(255),
@@ -621,7 +621,7 @@ export async function initNeonPostgresSchema(customUrl?: string) {
       code_postal VARCHAR(20) DEFAULT '40000',
       ville VARCHAR(100) DEFAULT 'Marrakech',
       pays VARCHAR(100) DEFAULT 'Maroc',
-      telephone VARCHAR(50) DEFAULT '0808551156',
+      telephone VARCHAR(50) DEFAULT '0808551156 / 0678301643',
       fax VARCHAR(50),
       email VARCHAR(150) DEFAULT 'verdeorto@gmail.com',
       site_web VARCHAR(255),
@@ -1221,7 +1221,7 @@ export async function initNeonPostgresSchema(customUrl?: string) {
         ) VALUES (
           'VERDEORTO SARL AU', 'SARL AU', '100 000,00',
           'Avenue Al Mouqaouama, Quartier Ain Merroudi, Résidence DaVinci, Bloc F, Magasin N°20',
-          '40000', 'Marrakech', 'Maroc', '0808551156', 'verdeorto@gmail.com',
+          '40000', 'Marrakech', 'Maroc', '0808551156 / 0678301643', 'verdeorto@gmail.com',
           '000194441000024', '3381764', '35265', '7788302', '46201837',
           'Banque Populaire', '145 450 21211 2604506 000 4 11'
         );

@@ -32,6 +32,12 @@ interface CreateBlViewProps {
     notes?: string;
     mode_reglement?: string;
     etat: DocumentState;
+    total_ht: number;
+    tva_20: number;
+    tva_10: number;
+    total_tva: number;
+    total_ttc: number;
+    montant_brut: number;
     lignes: Omit<BonLivraisonLigne, 'id' | 'bon_livraison_id'>[];
   }) => Promise<void>;
 }
@@ -167,6 +173,13 @@ export const CreateBlView: React.FC<CreateBlViewProps> = ({
   const totalHt = calculated.reduce((acc, curr) => acc + curr.total_ht, 0);
   const totalTva = calculated.reduce((acc, curr) => acc + curr.total_tva, 0);
   const totalTtc = totalHt + totalTva;
+  const tva10 = calculated
+    .filter((line) => Number(line.taux_tva) === 10)
+    .reduce((sum, line) => sum + line.total_tva, 0);
+  const tva20 = calculated
+    .filter((line) => Number(line.taux_tva) === 20)
+    .reduce((sum, line) => sum + line.total_tva, 0);
+  const montantBrut = lignes.reduce((sum, line) => sum + line.quantite * line.prix_ht, 0);
 
   const handleSaveWithState = async (targetState: DocumentState) => {
     if (!selectedClient) {
@@ -190,6 +203,12 @@ export const CreateBlView: React.FC<CreateBlViewProps> = ({
         mode_reglement: modeReglement,
         notes,
         etat: targetState,
+        total_ht: totalHt,
+        tva_20: tva20,
+        tva_10: tva10,
+        total_tva: totalTva,
+        total_ttc: totalTtc,
+        montant_brut: montantBrut,
         lignes: calculated,
       });
     } catch (err: any) {

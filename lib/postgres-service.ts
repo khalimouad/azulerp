@@ -50,7 +50,7 @@ function getFallbackData() {
       code_postal: '40000',
       ville: 'Marrakech',
       pays: 'Maroc',
-      telephone: '0808551156',
+      telephone: '0808551156 / 0678301643',
       email: 'verdeorto@gmail.com',
     },
     clients: [],
@@ -542,7 +542,7 @@ export async function deleteDevis(id: number): Promise<void> {
 // ----------------------------------------------------------------------------
 
 export async function createReglement(reglement: Partial<Reglement>): Promise<number> {
-  const res = await apiCall('create_reglement', { reglement });
+  const res = await apiCall('create_reglement', { reglement }, 0);
   await fetchAllData();
   return res.id;
 }

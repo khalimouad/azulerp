@@ -165,7 +165,7 @@ export default function Home() {
     code_postal: '40000',
     ville: 'Marrakech',
     pays: 'Maroc',
-    telephone: '0808551156',
+    telephone: '0808551156 / 0678301643',
     email: 'verdeorto@gmail.com',
   });
   const [stats, setStats] = useState<DashboardStats>({
@@ -1301,6 +1301,7 @@ export default function Home() {
           {currentTab === 'create-payment' && (
             <PaymentView
               facture={paymentFacture}
+              factures={factures}
               clients={clients}
               onBack={() => setCurrentTab('reglements')}
               onSave={async (pData) => {

@@ -48,7 +48,7 @@ function getFallbackStore() {
         code_postal: '40000',
         ville: 'Marrakech',
         pays: 'Maroc',
-        telephone: '0808551156',
+        telephone: '0808551156 / 0678301643',
         fax: '',
         email: 'verdeorto@gmail.com',
         site_web: '',
@@ -316,6 +316,16 @@ export async function POST(req: NextRequest) {
           const { bl, lignes } = payload;
           const maxIdRes: any = await sql`SELECT COALESCE(MAX(id), 0) + 1 as next_id FROM bons_livraison;`;
           const blId = maxIdRes[0]?.next_id || 1;
+          const documentDate = String(bl.date || new Date().toISOString().slice(0, 10));
+          const yearSuffix = documentDate.slice(2, 4);
+          const requestedNumero = String(bl.numero || '').trim();
+          const nextNumeroRes: any = await sql`
+            SELECT COALESCE(MAX(split_part(numero, '/', 1)::bigint), 0) + 1 AS next_numero
+            FROM bons_livraison
+            WHERE numero ~ '^[0-9]+/[0-9]{2}$'
+              AND split_part(numero, '/', 2) = ${yearSuffix};
+          `;
+          const blNumero = requestedNumero || `${nextNumeroRes[0]?.next_numero || 1}/${yearSuffix}`;
 
           await sql`
             INSERT INTO bons_livraison (
@@ -323,7 +333,7 @@ export async function POST(req: NextRequest) {
               total_ht, tva_20, tva_10, total_tva, total_ttc, montant_brut, remise_pct, ristourne_pct,
               escompte_pct, port, statut, etat, mode_reglement, notes
             ) VALUES (
-              ${blId}, ${bl.numero}, ${bl.date}, ${bl.client_id}, ${bl.client_nom}, ${bl.client_ice || ''},
+              ${blId}, ${blNumero}, ${documentDate}, ${bl.client_id}, ${bl.client_nom}, ${bl.client_ice || ''},
               ${bl.client_adresse || ''}, ${bl.client_ville || ''}, ${num(bl.total_ht)}, ${num(bl.tva_20)},
               ${num(bl.tva_10)}, ${num(bl.total_tva)}, ${num(bl.total_ttc)}, ${num(bl.montant_brut)},
               ${num(bl.remise_pct)}, ${num(bl.ristourne_pct)}, ${num(bl.escompte_pct)}, ${num(bl.port)},
@@ -358,7 +368,12 @@ export async function POST(req: NextRequest) {
             }
           }
 
-          return NextResponse.json({ success: true, id: blId, message: 'Bon de livraison créé avec succès' });
+          return NextResponse.json({
+            success: true,
+            id: blId,
+            numero: blNumero,
+            message: `Bon de livraison ${blNumero} créé avec succès`,
+          });
         }
 
         case 'update_bon_livraison_state': {
@@ -649,33 +664,109 @@ export async function POST(req: NextRequest) {
         // --- REGLEMENTS ---
         case 'create_reglement': {
           const { reglement } = payload;
+          const amount = num(reglement.montant);
+          if (amount <= 0) {
+            return NextResponse.json(
+              { success: false, error: 'Le montant du règlement doit être supérieur à zéro.' },
+              { status: 400 }
+            );
+          }
+
+          let factureId = reglement.facture_id ? Number(reglement.facture_id) : null;
+          let factureNumero = String(reglement.facture_numero || '');
+          let clientId = Number(reglement.client_id || 0);
+          let clientNom = String(reglement.client_nom || '');
+
+          // The invoice is the source of truth for the customer. This prevents a
+          // payment selected for one invoice from being saved on another customer.
+          if (factureId) {
+            const linkedFacture: any = await sql`
+              SELECT id, numero, client_id, client_nom,
+                     GREATEST(COALESCE(reste_a_payer, total_ttc - COALESCE(montant_regle, 0)), 0) AS reste
+              FROM factures
+              WHERE id = ${factureId};
+            `;
+            if (!linkedFacture.length) {
+              return NextResponse.json(
+                { success: false, error: 'La facture sélectionnée est introuvable.' },
+                { status: 404 }
+              );
+            }
+            factureNumero = linkedFacture[0].numero;
+            clientId = Number(linkedFacture[0].client_id);
+            clientNom = linkedFacture[0].client_nom;
+            if (amount > num(linkedFacture[0].reste) + 0.009) {
+              return NextResponse.json(
+                { success: false, error: 'Le montant dépasse le reste à payer de la facture.' },
+                { status: 409 }
+              );
+            }
+          } else {
+            const clientRes: any = await sql`SELECT id, nom FROM clients WHERE id = ${clientId};`;
+            if (!clientRes.length) {
+              return NextResponse.json(
+                { success: false, error: 'Veuillez sélectionner un client valide.' },
+                { status: 400 }
+              );
+            }
+            clientNom = clientRes[0].nom;
+          }
+
+          // A short idempotency window makes an automatic network retry safe.
+          const duplicateRes: any = await sql`
+            SELECT id
+            FROM reglements
+            WHERE facture_id IS NOT DISTINCT FROM ${factureId}
+              AND client_id = ${clientId}
+              AND date = ${reglement.date}
+              AND montant = ${amount}
+              AND COALESCE(reference_paiement, '') = ${reglement.reference_paiement || ''}
+              AND created_at >= NOW() - INTERVAL '2 minutes'
+            ORDER BY id DESC
+            LIMIT 1;
+          `;
+          if (duplicateRes.length) {
+            return NextResponse.json({
+              success: true,
+              id: Number(duplicateRes[0].id),
+              duplicate: true,
+              message: 'Règlement déjà enregistré',
+            });
+          }
+
           const maxIdRes: any = await sql`SELECT COALESCE(MAX(id), 0) + 1 as next_id FROM reglements;`;
           const regId = maxIdRes[0]?.next_id || 1;
+          const paymentMode = reglement.mode_reglement || reglement.mode || 'Virement';
 
           await sql`
             INSERT INTO reglements (
-              id, facture_id, facture_numero, client_id, client_nom, date, montant, mode_reglement, reference_paiement
+              id, facture_id, facture_numero, client_id, client_nom, date, montant,
+              mode_reglement, mode, reference_paiement, banque, notes
             ) VALUES (
-              ${regId}, ${reglement.facture_id || null}, ${reglement.facture_numero || ''},
-              ${reglement.client_id}, ${reglement.client_nom}, ${reglement.date},
-              ${num(reglement.montant)}, ${reglement.mode_reglement || 'Virement'}, ${reglement.reference_paiement || ''}
+              ${regId}, ${factureId}, ${factureNumero}, ${clientId}, ${clientNom}, ${reglement.date},
+              ${amount}, ${paymentMode}, ${paymentMode}, ${reglement.reference_paiement || ''},
+              ${reglement.banque || ''}, ${reglement.notes || ''}
             );
           `;
 
           // Update facture paid amount if linked
-          if (reglement.facture_id) {
-            const factRes: any = await sql`SELECT total_ttc, montant_regle FROM factures WHERE id = ${reglement.facture_id};`;
+          if (factureId) {
+            const factRes: any = await sql`
+              SELECT f.total_ttc,
+                     COALESCE((SELECT SUM(r.montant) FROM reglements r WHERE r.facture_id = f.id), 0) AS total_paid
+              FROM factures f
+              WHERE f.id = ${factureId};
+            `;
             if (factRes && factRes.length > 0) {
               const totalTtc = num(factRes[0].total_ttc);
-              const alreadyPaid = num(factRes[0].montant_regle);
-              const newPaid = alreadyPaid + num(reglement.montant);
+              const newPaid = num(factRes[0].total_paid);
               const newReste = Math.max(0, totalTtc - newPaid);
               const newStatut = newReste <= 0.01 ? 'Payé' : newPaid > 0 ? 'Partiel' : 'Impayé';
 
               await sql`
                 UPDATE factures 
                 SET montant_regle = ${newPaid}, reste_a_payer = ${newReste}, statut_paiement = ${newStatut}
-                WHERE id = ${reglement.facture_id};
+                WHERE id = ${factureId};
               `;
             }
           }
@@ -688,7 +779,7 @@ export async function POST(req: NextRequest) {
               WHERE f.client_id = c.id
                 AND GREATEST(COALESCE(f.reste_a_payer, COALESCE(f.total_ttc, 0) - COALESCE(f.montant_regle, 0)), 0) > 0.009
             ), 0)
-            WHERE c.id = ${reglement.client_id};
+            WHERE c.id = ${clientId};
           `;
 
           return NextResponse.json({ success: true, id: regId, message: 'Règlement enregistré' });
