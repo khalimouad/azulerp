@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   initSqliteDatabase,
   fetchAllData,
@@ -130,8 +130,9 @@ export default function Home() {
   const [currentTab, setCurrentTab] = useState('dashboard');
   const [previousTab, setPreviousTab] = useState('dashboard');
   const [globalSearch, setGlobalSearch] = useState('');
-  const [selectedYear, setSelectedYear] = useState('2026');
+  const [selectedYear, setSelectedYear] = useState(() => new Date().getFullYear().toString());
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   // Lazy loading states for heavy list components
   const [isFacturesLoaded, setIsFacturesLoaded] = useState(false);
@@ -185,6 +186,43 @@ export default function Home() {
     stock_alerts_count: 0,
   });
   const [supplierAlertsCount, setSupplierAlertsCount] = useState(0);
+
+  const dashboardStats = useMemo<DashboardStats>(() => {
+    const belongsToExercise = (date?: string) => {
+      if (selectedYear === 'TOUS') return true;
+      const year = String(date || '').match(/(?:19|20)\d{2}/)?.[0];
+      return year === selectedYear;
+    };
+
+    const exerciseFactures = factures.filter((facture) => belongsToExercise(facture.date));
+    const exerciseReglements = reglements.filter((reglement) => belongsToExercise(reglement.date));
+    const pendingBls = bonsLivraison.filter(
+      (bl) => bl.statut === 'En attente' && belongsToExercise(bl.date)
+    );
+    const pendingBrs = bonsRetour.filter(
+      (br) => br.statut === 'En attente' && belongsToExercise(br.date)
+    );
+
+    return {
+      ...stats,
+      total_facture_ht: exerciseFactures.reduce((sum, facture) => sum + Number(facture.total_ht || 0), 0),
+      total_facture_ttc: exerciseFactures.reduce((sum, facture) => sum + Number(facture.total_ttc || 0), 0),
+      total_encaisse: exerciseReglements.reduce((sum, reglement) => sum + Number(reglement.montant || 0), 0),
+      total_impaye: exerciseFactures.reduce(
+        (sum, facture) => sum + Math.max(0, Number(
+          facture.reste_a_payer !== undefined
+            ? facture.reste_a_payer
+            : Number(facture.total_ttc || 0) - Number(facture.montant_regle || 0)
+        )),
+        0
+      ),
+      factures_count: exerciseFactures.length,
+      bl_en_attente_count: pendingBls.length,
+      bl_en_attente_total: pendingBls.reduce((sum, bl) => sum + Number(bl.total_ttc || 0), 0),
+      br_en_attente_count: pendingBrs.length,
+      br_en_attente_total: pendingBrs.reduce((sum, br) => sum + Number(br.total_ttc || 0), 0),
+    };
+  }, [selectedYear, factures, reglements, bonsLivraison, bonsRetour, stats]);
 
   // Selected entities for edit/preview
   const [clientToEdit, setClientToEdit] = useState<Client | null>(null);
@@ -643,6 +681,8 @@ export default function Home() {
           supplierAlertsCount={supplierAlertsCount}
           mobileOpen={mobileMenuOpen}
           setMobileOpen={setMobileMenuOpen}
+          collapsed={sidebarCollapsed}
+          setCollapsed={setSidebarCollapsed}
           currentUser={currentUser}
           onLogout={handleLogout}
           onLockScreen={() => setIsScreenLocked(true)}
@@ -650,11 +690,12 @@ export default function Home() {
         />
 
         {/* Viewport Content */}
-        <main className="flex-1 p-3 sm:p-6 lg:p-7 max-w-7xl w-full mx-auto overflow-x-hidden pb-24 lg:pb-7">
+        <main className={`flex-1 p-3 sm:p-6 lg:p-7 w-full mx-auto overflow-x-hidden pb-24 lg:pb-7 transition-[max-width] duration-300 ${sidebarCollapsed ? 'max-w-none' : 'max-w-[1600px]'}`}>
           {/* 1. DASHBOARD */}
           {currentTab === 'dashboard' && (
             <DashboardView
-              stats={stats}
+              stats={dashboardStats}
+              exercise={selectedYear}
               recentFactures={factures}
               recentBls={bonsLivraison}
               onNavigate={navigateTo}

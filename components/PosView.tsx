@@ -1200,7 +1200,7 @@ export const PosView: React.FC<PosViewProps> = ({
               <div className="flex-1 flex flex-col overflow-hidden pb-16 md:pb-0">
                 {/* 1. CATEGORIES TILES GRID (When no category selected and not searching) */}
                 {selectedCategory === null && productSearch.trim() === '' ? (
-                  <div className="flex-1 flex flex-col overflow-hidden">
+                  <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
                     {/* Search Bar */}
                     <div className="p-3 pb-2">
                       <div className="relative">
@@ -1269,7 +1269,7 @@ export const PosView: React.FC<PosViewProps> = ({
                   </div>
                 ) : (
                   /* 2. PRODUCTS IN CATEGORY (Clicking dish adds to cart and returns back to categories) */
-                  <div className="flex-1 flex flex-col overflow-hidden">
+                  <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
                     {/* Top navigation bar */}
                     <div className="p-3 bg-slate-900/90 border-b border-slate-800 flex items-center justify-between gap-2.5">
                       <button
@@ -1307,7 +1307,7 @@ export const PosView: React.FC<PosViewProps> = ({
                     </div>
 
                     {/* Dishes Touch Grid */}
-                    <div className="flex-1 p-3 overflow-y-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                    <div className="flex-1 min-h-0 p-3 overflow-y-auto overscroll-contain grid grid-cols-2 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 auto-rows-[220px] content-start gap-3 touch-pan-y">
                       {filteredProducts.map((prod) => {
                         const isAvailable = prod.disponible === 1;
 
@@ -1327,7 +1327,7 @@ export const PosView: React.FC<PosViewProps> = ({
                               showToast(`"${prod.nom}" ajouté à l'addition`);
                             }}
                             disabled={!isAvailable}
-                            className={`group relative text-left rounded-2xl border overflow-hidden transition flex flex-col justify-between active:scale-95 touch-manipulation ${
+                            className={`group relative h-[220px] min-h-[220px] text-left rounded-2xl border overflow-hidden transition flex flex-col justify-between active:scale-95 touch-manipulation ${
                               isAvailable
                                 ? 'bg-slate-900 border-slate-800 hover:border-emerald-500 hover:shadow-xl hover:shadow-emerald-950/40'
                                 : 'bg-slate-900/40 border-slate-800 opacity-50 cursor-not-allowed'

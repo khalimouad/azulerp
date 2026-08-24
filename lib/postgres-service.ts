@@ -149,6 +149,7 @@ export async function fetchAllData(forceRefresh = false) {
         cachedData = {
           ...res.data,
           produits: (res.data.produits || []).map(normalizeProduit),
+          reglements: (res.data.reglements || []).map(normalizeReglement),
           pos_tables: (res.data.pos_tables || []).map(normalizePosTable),
           pos_categories: (res.data.pos_categories || []).map(normalizePosCategory),
           pos_produits: (res.data.pos_produits || []).map(normalizePosProduct),
@@ -204,6 +205,17 @@ function normalizeProduit(produit: any): Produit {
     stock_actuel: Number(produit.stock_actuel || 0),
     stock_min: Number(produit.stock_min || 0),
     stock_virtuel: Number(produit.stock_virtuel || 0),
+  };
+}
+
+function normalizeReglement(reglement: any): Reglement {
+  return {
+    ...reglement,
+    id: Number(reglement.id),
+    client_id: Number(reglement.client_id),
+    facture_id: reglement.facture_id == null ? undefined : Number(reglement.facture_id),
+    piece_id: reglement.piece_id == null ? undefined : Number(reglement.piece_id),
+    montant: Number(reglement.montant || 0),
   };
 }
 

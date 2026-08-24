@@ -91,7 +91,16 @@ export const DocumentPreviewView: React.FC<DocumentPreviewViewProps> = ({
   };
 
   const handlePrint = () => {
+    const originalTitle = document.title;
+    const cleanup = () => {
+      document.body.classList.remove('printing-document');
+      document.title = originalTitle;
+    };
+    document.body.classList.add('printing-document');
+    document.title = '';
+    window.addEventListener('afterprint', cleanup, { once: true });
     window.print();
+    window.setTimeout(cleanup, 1500);
   };
 
   const isFacture = documentType === 'FACTURE';
@@ -115,26 +124,26 @@ export const DocumentPreviewView: React.FC<DocumentPreviewViewProps> = ({
     ? 'Retour aux Bons de Retour'
     : 'Retour aux Devis';
 
-  const totalHt = doc.total_ht || 0;
-  const totalTtc = doc.total_ttc || 0;
+  const totalHt = Number(doc.total_ht || 0);
+  const totalTtc = Number(doc.total_ttc || 0);
   const totalTva = isFacture
-    ? (doc as Facture).total_tva || 0
+    ? Number((doc as Facture).total_tva || 0)
     : isBl
-    ? (doc as BonLivraison).total_tva || 0
+    ? Number((doc as BonLivraison).total_tva || 0)
     : isBr
-    ? (doc as BonRetour).total_tva || 0
-    : (doc as Devis).total_tva || 0;
+    ? Number((doc as BonRetour).total_tva || 0)
+    : Number((doc as Devis).total_tva || 0);
 
   const tva10 = isFacture
-    ? (doc as Facture).tva_10 || 0
+    ? Number((doc as Facture).tva_10 || 0)
     : isBl
-    ? (doc as BonLivraison).tva_10 || 0
+    ? Number((doc as BonLivraison).tva_10 || 0)
     : 0;
 
   const tva20 = isFacture
-    ? (doc as Facture).tva_20 || (totalTva - tva10)
+    ? Number((doc as Facture).tva_20 || (totalTva - tva10))
     : isBl
-    ? (doc as BonLivraison).tva_20 || (totalTva - tva10)
+    ? Number((doc as BonLivraison).tva_20 || (totalTva - tva10))
     : totalTva;
 
   // Address lines dynamically from company settings
@@ -145,7 +154,11 @@ export const DocumentPreviewView: React.FC<DocumentPreviewViewProps> = ({
       .map((l) => l.trim())
       .filter(Boolean);
   } else {
-    if (company.adresse) addrLines.push(company.adresse);
+    if (company.adresse) {
+      addrLines.push(
+        ...company.adresse.split(',').map((line) => line.trim()).filter(Boolean)
+      );
+    }
     if (company.ville) addrLines.push(company.ville);
   }
 
@@ -159,7 +172,8 @@ export const DocumentPreviewView: React.FC<DocumentPreviewViewProps> = ({
   const logoSub = company.logo_sous_titre || '';
 
   return (
-    <div className="space-y-4 animate-in fade-in duration-200">
+    <div className="print-document-root space-y-4 animate-in fade-in duration-200">
+      <style media="print">{`@page { size: ${pageSize}; margin: 8mm; }`}</style>
       {/* Top Action & Navigation Bar */}
       <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 print:hidden">
         <div className="flex items-center gap-3">
@@ -230,14 +244,15 @@ export const DocumentPreviewView: React.FC<DocumentPreviewViewProps> = ({
 
       {/* Official Sheet Presentation */}
       <div
-        className={`bg-white rounded-xl border border-slate-300 shadow-md p-6 sm:p-8 text-slate-900 font-sans mx-auto space-y-4 print:border-none print:shadow-none print:p-0 print:m-0 print:space-y-3 ${
-          pageSize === 'A5' ? 'max-w-2xl' : 'max-w-4xl'
+        data-page-size={pageSize}
+        className={`print-document-sheet bg-white rounded-xl border border-slate-300 shadow-md p-6 sm:p-8 text-slate-950 mx-auto flex flex-col gap-4 [font-family:Arial,Helvetica,sans-serif] print:border-none print:shadow-none print:p-0 print:m-0 print:gap-3 ${
+          pageSize === 'A5' ? 'max-w-2xl min-h-[930px]' : 'max-w-4xl min-h-[1220px]'
         }`}
       >
         {/* 1. TOP HEADER (3 Columns: Company Info / Logo, Emblem Logo, Legal Details) */}
-        <div className="grid grid-cols-3 gap-2 items-start pb-2">
+        <div className="grid grid-cols-[34%_40%_26%] gap-2 items-start pb-1">
           {/* Left: Company Logo / Name & address */}
-          <div className="text-[10.5px] leading-tight space-y-0.5 text-slate-700">
+          <div className="text-[10.5px] leading-[1.2] space-y-0.5 text-slate-950 font-semibold text-left">
             {company.logo_image && company.logo_placement !== 'center' ? (
               <div className="mb-1.5">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -253,32 +268,32 @@ export const DocumentPreviewView: React.FC<DocumentPreviewViewProps> = ({
                 )}
               </div>
             ) : (
-              <h1 className="text-xs font-extrabold text-slate-950 uppercase tracking-tight">
+              <h1 className="text-[13px] font-black text-slate-950 uppercase tracking-wide border-t border-slate-500 pt-1">
                 {company.nom}
               </h1>
             )}
             {addrLines.map((line, idx) => (
-              <p key={idx} className="text-[10px]">
+              <p key={idx} className="text-[10.5px] font-semibold">
                 {line}
               </p>
             ))}
             {company.telephone && (
-              <p className="text-[10px] pt-0.5">Tel : {company.telephone}</p>
+              <p className="text-[10.5px] font-bold pt-1 text-center">Tel : {company.telephone}</p>
             )}
             {company.email && (
-              <p className="text-[10px]">E-Mail : {company.email}</p>
+              <p className="text-[10.5px] font-bold text-center">E-Mail : {company.email}</p>
             )}
           </div>
 
           {/* Center: Logo Emblem / Center Image & Mentions */}
-          <div className="flex flex-col items-center justify-center text-center">
+          <div className="flex flex-col items-center justify-center text-center -mt-2">
             {company.logo_image && company.logo_placement === 'center' ? (
-              <div className="mb-1.5 flex justify-center">
+              <div className="flex w-full justify-center">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={company.logo_image}
                   alt="Logo Entreprise"
-                  className="h-20 w-[230px] object-contain"
+                  className="h-28 w-full max-w-[310px] object-contain"
                 />
               </div>
             ) : (
@@ -295,41 +310,43 @@ export const DocumentPreviewView: React.FC<DocumentPreviewViewProps> = ({
                 </div>
               )
             )}
-            {partnerLines.map((line, idx) => (
-              <div key={idx} className="text-[8.5px] font-bold text-slate-900 leading-tight">
-                {line}
-              </div>
-            ))}
+            <div className="w-full -mt-2 pr-2 text-right">
+              {partnerLines.map((line, idx) => (
+                <div key={idx} className="text-[8.5px] font-black text-slate-950 leading-tight uppercase">
+                  {line}
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* Right: Legal & Fiscal Identifiers */}
-          <div className="text-[10px] leading-relaxed text-right font-mono space-y-0.5">
+          <div className="text-[10.5px] leading-relaxed text-left font-semibold space-y-0.5 pl-2">
             {company.rc && (
-              <div className="flex justify-between sm:justify-end gap-2">
+              <div className="grid grid-cols-[42px_1fr] gap-1">
                 <span className="font-bold text-slate-800">RC :</span>
                 <span>{company.rc}</span>
               </div>
             )}
             {company.if_fiscal && (
-              <div className="flex justify-between sm:justify-end gap-2">
+              <div className="grid grid-cols-[42px_1fr] gap-1">
                 <span className="font-bold text-slate-800">IF :</span>
                 <span>{company.if_fiscal}</span>
               </div>
             )}
             {company.patente && (
-              <div className="flex justify-between sm:justify-end gap-2">
+              <div className="grid grid-cols-[42px_1fr] gap-1">
                 <span className="font-bold text-slate-800">PAT :</span>
                 <span>{company.patente}</span>
               </div>
             )}
             {company.cnss && (
-              <div className="flex justify-between sm:justify-end gap-2">
+              <div className="grid grid-cols-[42px_1fr] gap-1">
                 <span className="font-bold text-slate-800">CNSS :</span>
                 <span>{company.cnss}</span>
               </div>
             )}
             {company.ice && (
-              <div className="flex justify-between sm:justify-end gap-2">
+              <div className="grid grid-cols-[42px_1fr] gap-1">
                 <span className="font-bold text-slate-800">ICE :</span>
                 <span className="font-bold text-slate-950">{company.ice}</span>
               </div>
@@ -340,7 +357,7 @@ export const DocumentPreviewView: React.FC<DocumentPreviewViewProps> = ({
         {/* 2. MIDDLE BOXES (Client on Left, Document Details on Right) */}
         <div className="grid grid-cols-2 gap-3 text-xs">
           {/* Left Box: Client info */}
-          <div className="border border-slate-300 rounded-lg p-2.5 bg-white space-y-0.5">
+          <div className="border border-slate-400 rounded-xl p-3 bg-slate-100/80 space-y-0.5 min-h-24">
             <div className="font-bold text-slate-900 text-[11px]">
               Client : {doc.client_nom}
             </div>
@@ -358,7 +375,7 @@ export const DocumentPreviewView: React.FC<DocumentPreviewViewProps> = ({
           </div>
 
           {/* Right Box: Document Reference */}
-          <div className="border border-slate-300 rounded-lg p-2.5 bg-white space-y-0.5">
+          <div className="border border-slate-400 rounded-xl p-3 bg-slate-100/80 space-y-1 min-h-24">
             <div className="flex justify-between items-center text-[11px]">
               <span className="font-bold text-slate-900">N° de {docTitle} :</span>
               <span className="font-bold font-mono text-slate-950">{doc.numero}</span>
@@ -390,7 +407,7 @@ export const DocumentPreviewView: React.FC<DocumentPreviewViewProps> = ({
 
         {/* 3. DOCUMENT TITLE */}
         <div className="text-center py-1">
-          <h2 className="text-lg font-bold text-slate-900 tracking-tight">
+          <h2 className="text-2xl font-normal text-slate-950 tracking-tight">
             {docTitle}
           </h2>
         </div>
@@ -487,7 +504,7 @@ export const DocumentPreviewView: React.FC<DocumentPreviewViewProps> = ({
           </div>
 
           {/* Right: Numerical Breakdown */}
-          <div className="space-y-1 text-right text-[10.5px]">
+          <div className="space-y-1 text-right text-[10.5px] bg-slate-100 rounded-lg p-2.5">
             <div className="flex justify-between text-slate-700">
               <span>Total HT :</span>
               <span className="font-mono font-semibold">{formatCurrency(totalHt, false)} DH</span>
@@ -504,18 +521,18 @@ export const DocumentPreviewView: React.FC<DocumentPreviewViewProps> = ({
             </div>
 
             {/* Net à payer box */}
-            <div className="border border-blue-500 bg-blue-50/70 rounded-md p-1.5 flex justify-between items-center text-xs font-bold text-slate-950 mt-1">
+            <div className="border border-slate-500 bg-slate-200/80 rounded-lg p-2 flex justify-between items-center text-xs font-black text-slate-950 mt-1">
               <span>Net à payer TTC :</span>
-              <span className="font-mono text-blue-900">{formatCurrency(totalTtc, false)} DH</span>
+              <span>{formatCurrency(totalTtc, false)} DH</span>
             </div>
           </div>
         </div>
 
         {/* 6. BOTTOM FOOTER BANNER (purely from company settings) */}
         {(company.agrement_onssa || company.banque || company.rib) && (
-          <div className="border border-slate-300 rounded-md p-2 text-center text-[9px] text-slate-600 leading-tight space-y-0.5 mt-4">
+          <div className="border border-slate-400 p-2 text-center text-[10px] font-semibold text-slate-900 leading-tight space-y-0.5 mt-auto">
             {company.agrement_onssa && (
-              <div>Agrement ONSSA N° : {company.agrement_onssa}</div>
+              <div>Agrément ONSSA N° : {company.agrement_onssa}</div>
             )}
             {(company.banque || company.rib) && (
               <div>

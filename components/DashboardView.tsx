@@ -20,6 +20,7 @@ import {
 
 interface DashboardViewProps {
   stats: DashboardStats;
+  exercise: string;
   recentFactures: Facture[];
   recentBls: BonLivraison[];
   onNavigate: (tab: string) => void;
@@ -31,6 +32,7 @@ interface DashboardViewProps {
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
   stats,
+  exercise,
   recentFactures,
   recentBls,
   onNavigate,
@@ -50,7 +52,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <div>
             <div className="flex items-center gap-2">
               <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-blue-500/20 text-blue-300 border border-blue-400/30">
-                Exercice 2026
+                {exercise === 'TOUS' ? 'Tous exercices' : `Exercice ${exercise}`}
               </span>
               <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
                 Neon PostgreSQL connecté

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { Reglement } from '@/lib/types';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { Plus, CreditCard, Search, Trash2, CheckCircle2 } from 'lucide-react';
@@ -17,23 +17,39 @@ export const ReglementsView: React.FC<ReglementsViewProps> = ({
   onDeleteReglement,
 }) => {
   const [search, setSearch] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 100;
 
   const filtered = useMemo(() => {
     return reglements.filter((r) => {
       if (!search) return true;
       const q = search.toLowerCase();
       return (
-        r.client_nom?.toLowerCase().includes(q) ||
-        (r.facture_numero || r.piece_numero || '')?.toLowerCase().includes(q) ||
-        r.reference_paiement?.toLowerCase().includes(q) ||
-        r.banque?.toLowerCase().includes(q)
+        String(r.client_nom || '').toLowerCase().includes(q) ||
+        String(r.facture_numero || r.piece_numero || '').toLowerCase().includes(q) ||
+        String(r.reference_paiement || '').toLowerCase().includes(q) ||
+        String(r.banque || '').toLowerCase().includes(q)
       );
     }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime() || b.id - a.id);
   }, [reglements, search]);
 
   const totalEncaisse = useMemo(() => {
-    return filtered.reduce((sum, r) => sum + r.montant, 0);
+    return filtered.reduce((sum, r) => sum + Number(r.montant || 0), 0);
   }, [filtered]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const paginatedReglements = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filtered.slice(start, start + pageSize);
+  }, [currentPage, filtered]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search]);
+
+  useEffect(() => {
+    if (currentPage > totalPages) setCurrentPage(totalPages);
+  }, [currentPage, totalPages]);
 
   return (
     <div className="space-y-4">
@@ -101,7 +117,7 @@ export const ReglementsView: React.FC<ReglementsViewProps> = ({
                   </td>
                 </tr>
               ) : (
-                filtered.map((r) => (
+                paginatedReglements.map((r) => (
                   <tr key={r.id} className="hover:bg-slate-50 transition divide-x divide-slate-100 even:bg-slate-50/40">
                     <td className="py-2 px-3 text-slate-600 whitespace-nowrap">{formatDate(r.date)}</td>
                     <td className="py-2 px-3 font-semibold text-slate-900">{r.client_nom}</td>
@@ -149,6 +165,34 @@ export const ReglementsView: React.FC<ReglementsViewProps> = ({
               </tr>
             </tfoot>
           </table>
+        </div>
+        <div className="flex flex-col gap-2 border-t border-slate-200 bg-slate-50 px-3 py-3 text-xs sm:flex-row sm:items-center sm:justify-between">
+          <span className="text-slate-500">
+            {filtered.length === 0
+              ? 'Aucun règlement'
+              : `${(currentPage - 1) * pageSize + 1}–${Math.min(currentPage * pageSize, filtered.length)} sur ${filtered.length}`}
+          </span>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              disabled={currentPage <= 1}
+              onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+              className="min-h-10 rounded-lg border border-slate-300 bg-white px-3 font-semibold text-slate-700 disabled:opacity-40"
+            >
+              Précédent
+            </button>
+            <span className="min-w-24 text-center font-bold text-slate-700">
+              Page {currentPage} / {totalPages}
+            </span>
+            <button
+              type="button"
+              disabled={currentPage >= totalPages}
+              onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+              className="min-h-10 rounded-lg border border-slate-300 bg-white px-3 font-semibold text-slate-700 disabled:opacity-40"
+            >
+              Suivant
+            </button>
+          </div>
         </div>
       </div>
     </div>

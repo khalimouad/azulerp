@@ -511,15 +511,40 @@ export async function POST(req: NextRequest) {
             }
           }
 
+          await sql`
+            UPDATE clients c
+            SET solde = COALESCE((
+              SELECT ROUND(SUM(GREATEST(COALESCE(f.reste_a_payer, COALESCE(f.total_ttc, 0) - COALESCE(f.montant_regle, 0)), 0))::numeric, 2)
+              FROM factures f
+              WHERE f.client_id = c.id
+                AND GREATEST(COALESCE(f.reste_a_payer, COALESCE(f.total_ttc, 0) - COALESCE(f.montant_regle, 0)), 0) > 0.009
+            ), 0)
+            WHERE c.id = ${facture.client_id};
+          `;
+
           return NextResponse.json({ success: true, id: factId, message: 'Facture créée avec succès' });
         }
 
         case 'delete_facture': {
           const { id } = payload;
+          const factClientRes: any = await sql`SELECT client_id FROM factures WHERE id = ${id} LIMIT 1;`;
+          const factClientId = factClientRes[0]?.client_id;
           await sql`UPDATE bons_livraison SET statut = 'En attente', facture_id = NULL, facture_numero = NULL WHERE facture_id = ${id};`;
           await sql`DELETE FROM factures_lignes WHERE facture_id = ${id};`;
           await sql`DELETE FROM reglements WHERE facture_id = ${id};`;
           await sql`DELETE FROM factures WHERE id = ${id};`;
+          if (factClientId) {
+            await sql`
+              UPDATE clients c
+              SET solde = COALESCE((
+                SELECT ROUND(SUM(GREATEST(COALESCE(f.reste_a_payer, COALESCE(f.total_ttc, 0) - COALESCE(f.montant_regle, 0)), 0))::numeric, 2)
+                FROM factures f
+                WHERE f.client_id = c.id
+                  AND GREATEST(COALESCE(f.reste_a_payer, COALESCE(f.total_ttc, 0) - COALESCE(f.montant_regle, 0)), 0) > 0.009
+              ), 0)
+              WHERE c.id = ${factClientId};
+            `;
+          }
           return NextResponse.json({ success: true, message: 'Facture supprimée' });
         }
 
@@ -549,7 +574,7 @@ export async function POST(req: NextRequest) {
               nom = ${client.nom}, interlocuteur = ${client.interlocuteur || ''},
               adresse = ${client.adresse || ''}, ville = ${client.ville || ''},
               telephone = ${client.telephone || ''}, email = ${client.email || ''},
-              ice = ${client.ice || ''}, solde = ${num(client.solde, 0)}
+              ice = ${client.ice || ''}
             WHERE id = ${id};
           `;
           return NextResponse.json({ success: true, message: 'Client mis à jour' });
@@ -654,6 +679,17 @@ export async function POST(req: NextRequest) {
               `;
             }
           }
+
+          await sql`
+            UPDATE clients c
+            SET solde = COALESCE((
+              SELECT ROUND(SUM(GREATEST(COALESCE(f.reste_a_payer, COALESCE(f.total_ttc, 0) - COALESCE(f.montant_regle, 0)), 0))::numeric, 2)
+              FROM factures f
+              WHERE f.client_id = c.id
+                AND GREATEST(COALESCE(f.reste_a_payer, COALESCE(f.total_ttc, 0) - COALESCE(f.montant_regle, 0)), 0) > 0.009
+            ), 0)
+            WHERE c.id = ${reglement.client_id};
+          `;
 
           return NextResponse.json({ success: true, id: regId, message: 'Règlement enregistré' });
         }

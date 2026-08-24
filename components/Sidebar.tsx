@@ -27,6 +27,8 @@ import {
   UserCheck,
   ShieldCheck,
   X,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from 'lucide-react';
 import { AppUser } from '@/lib/types';
 
@@ -39,6 +41,8 @@ interface SidebarProps {
   supplierAlertsCount?: number;
   mobileOpen: boolean;
   setMobileOpen: (open: boolean) => void;
+  collapsed: boolean;
+  setCollapsed: (collapsed: boolean) => void;
   currentUser?: AppUser | null;
   onLogout?: () => void;
   onLockScreen?: () => void;
@@ -54,6 +58,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   supplierAlertsCount = 0,
   mobileOpen,
   setMobileOpen,
+  collapsed,
+  setCollapsed,
   currentUser,
   onLogout,
   onLockScreen,
@@ -158,7 +164,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Sidebar Container */}
       <aside
-        className={`fixed lg:sticky top-0 lg:top-[57px] bottom-0 left-0 z-40 w-72 sm:w-64 bg-slate-900 text-slate-300 border-r border-slate-800 flex flex-col transition-transform duration-200 ease-in-out lg:translate-x-0 ${
+        className={`fixed lg:sticky top-0 lg:top-[57px] bottom-0 left-0 z-40 w-72 sm:w-64 ${collapsed ? 'lg:w-[72px]' : 'lg:w-64'} bg-slate-900 text-slate-300 border-r border-slate-800 flex flex-col transition-[width,transform] duration-300 ease-in-out lg:translate-x-0 ${
           mobileOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'
         } h-screen lg:h-[calc(100vh-57px)] overflow-y-auto`}
       >
@@ -180,12 +186,26 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </button>
         </div>
 
-        <div className="p-3 sm:p-3.5 flex-1 flex flex-col gap-5 sm:gap-6">
+        <div className={`hidden lg:flex border-b border-slate-800 p-2 ${collapsed ? 'justify-center' : 'justify-end'}`}>
+          <button
+            type="button"
+            onClick={() => setCollapsed(!collapsed)}
+            className="flex h-10 items-center justify-center gap-2 rounded-xl px-3 text-xs font-bold text-slate-300 transition hover:bg-slate-800 hover:text-white"
+            title={collapsed ? 'Agrandir le menu' : 'Réduire le menu'}
+            aria-label={collapsed ? 'Agrandir le menu' : 'Réduire le menu'}
+          >
+            {collapsed ? <PanelLeftOpen className="h-5 w-5" /> : <PanelLeftClose className="h-5 w-5" />}
+            {!collapsed ? <span>Réduire</span> : null}
+          </button>
+        </div>
+
+        <div className={`${collapsed ? 'lg:px-2' : 'lg:px-3.5'} p-3 sm:p-3.5 flex-1 flex flex-col gap-5 sm:gap-6 transition-all`}>
           {navSections.map((section, sIdx) => (
             <div key={sIdx} className="space-y-1.5">
-              <div className="text-[10px] sm:text-[11px] font-bold tracking-wider uppercase text-slate-400 px-3">
+              <div className={`${collapsed ? 'lg:hidden' : ''} text-[10px] sm:text-[11px] font-bold tracking-wider uppercase text-slate-400 px-3`}>
                 {section.title}
               </div>
+              {collapsed ? <div className="hidden lg:block h-px bg-slate-800 mx-2" /> : null}
               <div className="space-y-1 sm:space-y-0.5">
                 {section.items.map((item) => {
                   const Icon = item.icon;
@@ -194,7 +214,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     <button
                       key={item.id}
                       onClick={() => handleSelect(item.id)}
-                      className={`w-full flex items-center justify-between px-3 py-2.5 sm:py-2 min-h-[44px] sm:min-h-[38px] text-xs sm:text-sm font-medium rounded-xl sm:rounded-lg transition text-left touch-manipulation active:scale-[0.98] ${
+                      title={collapsed ? item.label : undefined}
+                      className={`w-full flex items-center ${collapsed ? 'lg:justify-center lg:px-2' : 'justify-between px-3'} py-2.5 sm:py-2 min-h-[44px] sm:min-h-[38px] text-xs sm:text-sm font-medium rounded-xl sm:rounded-lg transition text-left touch-manipulation active:scale-[0.98] ${
                         isActive
                           ? 'bg-blue-600 text-white shadow-sm font-semibold'
                           : item.highlight
@@ -208,11 +229,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
                             isActive ? 'text-white' : item.highlight ? 'text-blue-400' : 'text-slate-400'
                           }`}
                         />
-                        <span className="truncate">{item.label}</span>
+                        <span className={`${collapsed ? 'lg:hidden' : ''} truncate`}>{item.label}</span>
                       </div>
                       {item.badge && (
                         <span
-                          className={`ml-1 px-1.5 py-0.5 text-[10px] font-bold rounded-full border ${item.badgeColor}`}
+                          className={`${collapsed ? 'lg:hidden' : ''} ml-1 px-1.5 py-0.5 text-[10px] font-bold rounded-full border ${item.badgeColor}`}
                         >
                           {item.badge}
                         </span>
@@ -239,7 +260,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 }`}>
                   {currentUser.avatar || currentUser.nom_complet.slice(0, 2).toUpperCase()}
                 </div>
-                <div className="min-w-0">
+                <div className={`${collapsed ? 'lg:hidden' : ''} min-w-0`}>
                   <div className="text-xs font-bold text-white truncate">{currentUser.nom_complet}</div>
                   <div className="text-[10px] text-slate-400 font-medium truncate flex items-center gap-1">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" />
@@ -248,7 +269,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 </div>
               </div>
 
-              <div className="flex items-center gap-1 shrink-0">
+              <div className={`${collapsed ? 'lg:hidden' : ''} flex items-center gap-1 shrink-0`}>
                 {onLockScreen && (
                   <button
                     type="button"
@@ -276,12 +297,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {/* Bottom Database Badge / Status */}
         <div className="px-3 py-2 border-t border-slate-800/60 bg-slate-950/40">
-          <div className="flex items-center justify-between text-xs text-slate-400">
+          <div className={`flex items-center ${collapsed ? 'lg:justify-center' : 'justify-between'} text-xs text-slate-400`}>
             <div className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="font-mono text-[11px] text-emerald-300 font-semibold">Postgres (Neon)</span>
+              <span className={`${collapsed ? 'lg:hidden' : ''} font-mono text-[11px] text-emerald-300 font-semibold`}>Postgres (Neon)</span>
             </div>
-            <span className="text-[10px] text-slate-400">Vercel & Local</span>
+            <span className={`${collapsed ? 'lg:hidden' : ''} text-[10px] text-slate-400`}>Vercel & Local</span>
           </div>
         </div>
       </aside>
