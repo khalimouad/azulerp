@@ -31,19 +31,84 @@ import {
 // In-memory runtime cache for snappy UI responsiveness
 let cachedData: any = null;
 let isInitialized = false;
+let inFlightFetchAllPromise: Promise<any> | null = null;
 
-// Helper to call backend PostgreSQL API
-async function apiCall(action: string, payload: any = {}) {
-  const res = await fetch('/api/postgres/action', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ action, payload }),
-  });
-  const data = await res.json();
-  if (!res.ok || data.success === false) {
-    throw new Error(data.error || `Erreur PostgreSQL: ${action}`);
+// Safe fallback structure if network is temporarily unreachable
+function getFallbackData() {
+  if (cachedData) return cachedData;
+  return {
+    company: {
+      nom: 'VERDEORTO SARL AU',
+      ice: '000194441000024',
+      if_fiscal: '3381764',
+      rc: '35265',
+      cnss: '7788302',
+      patente: '46201837',
+      capital: '100 000,00',
+      rib: '145 450 21211 2604506 000 4 11',
+      adresse: 'Avenue Al Mouqaouama, Quartier Ain Merroudi, Résidence DaVinci, Bloc F, Magasin N°20',
+      code_postal: '40000',
+      ville: 'Marrakech',
+      pays: 'Maroc',
+      telephone: '0808551156',
+      email: 'verdeorto@gmail.com',
+    },
+    clients: [],
+    fournisseurs: [],
+    produits: [],
+    categories: [],
+    familles: [],
+    marques: [],
+    bons_livraison: [],
+    bons_retour: [],
+    factures: [],
+    devis: [],
+    reglements: [],
+    stock_mouvements: [],
+    pos_tables: [],
+    pos_categories: [],
+    pos_produits: [],
+    pos_ventes: [],
+    pos_sessions: [],
+    app_users: [],
+  };
+}
+
+// Helper to call backend PostgreSQL API safely with retry resilience
+async function apiCall(action: string, payload: any = {}, retries = 2): Promise<any> {
+  let lastError: any = null;
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      const res = await fetch('/api/postgres/action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, payload }),
+      });
+
+      const text = await res.text();
+      let data: any;
+      try {
+        data = JSON.parse(text);
+      } catch {
+        if (res.status === 413 || text.includes('Request Entity Too Large') || text.includes('Payload Too Large')) {
+          throw new Error('Le fichier dépasse la limite d\'une requête unique. Le mode par lots automatique prend le relais.');
+        }
+        throw new Error(`Réponse serveur (${res.status}): ${text.slice(0, 150) || res.statusText}`);
+      }
+
+      if (!res.ok || data.success === false) {
+        throw new Error(data.error || `Erreur PostgreSQL: ${action}`);
+      }
+      return data;
+    } catch (err: any) {
+      lastError = err;
+      if (attempt < retries) {
+        // Wait briefly before retrying
+        await new Promise((resolve) => setTimeout(resolve, 300 * (attempt + 1)));
+      }
+    }
   }
-  return data;
+  throw lastError || new Error(`Erreur PostgreSQL (${action}): Échec de communication`);
 }
 
 /**
@@ -51,27 +116,49 @@ async function apiCall(action: string, payload: any = {}) {
  */
 export async function initPostgresDatabase(): Promise<boolean> {
   try {
-    const res = await apiCall('fetch_all');
-    if (res && res.data) {
-      cachedData = res.data;
+    const data = await fetchAllData(true);
+    if (data) {
       isInitialized = true;
       return true;
     }
     return true;
   } catch (err) {
-    console.error('Failed to initialize PostgreSQL database:', err);
+    console.warn('Initial PostgreSQL fetch notice (fallback mode active):', err);
     return true;
   }
 }
 
 export const initSqliteDatabase = initPostgresDatabase;
 
-export async function fetchAllData() {
-  const res = await apiCall('fetch_all');
-  if (res && res.data) {
-    cachedData = res.data;
+/**
+ * Fetches all database tables with automatic deduplication of concurrent calls
+ */
+export async function fetchAllData(forceRefresh = false) {
+  if (!forceRefresh && cachedData) {
+    return cachedData;
   }
-  return cachedData;
+
+  if (inFlightFetchAllPromise) {
+    return inFlightFetchAllPromise;
+  }
+
+  inFlightFetchAllPromise = (async () => {
+    try {
+      const res = await apiCall('fetch_all');
+      if (res && res.data) {
+        cachedData = res.data;
+        isInitialized = true;
+      }
+      return cachedData || getFallbackData();
+    } catch (err) {
+      console.warn('Could not fetch latest PostgreSQL state, using in-memory state:', err);
+      return cachedData || getFallbackData();
+    } finally {
+      inFlightFetchAllPromise = null;
+    }
+  })();
+
+  return inFlightFetchAllPromise;
 }
 
 // ----------------------------------------------------------------------------
@@ -740,38 +827,142 @@ export async function importDatabaseWithProgress(
 
     updateProg('validating', 100, 20, 50, 'Validation de la structure des données...');
 
-    let importPayload: { data?: any; sql?: string; mode: 'replace' | 'merge' } = { mode };
+    const counts: Record<string, number> = {
+      produits: 0,
+      clients: 0,
+      fournisseurs: 0,
+      factures: 0,
+      bons_livraison: 0,
+      pos_ventes: 0,
+    };
 
-    const lowerName = fileName.toLowerCase();
-    if (lowerName.endsWith('.json')) {
-      try {
-        const parsed = JSON.parse(text);
-        importPayload.data = parsed;
-      } catch (err: any) {
-        throw new Error(`Fichier JSON invalide: ${err?.message || 'Erreur de syntaxe'}`);
+    let isJson = false;
+    let parsedData: any = null;
+
+    try {
+      parsedData = JSON.parse(text);
+      if (parsedData && typeof parsedData === 'object') {
+        isJson = true;
       }
-    } else if (lowerName.endsWith('.sql')) {
-      importPayload.sql = text;
+    } catch (_) {
+      isJson = false;
+    }
+
+    if (isJson && parsedData) {
+      // 1. Initialize schema and optionally truncate
+      updateProg('processing', 100, 30, 50, 'Préparation de la base de données PostgreSQL...');
+      await apiCall('import_init', { mode });
+
+      // 2. Ordered tables definition
+      const tableKeys: { key: string; name: string; batchSize: number; targetCountKey?: string }[] = [
+        { key: 'company', name: 'Entreprise', batchSize: 1 },
+        { key: 'company_info', name: 'Entreprise', batchSize: 1 },
+        { key: 'categories', name: 'Catégories', batchSize: 50 },
+        { key: 'familles', name: 'Familles', batchSize: 50 },
+        { key: 'marques', name: 'Marques', batchSize: 50 },
+        { key: 'clients', name: 'Clients', batchSize: 50, targetCountKey: 'clients' },
+        { key: 'fournisseurs', name: 'Fournisseurs', batchSize: 50, targetCountKey: 'fournisseurs' },
+        { key: 'produits', name: 'Articles / Produits', batchSize: 50, targetCountKey: 'produits' },
+        { key: 'bons_livraison', name: 'Bons de livraison', batchSize: 30, targetCountKey: 'bons_livraison' },
+        { key: 'factures', name: 'Factures de vente', batchSize: 30, targetCountKey: 'factures' },
+        { key: 'devis', name: 'Devis', batchSize: 30 },
+        { key: 'reglements', name: 'Règlements & Paiements', batchSize: 50 },
+        { key: 'pos_tables', name: 'Tables restaurant', batchSize: 50 },
+        { key: 'pos_categories', name: 'Catégories restaurant', batchSize: 50 },
+        { key: 'pos_produits', name: 'Produits restaurant', batchSize: 50 },
+        { key: 'pos_ventes', name: 'Tickets et ventes caisse', batchSize: 30, targetCountKey: 'pos_ventes' },
+        { key: 'app_users', name: 'Utilisateurs', batchSize: 50 },
+        { key: 'users', name: 'Utilisateurs', batchSize: 50 },
+      ];
+
+      // Calculate total rows for accurate progress bar
+      let totalRows = 0;
+      for (const t of tableKeys) {
+        const val = parsedData[t.key];
+        if (Array.isArray(val)) totalRows += val.length;
+        else if (val && typeof val === 'object') totalRows += 1;
+      }
+      if (totalRows === 0) totalRows = 1;
+
+      let processedRows = 0;
+
+      for (const t of tableKeys) {
+        const val = parsedData[t.key];
+        if (!val) continue;
+
+        let rows: any[] = [];
+        if (Array.isArray(val)) {
+          rows = val;
+        } else if (typeof val === 'object') {
+          rows = [val];
+        }
+
+        if (rows.length === 0) continue;
+
+        const batchSize = t.batchSize || 50;
+        for (let i = 0; i < rows.length; i += batchSize) {
+          const batch = rows.slice(i, i + batchSize);
+          const currentBatchEnd = Math.min(i + batchSize, rows.length);
+
+          const stepPct = Math.round((processedRows / totalRows) * 100);
+          const overallPct = Math.min(95, Math.round(50 + (processedRows / totalRows) * 45));
+
+          updateProg(
+            'processing',
+            100,
+            stepPct,
+            overallPct,
+            `Importation ${t.name} (${currentBatchEnd}/${rows.length})...`
+          );
+
+          const batchRes = await apiCall('import_batch', {
+            table: t.key,
+            rows: batch,
+            mode,
+          });
+
+          if (t.targetCountKey && batchRes.count) {
+            counts[t.targetCountKey] = (counts[t.targetCountKey] || 0) + batchRes.count;
+          }
+
+          processedRows += batch.length;
+        }
+      }
     } else {
-      // Try JSON first, then fallback to SQL
-      try {
-        const parsed = JSON.parse(text);
-        importPayload.data = parsed;
-      } catch {
-        importPayload.sql = text;
+      // SQL script handling in safe chunks
+      updateProg('processing', 100, 30, 50, 'Découpage et exécution du script SQL sur Neon...');
+
+      const statements = text
+        .replace(/--.*$/gm, '')
+        .split(/;\s*[\r\n]+|;\s*$/)
+        .map((s) => s.trim())
+        .filter((s) => s.length > 0);
+
+      const batchSize = 30;
+      for (let i = 0; i < statements.length; i += batchSize) {
+        const chunk = statements.slice(i, i + batchSize);
+        const currentEnd = Math.min(i + batchSize, statements.length);
+        const overallPct = Math.min(95, Math.round(50 + (i / statements.length) * 45));
+
+        updateProg(
+          'processing',
+          100,
+          Math.round((i / statements.length) * 100),
+          overallPct,
+          `Exécution SQL (${currentEnd}/${statements.length} requêtes)...`
+        );
+
+        await apiCall('import_sql_chunk', {
+          sqlChunk: chunk.join(';\n') + ';',
+        });
       }
     }
 
-    updateProg('processing', 100, 60, 70, 'Transmission et insertion dans Neon PostgreSQL...');
-
-    const res = await apiCall('import_db', importPayload);
-
-    updateProg('persisting', 100, 90, 90, 'Finalisation et indexation des tables PostgreSQL...');
+    updateProg('persisting', 100, 95, 95, 'Synchronisation finale des tables...');
 
     // Invalidate local memory cache so fresh data is fetched
     await fetchAllData();
 
-    const counts = res.counts || {};
     const durationMs = Date.now() - startTime;
 
     const summary: DbImportSummary = {

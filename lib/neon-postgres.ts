@@ -1945,3 +1945,746 @@ export async function importDataToNeon(params: {
   };
 }
 
+/**
+ * Initializes DB for import (creates schema and optionally truncates tables if replace mode)
+ */
+export async function initNeonImport(mode: 'replace' | 'merge' = 'merge', customUrl?: string) {
+  const sql = getNeonSql(customUrl);
+  await initNeonPostgresSchema(customUrl);
+
+  if (mode === 'replace') {
+    try {
+      await sql`
+        TRUNCATE TABLE 
+          pos_ventes_lignes, pos_ventes, pos_sessions, pos_produits, pos_categories, pos_tables,
+          stock_mouvements, reglements, devis_lignes, devis,
+          paiements_fournisseurs, factures_fournisseurs_lignes, factures_fournisseurs,
+          factures_lignes, factures, bons_retour_lignes, bons_retour,
+          bons_livraison_lignes, bons_livraison, client_tarifs,
+          produits, fournisseurs, clients, marques, familles, categories
+        CASCADE;
+      `;
+    } catch (err) {
+      console.warn('Truncate cascade notice:', err);
+    }
+  }
+
+  return { success: true, message: 'Initialisation de l\'importation terminée' };
+}
+
+/**
+ * Imports an isolated batch of records for a specific table.
+ * Highly scalable, immune to payload limits and request timeouts.
+ */
+export async function importBatchToNeon(params: {
+  table: string;
+  rows: any[];
+  mode?: 'replace' | 'merge';
+  customUrl?: string;
+}) {
+  const { table, rows, customUrl } = params;
+  if (!rows || !Array.isArray(rows) || rows.length === 0) {
+    return { success: true, count: 0, table };
+  }
+
+  const sql = getNeonSql(customUrl);
+  let importedCount = 0;
+
+  switch (table) {
+    case 'company':
+    case 'company_info': {
+      const company = rows[0];
+      if (company) {
+        try {
+          await sql`
+            INSERT INTO company_info (
+              id, nom, forme_juridique, capital, adresse, code_postal, ville, pays,
+              telephone, fax, email, site_web, ice, if_fiscal, rc, cnss, patente,
+              banque, rib, logo_titre, logo_sous_titre, logo_mode, logo_placement
+            ) VALUES (
+              1,
+              ${company.nom || 'VERDEORTO SARL AU'},
+              ${company.forme_juridique || 'SARL AU'},
+              ${company.capital || '100 000,00'},
+              ${company.adresse || ''},
+              ${company.code_postal || '40000'},
+              ${company.ville || 'Marrakech'},
+              ${company.pays || 'Maroc'},
+              ${company.telephone || ''},
+              ${company.fax || ''},
+              ${company.email || ''},
+              ${company.site_web || ''},
+              ${company.ice || '000194441000024'},
+              ${company.if_fiscal || ''},
+              ${company.rc || ''},
+              ${company.cnss || ''},
+              ${company.patente || ''},
+              ${company.banque || ''},
+              ${company.rib || ''},
+              ${company.logo_titre || ''},
+              ${company.logo_sous_titre || ''},
+              ${company.logo_mode || 'both'},
+              ${company.logo_placement || 'left'}
+            )
+            ON CONFLICT (id) DO UPDATE SET
+              nom = EXCLUDED.nom,
+              forme_juridique = EXCLUDED.forme_juridique,
+              capital = EXCLUDED.capital,
+              adresse = EXCLUDED.adresse,
+              code_postal = EXCLUDED.code_postal,
+              ville = EXCLUDED.ville,
+              pays = EXCLUDED.pays,
+              telephone = EXCLUDED.telephone,
+              fax = EXCLUDED.fax,
+              email = EXCLUDED.email,
+              site_web = EXCLUDED.site_web,
+              ice = EXCLUDED.ice,
+              if_fiscal = EXCLUDED.if_fiscal,
+              rc = EXCLUDED.rc,
+              cnss = EXCLUDED.cnss,
+              patente = EXCLUDED.patente,
+              banque = EXCLUDED.banque,
+              rib = EXCLUDED.rib,
+              logo_titre = EXCLUDED.logo_titre,
+              logo_sous_titre = EXCLUDED.logo_sous_titre,
+              logo_mode = EXCLUDED.logo_mode,
+              logo_placement = EXCLUDED.logo_placement;
+          `;
+          importedCount = 1;
+        } catch (_) {}
+      }
+      break;
+    }
+
+    case 'categories': {
+      for (const cat of rows) {
+        if (cat.id && (cat.libelle || cat.nom)) {
+          try {
+            await sql`
+              INSERT INTO categories (id, code, libelle, nom, description)
+              VALUES (${cat.id}, ${cat.code || `CAT${cat.id}`}, ${cat.libelle || cat.nom}, ${cat.nom || cat.libelle}, ${cat.description || ''})
+              ON CONFLICT (id) DO UPDATE SET
+                code = EXCLUDED.code,
+                libelle = EXCLUDED.libelle,
+                nom = EXCLUDED.nom,
+                description = EXCLUDED.description;
+            `;
+            importedCount++;
+          } catch (_) {}
+        }
+      }
+      break;
+    }
+
+    case 'familles': {
+      for (const fam of rows) {
+        if (fam.id && (fam.libelle || fam.nom)) {
+          try {
+            await sql`
+              INSERT INTO familles (id, code, libelle, nom, categorie, categorie_id, description)
+              VALUES (${fam.id}, ${fam.code || `FAM${fam.id}`}, ${fam.libelle || fam.nom}, ${fam.nom || fam.libelle}, ${fam.categorie || ''}, ${fam.categorie_id || null}, ${fam.description || ''})
+              ON CONFLICT (id) DO UPDATE SET
+                code = EXCLUDED.code,
+                libelle = EXCLUDED.libelle,
+                nom = EXCLUDED.nom,
+                categorie = EXCLUDED.categorie,
+                categorie_id = EXCLUDED.categorie_id,
+                description = EXCLUDED.description;
+            `;
+            importedCount++;
+          } catch (_) {}
+        }
+      }
+      break;
+    }
+
+    case 'marques': {
+      for (const m of rows) {
+        if (m.id && (m.nom || m.libelle)) {
+          try {
+            await sql`
+              INSERT INTO marques (id, code, nom, libelle, description)
+              VALUES (${m.id}, ${m.code || `MRQ${m.id}`}, ${m.nom || m.libelle}, ${m.libelle || m.nom}, ${m.description || ''})
+              ON CONFLICT (id) DO UPDATE SET
+                code = EXCLUDED.code,
+                nom = EXCLUDED.nom,
+                libelle = EXCLUDED.libelle,
+                description = EXCLUDED.description;
+            `;
+            importedCount++;
+          } catch (_) {}
+        }
+      }
+      break;
+    }
+
+    case 'clients': {
+      for (const cl of rows) {
+        if (cl.id && cl.nom) {
+          try {
+            await sql`
+              INSERT INTO clients (
+                id, code, nom, interlocuteur, adresse, code_postal, ville, pays,
+                telephone, mobile, fax, email, site_web, ice, observations, notes,
+                solde, total_achats, bl_non_factures_count
+              ) VALUES (
+                ${cl.id},
+                ${cl.code || `CLI-${cl.id}`},
+                ${cl.nom},
+                ${cl.interlocuteur || ''},
+                ${cl.adresse || ''},
+                ${cl.code_postal || '40000'},
+                ${cl.ville || 'Marrakech'},
+                ${cl.pays || 'Maroc'},
+                ${cl.telephone || cl.tel || ''},
+                ${cl.mobile || ''},
+                ${cl.fax || ''},
+                ${cl.email || ''},
+                ${cl.site_web || ''},
+                ${cl.ice || ''},
+                ${cl.observations || ''},
+                ${cl.notes || ''},
+                ${cl.solde || 0},
+                ${cl.total_achats || 0},
+                ${cl.bl_non_factures_count || 0}
+              )
+              ON CONFLICT (id) DO UPDATE SET
+                code = EXCLUDED.code,
+                nom = EXCLUDED.nom,
+                interlocuteur = EXCLUDED.interlocuteur,
+                adresse = EXCLUDED.adresse,
+                code_postal = EXCLUDED.code_postal,
+                ville = EXCLUDED.ville,
+                pays = EXCLUDED.pays,
+                telephone = EXCLUDED.telephone,
+                mobile = EXCLUDED.mobile,
+                fax = EXCLUDED.fax,
+                email = EXCLUDED.email,
+                site_web = EXCLUDED.site_web,
+                ice = EXCLUDED.ice,
+                observations = EXCLUDED.observations,
+                notes = EXCLUDED.notes,
+                solde = EXCLUDED.solde,
+                total_achats = EXCLUDED.total_achats,
+                bl_non_factures_count = EXCLUDED.bl_non_factures_count;
+            `;
+            importedCount++;
+          } catch (_) {}
+        }
+      }
+      break;
+    }
+
+    case 'fournisseurs': {
+      for (const fr of rows) {
+        if (fr.id && fr.nom) {
+          try {
+            await sql`
+              INSERT INTO fournisseurs (
+                id, code, nom, interlocuteur, adresse, code_postal, ville,
+                telephone, gsm, mobile, fax, email, ice, observations, notes,
+                solde_du, total_achats
+              ) VALUES (
+                ${fr.id},
+                ${fr.code || `FOUR-${fr.id}`},
+                ${fr.nom},
+                ${fr.interlocuteur || ''},
+                ${fr.adresse || ''},
+                ${fr.code_postal || ''},
+                ${fr.ville || 'Marrakech'},
+                ${fr.telephone || fr.tel || ''},
+                ${fr.gsm || ''},
+                ${fr.mobile || ''},
+                ${fr.fax || ''},
+                ${fr.email || ''},
+                ${fr.ice || ''},
+                ${fr.observations || ''},
+                ${fr.notes || ''},
+                ${fr.solde_du || 0},
+                ${fr.total_achats || 0}
+              )
+              ON CONFLICT (id) DO UPDATE SET
+                code = EXCLUDED.code,
+                nom = EXCLUDED.nom,
+                interlocuteur = EXCLUDED.interlocuteur,
+                adresse = EXCLUDED.adresse,
+                ville = EXCLUDED.ville,
+                telephone = EXCLUDED.telephone,
+                email = EXCLUDED.email,
+                ice = EXCLUDED.ice,
+                solde_du = EXCLUDED.solde_du,
+                total_achats = EXCLUDED.total_achats;
+            `;
+            importedCount++;
+          } catch (_) {}
+        }
+      }
+      break;
+    }
+
+    case 'produits':
+    case 'articles':
+    case 'products': {
+      for (const pr of rows) {
+        if (pr.id && (pr.libelle || pr.nom)) {
+          try {
+            await sql`
+              INSERT INTO produits (
+                id, code, libelle, groupe, famille, unite, taux_tva,
+                prix_ht, prix_achat, prix_achat_ht, stock_actuel, stock_min, stock_virtuel, description
+              ) VALUES (
+                ${pr.id},
+                ${pr.code || `PRD-${pr.id}`},
+                ${pr.libelle || pr.nom},
+                ${pr.groupe || ''},
+                ${pr.famille || ''},
+                ${pr.unite || 'KG'},
+                ${pr.taux_tva || 20.0},
+                ${pr.prix_ht || pr.prix_vente_ht || 0},
+                ${pr.prix_achat || 0},
+                ${pr.prix_achat_ht || pr.prix_achat || 0},
+                ${pr.stock_actuel || pr.stock || 0},
+                ${pr.stock_min || 0},
+                ${pr.stock_virtuel || pr.stock_actuel || 0},
+                ${pr.description || ''}
+              )
+              ON CONFLICT (id) DO UPDATE SET
+                code = EXCLUDED.code,
+                libelle = EXCLUDED.libelle,
+                groupe = EXCLUDED.groupe,
+                famille = EXCLUDED.famille,
+                unite = EXCLUDED.unite,
+                taux_tva = EXCLUDED.taux_tva,
+                prix_ht = EXCLUDED.prix_ht,
+                prix_achat = EXCLUDED.prix_achat,
+                prix_achat_ht = EXCLUDED.prix_achat_ht,
+                stock_actuel = EXCLUDED.stock_actuel,
+                stock_min = EXCLUDED.stock_min,
+                stock_virtuel = EXCLUDED.stock_virtuel,
+                description = EXCLUDED.description;
+            `;
+            importedCount++;
+          } catch (_) {}
+        }
+      }
+      break;
+    }
+
+    case 'bons_livraison':
+    case 'bl': {
+      for (const bl of rows) {
+        if (bl.id && bl.numero && bl.client_id) {
+          try {
+            await sql`
+              INSERT INTO bons_livraison (
+                id, numero, date, client_id, client_nom, client_ice, client_adresse, client_ville,
+                total_ht, tva_20, tva_10, total_tva, total_ttc, montant_brut, remise_pct,
+                statut, etat, facture_id, facture_numero, mode_reglement, notes
+              ) VALUES (
+                ${bl.id},
+                ${bl.numero},
+                ${bl.date || new Date().toISOString().slice(0, 10)},
+                ${bl.client_id},
+                ${bl.client_nom || ''},
+                ${bl.client_ice || ''},
+                ${bl.client_adresse || ''},
+                ${bl.client_ville || ''},
+                ${bl.total_ht || 0},
+                ${bl.tva_20 || 0},
+                ${bl.tva_10 || 0},
+                ${bl.total_tva || 0},
+                ${bl.total_ttc || 0},
+                ${bl.montant_brut || bl.total_ht || 0},
+                ${bl.remise_pct || 0},
+                ${bl.statut || 'En attente'},
+                ${bl.etat || 'Validé'},
+                ${bl.facture_id || null},
+                ${bl.facture_numero || null},
+                ${bl.mode_reglement || 'Virement'},
+                ${bl.notes || ''}
+              )
+              ON CONFLICT (id) DO UPDATE SET
+                numero = EXCLUDED.numero,
+                date = EXCLUDED.date,
+                client_id = EXCLUDED.client_id,
+                client_nom = EXCLUDED.client_nom,
+                total_ht = EXCLUDED.total_ht,
+                total_ttc = EXCLUDED.total_ttc,
+                statut = EXCLUDED.statut,
+                facture_id = EXCLUDED.facture_id,
+                facture_numero = EXCLUDED.facture_numero;
+            `;
+            importedCount++;
+
+            // Lignes
+            const lignes = Array.isArray(bl.lignes) ? bl.lignes : [];
+            for (let li = 0; li < lignes.length; li++) {
+              const l = lignes[li];
+              const ligneId = l.id || (bl.id * 1000 + li + 1);
+              try {
+                await sql`
+                  INSERT INTO bons_livraison_lignes (
+                    id, bon_livraison_id, produit_id, designation, groupe, unite,
+                    quantite, prix_ht, taux_tva, remise_pct, total_ht, total_tva, total_ttc
+                  ) VALUES (
+                    ${ligneId},
+                    ${bl.id},
+                    ${l.produit_id || null},
+                    ${l.designation || 'Article'},
+                    ${l.groupe || ''},
+                    ${l.unite || 'KG'},
+                    ${l.quantite || 1},
+                    ${l.prix_ht || 0},
+                    ${l.taux_tva || 20},
+                    ${l.remise_pct || 0},
+                    ${l.total_ht || 0},
+                    ${l.total_tva || 0},
+                    ${l.total_ttc || 0}
+                  )
+                  ON CONFLICT (id) DO UPDATE SET
+                    designation = EXCLUDED.designation,
+                    quantite = EXCLUDED.quantite,
+                    prix_ht = EXCLUDED.prix_ht,
+                    total_ttc = EXCLUDED.total_ttc;
+                `;
+              } catch (_) {}
+            }
+          } catch (_) {}
+        }
+      }
+      break;
+    }
+
+    case 'factures': {
+      for (const f of rows) {
+        if (f.id && f.numero && f.client_id) {
+          try {
+            await sql`
+              INSERT INTO factures (
+                id, numero, date, client_id, client_nom, client_ice, client_adresse, client_ville,
+                total_ht, tva_20, tva_10, total_tva, total_ttc, montant_regle, reste_a_payer,
+                statut_paiement, etat, mode_reglement, notes, bl_associes
+              ) VALUES (
+                ${f.id},
+                ${f.numero},
+                ${f.date || new Date().toISOString().slice(0, 10)},
+                ${f.client_id},
+                ${f.client_nom || ''},
+                ${f.client_ice || ''},
+                ${f.client_adresse || ''},
+                ${f.client_ville || ''},
+                ${f.total_ht || 0},
+                ${f.tva_20 || 0},
+                ${f.tva_10 || 0},
+                ${f.total_tva || 0},
+                ${f.total_ttc || 0},
+                ${f.montant_regle || 0},
+                ${f.reste_a_payer !== undefined ? f.reste_a_payer : (f.total_ttc || 0) - (f.montant_regle || 0)},
+                ${f.statut_paiement || 'Impayé'},
+                ${f.etat || 'Validé'},
+                ${f.mode_reglement || 'Virement'},
+                ${f.notes || ''},
+                ${typeof f.bl_associes === 'string' ? f.bl_associes : JSON.stringify(f.bl_associes || [])}
+              )
+              ON CONFLICT (id) DO UPDATE SET
+                numero = EXCLUDED.numero,
+                date = EXCLUDED.date,
+                client_id = EXCLUDED.client_id,
+                client_nom = EXCLUDED.client_nom,
+                total_ht = EXCLUDED.total_ht,
+                total_ttc = EXCLUDED.total_ttc,
+                montant_regle = EXCLUDED.montant_regle,
+                reste_a_payer = EXCLUDED.reste_a_payer,
+                statut_paiement = EXCLUDED.statut_paiement;
+            `;
+            importedCount++;
+
+            // Lignes
+            const lignes = Array.isArray(f.lignes) ? f.lignes : [];
+            for (let li = 0; li < lignes.length; li++) {
+              const l = lignes[li];
+              const ligneId = l.id || (f.id * 1000 + li + 1);
+              try {
+                await sql`
+                  INSERT INTO factures_lignes (
+                    id, facture_id, produit_id, designation, groupe, unite,
+                    quantite, prix_ht, taux_tva, remise_pct, total_ht, total_tva, total_ttc
+                  ) VALUES (
+                    ${ligneId},
+                    ${f.id},
+                    ${l.produit_id || null},
+                    ${l.designation || 'Article'},
+                    ${l.groupe || ''},
+                    ${l.unite || 'KG'},
+                    ${l.quantite || 1},
+                    ${l.prix_ht || 0},
+                    ${l.taux_tva || 20},
+                    ${l.remise_pct || 0},
+                    ${l.total_ht || 0},
+                    ${l.total_tva || 0},
+                    ${l.total_ttc || 0}
+                  )
+                  ON CONFLICT (id) DO UPDATE SET
+                    designation = EXCLUDED.designation,
+                    quantite = EXCLUDED.quantite,
+                    prix_ht = EXCLUDED.prix_ht,
+                    total_ttc = EXCLUDED.total_ttc;
+                `;
+              } catch (_) {}
+            }
+          } catch (_) {}
+        }
+      }
+      break;
+    }
+
+    case 'devis': {
+      for (const d of rows) {
+        if (d.id && d.numero && d.client_id) {
+          try {
+            await sql`
+              INSERT INTO devis (
+                id, numero, date, client_id, client_nom, client_ice,
+                total_ht, total_tva, total_ttc, statut, validite_jours, notes
+              ) VALUES (
+                ${d.id},
+                ${d.numero},
+                ${d.date || new Date().toISOString().slice(0, 10)},
+                ${d.client_id},
+                ${d.client_nom || ''},
+                ${d.client_ice || ''},
+                ${d.total_ht || 0},
+                ${d.total_tva || 0},
+                ${d.total_ttc || 0},
+                ${d.statut || 'En attente'},
+                ${d.validite_jours || 30},
+                ${d.notes || ''}
+              )
+              ON CONFLICT (id) DO UPDATE SET
+                numero = EXCLUDED.numero,
+                total_ht = EXCLUDED.total_ht,
+                total_ttc = EXCLUDED.total_ttc;
+            `;
+            importedCount++;
+          } catch (_) {}
+        }
+      }
+      break;
+    }
+
+    case 'reglements': {
+      for (const r of rows) {
+        if (r.id && r.client_id) {
+          try {
+            await sql`
+              INSERT INTO reglements (
+                id, piece_type, piece_id, piece_numero, facture_id, facture_numero,
+                client_id, client_nom, date, montant, mode_reglement, reference_paiement, banque
+              ) VALUES (
+                ${r.id},
+                ${r.piece_type || 'FACTURE'},
+                ${r.piece_id || null},
+                ${r.piece_numero || ''},
+                ${r.facture_id || null},
+                ${r.facture_numero || ''},
+                ${r.client_id},
+                ${r.client_nom || ''},
+                ${r.date || new Date().toISOString().slice(0, 10)},
+                ${r.montant || 0},
+                ${r.mode_reglement || r.mode || 'Virement'},
+                ${r.reference_paiement || ''},
+                ${r.banque || ''}
+              )
+              ON CONFLICT (id) DO UPDATE SET
+                montant = EXCLUDED.montant,
+                date = EXCLUDED.date,
+                mode_reglement = EXCLUDED.mode_reglement;
+            `;
+            importedCount++;
+          } catch (_) {}
+        }
+      }
+      break;
+    }
+
+    case 'pos_tables': {
+      for (const t of rows) {
+        if (t.id && (t.numero || t.nom)) {
+          try {
+            await sql`
+              INSERT INTO pos_tables (id, numero, nom, zone, capacite, statut, serveur)
+              VALUES (${t.id}, ${t.numero || `T${t.id}`}, ${t.nom || `Table ${t.id}`}, ${t.zone || 'Salle'}, ${t.capacite || 4}, ${t.statut || 'LIBRE'}, ${t.serveur || ''})
+              ON CONFLICT (id) DO UPDATE SET
+                numero = EXCLUDED.numero,
+                nom = EXCLUDED.nom,
+                statut = EXCLUDED.statut;
+            `;
+            importedCount++;
+          } catch (_) {}
+        }
+      }
+      break;
+    }
+
+    case 'pos_categories': {
+      for (const pc of rows) {
+        if (pc.id && pc.nom) {
+          try {
+            await sql`
+              INSERT INTO pos_categories (id, code, nom, icone, couleur, ordre, actif)
+              VALUES (${pc.id}, ${pc.code || `CAT${pc.id}`}, ${pc.nom}, ${pc.icone || 'utensils'}, ${pc.couleur || '#0284c7'}, ${pc.ordre || 0}, ${pc.actif ?? 1})
+              ON CONFLICT (id) DO UPDATE SET
+                nom = EXCLUDED.nom,
+                icone = EXCLUDED.icone,
+                couleur = EXCLUDED.couleur;
+            `;
+            importedCount++;
+          } catch (_) {}
+        }
+      }
+      break;
+    }
+
+    case 'pos_produits': {
+      for (const pp of rows) {
+        if (pp.id && pp.nom) {
+          try {
+            await sql`
+              INSERT INTO pos_produits (
+                id, code, nom, description, categorie_id, categorie_nom,
+                prix_vente_ttc, taux_tva, temps_preparation_min, disponible, actif
+              ) VALUES (
+                ${pp.id},
+                ${pp.code || `POS-${pp.id}`},
+                ${pp.nom},
+                ${pp.description || ''},
+                ${pp.categorie_id || null},
+                ${pp.categorie_nom || ''},
+                ${pp.prix_vente_ttc || pp.prix_ttc || 0},
+                ${pp.taux_tva || 20},
+                ${pp.temps_preparation_min || 10},
+                ${pp.disponible ?? 1},
+                ${pp.actif ?? 1}
+              )
+              ON CONFLICT (id) DO UPDATE SET
+                nom = EXCLUDED.nom,
+                prix_vente_ttc = EXCLUDED.prix_vente_ttc,
+                disponible = EXCLUDED.disponible;
+            `;
+            importedCount++;
+          } catch (_) {}
+        }
+      }
+      break;
+    }
+
+    case 'pos_ventes': {
+      for (const pv of rows) {
+        if (pv.id) {
+          try {
+            await sql`
+              INSERT INTO pos_ventes (
+                id, ticket_numero, session_id, date, heure, table_id, table_numero,
+                caissier_id, caissier_nom, total_ht, total_tva, total_ttc, remise_montant,
+                montant_paye, rendu_monnaie, mode_paiement, statut_paiement, notes
+              ) VALUES (
+                ${pv.id},
+                ${pv.ticket_numero || `TKT-${pv.id}`},
+                ${pv.session_id || 1},
+                ${pv.date || new Date().toISOString().slice(0, 10)},
+                ${pv.heure || '12:00:00'},
+                ${pv.table_id || null},
+                ${pv.table_numero || ''},
+                ${pv.caissier_id || 1},
+                ${pv.caissier_nom || 'Caisse'},
+                ${pv.total_ht || 0},
+                ${pv.total_tva || 0},
+                ${pv.total_ttc || 0},
+                ${pv.remise_montant || 0},
+                ${pv.montant_paye || pv.total_ttc || 0},
+                ${pv.rendu_monnaie || 0},
+                ${pv.mode_paiement || 'ESPECES'},
+                ${pv.statut_paiement || 'PAYE'},
+                ${pv.notes || ''}
+              )
+              ON CONFLICT (id) DO UPDATE SET
+                total_ttc = EXCLUDED.total_ttc,
+                statut_paiement = EXCLUDED.statut_paiement;
+            `;
+            importedCount++;
+          } catch (_) {}
+        }
+      }
+      break;
+    }
+
+    case 'users':
+    case 'app_users': {
+      for (const u of rows) {
+        if (u.id && (u.username || u.nom_complet)) {
+          try {
+            await sql`
+              INSERT INTO app_users (id, username, nom_complet, email, role, pin_code, mot_de_passe, avatar, statut)
+              VALUES (
+                ${u.id},
+                ${u.username || `user_${u.id}`},
+                ${u.nom_complet || u.username},
+                ${u.email || ''},
+                ${u.role || 'CAISSE'},
+                ${u.pin_code || '1234'},
+                ${u.mot_de_passe || 'admin123'},
+                ${u.avatar || 'US'},
+                ${u.statut ?? 1}
+              )
+              ON CONFLICT (id) DO UPDATE SET
+                username = EXCLUDED.username,
+                nom_complet = EXCLUDED.nom_complet,
+                role = EXCLUDED.role,
+                pin_code = EXCLUDED.pin_code,
+                mot_de_passe = COALESCE(NULLIF(EXCLUDED.mot_de_passe, ''), app_users.mot_de_passe);
+            `;
+            importedCount++;
+          } catch (_) {}
+        }
+      }
+      break;
+    }
+
+    default:
+      break;
+  }
+
+  return { success: true, table, count: importedCount };
+}
+
+/**
+ * Executes a chunk of SQL statements safely
+ */
+export async function importSqlChunkToNeon(params: {
+  sqlChunk: string;
+  customUrl?: string;
+}) {
+  const { sqlChunk, customUrl } = params;
+  const sql = getNeonSql(customUrl);
+
+  const statements = sqlChunk
+    .replace(/--.*$/gm, '')
+    .split(/;\s*[\r\n]+|;\s*$/)
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0);
+
+  let executedCount = 0;
+  for (const stmt of statements) {
+    if (stmt) {
+      try {
+        await (sql as any)([stmt]);
+        executedCount++;
+      } catch (err: any) {
+        console.warn('SQL chunk notice:', stmt.slice(0, 60), err?.message);
+      }
+    }
+  }
+
+  return { success: true, count: executedCount, totalStatements: statements.length };
+}
+

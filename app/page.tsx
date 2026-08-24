@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   initSqliteDatabase,
+  fetchAllData,
   fetchFactures,
   fetchBonsLivraison,
   fetchBonsRetour,
@@ -230,42 +231,56 @@ export default function Home() {
   // Fast Core Data Refresh (Stats, Clients, Produits, Fournisseurs) without massive document lists
   const reloadCoreData = useCallback(async () => {
     try {
-      const [
-        brList,
-        cList,
-        pList,
-        fourList,
-        dList,
-        rList,
-        mList,
-        comp,
-        st,
-        supAlerts,
-      ] = await Promise.all([
-        fetchBonsRetour(),
-        fetchClients(),
-        fetchProduits(),
-        fetchFournisseurs(),
-        fetchDevis(),
-        fetchReglements(),
-        fetchStockMouvements(),
-        fetchCompanyInfo(),
-        fetchDashboardStats(),
-        fetchImpendingSupplierCheques(),
-      ]);
+      const data = await fetchAllData();
+      if (data) {
+        setBonsRetour(data.bons_retour || []);
+        setClients(data.clients || []);
+        setProduits(data.produits || []);
+        setFournisseurs(data.fournisseurs || []);
+        setDevisList(data.devis || []);
+        setReglements(data.reglements || []);
+        setStockMouvements(data.stock_mouvements || []);
+        if (data.company) setCompany(data.company);
 
-      setBonsRetour(brList);
-      setClients(cList);
-      setProduits(pList);
-      setFournisseurs(fourList);
-      setDevisList(dList);
-      setReglements(rList);
-      setStockMouvements(mList);
-      if (comp) setCompany(comp);
-      setStats(st);
-      setSupplierAlertsCount(supAlerts ? supAlerts.length : 0);
+        // Compute dashboard stats synchronously from snapshot
+        const facturesList: Facture[] = data.factures || [];
+        const blList: BonLivraison[] = data.bons_livraison || [];
+        const clientsList: Client[] = data.clients || [];
+        const produitsList: Produit[] = data.produits || [];
+
+        let totalHt = 0;
+        let totalTtc = 0;
+        let totalEncaisse = 0;
+        let totalImpaye = 0;
+
+        for (const f of facturesList) {
+          totalHt += Number(f.total_ht || 0);
+          totalTtc += Number(f.total_ttc || 0);
+          totalEncaisse += Number(f.montant_regle || 0);
+          totalImpaye += Number(f.reste_a_payer !== undefined ? f.reste_a_payer : (Number(f.total_ttc || 0) - Number(f.montant_regle || 0)));
+        }
+
+        const blAttente = blList.filter((b) => b.statut === 'En attente');
+        const stockAlerts = produitsList.filter((p) => Number(p.stock_actuel || 0) <= Number(p.stock_min || 0)).length;
+
+        setStats({
+          total_facture_ht: totalHt,
+          total_facture_ttc: totalTtc,
+          total_encaisse: totalEncaisse,
+          total_impaye: totalImpaye,
+          factures_count: facturesList.length,
+          bl_en_attente_count: blAttente.length,
+          bl_en_attente_total: blAttente.reduce((sum, b) => sum + Number(b.total_ttc || 0), 0),
+          br_en_attente_count: (data.bons_retour || []).filter((b: any) => b.statut === 'En attente').length,
+          br_en_attente_total: (data.bons_retour || []).filter((b: any) => b.statut === 'En attente').reduce((sum: number, b: any) => sum + Number(b.total_ttc || 0), 0),
+          clients_count: clientsList.length,
+          stock_alerts_count: stockAlerts,
+        });
+
+        setSupplierAlertsCount(0);
+      }
     } catch (e) {
-      console.error('Error reloading core data:', e);
+      console.warn('Notice refreshing core data (fallback cache retained):', e);
     }
   }, []);
 

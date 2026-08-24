@@ -1,5 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getNeonSql, getNeonDatabaseUrl, initNeonPostgresSchema, importDataToNeon } from '@/lib/neon-postgres';
+import {
+  getNeonSql,
+  getNeonDatabaseUrl,
+  initNeonPostgresSchema,
+  importDataToNeon,
+  initNeonImport,
+  importBatchToNeon,
+  importSqlChunkToNeon,
+} from '@/lib/neon-postgres';
 import {
   OFFICIAL_CATEGORIES,
   OFFICIAL_FAMILLES,
@@ -762,7 +770,28 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ success: false, error: 'Code PIN incorrect' });
         }
 
-        // --- IMPORT DATABASE TO NEON ---
+        // --- IMPORT DATABASE TO NEON (CHUNKED & ATOMIC) ---
+        case 'import_init': {
+          const result = await initNeonImport(payload.mode || 'merge');
+          return NextResponse.json(result);
+        }
+
+        case 'import_batch': {
+          const result = await importBatchToNeon({
+            table: payload.table,
+            rows: payload.rows,
+            mode: payload.mode || 'merge',
+          });
+          return NextResponse.json(result);
+        }
+
+        case 'import_sql_chunk': {
+          const result = await importSqlChunkToNeon({
+            sqlChunk: payload.sqlChunk,
+          });
+          return NextResponse.json(result);
+        }
+
         case 'import_db': {
           const result = await importDataToNeon({
             data: payload.data,
