@@ -1,13 +1,25 @@
 "use server";
 
 import { neon } from "@neondatabase/serverless";
+import { cookies } from "next/headers";
 import { getNeonDatabaseUrl, initNeonPostgresSchema, importDataToNeon } from "@/lib/neon-postgres";
+import { readSessionToken, SESSION_COOKIE } from "@/lib/auth-session";
+
+async function requireSession(adminOnly = false) {
+  const cookieStore = await cookies();
+  const session = readSessionToken(cookieStore.get(SESSION_COOKIE)?.value);
+  if (!session || (adminOnly && session.role !== 'ADMIN')) {
+    throw new Error(adminOnly ? 'Accès administrateur requis.' : 'Authentification requise.');
+  }
+  return session;
+}
 
 /**
  * Standard Next.js Server Action to query Neon PostgreSQL.
  * Fetches primary records (clients, products, delivery notes, invoices, company info).
  */
 export async function getData() {
+  await requireSession();
   const databaseUrl = getNeonDatabaseUrl();
   if (!databaseUrl) {
     throw new Error("DATABASE_URL is not configured in environment variables.");
@@ -60,6 +72,11 @@ export async function getData() {
  * Server Action: Execute raw SQL query safely on Neon PostgreSQL.
  */
 export async function executeSqlQuery(queryString: string) {
+  await requireSession(true);
+  const trimmed = queryString.trim();
+  if (!/^(select|with|explain)\b/i.test(trimmed) || /;\s*\S/.test(trimmed)) {
+    return { success: false, error: "Seules les requêtes de lecture sont autorisées." };
+  }
   const databaseUrl = getNeonDatabaseUrl();
   if (!databaseUrl) {
     return {
@@ -72,7 +89,7 @@ export async function executeSqlQuery(queryString: string) {
   const startTime = Date.now();
 
   try {
-    const rows = await (sql as any)([queryString.trim()]);
+    const rows = await sql.query(trimmed, []);
     const executionTimeMs = Date.now() - startTime;
 
     return {
@@ -95,6 +112,7 @@ export async function executeSqlQuery(queryString: string) {
  * Server Action: Initialize or verify PostgreSQL schema in Neon.
  */
 export async function initDatabase() {
+  await requireSession(true);
   try {
     const result = await initNeonPostgresSchema();
     return result;
@@ -147,6 +165,7 @@ export async function importDbToNeon(payload: {
   sql?: string;
   mode?: 'replace' | 'merge';
 }) {
+  await requireSession(true);
   try {
     const result = await importDataToNeon({
       data: payload.data,

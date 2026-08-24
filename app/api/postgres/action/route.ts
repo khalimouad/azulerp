@@ -16,6 +16,12 @@ import {
   OFFICIAL_CLIENTS,
   OFFICIAL_PRODUITS
 } from '@/lib/official-seed-data';
+import {
+  clearSessionCookie,
+  readSession,
+  setSessionCookie,
+  unauthorizedResponse,
+} from '@/lib/auth-session';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
@@ -141,10 +147,7 @@ function getFallbackStore() {
       pos_sessions: [],
       pos_ventes: [],
       pos_ventes_lignes: [],
-      app_users: [
-        { id: 1, username: 'admin', nom_complet: 'Administrateur Principal', email: 'admin@verdeorto.ma', role: 'ADMIN', pin_code: '1234', mot_de_passe: 'admin123', avatar: 'AD', statut: 1 },
-        { id: 2, username: 'caisse', nom_complet: 'Responsable Caisse', email: 'caisse@verdeorto.ma', role: 'CAISSE', pin_code: '0000', mot_de_passe: 'caisse123', avatar: 'CS', statut: 1 }
-      ]
+      app_users: []
     };
   }
   return fallbackMemoryStore;
@@ -154,6 +157,20 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const { action, payload } = body;
+
+    const publicActions = new Set(['auth_password', 'auth_pin', 'session', 'logout']);
+    const session = readSession(req);
+    if (!publicActions.has(action) && !session) return unauthorizedResponse();
+
+    if (action === 'session') {
+      return session
+        ? NextResponse.json({ success: true, user: session })
+        : unauthorizedResponse();
+    }
+
+    if (action === 'logout') {
+      return clearSessionCookie(NextResponse.json({ success: true }));
+    }
 
     const connStr = getNeonDatabaseUrl();
     const hasDb = Boolean(connStr);
@@ -223,7 +240,7 @@ export async function POST(req: NextRequest) {
             sql`SELECT * FROM pos_sessions ORDER BY id DESC LIMIT 100;`.catch(() => []),
             sql`SELECT * FROM pos_ventes ORDER BY id DESC LIMIT 500;`.catch(() => []),
             sql`SELECT * FROM pos_ventes_lignes ORDER BY id ASC;`.catch(() => []),
-            sql`SELECT id, username, nom_complet, email, role, pin_code, avatar, statut, derniere_connexion, created_at FROM app_users ORDER BY id ASC;`.catch(() => [])
+            sql`SELECT id, username, nom_complet, email, role, avatar, statut, derniere_connexion, created_at FROM app_users ORDER BY id ASC;`.catch(() => [])
           ]);
 
           // Assemble documents with line items
@@ -631,13 +648,15 @@ export async function POST(req: NextRequest) {
             if (users && users.length > 0) {
               const u = users[0];
               // Match password or allow default if null
-              if (
-                u.mot_de_passe === cleanPass ||
-                (!u.mot_de_passe && cleanPass === 'admin123' && cleanUser === 'admin') ||
-                (!u.mot_de_passe && cleanPass === 'caisse123' && cleanUser === 'caisse')
-              ) {
-                const { mot_de_passe, ...safeUser } = u;
-                return NextResponse.json({ success: true, user: safeUser });
+              if (u.mot_de_passe === cleanPass) {
+                const { mot_de_passe, pin_code, ...safeUser } = u;
+                return setSessionCookie(
+                  NextResponse.json({ success: true, user: safeUser }),
+                  {
+                    id: Number(u.id), username: u.username, role: u.role,
+                    nom_complet: u.nom_complet, email: u.email, avatar: u.avatar, statut: u.statut,
+                  }
+                );
               }
             }
           } catch (dbErr: any) {
@@ -646,55 +665,6 @@ export async function POST(req: NextRequest) {
             try {
               await initNeonPostgresSchema();
             } catch (_) {}
-          }
-
-          // 2. Built-in fallback users for initial startup / Vercel first run
-          if (cleanUser === 'admin' && (cleanPass === 'admin123' || cleanPass === 'admin' || cleanPass === '1234')) {
-            return NextResponse.json({
-              success: true,
-              user: {
-                id: 1,
-                username: 'admin',
-                nom_complet: 'Administrateur Principal',
-                email: 'admin@verdeorto.ma',
-                role: 'ADMIN',
-                pin_code: '1234',
-                avatar: 'AD',
-                statut: 1,
-              },
-            });
-          }
-
-          if (cleanUser === 'caisse' && (cleanPass === 'caisse123' || cleanPass === '0000')) {
-            return NextResponse.json({
-              success: true,
-              user: {
-                id: 2,
-                username: 'caisse',
-                nom_complet: 'Responsable Caisse',
-                email: 'caisse@verdeorto.ma',
-                role: 'CAISSE',
-                pin_code: '0000',
-                avatar: 'CS',
-                statut: 1,
-              },
-            });
-          }
-
-          if (cleanUser === 'gestion' && (cleanPass === 'gestion123' || cleanPass === '5678')) {
-            return NextResponse.json({
-              success: true,
-              user: {
-                id: 3,
-                username: 'gestion',
-                nom_complet: 'Gestionnaire Stock & Ventes',
-                email: 'gestion@verdeorto.ma',
-                role: 'GESTIONNAIRE',
-                pin_code: '5678',
-                avatar: 'GC',
-                statut: 1,
-              },
-            });
           }
 
           return NextResponse.json({ success: false, error: 'Identifiant ou mot de passe incorrect' });
@@ -712,59 +682,18 @@ export async function POST(req: NextRequest) {
               LIMIT 1;
             `;
             if (users && users.length > 0) {
-              return NextResponse.json({ success: true, user: users[0] });
+              const { pin_code, ...safeUser } = users[0];
+              return setSessionCookie(
+                NextResponse.json({ success: true, user: safeUser }),
+                {
+                  id: Number(users[0].id), username: users[0].username, role: users[0].role,
+                  nom_complet: users[0].nom_complet, email: users[0].email,
+                  avatar: users[0].avatar, statut: users[0].statut,
+                }
+              );
             }
           } catch (dbErr: any) {
             console.warn('Auth PIN query notice:', dbErr?.message);
-          }
-
-          // Fallback PINs
-          if (cleanPin === '1234') {
-            return NextResponse.json({
-              success: true,
-              user: {
-                id: 1,
-                username: 'admin',
-                nom_complet: 'Administrateur Principal',
-                email: 'admin@verdeorto.ma',
-                role: 'ADMIN',
-                pin_code: '1234',
-                avatar: 'AD',
-                statut: 1,
-              },
-            });
-          }
-
-          if (cleanPin === '0000') {
-            return NextResponse.json({
-              success: true,
-              user: {
-                id: 2,
-                username: 'caisse',
-                nom_complet: 'Responsable Caisse',
-                email: 'caisse@verdeorto.ma',
-                role: 'CAISSE',
-                pin_code: '0000',
-                avatar: 'CS',
-                statut: 1,
-              },
-            });
-          }
-
-          if (cleanPin === '5678') {
-            return NextResponse.json({
-              success: true,
-              user: {
-                id: 3,
-                username: 'gestion',
-                nom_complet: 'Gestionnaire Stock & Ventes',
-                email: 'gestion@verdeorto.ma',
-                role: 'GESTIONNAIRE',
-                pin_code: '5678',
-                avatar: 'GC',
-                statut: 1,
-              },
-            });
           }
 
           return NextResponse.json({ success: false, error: 'Code PIN incorrect' });
@@ -890,14 +819,26 @@ export async function POST(req: NextRequest) {
             (u) => (u.username.toLowerCase() === username.toLowerCase().trim() || u.email?.toLowerCase() === username.toLowerCase().trim()) &&
                    u.mot_de_passe === password.trim()
           );
-          if (user) return NextResponse.json({ success: true, user });
+          if (user) {
+            const { mot_de_passe, pin_code, ...safeUser } = user;
+            return setSessionCookie(
+              NextResponse.json({ success: true, user: safeUser }),
+              { id: Number(user.id), username: user.username, role: user.role }
+            );
+          }
           return NextResponse.json({ success: false, error: 'Identifiant ou mot de passe incorrect' });
         }
 
         case 'auth_pin': {
           const { pin } = payload;
           const user = store.app_users.find((u) => u.pin_code === pin.trim());
-          if (user) return NextResponse.json({ success: true, user });
+          if (user) {
+            const { mot_de_passe, pin_code, ...safeUser } = user;
+            return setSessionCookie(
+              NextResponse.json({ success: true, user: safeUser }),
+              { id: Number(user.id), username: user.username, role: user.role }
+            );
+          }
           return NextResponse.json({ success: false, error: 'Code PIN incorrect' });
         }
 

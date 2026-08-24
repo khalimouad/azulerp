@@ -683,33 +683,6 @@ export async function authenticateWithPassword(username: string, password: strin
     console.warn('Authentication API call error, using local fallback check:', err);
   }
 
-  // Fallback for immediate recovery / Vercel initial setup
-  const cleanU = (username || '').toLowerCase().trim();
-  const cleanP = (password || '').trim();
-  if (cleanU === 'admin' && (cleanP === 'admin123' || cleanP === 'admin' || cleanP === '1234')) {
-    return {
-      id: 1,
-      username: 'admin',
-      nom_complet: 'Administrateur Principal',
-      email: 'admin@verdeorto.ma',
-      role: 'ADMIN',
-      pin_code: '1234',
-      avatar: 'AD',
-      statut: 1,
-    };
-  }
-  if (cleanU === 'caisse' && (cleanP === 'caisse123' || cleanP === '0000')) {
-    return {
-      id: 2,
-      username: 'caisse',
-      nom_complet: 'Responsable Caisse',
-      email: 'caisse@verdeorto.ma',
-      role: 'CAISSE',
-      pin_code: '0000',
-      avatar: 'CS',
-      statut: 1,
-    };
-  }
   return null;
 }
 
@@ -721,32 +694,25 @@ export async function authenticateWithPin(pin: string): Promise<AppUser | null> 
     console.warn('PIN Authentication API call error, using local fallback check:', err);
   }
 
-  const cleanPin = (pin || '').trim();
-  if (cleanPin === '1234') {
-    return {
-      id: 1,
-      username: 'admin',
-      nom_complet: 'Administrateur Principal',
-      email: 'admin@verdeorto.ma',
-      role: 'ADMIN',
-      pin_code: '1234',
-      avatar: 'AD',
-      statut: 1,
-    };
-  }
-  if (cleanPin === '0000') {
-    return {
-      id: 2,
-      username: 'caisse',
-      nom_complet: 'Responsable Caisse',
-      email: 'caisse@verdeorto.ma',
-      role: 'CAISSE',
-      pin_code: '0000',
-      avatar: 'CS',
-      statut: 1,
-    };
-  }
   return null;
+}
+
+export async function getAuthenticatedSession(): Promise<AppUser | null> {
+  try {
+    const res = await apiCall('session', {}, 0);
+    return res?.user || null;
+  } catch {
+    return null;
+  }
+}
+
+export async function logoutAuthenticatedSession(): Promise<void> {
+  try {
+    await apiCall('logout', {}, 0);
+  } finally {
+    cachedData = null;
+    isInitialized = false;
+  }
 }
 
 export async function fetchAllUsers(): Promise<AppUser[]> {

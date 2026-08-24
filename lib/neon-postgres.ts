@@ -41,8 +41,7 @@ export function getNeonDatabaseUrl(customUrl?: string): string | null {
     return `postgresql://${encodeURIComponent(user)}:${encodeURIComponent(password)}@${host}/${database}?sslmode=require`;
   }
 
-  // Default fallback connection string provided for this workspace
-  return 'postgresql://neondb_owner:npg_7C1gpEAbmRSv@ep-dawn-dawn-av1vtcdh-pooler.c-11.us-east-1.aws.neon.tech/neondb?channel_binding=require&sslmode=require';
+  return null;
 }
 
 /**
@@ -1252,24 +1251,17 @@ export async function initNeonPostgresSchema(customUrl?: string) {
     }
   } catch (_) {}
 
-  // Check if users are empty or need passwords seeded
+  // Create the initial administrator only when explicit bootstrap credentials are configured.
   try {
-    await sql`
-      INSERT INTO app_users (id, username, nom_complet, email, role, pin_code, mot_de_passe, avatar, statut)
-      VALUES 
-        (1, 'admin', 'Administrateur Principal', 'admin@verdeorto.ma', 'ADMIN', '1234', 'admin123', 'AD', 1),
-        (2, 'caisse', 'Responsable Caisse', 'caisse@verdeorto.ma', 'CAISSE', '0000', 'caisse123', 'CS', 1),
-        (3, 'gestion', 'Gestionnaire Stock & Ventes', 'gestion@verdeorto.ma', 'GESTIONNAIRE', '5678', 'gestion123', 'GC', 1)
-      ON CONFLICT (id) DO UPDATE SET 
-        mot_de_passe = COALESCE(NULLIF(app_users.mot_de_passe, ''), EXCLUDED.mot_de_passe),
-        pin_code = COALESCE(NULLIF(app_users.pin_code, ''), EXCLUDED.pin_code);
-    `;
-    // Ensure admin user password is never null
-    await sql`
-      UPDATE app_users 
-      SET mot_de_passe = 'admin123' 
-      WHERE username = 'admin' AND (mot_de_passe IS NULL OR mot_de_passe = '');
-    `;
+    const initialAdminPassword = process.env.INITIAL_ADMIN_PASSWORD;
+    const initialAdminPin = process.env.INITIAL_ADMIN_PIN;
+    if (initialAdminPassword && initialAdminPin) {
+      await sql`
+        INSERT INTO app_users (id, username, nom_complet, email, role, pin_code, mot_de_passe, avatar, statut)
+        VALUES (1, 'admin', 'Administrateur Principal', 'admin@verdeorto.ma', 'ADMIN', ${initialAdminPin}, ${initialAdminPassword}, 'AD', 1)
+        ON CONFLICT (id) DO NOTHING;
+      `;
+    }
   } catch (err) {
     console.warn('Notice seeding users:', err);
   }
@@ -2631,8 +2623,8 @@ export async function importBatchToNeon(params: {
                 ${u.nom_complet || u.username},
                 ${u.email || ''},
                 ${u.role || 'CAISSE'},
-                ${u.pin_code || '1234'},
-                ${u.mot_de_passe || 'admin123'},
+                ${u.pin_code || ''},
+                ${u.mot_de_passe || ''},
                 ${u.avatar || 'US'},
                 ${u.statut ?? 1}
               )

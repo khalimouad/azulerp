@@ -75,23 +75,7 @@ export const AuthView: React.FC<AuthViewProps> = ({ onLoginSuccess }) => {
       if (user) {
         handleSuccess(user);
       } else {
-        // Fallback for admin credentials
-        const cleanU = identifier.toLowerCase().trim();
-        const cleanP = password.trim();
-        if (cleanU === 'admin' && (cleanP === 'admin123' || cleanP === 'admin' || cleanP === '1234')) {
-          handleSuccess({
-            id: 1,
-            username: 'admin',
-            nom_complet: 'Administrateur Principal',
-            email: 'admin@verdeorto.ma',
-            role: 'ADMIN',
-            pin_code: '1234',
-            avatar: 'AD',
-            statut: 1,
-          });
-        } else {
-          setError('Identifiant ou mot de passe incorrect.');
-        }
+        setError('Identifiant ou mot de passe incorrect.');
       }
     } catch (err: any) {
       setError(err?.message || 'Erreur de connexion');
@@ -114,32 +98,8 @@ export const AuthView: React.FC<AuthViewProps> = ({ onLoginSuccess }) => {
       if (user) {
         handleSuccess(user);
       } else {
-        if (targetPin === '1234') {
-          handleSuccess({
-            id: 1,
-            username: 'admin',
-            nom_complet: 'Administrateur Principal',
-            email: 'admin@verdeorto.ma',
-            role: 'ADMIN',
-            pin_code: '1234',
-            avatar: 'AD',
-            statut: 1,
-          });
-        } else if (targetPin === '0000') {
-          handleSuccess({
-            id: 2,
-            username: 'caisse',
-            nom_complet: 'Responsable Caisse',
-            email: 'caisse@verdeorto.ma',
-            role: 'CAISSE',
-            pin_code: '0000',
-            avatar: 'CS',
-            statut: 1,
-          });
-        } else {
-          setError('Code PIN invalide.');
-          setPin('');
-        }
+        setError('Code PIN invalide.');
+        setPin('');
       }
     } catch (err: any) {
       setError(err?.message || 'Erreur de connexion PIN');
@@ -416,17 +376,8 @@ export const AuthView: React.FC<AuthViewProps> = ({ onLoginSuccess }) => {
         isOpen={isImportModalOpen}
         onClose={() => setIsImportModalOpen(false)}
         onSuccess={() => {
-          // Auto-login as admin upon database restoration
-          handleSuccess({
-            id: 1,
-            username: 'admin',
-            nom_complet: 'Administrateur Principal',
-            email: 'admin@verdeorto.ma',
-            role: 'ADMIN',
-            pin_code: '1234',
-            avatar: 'AD',
-            statut: 1,
-          });
+          setIsImportModalOpen(false);
+          setError('Import terminé. Connectez-vous avec un compte administrateur.');
         }}
       />
     </div>

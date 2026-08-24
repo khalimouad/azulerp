@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getNeonSql, getNeonDatabaseUrl } from '@/lib/neon-postgres';
+import { readSession } from '@/lib/auth-session';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 
 export async function GET(req: NextRequest) {
+  const session = readSession(req);
   const connStr = getNeonDatabaseUrl();
 
   if (!connStr) {
@@ -58,9 +60,8 @@ export async function GET(req: NextRequest) {
     ]) {
       if (tables.includes(tableName)) {
         try {
-          const countRes: any = await (sql as any)([
-            `SELECT count(*) as count FROM "${tableName.replace(/[^a-zA-Z0-9_]/g, '')}";`
-          ]);
+          const safeTableName = tableName.replace(/[^a-zA-Z0-9_]/g, '');
+          const countRes: any = await sql.query(`SELECT count(*) as count FROM "${safeTableName}";`, []);
           stats[tableName] = parseInt(countRes?.[0]?.count || '0', 10);
         } catch (_) {}
       }
@@ -73,18 +74,24 @@ export async function GET(req: NextRequest) {
       maskedHost = parsed.hostname;
     } catch (_) {}
 
-    return NextResponse.json({
+    const publicHealth = {
       connected: true,
       configured: true,
       provider: 'Neon.tech Serverless PostgreSQL',
+      latencyMs,
+      serverTime: serverNow,
+    };
+
+    if (!session) return NextResponse.json(publicHealth);
+
+    return NextResponse.json({
+      ...publicHealth,
       host: maskedHost,
       database: dbName,
       version: versionStr,
-      latencyMs,
       tableCount: tables.length,
       tables,
       stats,
-      serverTime: serverNow,
     });
   } catch (err: any) {
     console.error('Neon PostgreSQL health check failed:', err);

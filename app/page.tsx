@@ -47,6 +47,8 @@ import {
   importDatabaseWithProgress,
   resetToSampleData,
   fetchImpendingSupplierCheques,
+  getAuthenticatedSession,
+  logoutAuthenticatedSession,
 } from '@/lib/sqlite-service';
 import { testNeonConnection } from '@/lib/neon-sync-service';
 import {
@@ -328,26 +330,15 @@ export default function Home() {
     let isMounted = true;
     (async () => {
       try {
-        await initSqliteDatabase();
+        const sessionUser = await getAuthenticatedSession();
         if (isMounted) {
           setSqliteReady(true);
-          await reloadData();
           testNeonConnection();
-
-          // Check for existing saved auth session
-          try {
-            const savedUserStr = localStorage.getItem('verdeorto_auth_user');
-            if (savedUserStr) {
-              const parsedUser = JSON.parse(savedUserStr);
-              if (parsedUser && parsedUser.id) {
-                setCurrentUser(parsedUser);
-                if (parsedUser.role === 'CAISSE') {
-                  setCurrentTab('pos');
-                }
-              }
-            }
-          } catch (e) {
-            console.warn('Failed to parse saved user session:', e);
+          if (sessionUser) {
+            setCurrentUser(sessionUser);
+            await initSqliteDatabase();
+            await reloadData();
+            if (sessionUser.role === 'CAISSE') setCurrentTab('pos');
           }
         }
       } catch (err: any) {
@@ -393,7 +384,7 @@ export default function Home() {
     }
   };
 
-  const handleLoginSuccess = (user: AppUser) => {
+  const handleLoginSuccess = async (user: AppUser) => {
     setCurrentUser(user);
     setIsScreenLocked(false);
     try {
@@ -406,9 +397,11 @@ export default function Home() {
     } else {
       setCurrentTab('pos');
     }
+    await reloadData();
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await logoutAuthenticatedSession();
     try {
       localStorage.removeItem('verdeorto_auth_user');
     } catch (e) {

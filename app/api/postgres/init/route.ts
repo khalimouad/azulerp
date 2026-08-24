@@ -1,10 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { initNeonPostgresSchema, getNeonDatabaseUrl } from '@/lib/neon-postgres';
+import { readSession, unauthorizedResponse } from '@/lib/auth-session';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 
 export async function POST(req: NextRequest) {
+  const session = readSession(req);
+  if (!session) return unauthorizedResponse();
+  if (session.role !== 'ADMIN') {
+    return NextResponse.json({ success: false, error: 'Accès administrateur requis.' }, { status: 403 });
+  }
   const connStr = getNeonDatabaseUrl();
 
   if (!connStr) {

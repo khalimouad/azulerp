@@ -1,10 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getNeonSql, getNeonDatabaseUrl } from '@/lib/neon-postgres';
+import { readSession, unauthorizedResponse } from '@/lib/auth-session';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 
 export async function POST(req: NextRequest) {
+  const session = readSession(req);
+  if (!session) return unauthorizedResponse();
+  if (session.role !== 'ADMIN') {
+    return NextResponse.json({ success: false, error: 'Accès administrateur requis.' }, { status: 403 });
+  }
+
   const connStr = getNeonDatabaseUrl();
 
   if (!connStr) {
@@ -28,11 +35,18 @@ export async function POST(req: NextRequest) {
     }
 
     const trimmed = query.trim();
+    const normalized = trimmed.replace(/\s+/g, ' ').toLowerCase();
+    if (!/^(select|with|explain)\b/.test(normalized) || /;\s*\S/.test(trimmed)) {
+      return NextResponse.json(
+        { success: false, error: 'Seules les requêtes de lecture SELECT, WITH et EXPLAIN sont autorisées.' },
+        { status: 400 }
+      );
+    }
     const startTime = Date.now();
     const sql = getNeonSql();
 
     // Execute query
-    const rows: any = await (sql as any)([trimmed]);
+    const rows: any = await sql.query(trimmed, []);
     const executionTimeMs = Date.now() - startTime;
 
     if (Array.isArray(rows) && rows.length > 0) {
