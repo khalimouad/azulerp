@@ -29,10 +29,18 @@ import {
   Sparkles,
   Zap,
   Server,
+  Printer,
+  ExternalLink,
 } from 'lucide-react';
 import { DatabaseProgressModal } from './DatabaseProgressModal';
 import { ImportNeonModal } from './ImportNeonModal';
 import { DbImportProgress, DbImportSummary, DatabaseHealthInfo } from '@/lib/types';
+import {
+  DEFAULT_TICKET_PRINTER_SETTINGS,
+  getTicketPrinterSettings,
+  saveTicketPrinterSettings,
+  TicketPrinterSettings,
+} from '@/lib/ticket-printer';
 
 interface SqliteConsoleViewProps {
   onDatabaseChanged: () => void;
@@ -57,6 +65,8 @@ export const SqliteConsoleView: React.FC<SqliteConsoleViewProps> = ({ onDatabase
   const [importSummary, setImportSummary] = useState<DbImportSummary | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [printerSettings, setPrinterSettings] = useState<TicketPrinterSettings>(DEFAULT_TICKET_PRINTER_SETTINGS);
+  const [printerSaved, setPrinterSaved] = useState(false);
 
   const refreshHealth = async () => {
     setIsRefreshingHealth(true);
@@ -72,7 +82,14 @@ export const SqliteConsoleView: React.FC<SqliteConsoleViewProps> = ({ onDatabase
 
   useEffect(() => {
     refreshHealth();
+    setPrinterSettings(getTicketPrinterSettings());
   }, []);
+
+  const handleSavePrinter = () => {
+    saveTicketPrinterSettings(printerSettings);
+    setPrinterSaved(true);
+    window.setTimeout(() => setPrinterSaved(false), 2500);
+  };
 
   const sampleQueriesPostgres = [
     { label: 'Version & DB Neon', sql: 'SELECT version(), current_database() as db_name, now() as server_time;' },
@@ -177,6 +194,52 @@ export const SqliteConsoleView: React.FC<SqliteConsoleViewProps> = ({ onDatabase
             <Download className="w-3.5 h-3.5" />
             Sauvegarde JSON
           </button>
+        </div>
+      </div>
+
+      <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
+        <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-5">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+              <Printer className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="font-bold text-slate-900">Impression des tickets</h2>
+              <p className="text-xs text-slate-500 mt-0.5">Imprimante de caisse utilisée par le poste POS.</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-500" />
+            Configurée
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mt-5">
+          <label className="text-xs font-semibold text-slate-700">
+            Modèle
+            <input value={printerSettings.model} onChange={(e) => setPrinterSettings({ ...printerSettings, model: e.target.value })} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm" />
+          </label>
+          <label className="text-xs font-semibold text-slate-700">
+            Adresse IP
+            <input value={printerSettings.ipAddress} onChange={(e) => setPrinterSettings({ ...printerSettings, ipAddress: e.target.value })} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm font-mono" />
+          </label>
+          <label className="text-xs font-semibold text-slate-700">
+            Largeur papier
+            <select value={printerSettings.paperWidth} onChange={(e) => setPrinterSettings({ ...printerSettings, paperWidth: Number(e.target.value) as 80 | 58 })} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm bg-white">
+              <option value={80}>80 mm</option><option value={58}>58 mm</option>
+            </select>
+          </label>
+          <label className="text-xs font-semibold text-slate-700">
+            Après encaissement
+            <select value={printerSettings.autoPrint ? 'yes' : 'no'} onChange={(e) => setPrinterSettings({ ...printerSettings, autoPrint: e.target.value === 'yes' })} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm bg-white">
+              <option value="no">Imprimer avec le bouton</option><option value="yes">Ouvrir automatiquement</option>
+            </select>
+          </label>
+        </div>
+        <div className="flex flex-wrap items-center gap-2 mt-4">
+          <button type="button" onClick={handleSavePrinter} className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold">{printerSaved ? 'Réglages enregistrés' : 'Enregistrer les réglages'}</button>
+          <a href={`http://${printerSettings.ipAddress}`} target="_blank" rel="noreferrer" className="px-4 py-2 border border-slate-300 hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-bold flex items-center gap-1.5"><ExternalLink className="w-3.5 h-3.5" /> Ouvrir la page Epson</a>
+          <p className="text-[11px] text-slate-500">L’impression utilise l’imprimante installée sur ce poste. L’adresse IP sert à contrôler/configurer la TM‑T20X sur le réseau local.</p>
         </div>
       </div>
 

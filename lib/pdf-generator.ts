@@ -291,7 +291,7 @@ function drawVerdeOrtoFooter(doc: jsPDF, company: CompanyInfo) {
 /**
  * Generate and download official A5 PDF for Facture
  */
-export function generateFacturePdf(facture: Facture, company: CompanyInfo) {
+function generateFacturePdfLegacy(facture: Facture, company: CompanyInfo) {
   const doc = new jsPDF({
     orientation: 'portrait',
     unit: 'mm',
@@ -433,7 +433,7 @@ export function generateFacturePdf(facture: Facture, company: CompanyInfo) {
 /**
  * Generate and download official A5 PDF for Bon de Livraison
  */
-export function generateBlPdf(bl: BonLivraison, company: CompanyInfo) {
+function generateBlPdfLegacy(bl: BonLivraison, company: CompanyInfo) {
   const doc = new jsPDF({
     orientation: 'portrait',
     unit: 'mm',
@@ -553,7 +553,7 @@ export function generateBlPdf(bl: BonLivraison, company: CompanyInfo) {
 /**
  * Generate and download official A5 PDF for Bon de Retour
  */
-export function generateBrPdf(br: BonRetour, company: CompanyInfo) {
+function generateBrPdfLegacy(br: BonRetour, company: CompanyInfo) {
   const doc = new jsPDF({
     orientation: 'portrait',
     unit: 'mm',
@@ -671,6 +671,172 @@ export function generateBrPdf(br: BonRetour, company: CompanyInfo) {
 /**
  * Generate and download official A5 PDF for Devis
  */
+type A4CommercialDocument = Facture | BonLivraison | BonRetour;
+
+function drawA4Identity(doc: jsPDF, company: CompanyInfo) {
+  const dark: [number, number, number] = [28, 35, 43];
+  doc.setTextColor(...dark);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10.5);
+  doc.text((company.nom || 'VERDEORTO SARL AU').toUpperCase(), 14, 15);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8.2);
+  const address = (company.adresse_detail || company.adresse || '').split('\n').filter(Boolean);
+  let leftY = 20;
+  for (const line of address.slice(0, 5)) {
+    doc.text(line, 14, leftY);
+    leftY += 4;
+  }
+  if (company.ville && !address.join(' ').toLowerCase().includes(company.ville.toLowerCase())) {
+    doc.text(company.ville, 14, leftY); leftY += 4;
+  }
+  if (company.telephone) doc.text(`Tél : ${company.telephone}`, 14, leftY + 1);
+  if (company.email) doc.text(`E-Mail : ${company.email}`, 14, leftY + 6);
+
+  const centerX = 105;
+  if (company.logo_image?.startsWith('data:image')) {
+    try {
+      const format = company.logo_image.includes('jpeg') || company.logo_image.includes('jpg') ? 'JPEG' : company.logo_image.includes('webp') ? 'WEBP' : 'PNG';
+      doc.addImage(company.logo_image, format, 72, 10, 66, 28);
+    } catch { /* Text fallback below remains visible. */ }
+  } else {
+    doc.setDrawColor(81, 112, 53);
+    doc.setFillColor(231, 238, 210);
+    doc.setLineWidth(0.8);
+    doc.ellipse(centerX, 23, 32, 13, 'FD');
+    doc.setFont('times', 'bolditalic');
+    doc.setFontSize(22);
+    doc.setTextColor(44, 65, 35);
+    doc.text(company.logo_titre || 'VerdeOrto', centerX, 25, { align: 'center' });
+    if (company.logo_sous_titre) {
+      doc.setFontSize(6.5);
+      doc.text(company.logo_sous_titre, centerX, 31, { align: 'center' });
+    }
+  }
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8.5);
+  doc.setTextColor(...dark);
+  const fiscal = [
+    ['RC', company.rc], ['IF', company.if_fiscal], ['PAT', company.patente],
+    ['CNSS', company.cnss], ['ICE', company.ice],
+  ].filter((item) => item[1]);
+  fiscal.forEach(([label, value], index) => {
+    doc.text(`${label} :`, 154, 15 + index * 4.6);
+    doc.text(String(value), 196, 15 + index * 4.6, { align: 'right' });
+  });
+
+  if (company.partenaire_coop) {
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7.2);
+    const lines = company.partenaire_coop.split('\n').filter(Boolean).slice(0, 3);
+    lines.forEach((line, index) => doc.text(line, 158, 39 + index * 3.5, { align: 'center' }));
+    doc.setLineWidth(0.25);
+    doc.line(139, 50, 178, 50);
+  }
+}
+
+function generateA4CommercialPdf(document: A4CommercialDocument, company: CompanyInfo, kind: 'Facture' | 'Bon de Livraison' | 'Bon de Retour') {
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  drawA4Identity(doc, company);
+
+  doc.setDrawColor(95, 104, 115);
+  doc.setLineWidth(0.35);
+  doc.roundedRect(14, 55, 112, 28, 3, 3, 'S');
+  doc.roundedRect(133, 55, 63, 28, 3, 3, 'S');
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(9.5); doc.setTextColor(25, 30, 36);
+  doc.text(`Client : ${document.client_nom || ''}`, 18, 62, { maxWidth: 103 });
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5);
+  let clientY = 68;
+  if (document.client_adresse) { doc.text(document.client_adresse, 18, clientY, { maxWidth: 103 }); clientY += 4.5; }
+  if (document.client_ville) { doc.text(document.client_ville.toUpperCase(), 18, clientY); clientY += 4.5; }
+  if (document.client_ice) doc.text(`ICE : ${document.client_ice}`, 18, clientY);
+
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(9);
+  doc.text(`N° de ${kind} :`, 139, 64);
+  doc.text(document.numero, 191, 64, { align: 'right' });
+  doc.text('Date :', 139, 72);
+  doc.setFont('helvetica', 'normal');
+  doc.text(formatDate(document.date), 191, 72, { align: 'right' });
+  if (kind === 'Bon de Retour' && (document as BonRetour).motif) {
+    doc.setFontSize(7); doc.text(`Motif : ${(document as BonRetour).motif}`, 139, 78, { maxWidth: 51 });
+  }
+
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(19);
+  doc.text(kind, 105, 93, { align: 'center' });
+
+  const isReturn = kind === 'Bon de Retour';
+  const body = (document.lignes || []).map((line: any) => {
+    const qty = isReturn ? -Math.abs(line.quantite) : line.quantite;
+    const total = isReturn ? -Math.abs(line.total_ht ?? line.quantite * line.prix_ht) : (line.total_ht ?? line.quantite * line.prix_ht);
+    return [
+      line.designation,
+      formatQuantityWithUnit(qty, line.designation, line.unite),
+      formatCurrency(line.prix_ht, false),
+      `${line.taux_tva ?? 20}`,
+      line.remise_pct ? `${line.remise_pct}%` : '',
+      formatCurrency(total, false),
+    ];
+  });
+
+  autoTable(doc, {
+    startY: 99, margin: { left: 14, right: 14 }, theme: 'grid',
+    head: [['Désignation', 'Qté.', 'P.U. HT', 'TVA', 'Remise', 'Total HT']], body,
+    styles: { fontSize: 8.4, cellPadding: 2.1, textColor: [25, 30, 36], lineColor: [150, 155, 160], lineWidth: 0.22 },
+    headStyles: { fillColor: [245, 245, 242], textColor: [25, 30, 36], fontStyle: 'bold', halign: 'center', fontSize: 9.5 },
+    alternateRowStyles: { fillColor: [251, 251, 249] },
+    columnStyles: {
+      0: { cellWidth: 75, halign: 'left' }, 1: { cellWidth: 21, halign: 'center' },
+      2: { cellWidth: 24, halign: 'right' }, 3: { cellWidth: 18, halign: 'center' },
+      4: { cellWidth: 19, halign: 'center' }, 5: { cellWidth: 25, halign: 'right' },
+    },
+  });
+
+  const finalY = Math.min(((doc as any).lastAutoTable?.finalY || 122) + 7, 220);
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5);
+  const wording = kind === 'Facture' ? 'la présente Facture' : kind === 'Bon de Livraison' ? 'le présent Bon de Livraison' : 'le présent Bon de Retour';
+  doc.text(`Arrêter ${wording} à la somme de :`, 14, finalY);
+  doc.setFont('helvetica', 'bold');
+  doc.text(`${numberToFrenchWords(Math.abs(document.total_ttc || 0)).toLowerCase()}.`, 14, finalY + 5, { maxWidth: 92 });
+
+  const labelX = 121, valueX = 196;
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(9);
+  doc.text('Total HT :', labelX, finalY); doc.setFont('helvetica', 'normal');
+  doc.text(`${formatCurrency(document.total_ht || 0, false)} DH`, valueX, finalY, { align: 'right' });
+  doc.setFont('helvetica', 'bold'); doc.text('Total TVA 10 % :', labelX, finalY + 6); doc.setFont('helvetica', 'normal');
+  doc.text(`${formatCurrency(document.tva_10 || 0, false)} DH`, valueX, finalY + 6, { align: 'right' });
+  const tva20 = document.tva_20 || ((document.total_tva || 0) - (document.tva_10 || 0));
+  doc.setFont('helvetica', 'bold'); doc.text('Total TVA 20 % :', labelX, finalY + 12); doc.setFont('helvetica', 'normal');
+  doc.text(`${formatCurrency(tva20, false)} DH`, valueX, finalY + 12, { align: 'right' });
+  doc.setDrawColor(95, 104, 115); doc.roundedRect(119, finalY + 16, 77, 12, 3, 3, 'S');
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(10);
+  doc.text(isReturn ? 'Net à déduire TTC :' : 'Net à payer TTC :', 123, finalY + 23.5);
+  doc.text(`${formatCurrency(document.total_ttc || 0, false)} DH`, 192, finalY + 23.5, { align: 'right' });
+
+  if (company.agrement_onssa || company.banque || company.rib) {
+    doc.setDrawColor(170, 174, 178); doc.rect(14, 278, 182, 10);
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5);
+    if (company.agrement_onssa) doc.text(`Agrément ONSSA N° : ${company.agrement_onssa}`, 105, 282, { align: 'center' });
+    if (company.banque || company.rib) doc.text(`${company.banque || ''}${company.banque && company.rib ? ' — ' : ''}${company.rib ? `R.I.B : ${company.rib}` : ''}`, 105, 286, { align: 'center' });
+  }
+
+  const prefix = kind === 'Facture' ? 'Facture' : kind === 'Bon de Livraison' ? 'BL' : 'BR';
+  doc.save(`${prefix}_${document.numero.replace(/[\/\\]/g, '_')}.pdf`);
+}
+
+export function generateFacturePdf(facture: Facture, company: CompanyInfo) {
+  generateA4CommercialPdf(facture, company, 'Facture');
+}
+
+export function generateBlPdf(bl: BonLivraison, company: CompanyInfo) {
+  generateA4CommercialPdf(bl, company, 'Bon de Livraison');
+}
+
+export function generateBrPdf(br: BonRetour, company: CompanyInfo) {
+  generateA4CommercialPdf(br, company, 'Bon de Retour');
+}
+
 export function generateDevisPdf(devis: Devis, company: CompanyInfo) {
   const doc = new jsPDF({
     orientation: 'portrait',

@@ -59,6 +59,7 @@ import {
   CompanyInfo,
   AppUser
 } from '@/lib/types';
+import { getTicketPrinterSettings, printPosTicket } from '@/lib/ticket-printer';
 import {
   fetchPosTables,
   fetchPosCategories,
@@ -767,6 +768,9 @@ export const PosView: React.FC<PosViewProps> = ({
       setRightPanelTab('TABLES');
 
       setLastSale(completedSale);
+      if (getTicketPrinterSettings().autoPrint) {
+        printPosTicket(completedSale, company, 'TICKET_FINAL');
+      }
       setReceiptType('TICKET_FINAL');
       setShowReceiptModal(true);
 
@@ -1789,12 +1793,14 @@ export const PosView: React.FC<PosViewProps> = ({
                 <button
                   type="button"
                   onClick={() => {
-                    window.print();
+                    if (!printPosTicket(lastSale, company, receiptType)) {
+                      showToast('Autorisez les fenêtres contextuelles pour imprimer le ticket.', 'error');
+                    }
                   }}
                   className="flex-1 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-sans font-bold text-xs flex items-center justify-center gap-1.5"
                 >
                   <Printer className="w-3.5 h-3.5" />
-                  <span>Imprimer</span>
+                  <span>Impression directe</span>
                 </button>
                 <button
                   type="button"
