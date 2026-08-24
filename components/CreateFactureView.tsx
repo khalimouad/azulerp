@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { Client, Produit, FactureLigne, Facture, DocumentState } from '@/lib/types';
 import { formatCurrency, numberToFrenchWords } from '@/lib/utils';
+import { ProductSearchSelect } from '@/components/ProductSearchSelect';
 import {
   ArrowLeft,
   Plus,
@@ -381,17 +382,12 @@ export const CreateFactureView: React.FC<CreateFactureViewProps> = ({
 
                     {/* Product Selector */}
                     <td className="p-2.5">
-                      <select
-                        value={l.produit_id || ''}
-                        onChange={(e) => handleProductChange(index, Number(e.target.value))}
-                        className="w-full p-2 text-xs bg-white rounded-lg border border-slate-300 focus:outline-none focus:ring-1 focus:ring-blue-500 font-medium text-slate-900"
-                      >
-                        {produits.map((p) => (
-                          <option key={p.id} value={p.id}>
-                            {p.code} - {p.libelle} (Stock: {p.stock_actuel} {p.unite || 'U'})
-                          </option>
-                        ))}
-                      </select>
+                      <ProductSearchSelect
+                        products={produits}
+                        value={l.produit_id}
+                        onChange={(productId) => handleProductChange(index, productId)}
+                        accent="blue"
+                      />
                     </td>
 
                     {/* Designation */}

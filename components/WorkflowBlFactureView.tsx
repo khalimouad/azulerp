@@ -19,6 +19,7 @@ import {
   MinusCircle,
   PlusCircle,
   AlertCircle,
+  Search,
 } from 'lucide-react';
 
 interface WorkflowBlFactureViewProps {
@@ -164,6 +165,8 @@ export const WorkflowBlFactureView: React.FC<WorkflowBlFactureViewProps> = ({
   const [invoiceDate, setInvoiceDate] = useState(new Date().toISOString().split('T')[0]);
   const [modeReglement, setModeReglement] = useState('Virement');
   const [invoiceNotes, setInvoiceNotes] = useState('');
+  const [clientSearch, setClientSearch] = useState('');
+  const [documentSearch, setDocumentSearch] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedInvoiceId, setGeneratedInvoiceId] = useState<number | null>(null);
 
@@ -171,6 +174,38 @@ export const WorkflowBlFactureView: React.FC<WorkflowBlFactureViewProps> = ({
   const activeBundle = useMemo(() => {
     return clientsWithPendingDocuments.find((b) => b.client.id === selectedClientId) || null;
   }, [clientsWithPendingDocuments, selectedClientId]);
+
+  const filteredClientBundles = useMemo(() => {
+    const query = clientSearch.toLowerCase().trim();
+    if (!query) return clientsWithPendingDocuments;
+    return clientsWithPendingDocuments.filter((bundle) =>
+      [
+        bundle.client.code,
+        bundle.client.nom,
+        bundle.client.ice,
+        bundle.client.ville,
+        ...bundle.bls.map((bl) => bl.numero),
+        ...bundle.brs.map((br) => br.numero),
+      ]
+        .filter(Boolean)
+        .some((value) => String(value).toLowerCase().includes(query))
+    );
+  }, [clientSearch, clientsWithPendingDocuments]);
+
+  const filteredActiveDocuments = useMemo(() => {
+    const query = documentSearch.toLowerCase().trim();
+    if (!activeBundle || !query) {
+      return { bls: activeBundle?.bls || [], brs: activeBundle?.brs || [] };
+    }
+    const matches = (document: BonLivraison | BonRetour) =>
+      [document.numero, document.date, document.client_nom]
+        .filter(Boolean)
+        .some((value) => String(value).toLowerCase().includes(query));
+    return {
+      bls: activeBundle.bls.filter(matches),
+      brs: activeBundle.brs.filter(matches),
+    };
+  }, [activeBundle, documentSearch]);
 
   const handleSelectClient = (clientId: number) => {
     setSelectedClientId(clientId);
@@ -396,8 +431,19 @@ export const WorkflowBlFactureView: React.FC<WorkflowBlFactureViewProps> = ({
               </h3>
             </div>
 
+            <label className="relative block">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <input
+                type="search"
+                value={clientSearch}
+                onChange={(event) => setClientSearch(event.target.value)}
+                placeholder="Client, ICE, ville ou N° BL/BR…"
+                className="h-11 w-full rounded-xl border border-slate-300 bg-white pl-10 pr-3 text-sm text-slate-900 shadow-sm outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
+              />
+            </label>
+
             <div className="space-y-2 max-h-[640px] overflow-y-auto pr-1">
-              {clientsWithPendingDocuments.map((bundle) => {
+              {filteredClientBundles.map((bundle) => {
                 const isSelected = selectedClientId === bundle.client.id;
                 return (
                   <div
@@ -456,6 +502,11 @@ export const WorkflowBlFactureView: React.FC<WorkflowBlFactureViewProps> = ({
                   </div>
                 );
               })}
+              {filteredClientBundles.length === 0 ? (
+                <div className="rounded-xl border border-dashed border-slate-300 bg-white p-6 text-center text-xs text-slate-500">
+                  Aucun client ou document ne correspond à cette recherche.
+                </div>
+              ) : null}
             </div>
           </div>
 
@@ -463,6 +514,16 @@ export const WorkflowBlFactureView: React.FC<WorkflowBlFactureViewProps> = ({
           <div className="lg:col-span-8 space-y-4">
             {activeBundle && (
               <>
+                <label className="relative block">
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="search"
+                    value={documentSearch}
+                    onChange={(event) => setDocumentSearch(event.target.value)}
+                    placeholder="Rechercher un N° de BL/BR ou une date…"
+                    className="h-11 w-full rounded-xl border border-slate-300 bg-white pl-10 pr-3 text-sm text-slate-900 shadow-sm outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
+                  />
+                </label>
                 {/* 1. Bons de Livraison (Positive) */}
                 <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs space-y-3">
                   <div className="flex items-center justify-between">
@@ -491,13 +552,13 @@ export const WorkflowBlFactureView: React.FC<WorkflowBlFactureViewProps> = ({
                     )}
                   </div>
 
-                  {activeBundle.bls.length === 0 ? (
+                  {filteredActiveDocuments.bls.length === 0 ? (
                     <div className="p-4 bg-slate-50 rounded-lg text-center text-xs text-slate-400">
-                      Aucun bon de livraison en attente pour ce client.
+                      Aucun bon de livraison ne correspond à la recherche.
                     </div>
                   ) : (
                     <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
-                      {activeBundle.bls.map((bl) => {
+                      {filteredActiveDocuments.bls.map((bl) => {
                         const isChecked = selectedBlIds.includes(bl.id);
                         return (
                           <div
@@ -566,13 +627,13 @@ export const WorkflowBlFactureView: React.FC<WorkflowBlFactureViewProps> = ({
                     )}
                   </div>
 
-                  {activeBundle.brs.length === 0 ? (
+                  {filteredActiveDocuments.brs.length === 0 ? (
                     <div className="p-3 bg-slate-50 rounded-lg text-center text-xs text-slate-400">
-                      Aucun retour de marchandise en attente pour ce client.
+                      Aucun bon de retour ne correspond à la recherche.
                     </div>
                   ) : (
                     <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
-                      {activeBundle.brs.map((br) => {
+                      {filteredActiveDocuments.brs.map((br) => {
                         const isChecked = selectedBrIds.includes(br.id);
                         return (
                           <div

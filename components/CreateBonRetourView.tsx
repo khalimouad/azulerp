@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { Client, Produit, BonRetour, DocumentState } from '@/lib/types';
 import { formatCurrency } from '@/lib/utils';
+import { ProductSearchSelect } from '@/components/ProductSearchSelect';
 import {
   RotateCcw,
   ArrowLeft,
@@ -372,18 +373,13 @@ export const CreateBonRetourView: React.FC<CreateBonRetourViewProps> = ({
                       </td>
 
                       <td className="py-2 px-3">
-                        <select
-                          value={ligne.produit_id || ''}
-                          onChange={(e) => handleProductSelect(idx, Number(e.target.value))}
-                          className="w-full text-xs p-1.5 bg-white border border-slate-300 rounded-lg focus:ring-1 focus:ring-rose-500 font-medium"
-                        >
-                          <option value="">-- Article libre hors catalogue --</option>
-                          {produits.map((p) => (
-                            <option key={p.id} value={p.id}>
-                              {p.code} - {p.libelle} (Stock: {p.stock_actuel} {p.unite || 'U'})
-                            </option>
-                          ))}
-                        </select>
+                        <ProductSearchSelect
+                          products={produits}
+                          value={ligne.produit_id}
+                          onChange={(productId) => handleProductSelect(idx, productId)}
+                          accent="rose"
+                          allowClear
+                        />
                       </td>
 
                       <td className="py-2 px-3">

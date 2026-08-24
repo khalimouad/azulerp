@@ -146,7 +146,15 @@ export async function fetchAllData(forceRefresh = false) {
     try {
       const res = await apiCall('fetch_all');
       if (res && res.data) {
-        cachedData = res.data;
+        cachedData = {
+          ...res.data,
+          produits: (res.data.produits || []).map(normalizeProduit),
+          pos_tables: (res.data.pos_tables || []).map(normalizePosTable),
+          pos_categories: (res.data.pos_categories || []).map(normalizePosCategory),
+          pos_produits: (res.data.pos_produits || []).map(normalizePosProduct),
+          pos_sessions: (res.data.pos_sessions || []).map(normalizePosSession),
+          pos_ventes: (res.data.pos_ventes || []).map(normalizePosSale),
+        };
         isInitialized = true;
       }
       return cachedData || getFallbackData();
@@ -183,6 +191,20 @@ export async function fetchFournisseurs(): Promise<Fournisseur[]> {
 export async function fetchProduits(): Promise<Produit[]> {
   const data = await fetchAllData();
   return data?.produits || [];
+}
+
+function normalizeProduit(produit: any): Produit {
+  return {
+    ...produit,
+    id: Number(produit.id),
+    taux_tva: Number(produit.taux_tva || 0),
+    prix_ht: Number(produit.prix_ht || 0),
+    prix_achat: Number(produit.prix_achat || 0),
+    prix_achat_ht: Number(produit.prix_achat_ht || 0),
+    stock_actuel: Number(produit.stock_actuel || 0),
+    stock_min: Number(produit.stock_min || 0),
+    stock_virtuel: Number(produit.stock_virtuel || 0),
+  };
 }
 
 export async function fetchCategories(): Promise<Categorie[]> {
@@ -529,41 +551,131 @@ export const updateCompanyInfoInDb = updateCompanyInfo;
 // RESTAURANT POS
 // ----------------------------------------------------------------------------
 
+function posNumber(value: unknown, fallback = 0): number {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function normalizePosTable(table: any): PosTable {
+  return {
+    ...table,
+    id: posNumber(table.id),
+    capacite: posNumber(table.capacite),
+    nb_couverts: posNumber(table.nb_couverts),
+    montant_en_cours: posNumber(table.montant_en_cours),
+  };
+}
+
+function normalizePosCategory(category: any): PosCategory {
+  return {
+    ...category,
+    id: posNumber(category.id),
+    ordre: posNumber(category.ordre),
+  };
+}
+
+function normalizePosProduct(product: any): PosProduct {
+  return {
+    ...product,
+    id: posNumber(product.id),
+    categorie_id: product.categorie_id == null ? undefined : posNumber(product.categorie_id),
+    prix_vente_ttc: posNumber(product.prix_vente_ttc),
+    taux_tva: posNumber(product.taux_tva),
+    temps_preparation_min: posNumber(product.temps_preparation_min),
+    disponible: posNumber(product.disponible),
+    actif: posNumber(product.actif),
+  };
+}
+
+function normalizePosSession(session: any): PosSession {
+  return {
+    ...session,
+    id: posNumber(session.id),
+    fond_caisse_ouverture: posNumber(session.fond_caisse_ouverture),
+    total_ventes: posNumber(session.total_ventes),
+    total_especes: posNumber(session.total_especes),
+    total_carte: posNumber(session.total_carte),
+    total_cheque: posNumber(session.total_cheque),
+    total_autre: posNumber(session.total_autre),
+    nb_tickets: posNumber(session.nb_tickets),
+    total_couverts: posNumber(session.total_couverts),
+    montant_reel_cloture: posNumber(session.montant_reel_cloture),
+    ecart_caisse: posNumber(session.ecart_caisse),
+  };
+}
+
+function normalizePosSale(sale: any): PosSale {
+  return {
+    ...sale,
+    id: posNumber(sale.id),
+    session_id: sale.session_id == null ? undefined : posNumber(sale.session_id),
+    table_id: sale.table_id == null ? undefined : posNumber(sale.table_id),
+    nb_couverts: posNumber(sale.nb_couverts),
+    total_ht: posNumber(sale.total_ht),
+    total_tva: posNumber(sale.total_tva),
+    tva_20: posNumber(sale.tva_20),
+    tva_10: posNumber(sale.tva_10),
+    tva_7: posNumber(sale.tva_7),
+    tva_0: posNumber(sale.tva_0),
+    total_ttc: posNumber(sale.total_ttc),
+    remise_globale_montant: posNumber(sale.remise_globale_montant),
+    pourboire: posNumber(sale.pourboire),
+    montant_net_a_payer: posNumber(sale.montant_net_a_payer),
+    montant_donne: posNumber(sale.montant_donne),
+    montant_rendu: posNumber(sale.montant_rendu),
+    lignes: Array.isArray(sale.lignes)
+      ? sale.lignes.map((line: any) => ({
+          ...line,
+          id: line.id == null ? undefined : posNumber(line.id),
+          vente_id: line.vente_id == null ? undefined : posNumber(line.vente_id),
+          produit_id: line.produit_id == null ? undefined : posNumber(line.produit_id),
+          prix_unitaire_ttc: posNumber(line.prix_unitaire_ttc),
+          taux_tva: posNumber(line.taux_tva),
+          quantite: posNumber(line.quantite),
+          remise_pct: posNumber(line.remise_pct),
+          total_ht: posNumber(line.total_ht),
+          total_tva: posNumber(line.total_tva),
+          total_ttc: posNumber(line.total_ttc),
+        }))
+      : [],
+  };
+}
+
 export async function fetchPosTables(options?: any): Promise<PosTable[]> {
   const data = await fetchAllData();
-  return data?.pos_tables || [];
+  return (data?.pos_tables || []).map(normalizePosTable);
 }
 
 export async function fetchPosCategories(options?: any): Promise<PosCategory[]> {
   const data = await fetchAllData();
-  return data?.pos_categories || [];
+  return (data?.pos_categories || []).map(normalizePosCategory);
 }
 
 export async function fetchPosProducts(onlyActive?: boolean): Promise<PosProduct[]> {
   const data = await fetchAllData();
-  const prods: PosProduct[] = data?.pos_produits || [];
+  const prods: PosProduct[] = (data?.pos_produits || []).map(normalizePosProduct);
   if (onlyActive) {
-    return prods.filter((p) => p.disponible !== false);
+    return prods.filter((p) => Boolean(p.disponible) && Boolean(p.actif));
   }
   return prods;
 }
 
 export async function fetchPosSales(options?: any): Promise<PosSale[]> {
   const data = await fetchAllData();
-  return data?.pos_ventes || [];
+  return (data?.pos_ventes || []).map(normalizePosSale);
 }
 
 export async function fetchPosSessions(options?: any): Promise<PosSession[]> {
   const data = await fetchAllData();
-  return data?.pos_sessions || [];
+  return (data?.pos_sessions || []).map(normalizePosSession);
 }
 
 export async function fetchPosDashboardStats(): Promise<PosDashboardStats> {
   const data = await fetchAllData();
-  const sales: PosSale[] = data?.pos_ventes || [];
-  const tables: PosTable[] = data?.pos_tables || [];
-  const prods: PosProduct[] = data?.pos_produits || [];
-  const sessions: PosSession[] = data?.pos_sessions || [];
+  const sales: PosSale[] = (data?.pos_ventes || []).map(normalizePosSale);
+  const tables: PosTable[] = (data?.pos_tables || []).map(normalizePosTable);
+  const prods: PosProduct[] = (data?.pos_produits || []).map(normalizePosProduct);
+  const sessions: PosSession[] = (data?.pos_sessions || []).map(normalizePosSession);
 
   let totalSales = 0;
   let especes = 0;

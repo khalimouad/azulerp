@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { Client, Produit, DevisLigne } from '@/lib/types';
 import { formatCurrency } from '@/lib/utils';
+import { ProductSearchSelect } from '@/components/ProductSearchSelect';
 import {
   ArrowLeft,
   Plus,
@@ -329,17 +330,12 @@ export const CreateDevisView: React.FC<CreateDevisViewProps> = ({
                   <tr key={index} className="divide-x divide-slate-100 hover:bg-slate-50/70 transition">
                     <td className="p-3 text-center text-slate-400 font-mono font-bold">{index + 1}</td>
                     <td className="p-2.5">
-                      <select
-                        value={l.produit_id || ''}
-                        onChange={(e) => handleProductChange(index, Number(e.target.value))}
-                        className="w-full p-2 text-xs bg-white rounded-lg border border-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500 font-medium text-slate-900"
-                      >
-                        {produits.map((p) => (
-                          <option key={p.id} value={p.id}>
-                            {p.code} - {p.libelle}
-                          </option>
-                        ))}
-                      </select>
+                      <ProductSearchSelect
+                        products={produits}
+                        value={l.produit_id}
+                        onChange={(productId) => handleProductChange(index, productId)}
+                        accent="blue"
+                      />
                     </td>
                     <td className="p-2.5">
                       <input

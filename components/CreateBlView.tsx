@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { Client, Produit, BonLivraisonLigne, BonLivraison, DocumentState } from '@/lib/types';
 import { formatCurrency } from '@/lib/utils';
+import { ProductSearchSelect } from '@/components/ProductSearchSelect';
 import {
   ArrowLeft,
   Plus,
@@ -373,17 +374,12 @@ export const CreateBlView: React.FC<CreateBlViewProps> = ({
 
                       {/* Product Selector */}
                       <td className="p-2.5">
-                        <select
-                          value={l.produit_id || ''}
-                          onChange={(e) => handleProductChange(index, Number(e.target.value))}
-                          className="w-full p-2 text-xs bg-white rounded-lg border border-slate-300 focus:outline-none focus:ring-1 focus:ring-emerald-500 font-medium text-slate-900"
-                        >
-                          {produits.map((p) => (
-                            <option key={p.id} value={p.id}>
-                              {p.code} - {p.libelle} (Stock: {p.stock_actuel} {p.unite || 'U'})
-                            </option>
-                          ))}
-                        </select>
+                        <ProductSearchSelect
+                          products={produits}
+                          value={l.produit_id}
+                          onChange={(productId) => handleProductChange(index, productId)}
+                          accent="emerald"
+                        />
                         {currentProd && (
                           <div className="text-[10px] text-slate-400 mt-1 pl-1">
                             Dispo en stock : <strong className={currentProd.stock_actuel <= currentProd.stock_min ? 'text-amber-600' : 'text-emerald-700'}>{currentProd.stock_actuel} {currentProd.unite || 'U'}</strong>
