@@ -61,15 +61,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const navSections = [
     {
-      title: 'Restaurant & Caisse (POS)',
-      items: [
-        { id: 'pos', label: 'Plan de Salle & Caisse', icon: Store, highlight: true },
-        { id: 'pos-tickets', label: 'Historique des Additions', icon: Receipt },
-        { id: 'pos-produits', label: 'Carte & Menu Restaurant', icon: Tag },
-        { id: 'pos-sessions', label: 'Services & Clôtures Z', icon: Clock },
-      ],
-    },
-    {
       title: 'Ventes & Facturation (B2B)',
       items: [
         { id: 'dashboard', label: 'Tableau de bord', icon: LayoutDashboard },
@@ -127,11 +118,25 @@ export const Sidebar: React.FC<SidebarProps> = ({
       ],
     },
     {
-      title: 'Analyses & Système',
+      title: 'Analyse',
       items: [
         { id: 'etats', label: 'États & Rapports', icon: BarChart3 },
-        { id: 'sqlite', label: 'Console PostgreSQL Neon', icon: Database },
         { id: 'company', label: 'Identifiants Société', icon: Building },
+      ],
+    },
+    {
+      title: 'Technical',
+      items: [
+        { id: 'sqlite', label: 'Gestion de la base Neon', icon: Database },
+      ],
+    },
+    {
+      title: 'Restaurant & Caisse (POS)',
+      items: [
+        { id: 'pos', label: 'Plan de Salle & Caisse', icon: Store, highlight: true },
+        { id: 'pos-tickets', label: 'Historique des Additions', icon: Receipt },
+        { id: 'pos-produits', label: 'Carte & Menu Restaurant', icon: Tag },
+        { id: 'pos-sessions', label: 'Services & Clôtures Z', icon: Clock },
       ],
     },
   ];

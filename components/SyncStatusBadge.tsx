@@ -2,13 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import {
-  Database,
-  Zap,
-  RefreshCw,
-  AlertTriangle,
-  Server
-} from 'lucide-react';
-import {
   NeonDbState,
   subscribeToNeonSyncState,
   testNeonConnection
@@ -21,7 +14,6 @@ interface SyncStatusBadgeProps {
 }
 
 export const SyncStatusBadge: React.FC<SyncStatusBadgeProps> = ({
-  compact = false,
   onDataReload
 }) => {
   const [dbState, setDbState] = useState<NeonDbState | null>(null);
@@ -50,22 +42,21 @@ export const SyncStatusBadge: React.FC<SyncStatusBadgeProps> = ({
         type="button"
         id="postgres-db-status-btn"
         onClick={() => setIsModalOpen(true)}
-        className={`flex items-center gap-1.5 min-h-[38px] sm:min-h-[32px] px-2 sm:px-2.5 py-1 text-xs font-semibold rounded-lg sm:rounded-md border transition shadow-xs active:scale-95 bg-emerald-950/90 text-emerald-300 border-emerald-700/80 hover:bg-emerald-900 touch-manipulation ${
-          compact ? 'px-2' : ''
+        className={`flex items-center justify-center w-7 h-7 rounded-md border transition active:scale-95 ${
+          dbState.connected
+            ? 'border-emerald-700/70 bg-emerald-950/80 hover:bg-emerald-900'
+            : dbState.status === 'connecting'
+            ? 'border-amber-700/70 bg-amber-950/80'
+            : 'border-rose-700/70 bg-rose-950/80 hover:bg-rose-900'
         }`}
         aria-label="État de la connexion PostgreSQL Neon"
-        title="Base de données PostgreSQL Neon - Cliquez pour voir les détails de la connexion"
+        title={dbState.connected ? 'Neon connecté' : dbState.status === 'connecting' ? 'Connexion Neon…' : 'Neon déconnecté'}
       >
         <div className="relative flex items-center justify-center shrink-0">
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          <span className={`w-2 h-2 rounded-full ${
+            dbState.connected ? 'bg-emerald-400' : dbState.status === 'connecting' ? 'bg-amber-400 animate-pulse' : 'bg-rose-400'
+          }`} />
         </div>
-        <Server className="w-3.5 h-3.5 text-emerald-300 shrink-0" />
-        <span className="hidden sm:inline font-mono font-medium text-[11px]">PostgreSQL Neon</span>
-        {dbState.latencyMs > 0 && (
-          <span className="hidden md:inline text-[10px] text-emerald-400 font-mono">
-            {dbState.latencyMs}ms
-          </span>
-        )}
       </button>
 
       {isModalOpen && (

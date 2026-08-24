@@ -1,7 +1,6 @@
 // Service Worker for Verde Orto Offline Caisse & POS iPad
-const CACHE_NAME = 'verdeorto-pos-v2';
+const CACHE_NAME = 'verdeorto-pos-v3';
 const STATIC_ASSETS = [
-  '/',
   '/manifest.json',
   '/icon.svg',
   '/sql-asm.js',
@@ -32,8 +31,13 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  // Navigation & static asset offline fallback strategy
   if (event.request.method !== 'GET') return;
+
+  // Always prefer fresh application pages and Next.js bundles after a deployment.
+  if (event.request.mode === 'navigate' || new URL(event.request.url).pathname.startsWith('/_next/')) {
+    event.respondWith(fetch(event.request));
+    return;
+  }
 
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {

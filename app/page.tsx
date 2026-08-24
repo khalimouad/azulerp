@@ -45,7 +45,6 @@ import {
   updateCompanyInfo,
   exportSqliteDatabase,
   importDatabaseWithProgress,
-  resetToSampleData,
   fetchImpendingSupplierCheques,
   getAuthenticatedSession,
   logoutAuthenticatedSession,
@@ -611,36 +610,13 @@ export default function Home() {
           setProduitToEdit(null);
           navigateTo('create-produit');
         }}
-        onExportSqlite={async () => {
-          const u8 = await exportSqliteDatabase();
-          const blob = new Blob([u8 as BlobPart], { type: 'application/x-sqlite3' });
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = `verdeorto_db_${new Date().toISOString().split('T')[0]}.sqlite`;
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          URL.revokeObjectURL(url);
-        }}
-        onImportSqlite={handleGlobalImportSqlite}
         onDataReload={reloadData}
-        onResetDb={async () => {
-          if (confirm('Réinitialiser la base de données avec les données officielles ?')) {
-            setIsImportModalOpen(true);
-            setImportSummary(null);
-            await resetToSampleData();
-            await reloadData();
-            setTimeout(() => setIsImportModalOpen(false), 800);
-          }
-        }}
         globalSearch={globalSearch}
         setGlobalSearch={setGlobalSearch}
         selectedYear={selectedYear}
         setSelectedYear={setSelectedYear}
         mobileMenuOpen={mobileMenuOpen}
         setMobileMenuOpen={setMobileMenuOpen}
-        sqliteReady={sqliteReady}
       />
 
       {/* Main Layout Area */}

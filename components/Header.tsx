@@ -2,17 +2,10 @@
 
 import React from 'react';
 import {
-  Database,
   Search,
   FileText,
   Truck,
   Menu,
-  Download,
-  Upload,
-  RotateCcw,
-  Sparkles,
-  Calendar,
-  User,
   LogOut,
   Lock,
   Users,
@@ -21,7 +14,6 @@ import {
 } from 'lucide-react';
 import { AppUser } from '@/lib/types';
 import { SyncStatusBadge } from './SyncStatusBadge';
-import { ImportNeonModal } from './ImportNeonModal';
 
 interface HeaderProps {
   currentTab: string;
@@ -29,9 +21,6 @@ interface HeaderProps {
   onOpenNewFacture: () => void;
   onOpenNewClient: () => void;
   onOpenNewProduit: () => void;
-  onExportSqlite: () => void;
-  onImportSqlite: (file: File) => void;
-  onResetDb: () => void;
   onDataReload?: () => void;
   globalSearch: string;
   setGlobalSearch: (s: string) => void;
@@ -39,7 +28,6 @@ interface HeaderProps {
   setSelectedYear: (y: string) => void;
   mobileMenuOpen: boolean;
   setMobileMenuOpen: (o: boolean) => void;
-  sqliteReady: boolean;
   currentUser?: AppUser | null;
   onLogout?: () => void;
   onLockScreen?: () => void;
@@ -49,9 +37,6 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({
   onOpenNewBl,
   onOpenNewFacture,
-  onExportSqlite,
-  onImportSqlite,
-  onResetDb,
   onDataReload,
   globalSearch,
   setGlobalSearch,
@@ -59,15 +44,12 @@ export const Header: React.FC<HeaderProps> = ({
   setSelectedYear,
   mobileMenuOpen,
   setMobileMenuOpen,
-  sqliteReady,
   currentUser,
   onLogout,
   onLockScreen,
   onOpenUserManagement,
 }) => {
-  const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [userDropdownOpen, setUserDropdownOpen] = React.useState(false);
-  const [isImportModalOpen, setIsImportModalOpen] = React.useState(false);
   const dropdownRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
@@ -79,12 +61,6 @@ export const Header: React.FC<HeaderProps> = ({
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      onImportSqlite(e.target.files[0]);
-    }
-  };
 
   return (
     <header className="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-30 shadow-md select-none">
@@ -190,46 +166,6 @@ export const Header: React.FC<HeaderProps> = ({
             <span className="hidden sm:inline">+ Nouvelle Facture</span>
             <span className="sm:hidden font-semibold text-[11px]">+ Facture</span>
           </button>
-
-          {/* DB backup & import tools (Desktop) */}
-          <div className="hidden xl:flex items-center gap-1 border-l border-slate-700/80 pl-2">
-            <button
-              type="button"
-              id="header-reset-official-db-btn"
-              onClick={onResetDb}
-              title="Recharger et réinitialiser les données officielles (215 Clients, 792 Produits, 24 Fournisseurs)"
-              className="px-2.5 py-1.5 text-xs font-semibold text-amber-300 hover:text-white bg-amber-950/40 hover:bg-amber-900/60 border border-amber-800/60 rounded-lg transition flex items-center gap-1.5"
-            >
-              <RotateCcw className="w-3.5 h-3.5 text-amber-400" />
-              <span>Données Officielles</span>
-            </button>
-            <button
-              type="button"
-              id="header-export-db-btn"
-              onClick={onExportSqlite}
-              title="Exporter la base de données (JSON / SQL)"
-              className="p-2 text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg transition"
-            >
-              <Download className="w-4 h-4" />
-            </button>
-            <button
-              type="button"
-              id="header-import-db-btn"
-              onClick={() => setIsImportModalOpen(true)}
-              title="Importer une base de données vers Neon (JSON, SQL, DB)"
-              className="px-2 py-1.5 text-slate-200 hover:text-white bg-slate-800/90 hover:bg-slate-700 border border-slate-700/80 rounded-lg transition flex items-center gap-1.5 text-xs font-semibold"
-            >
-              <Upload className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Importer DB</span>
-            </button>
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleFileChange}
-              accept=".json,.sql,.sqlite,.db,.txt,.csv"
-              className="hidden"
-            />
-          </div>
 
           {/* User Profile & Session Menu */}
           {currentUser && (
@@ -365,14 +301,6 @@ export const Header: React.FC<HeaderProps> = ({
         </select>
       </div>
 
-      {/* Direct Import Modal from Header */}
-      <ImportNeonModal
-        isOpen={isImportModalOpen}
-        onClose={() => setIsImportModalOpen(false)}
-        onSuccess={() => {
-          if (onDataReload) onDataReload();
-        }}
-      />
     </header>
   );
 };
