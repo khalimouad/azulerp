@@ -143,7 +143,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { action, payload } = body;
 
-    const publicActions = new Set(['auth_password', 'auth_pin', 'session', 'logout']);
+    const publicActions = new Set(['auth_password', 'session', 'logout']);
     const session = readSession(req);
     if (!publicActions.has(action) && !session) return unauthorizedResponse();
 
@@ -663,7 +663,7 @@ export async function POST(req: NextRequest) {
             const users: any = await sql`
               SELECT id, username, nom_complet, email, role, pin_code, avatar, statut 
               FROM app_users 
-              WHERE pin_code = ${cleanPin} AND statut = 1
+              WHERE id = ${session!.id} AND pin_code = ${cleanPin} AND statut = 1
               LIMIT 1;
             `;
             if (users && users.length > 0) {
@@ -816,7 +816,7 @@ export async function POST(req: NextRequest) {
 
         case 'auth_pin': {
           const { pin } = payload;
-          const user = store.app_users.find((u) => u.pin_code === pin.trim());
+          const user = store.app_users.find((u) => u.id === session!.id && u.pin_code === pin.trim());
           if (user) {
             const { mot_de_passe, pin_code, ...safeUser } = user;
             return setSessionCookie(

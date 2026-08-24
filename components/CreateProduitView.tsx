@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Produit } from '@/lib/types';
+import { Categorie, Famille, Produit } from '@/lib/types';
 import {
   ArrowLeft,
   Package,
@@ -14,12 +14,16 @@ import {
 
 interface CreateProduitViewProps {
   produitToEdit?: Produit | null;
+  categories: Categorie[];
+  familles: Famille[];
   onBack: () => void;
   onSave: (prodData: Partial<Produit>) => Promise<void>;
 }
 
 export const CreateProduitView: React.FC<CreateProduitViewProps> = ({
   produitToEdit,
+  categories,
+  familles,
   onBack,
   onSave,
 }) => {
@@ -38,6 +42,12 @@ export const CreateProduitView: React.FC<CreateProduitViewProps> = ({
   });
 
   const [isSaving, setIsSaving] = useState(false);
+  const selectedCategory = categories.find((category) =>
+    [category.libelle, category.nom, category.code].filter(Boolean).includes(form.groupe)
+  );
+  const availableFamilies = familles.filter((family) =>
+    !selectedCategory?.id || !family.categorie_id || family.categorie_id === selectedCategory.id
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -144,24 +154,33 @@ export const CreateProduitView: React.FC<CreateProduitViewProps> = ({
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1.5">Groupe / Catégorie</label>
-              <input
-                type="text"
-                placeholder="Ex: TUYAUTERIE, FERTILISANTS, POMPAGE"
+              <select
                 value={form.groupe || ''}
-                onChange={(e) => setForm({ ...form, groupe: e.target.value.toUpperCase() })}
+                onChange={(e) => setForm({ ...form, groupe: e.target.value, famille: '' })}
                 className="w-full px-3.5 py-2 text-xs bg-white rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-              />
+              >
+                <option value="">Choisir une catégorie</option>
+                {categories.map((category) => {
+                  const label = category.libelle || category.nom || category.code || `Catégorie ${category.id}`;
+                  return <option key={category.id} value={label}>{label}</option>;
+                })}
+              </select>
             </div>
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1.5">Famille</label>
-              <input
-                type="text"
-                placeholder="Ex: Irrigation Goutte à Goutte"
+              <select
                 value={form.famille || ''}
                 onChange={(e) => setForm({ ...form, famille: e.target.value })}
+                disabled={availableFamilies.length === 0}
                 className="w-full px-3.5 py-2 text-xs bg-white rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-              />
+              >
+                <option value="">{availableFamilies.length ? 'Choisir une famille' : 'Aucune famille disponible'}</option>
+                {availableFamilies.map((family) => {
+                  const label = family.libelle || family.nom || family.code || `Famille ${family.id}`;
+                  return <option key={family.id} value={label}>{label}</option>;
+                })}
+              </select>
             </div>
 
             <div>

@@ -37,16 +37,12 @@ export const LockScreenModal: React.FC<LockScreenModalProps> = ({
     setLoading(true);
     setError(null);
     try {
-      if (user.pin_code && user.pin_code === pinToTest) {
+      const verifiedUser = await authenticateWithPin(pinToTest);
+      if (verifiedUser && verifiedUser.id === user.id) {
         onUnlock();
       } else {
-        const verifiedUser = await authenticateWithPin(pinToTest);
-        if (verifiedUser && verifiedUser.id === user.id) {
-          onUnlock();
-        } else {
-          setError('Code PIN incorrect.');
-          setPin('');
-        }
+        setError('Code PIN incorrect.');
+        setPin('');
       }
     } catch (err: any) {
       setError(err?.message || 'Erreur lors du déverrouillage');

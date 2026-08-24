@@ -118,6 +118,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
       ],
     },
     {
+      title: 'Restaurant & Caisse (POS)',
+      items: [
+        { id: 'pos', label: 'Plan de Salle & Caisse', icon: Store, highlight: true },
+        { id: 'pos-tickets', label: 'Historique des Additions', icon: Receipt },
+        { id: 'pos-produits', label: 'Carte & Menu Restaurant', icon: Tag },
+        { id: 'pos-sessions', label: 'Services & Clôtures Z', icon: Clock },
+      ],
+    },
+    {
       title: 'Analyse',
       items: [
         { id: 'etats', label: 'États & Rapports', icon: BarChart3 },
@@ -128,15 +137,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
       title: 'Technical',
       items: [
         { id: 'sqlite', label: 'Gestion de la base Neon', icon: Database },
-      ],
-    },
-    {
-      title: 'Restaurant & Caisse (POS)',
-      items: [
-        { id: 'pos', label: 'Plan de Salle & Caisse', icon: Store, highlight: true },
-        { id: 'pos-tickets', label: 'Historique des Additions', icon: Receipt },
-        { id: 'pos-produits', label: 'Carte & Menu Restaurant', icon: Tag },
-        { id: 'pos-sessions', label: 'Services & Clôtures Z', icon: Clock },
       ],
     },
   ];

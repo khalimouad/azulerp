@@ -66,6 +66,8 @@ import {
   AppUser,
   DbImportProgress,
   DbImportSummary,
+  Categorie,
+  Famille,
 } from '@/lib/types';
 import { Header } from '@/components/Header';
 import { Sidebar } from '@/components/Sidebar';
@@ -142,6 +144,8 @@ export default function Home() {
   const [clients, setClients] = useState<Client[]>([]);
   const [produits, setProduits] = useState<Produit[]>([]);
   const [fournisseurs, setFournisseurs] = useState<Fournisseur[]>([]);
+  const [categories, setCategories] = useState<Categorie[]>([]);
+  const [familles, setFamilles] = useState<Famille[]>([]);
   const [devisList, setDevisList] = useState<Devis[]>([]);
   const [reglements, setReglements] = useState<Reglement[]>([]);
   const [stockMouvements, setStockMouvements] = useState<StockMouvement[]>([]);
@@ -242,6 +246,8 @@ export default function Home() {
         setClients(data.clients || []);
         setProduits(data.produits || []);
         setFournisseurs(data.fournisseurs || []);
+        setCategories(data.categories || []);
+        setFamilles(data.familles || []);
         setBonsLivraison(data.bons_livraison || []);
         setFactures(data.factures || []);
         setIsBlLoaded(true);
@@ -1211,6 +1217,8 @@ export default function Home() {
           {currentTab === 'create-produit' && (
             <CreateProduitView
               produitToEdit={produitToEdit}
+              categories={categories}
+              familles={familles}
               onBack={() => setCurrentTab('produits')}
               onSave={async (pData) => {
                 if (produitToEdit) {
