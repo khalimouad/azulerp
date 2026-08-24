@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Lock, KeyRound, ArrowRight, LogOut, AlertCircle, Delete } from 'lucide-react';
 import { AppUser } from '@/lib/types';
-import { authenticateWithPin, authenticateWithPassword } from '@/lib/sqlite-service';
+import { authenticateWithPin, authenticateWithPassword } from '@/lib/postgres-service';
 
 interface LockScreenModalProps {
   user: AppUser;

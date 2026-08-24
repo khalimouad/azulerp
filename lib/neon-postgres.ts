@@ -1252,22 +1252,27 @@ export async function initNeonPostgresSchema(customUrl?: string) {
     }
   } catch (_) {}
 
-  // Check if users are empty, seed admin user
+  // Check if users are empty or need passwords seeded
   try {
-    const existingUsers: any = await sql`SELECT count(*) as count FROM app_users;`;
-    if (parseInt(existingUsers?.[0]?.count || '0', 10) === 0) {
-      await sql`
-        INSERT INTO app_users (id, username, nom_complet, role, pin_code, statut)
-        VALUES (1, 'admin', 'Administrateur Principal', 'ADMIN', '1234', 1)
-        ON CONFLICT (id) DO NOTHING;
-      `;
-      await sql`
-        INSERT INTO app_users (id, username, nom_complet, role, pin_code, statut)
-        VALUES (2, 'caisse', 'Responsable Caisse', 'CAISSE', '0000', 1)
-        ON CONFLICT (id) DO NOTHING;
-      `;
-    }
-  } catch (_) {}
+    await sql`
+      INSERT INTO app_users (id, username, nom_complet, email, role, pin_code, mot_de_passe, avatar, statut)
+      VALUES 
+        (1, 'admin', 'Administrateur Principal', 'admin@verdeorto.ma', 'ADMIN', '1234', 'admin123', 'AD', 1),
+        (2, 'caisse', 'Responsable Caisse', 'caisse@verdeorto.ma', 'CAISSE', '0000', 'caisse123', 'CS', 1),
+        (3, 'gestion', 'Gestionnaire Stock & Ventes', 'gestion@verdeorto.ma', 'GESTIONNAIRE', '5678', 'gestion123', 'GC', 1)
+      ON CONFLICT (id) DO UPDATE SET 
+        mot_de_passe = COALESCE(NULLIF(app_users.mot_de_passe, ''), EXCLUDED.mot_de_passe),
+        pin_code = COALESCE(NULLIF(app_users.pin_code, ''), EXCLUDED.pin_code);
+    `;
+    // Ensure admin user password is never null
+    await sql`
+      UPDATE app_users 
+      SET mot_de_passe = 'admin123' 
+      WHERE username = 'admin' AND (mot_de_passe IS NULL OR mot_de_passe = '');
+    `;
+  } catch (err) {
+    console.warn('Notice seeding users:', err);
+  }
 
   return { success: true, message: 'Schéma PostgreSQL Neon initialisé avec succès' };
 }
