@@ -18,6 +18,7 @@ import {
   createBonLivraison,
   updateBonLivraison,
   updateBonLivraisonState,
+  closeBonLivraisonWithoutInvoice,
   deleteBonLivraison,
   createBonRetour,
   updateBonRetour,
@@ -874,6 +875,10 @@ export default function Home() {
               company={company}
               onGenerateInvoice={handleBatchInvoice}
               onViewGeneratedFacture={handleViewFactureById}
+              onCloseBl={async (blId) => {
+                await closeBonLivraisonWithoutInvoice(blId);
+                await reloadData();
+              }}
             />
           )}
 

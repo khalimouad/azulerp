@@ -321,6 +321,11 @@ export async function updateBonLivraisonState(id: number, etat: DocumentState): 
   await fetchAllData();
 }
 
+export async function closeBonLivraisonWithoutInvoice(id: number): Promise<void> {
+  await apiCall('close_bon_livraison_without_invoice', { id });
+  await fetchAllData(true);
+}
+
 export async function deleteBonLivraison(id: number): Promise<void> {
   await apiCall('delete_bon_livraison', { id });
   await fetchAllData();
@@ -380,15 +385,16 @@ export async function createFactureFromBLs(
   };
 
   const allBls = await fetchBonsLivraison();
-  const selectedBls = allBls.filter((b) => blIds.includes(b.id));
+  const selectedBls = allBls.filter((b) => blIds.includes(b.id) && !b.cloture_sans_facture);
+  const invoiceableBlIds = selectedBls.map((bl) => bl.id);
 
   const lignes: LineItem[] = [];
   selectedBls.forEach((bl) => {
     (bl.lignes || []).forEach((l) => lignes.push(l));
   });
 
-  const res = await apiCall('create_facture', { facture: info, lignes, blIds });
-  await fetchAllData();
+  const res = await apiCall('create_facture', { facture: info, lignes, blIds: invoiceableBlIds });
+  await fetchAllData(true);
   return res.id;
 }
 
@@ -1079,15 +1085,26 @@ export async function fetchUsers(): Promise<AppUser[]> {
 }
 
 export async function fetchClientTarifs(clientId: number): Promise<any[]> {
-  return [];
+  const res = await apiCall('fetch_client_tarifs', { clientId });
+  return (res.tarifs || []).map((tarif: any) => ({
+    ...tarif,
+    id: Number(tarif.id),
+    client_id: Number(tarif.client_id),
+    produit_id: Number(tarif.produit_id),
+    prix_standard_ht: Number(tarif.prix_standard_ht || 0),
+    prix_special_ht: Number(tarif.prix_special_ht || 0),
+    remise_pct: Number(tarif.remise_pct || 0),
+    taux_tva: Number(tarif.taux_tva || 0),
+  }));
 }
 
 export async function saveClientTarif(tarif: any): Promise<number> {
-  return 1;
+  const res = await apiCall('save_client_tarif', { tarif });
+  return Number(res.id);
 }
 
 export async function deleteClientTarif(id: number): Promise<void> {
-  return;
+  await apiCall('delete_client_tarif', { id });
 }
 
 export async function fetchFacturesFournisseurs(): Promise<any[]> {

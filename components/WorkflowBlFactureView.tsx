@@ -20,6 +20,7 @@ import {
   PlusCircle,
   AlertCircle,
   Search,
+  LockKeyhole,
 } from 'lucide-react';
 
 interface WorkflowBlFactureViewProps {
@@ -37,6 +38,7 @@ interface WorkflowBlFactureViewProps {
     notes: string;
   }) => Promise<number>;
   onViewGeneratedFacture: (factureId: number) => void;
+  onCloseBl: (blId: number) => Promise<void>;
 }
 
 export const WorkflowBlFactureView: React.FC<WorkflowBlFactureViewProps> = ({
@@ -48,11 +50,12 @@ export const WorkflowBlFactureView: React.FC<WorkflowBlFactureViewProps> = ({
   initialSelectedBlIds = [],
   onGenerateInvoice,
   onViewGeneratedFacture,
+  onCloseBl,
 }) => {
   // Uninvoiced Validated BLs
   const uninvoicedBls = useMemo(() => {
     return bonsLivraison
-      .filter((b) => !b.facture_id && !b.facture_numero && b.etat !== 'Brouillon' && b.etat !== 'Annulé')
+      .filter((b) => !b.facture_id && !b.facture_numero && !b.cloture_sans_facture && b.statut !== 'Clôturé' && b.etat !== 'Brouillon' && b.etat !== 'Annulé')
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime() || b.id - a.id);
   }, [bonsLivraison]);
 
@@ -169,6 +172,7 @@ export const WorkflowBlFactureView: React.FC<WorkflowBlFactureViewProps> = ({
   const [documentSearch, setDocumentSearch] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedInvoiceId, setGeneratedInvoiceId] = useState<number | null>(null);
+  const [closingBlId, setClosingBlId] = useState<number | null>(null);
 
   // Active client bundle
   const activeBundle = useMemo(() => {
@@ -229,6 +233,22 @@ export const WorkflowBlFactureView: React.FC<WorkflowBlFactureViewProps> = ({
     setSelectedBrIds((prev) =>
       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
     );
+  };
+
+  const handleCloseBl = async (bl: BonLivraison) => {
+    const confirmed = window.confirm(
+      `Clôturer définitivement le BL ${bl.numero} sans le facturer ?\n\nIl disparaîtra du workflow et ne pourra plus être ajouté à une facture.`
+    );
+    if (!confirmed) return;
+    setClosingBlId(bl.id);
+    try {
+      await onCloseBl(bl.id);
+      setSelectedBlIds((current) => current.filter((id) => id !== bl.id));
+    } catch (error: any) {
+      alert(`Impossible de clôturer ce BL : ${error?.message || 'erreur inconnue'}`);
+    } finally {
+      setClosingBlId(null);
+    }
   };
 
   const selectAllBls = () => {
@@ -584,12 +604,27 @@ export const WorkflowBlFactureView: React.FC<WorkflowBlFactureViewProps> = ({
                               </div>
                             </div>
 
-                            <div className="text-right">
+                            <div className="flex shrink-0 items-center gap-2">
+                              <button
+                                type="button"
+                                disabled={closingBlId === bl.id}
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  void handleCloseBl(bl);
+                                }}
+                                className="inline-flex min-h-10 items-center gap-1.5 rounded-lg border border-amber-300 bg-amber-50 px-2.5 text-[11px] font-bold text-amber-800 transition hover:bg-amber-100 disabled:cursor-wait disabled:opacity-60"
+                                title="Clôturer définitivement sans facturer"
+                              >
+                                <LockKeyhole className="h-3.5 w-3.5" />
+                                {closingBlId === bl.id ? 'Clôture…' : 'Clôturer'}
+                              </button>
+                              <div className="text-right">
                               <div className="font-mono font-bold text-xs sm:text-sm text-blue-700">
                                 + {formatCurrency(bl.total_ttc)}
                               </div>
                               <div className="text-[10px] text-slate-500 font-mono">
                                 HT: {formatCurrency(bl.total_ht, false)} + TVA: {formatCurrency(bl.total_tva, false)}
+                              </div>
                               </div>
                             </div>
                           </div>

@@ -255,8 +255,9 @@ export interface BonLivraison {
   ristourne_pct: number;
   escompte_pct: number;
   port: number;
-  statut: 'En attente' | 'Facturé' | 'Partiel' | 'Soldé';
+  statut: 'En attente' | 'Facturé' | 'Partiel' | 'Soldé' | 'Clôturé';
   etat?: DocumentState; // 'Brouillon' | 'Validé' | 'Annulé'
+  cloture_sans_facture?: boolean;
   facture_id?: number | null;
   facture_numero?: string | null;
   mode_reglement?: string;

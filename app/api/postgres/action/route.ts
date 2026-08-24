@@ -367,6 +367,23 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ success: true, message: `État mis à jour: ${etat}` });
         }
 
+        case 'close_bon_livraison_without_invoice': {
+          const { id } = payload;
+          const closed: any = await sql`
+            UPDATE bons_livraison
+            SET cloture_sans_facture = TRUE, statut = 'Clôturé'
+            WHERE id = ${id} AND facture_id IS NULL
+            RETURNING id;
+          `;
+          if (!closed.length) {
+            return NextResponse.json(
+              { success: false, error: 'Ce BL est déjà facturé ou introuvable.' },
+              { status: 409 }
+            );
+          }
+          return NextResponse.json({ success: true, message: 'BL clôturé sans facturation' });
+        }
+
         case 'delete_bon_livraison': {
           const { id } = payload;
           await sql`DELETE FROM bons_livraison_lignes WHERE bon_livraison_id = ${id};`;
@@ -374,9 +391,79 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ success: true, message: 'Bon de livraison supprimé' });
         }
 
+        // --- TARIFS CLIENTS ---
+        case 'fetch_client_tarifs': {
+          const { clientId } = payload;
+          const tarifs = await sql`
+            SELECT ct.*, p.code AS produit_code, p.libelle AS produit_libelle,
+                   p.unite AS produit_unite, p.prix_ht AS prix_standard_ht,
+                   p.taux_tva AS taux_tva
+            FROM client_tarifs ct
+            LEFT JOIN produits p ON p.id = ct.produit_id
+            WHERE ct.client_id = ${clientId}
+            ORDER BY p.libelle ASC, ct.id ASC;
+          `;
+          return NextResponse.json({ success: true, tarifs });
+        }
+
+        case 'save_client_tarif': {
+          const { tarif } = payload;
+          const productRows: any = await sql`
+            SELECT code, libelle, unite, prix_ht, taux_tva
+            FROM produits WHERE id = ${tarif.produit_id} LIMIT 1;
+          `;
+          const product = productRows[0];
+          if (!product) {
+            return NextResponse.json({ success: false, error: 'Article introuvable' }, { status: 404 });
+          }
+          const nextIdRows: any = await sql`SELECT COALESCE(MAX(id), 0) + 1 AS next_id FROM client_tarifs;`;
+          const nextId = nextIdRows[0]?.next_id || 1;
+          const saved: any = await sql`
+            INSERT INTO client_tarifs (
+              id, client_id, produit_id, produit_code, produit_libelle, produit_unite,
+              prix_standard_ht, prix_special_ht, remise_pct, taux_tva, notes
+            ) VALUES (
+              ${nextId}, ${tarif.client_id}, ${tarif.produit_id}, ${product.code}, ${product.libelle},
+              ${product.unite || 'U'}, ${num(product.prix_ht)}, ${num(tarif.prix_special_ht)},
+              ${num(tarif.remise_pct)}, ${num(product.taux_tva)}, ${tarif.notes || ''}
+            )
+            ON CONFLICT (client_id, produit_id) DO UPDATE SET
+              produit_code = EXCLUDED.produit_code,
+              produit_libelle = EXCLUDED.produit_libelle,
+              produit_unite = EXCLUDED.produit_unite,
+              prix_standard_ht = EXCLUDED.prix_standard_ht,
+              prix_special_ht = EXCLUDED.prix_special_ht,
+              remise_pct = EXCLUDED.remise_pct,
+              taux_tva = EXCLUDED.taux_tva,
+              notes = EXCLUDED.notes
+            RETURNING id;
+          `;
+          return NextResponse.json({ success: true, id: saved[0]?.id });
+        }
+
+        case 'delete_client_tarif': {
+          const { id } = payload;
+          await sql`DELETE FROM client_tarifs WHERE id = ${id};`;
+          return NextResponse.json({ success: true });
+        }
+
         // --- FACTURES ---
         case 'create_facture': {
           const { facture, lignes, blIds } = payload;
+          if (Array.isArray(blIds) && blIds.length > 0) {
+            for (const blId of blIds) {
+              const rows: any = await sql`
+                SELECT cloture_sans_facture, facture_id
+                FROM bons_livraison WHERE id = ${blId} LIMIT 1;
+              `;
+              if (!rows.length || rows[0].cloture_sans_facture || rows[0].facture_id) {
+                return NextResponse.json(
+                  { success: false, error: `Le BL ${blId} est clôturé, déjà facturé ou introuvable.` },
+                  { status: 409 }
+                );
+              }
+            }
+          }
           const maxIdRes: any = await sql`SELECT COALESCE(MAX(id), 0) + 1 as next_id FROM factures;`;
           const factId = maxIdRes[0]?.next_id || 1;
 
@@ -419,7 +506,7 @@ export async function POST(req: NextRequest) {
               await sql`
                 UPDATE bons_livraison 
                 SET statut = 'Facturé', facture_id = ${factId}, facture_numero = ${facture.numero}
-                WHERE id = ${blId};
+                WHERE id = ${blId} AND cloture_sans_facture = FALSE;
               `;
             }
           }

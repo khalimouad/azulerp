@@ -174,6 +174,9 @@ CREATE TABLE IF NOT EXISTS client_tarifs (
   created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE UNIQUE INDEX IF NOT EXISTS client_tarifs_client_produit_uidx
+ON client_tarifs (client_id, produit_id);
+
 -- 4. Fournisseurs & Achats
 CREATE TABLE IF NOT EXISTS fournisseurs (
   id BIGINT PRIMARY KEY,
@@ -290,6 +293,7 @@ CREATE TABLE IF NOT EXISTS bons_livraison (
   port NUMERIC(15, 2) DEFAULT 0.00,
   statut VARCHAR(50) DEFAULT 'En attente',
   etat VARCHAR(50) DEFAULT 'Validé',
+  cloture_sans_facture BOOLEAN NOT NULL DEFAULT FALSE,
   facture_id BIGINT,
   facture_numero VARCHAR(100),
   mode_reglement VARCHAR(100) DEFAULT 'Virement',
@@ -720,6 +724,11 @@ export async function initNeonPostgresSchema(customUrl?: string) {
     );
   `;
 
+  await sql`
+    CREATE UNIQUE INDEX IF NOT EXISTS client_tarifs_client_produit_uidx
+    ON client_tarifs (client_id, produit_id);
+  `;
+
   // 4. Fournisseurs & Achats
   await sql`
     CREATE TABLE IF NOT EXISTS fournisseurs (
@@ -847,12 +856,18 @@ export async function initNeonPostgresSchema(customUrl?: string) {
       port NUMERIC(15, 2) DEFAULT 0.00,
       statut VARCHAR(50) DEFAULT 'En attente',
       etat VARCHAR(50) DEFAULT 'Validé',
+      cloture_sans_facture BOOLEAN NOT NULL DEFAULT FALSE,
       facture_id BIGINT,
       facture_numero VARCHAR(100),
       mode_reglement VARCHAR(100) DEFAULT 'Virement',
       notes TEXT,
       created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
     );
+  `;
+
+  await sql`
+    ALTER TABLE bons_livraison
+    ADD COLUMN IF NOT EXISTS cloture_sans_facture BOOLEAN NOT NULL DEFAULT FALSE;
   `;
 
   await sql`
