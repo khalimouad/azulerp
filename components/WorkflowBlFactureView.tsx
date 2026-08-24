@@ -50,12 +50,16 @@ export const WorkflowBlFactureView: React.FC<WorkflowBlFactureViewProps> = ({
 }) => {
   // Uninvoiced Validated BLs
   const uninvoicedBls = useMemo(() => {
-    return bonsLivraison.filter((b) => b.statut === 'En attente' && (b.etat || 'Validé') === 'Validé');
+    return bonsLivraison
+      .filter((b) => !b.facture_id && !b.facture_numero && b.etat !== 'Brouillon' && b.etat !== 'Annulé')
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime() || b.id - a.id);
   }, [bonsLivraison]);
 
   // Uninvoiced Validated BRs (Bons de retour)
   const uninvoicedBrs = useMemo(() => {
-    return bonsRetour.filter((r) => r.statut === 'En attente' && (r.etat || 'Validé') === 'Validé');
+    return bonsRetour
+      .filter((r) => !r.facture_id && !r.facture_numero && r.etat !== 'Brouillon' && r.etat !== 'Annulé')
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime() || b.id - a.id);
   }, [bonsRetour]);
 
   // Group uninvoiced BLs & BRs by client
