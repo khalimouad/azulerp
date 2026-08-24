@@ -39,7 +39,7 @@ export const DevisView: React.FC<DevisViewProps> = ({
         if (!matchNum && !matchClient) return false;
       }
       return true;
-    });
+    }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime() || b.id - a.id);
   }, [devisList, searchQuery]);
 
   const paginatedDevis = useMemo(() => {

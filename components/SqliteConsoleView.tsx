@@ -41,6 +41,7 @@ import {
   saveTicketPrinterSettings,
   TicketPrinterSettings,
 } from '@/lib/ticket-printer';
+import { DEFAULT_REFERENCE_SETTINGS, getReferenceSettings, saveReferenceSettings, ReferenceSettings } from '@/lib/reference-settings';
 
 interface SqliteConsoleViewProps {
   onDatabaseChanged: () => void;
@@ -67,6 +68,7 @@ export const SqliteConsoleView: React.FC<SqliteConsoleViewProps> = ({ onDatabase
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [printerSettings, setPrinterSettings] = useState<TicketPrinterSettings>(DEFAULT_TICKET_PRINTER_SETTINGS);
   const [printerSaved, setPrinterSaved] = useState(false);
+  const [referenceSettings, setReferenceSettings] = useState<ReferenceSettings>(DEFAULT_REFERENCE_SETTINGS);
 
   const refreshHealth = async () => {
     setIsRefreshingHealth(true);
@@ -83,10 +85,12 @@ export const SqliteConsoleView: React.FC<SqliteConsoleViewProps> = ({ onDatabase
   useEffect(() => {
     refreshHealth();
     setPrinterSettings(getTicketPrinterSettings());
+    setReferenceSettings(getReferenceSettings());
   }, []);
 
   const handleSavePrinter = () => {
     saveTicketPrinterSettings(printerSettings);
+    saveReferenceSettings(referenceSettings);
     setPrinterSaved(true);
     window.setTimeout(() => setPrinterSaved(false), 2500);
   };
@@ -235,11 +239,27 @@ export const SqliteConsoleView: React.FC<SqliteConsoleViewProps> = ({ onDatabase
               <option value="no">Imprimer avec le bouton</option><option value="yes">Ouvrir automatiquement</option>
             </select>
           </label>
+          <label className="text-xs font-semibold text-slate-700">
+            Imprimante documents
+            <input value={printerSettings.documentPrinterName} onChange={(e) => setPrinterSettings({ ...printerSettings, documentPrinterName: e.target.value })} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm" />
+          </label>
+          <label className="text-xs font-semibold text-slate-700">
+            Format BL / BR / Facture
+            <select value={printerSettings.documentPaperSize} onChange={(e) => setPrinterSettings({ ...printerSettings, documentPaperSize: e.target.value as 'A4' | 'A5' })} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm bg-white"><option value="A4">A4</option><option value="A5">A5</option></select>
+          </label>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4 pt-4 border-t border-slate-200">
+          <label className="text-xs font-semibold text-slate-700">Villes proposées
+            <textarea rows={3} value={referenceSettings.cities.join('\n')} onChange={(e) => setReferenceSettings({ ...referenceSettings, cities: e.target.value.split('\n').map((v) => v.trim()).filter(Boolean) })} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" />
+          </label>
+          <label className="text-xs font-semibold text-slate-700">Banques proposées
+            <textarea rows={3} value={referenceSettings.banks.join('\n')} onChange={(e) => setReferenceSettings({ ...referenceSettings, banks: e.target.value.split('\n').map((v) => v.trim()).filter(Boolean) })} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" />
+          </label>
         </div>
         <div className="flex flex-wrap items-center gap-2 mt-4">
           <button type="button" onClick={handleSavePrinter} className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold">{printerSaved ? 'Réglages enregistrés' : 'Enregistrer les réglages'}</button>
           <a href={`http://${printerSettings.ipAddress}`} target="_blank" rel="noreferrer" className="px-4 py-2 border border-slate-300 hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-bold flex items-center gap-1.5"><ExternalLink className="w-3.5 h-3.5" /> Ouvrir la page Epson</a>
-          <p className="text-[11px] text-slate-500">L’impression utilise l’imprimante installée sur ce poste. L’adresse IP sert à contrôler/configurer la TM‑T20X sur le réseau local.</p>
+          <p className="text-[11px] text-slate-500">Tickets : Epson réseau. Documents : sélectionnez HP-printer dans la fenêtre système, puis définissez-la comme imprimante par défaut pour accélérer l’impression.</p>
         </div>
       </div>
 

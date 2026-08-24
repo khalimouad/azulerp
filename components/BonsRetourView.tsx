@@ -83,7 +83,7 @@ export const BonsRetourView: React.FC<BonsRetourViewProps> = ({
         if (!matchNum && !matchClient && !matchDate && !matchMotif && !matchFacture) return false;
       }
       return true;
-    });
+    }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime() || b.id - a.id);
   }, [safeBrs, filterStatut, searchQuery, filterStartDate, filterEndDate]);
 
   const paginatedBrs = useMemo(() => {
@@ -99,7 +99,7 @@ export const BonsRetourView: React.FC<BonsRetourViewProps> = ({
 
   const toggleSelectAll = () => {
     const validUninvoiced = filteredBrs
-      .filter((b) => (b.etat || 'Validé') === 'Validé' && b.statut === 'En attente')
+      .filter((b) => b.etat !== 'Brouillon' && b.etat !== 'Annulé' && !b.facture_id && !b.facture_numero)
       .map((b) => b.id);
     if (selectedBrIds.length === validUninvoiced.length) {
       setSelectedBrIds([]);
@@ -136,7 +136,7 @@ export const BonsRetourView: React.FC<BonsRetourViewProps> = ({
       valide: safeBrs.filter((b) => (b.etat || 'Validé') === 'Validé').length,
       brouillon: safeBrs.filter((b) => b.etat === 'Brouillon').length,
       annule: safeBrs.filter((b) => b.etat === 'Annulé').length,
-      attente: safeBrs.filter((b) => (b.etat || 'Validé') === 'Validé' && b.statut === 'En attente').length,
+      attente: safeBrs.filter((b) => b.etat !== 'Brouillon' && b.etat !== 'Annulé' && !b.facture_id && !b.facture_numero).length,
     };
   }, [safeBrs]);
 
@@ -290,7 +290,7 @@ export const BonsRetourView: React.FC<BonsRetourViewProps> = ({
                     title="Sélectionner tous les BR validés en attente"
                   >
                     {selectedBrIds.length > 0 &&
-                    selectedBrIds.length === filteredBrs.filter((b) => (b.etat || 'Validé') === 'Validé' && b.statut === 'En attente').length ? (
+                    selectedBrIds.length === filteredBrs.filter((b) => b.etat !== 'Brouillon' && b.etat !== 'Annulé' && !b.facture_id && !b.facture_numero).length ? (
                       <CheckSquare className="w-4 h-4" />
                     ) : (
                       <Square className="w-4 h-4" />
@@ -320,10 +320,11 @@ export const BonsRetourView: React.FC<BonsRetourViewProps> = ({
                 paginatedBrs.map((br) => {
                   const isSelected = selectedBrIds.includes(br.id);
                   const etat: DocumentState = br.etat || 'Validé';
-                  const isValide = etat === 'Validé';
                   const isBrouillon = etat === 'Brouillon';
                   const isAnnule = etat === 'Annulé';
-                  const isAttente = isValide && br.statut === 'En attente';
+                  const isValide = !isBrouillon && !isAnnule;
+                  const isInvoiced = Boolean(br.facture_id || br.facture_numero);
+                  const isAttente = isValide && !isInvoiced;
 
                   return (
                     <tr
@@ -394,7 +395,7 @@ export const BonsRetourView: React.FC<BonsRetourViewProps> = ({
                       </td>
                       <td className="py-2 px-3 text-center">
                         {isValide ? (
-                          br.statut === 'Facturé' ? (
+                          isInvoiced ? (
                             <span className="font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
                               {br.facture_numero ? br.facture_numero : 'Déduit'}
                             </span>
@@ -404,7 +405,7 @@ export const BonsRetourView: React.FC<BonsRetourViewProps> = ({
                             </span>
                           )
                         ) : (
-                          <span className="text-slate-400 italic text-[11px]">Non applicable</span>
+                          <span className="text-slate-500 italic text-[11px]">{isAnnule ? 'Annulé' : 'À valider'}</span>
                         )}
                       </td>
                       <td className="py-1.5 px-2 text-center">

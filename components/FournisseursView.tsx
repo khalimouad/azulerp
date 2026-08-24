@@ -243,7 +243,7 @@ export const FournisseursView: React.FC<FournisseursViewProps> = ({
         );
       });
     }
-    return list;
+    return [...list].sort((a, b) => new Date(b.date_facture).getTime() - new Date(a.date_facture).getTime() || b.id - a.id);
   }, [facturesFournisseurs, searchFacture, filterFactureStatus, filterFactureSupplier]);
 
   // Filtered supplier payments
@@ -269,7 +269,7 @@ export const FournisseursView: React.FC<FournisseursViewProps> = ({
         );
       });
     }
-    return list;
+    return [...list].sort((a, b) => new Date(b.date_paiement).getTime() - new Date(a.date_paiement).getTime() || b.id - a.id);
   }, [paiementsFournisseurs, searchPaiement, filterPaymentMode, filterChequeStatus]);
 
   // Filtered reconciliations

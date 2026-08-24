@@ -93,7 +93,7 @@ export const FacturesView: React.FC<FacturesViewProps> = ({
       if (filterSociete && !f.client_nom.toLowerCase().includes(filterSociete.toLowerCase())) return false;
 
       return true;
-    });
+    }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime() || b.id - a.id);
   }, [factures, filterEtat, filterStatutPaiement, filterNum, filterDate, filterStartDate, filterEndDate, filterSociete]);
 
   const paginatedFactures = useMemo(() => {

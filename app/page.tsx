@@ -83,6 +83,7 @@ import { FournisseursView } from '@/components/FournisseursView';
 import { ReglementsView } from '@/components/ReglementsView';
 import { EtatsRapportsView } from '@/components/EtatsRapportsView';
 import { SqliteConsoleView } from '@/components/SqliteConsoleView';
+import { ReferenceDataLists } from '@/components/ReferenceDataLists';
 import { CompanySettingsView } from '@/components/CompanySettingsView';
 import { PosView } from '@/components/PosView';
 import { AuthView } from '@/components/AuthView';
@@ -568,6 +569,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-slate-100 flex flex-col font-sans text-slate-900">
+      <ReferenceDataLists />
       {/* Global Database Progress Modal */}
       <DatabaseProgressModal
         isOpen={isImportModalOpen}

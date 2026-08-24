@@ -2,6 +2,7 @@ import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { CompanyInfo, Facture, BonLivraison, BonRetour, Devis } from './types';
 import { formatCurrency, formatDate, numberToFrenchWords } from './utils';
+import { getTicketPrinterSettings } from './ticket-printer';
 
 /**
  * Format quantity display with unit matching Moroccan commercial model (e.g. "15 U", "5 KG", "1.306 KG")
@@ -113,7 +114,7 @@ function drawVerdeOrtoHeader(
       let format = 'PNG';
       if (company.logo_image.includes('image/jpeg') || company.logo_image.includes('image/jpg')) format = 'JPEG';
       else if (company.logo_image.includes('image/webp')) format = 'WEBP';
-      doc.addImage(company.logo_image, format, centerX - 14, 7, 28, 12);
+      doc.addImage(company.logo_image, format, centerX - 25, 4, 50, 21);
     } catch (e) {
       console.warn('PDF center image rendering error:', e);
     }
@@ -698,7 +699,7 @@ function drawA4Identity(doc: jsPDF, company: CompanyInfo) {
   if (company.logo_image?.startsWith('data:image')) {
     try {
       const format = company.logo_image.includes('jpeg') || company.logo_image.includes('jpg') ? 'JPEG' : company.logo_image.includes('webp') ? 'WEBP' : 'PNG';
-      doc.addImage(company.logo_image, format, 72, 10, 66, 28);
+      doc.addImage(company.logo_image, format, 65, 7, 80, 34);
     } catch { /* Text fallback below remains visible. */ }
   } else {
     doc.setDrawColor(81, 112, 53);
@@ -826,14 +827,17 @@ function generateA4CommercialPdf(document: A4CommercialDocument, company: Compan
 }
 
 export function generateFacturePdf(facture: Facture, company: CompanyInfo) {
+  if (getTicketPrinterSettings().documentPaperSize === 'A5') return generateFacturePdfLegacy(facture, company);
   generateA4CommercialPdf(facture, company, 'Facture');
 }
 
 export function generateBlPdf(bl: BonLivraison, company: CompanyInfo) {
+  if (getTicketPrinterSettings().documentPaperSize === 'A5') return generateBlPdfLegacy(bl, company);
   generateA4CommercialPdf(bl, company, 'Bon de Livraison');
 }
 
 export function generateBrPdf(br: BonRetour, company: CompanyInfo) {
+  if (getTicketPrinterSettings().documentPaperSize === 'A5') return generateBrPdfLegacy(br, company);
   generateA4CommercialPdf(br, company, 'Bon de Retour');
 }
 

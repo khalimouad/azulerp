@@ -71,7 +71,7 @@ export const BonsLivraisonView: React.FC<BonsLivraisonViewProps> = ({
       if (filterStatut === 'VALIDE' && etat !== 'Validé') return false;
       if (filterStatut === 'BROUILLON' && etat !== 'Brouillon') return false;
       if (filterStatut === 'ANNULE' && etat !== 'Annulé') return false;
-      if (filterStatut === 'ATTENTE' && (bl.statut !== 'En attente' || etat !== 'Validé')) return false;
+      if (filterStatut === 'ATTENTE' && (bl.facture_id || bl.facture_numero || etat === 'Brouillon' || etat === 'Annulé')) return false;
 
       // Date Range Filter
       const docDate = bl.date ? bl.date.slice(0, 10) : '';
@@ -87,7 +87,7 @@ export const BonsLivraisonView: React.FC<BonsLivraisonViewProps> = ({
         if (!matchNum && !matchClient && !matchDate && !matchFacture) return false;
       }
       return true;
-    });
+    }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime() || b.id - a.id);
   }, [bonsLivraison, filterStatut, searchQuery, filterStartDate, filterEndDate]);
 
   const paginatedBls = useMemo(() => {
@@ -103,7 +103,7 @@ export const BonsLivraisonView: React.FC<BonsLivraisonViewProps> = ({
 
   const toggleSelectAll = () => {
     const validUninvoiced = filteredBls
-      .filter((b) => (b.etat || 'Validé') === 'Validé' && b.statut === 'En attente')
+      .filter((b) => b.etat !== 'Brouillon' && b.etat !== 'Annulé' && !b.facture_id && !b.facture_numero)
       .map((b) => b.id);
     if (selectedBlIds.length === validUninvoiced.length) {
       setSelectedBlIds([]);
@@ -140,7 +140,7 @@ export const BonsLivraisonView: React.FC<BonsLivraisonViewProps> = ({
       valide: bonsLivraison.filter((b) => (b.etat || 'Validé') === 'Validé').length,
       brouillon: bonsLivraison.filter((b) => b.etat === 'Brouillon').length,
       annule: bonsLivraison.filter((b) => b.etat === 'Annulé').length,
-      attente: bonsLivraison.filter((b) => (b.etat || 'Validé') === 'Validé' && b.statut === 'En attente').length,
+      attente: bonsLivraison.filter((b) => b.etat !== 'Brouillon' && b.etat !== 'Annulé' && !b.facture_id && !b.facture_numero).length,
     };
   }, [bonsLivraison]);
 
@@ -304,7 +304,7 @@ export const BonsLivraisonView: React.FC<BonsLivraisonViewProps> = ({
                     title="Sélectionner tous les BL validés en attente"
                   >
                     {selectedBlIds.length > 0 &&
-                    selectedBlIds.length === filteredBls.filter((b) => (b.etat || 'Validé') === 'Validé' && b.statut === 'En attente').length ? (
+                    selectedBlIds.length === filteredBls.filter((b) => b.etat !== 'Brouillon' && b.etat !== 'Annulé' && !b.facture_id && !b.facture_numero).length ? (
                       <CheckSquare className="w-4 h-4" />
                     ) : (
                       <Square className="w-4 h-4" />
@@ -343,10 +343,11 @@ export const BonsLivraisonView: React.FC<BonsLivraisonViewProps> = ({
                 paginatedBls.map((bl) => {
                   const isSelected = selectedBlIds.includes(bl.id);
                   const etat: DocumentState = bl.etat || 'Validé';
-                  const isValide = etat === 'Validé';
                   const isBrouillon = etat === 'Brouillon';
                   const isAnnule = etat === 'Annulé';
-                  const isAttente = isValide && bl.statut === 'En attente';
+                  const isValide = !isBrouillon && !isAnnule;
+                  const isInvoiced = Boolean(bl.facture_id || bl.facture_numero);
+                  const isAttente = isValide && !isInvoiced;
 
                   return (
                     <tr
@@ -414,7 +415,7 @@ export const BonsLivraisonView: React.FC<BonsLivraisonViewProps> = ({
                       </td>
                       <td className="py-2 px-3 text-center">
                         {isValide ? (
-                          bl.statut === 'Facturé' ? (
+                          isInvoiced ? (
                             <span className="font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
                               {bl.facture_numero ? bl.facture_numero : 'Facturé'}
                             </span>
@@ -424,7 +425,7 @@ export const BonsLivraisonView: React.FC<BonsLivraisonViewProps> = ({
                             </span>
                           )
                         ) : (
-                          <span className="text-slate-400 italic text-[11px]">Non applicable</span>
+                          <span className="text-slate-500 italic text-[11px]">{isAnnule ? 'Annulé' : 'À valider'}</span>
                         )}
                       </td>
                       <td className="py-1.5 px-2 text-center">

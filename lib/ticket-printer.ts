@@ -5,6 +5,8 @@ export interface TicketPrinterSettings {
   ipAddress: string;
   paperWidth: 80 | 58;
   autoPrint: boolean;
+  documentPrinterName: string;
+  documentPaperSize: 'A4' | 'A5';
 }
 
 export const DEFAULT_TICKET_PRINTER_SETTINGS: TicketPrinterSettings = {
@@ -12,6 +14,8 @@ export const DEFAULT_TICKET_PRINTER_SETTINGS: TicketPrinterSettings = {
   ipAddress: '192.168.1.100',
   paperWidth: 80,
   autoPrint: false,
+  documentPrinterName: 'HP-printer',
+  documentPaperSize: 'A4',
 };
 
 const STORAGE_KEY = 'verdeorto.ticket-printer.v1';

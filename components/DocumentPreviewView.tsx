@@ -215,7 +215,7 @@ export const DocumentPreviewView: React.FC<DocumentPreviewViewProps> = ({
             className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs transition active:scale-95"
           >
             <Download className="w-3.5 h-3.5" />
-            <span>Télécharger PDF (A5)</span>
+            <span>Télécharger PDF</span>
           </button>
           <button
             type="button"
@@ -223,7 +223,7 @@ export const DocumentPreviewView: React.FC<DocumentPreviewViewProps> = ({
             className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-white shadow-xs transition active:scale-95"
           >
             <Printer className="w-3.5 h-3.5" />
-            <span>Imprimer</span>
+            <span>Imprimer sur HP-printer</span>
           </button>
         </div>
       </div>
@@ -278,7 +278,7 @@ export const DocumentPreviewView: React.FC<DocumentPreviewViewProps> = ({
                 <img
                   src={company.logo_image}
                   alt="Logo Entreprise"
-                  className="max-h-12 max-w-[150px] object-contain"
+                  className="h-20 w-[230px] object-contain"
                 />
               </div>
             ) : (

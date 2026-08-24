@@ -137,6 +137,7 @@ export const CreateClientModal: React.FC<CreateClientModalProps> = ({
               <label className="block font-semibold text-slate-700 mb-1">Ville</label>
               <input
                 type="text"
+                list="verdeorto-cities"
                 value={form.ville}
                 onChange={(e) => setForm({ ...form, ville: e.target.value })}
                 className="w-full px-3 py-1.5 bg-slate-50 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500"

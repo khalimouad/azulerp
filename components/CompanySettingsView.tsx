@@ -658,6 +658,7 @@ export const CompanySettingsView: React.FC<CompanySettingsViewProps> = ({
                 <label className="block text-xs font-semibold text-slate-700 mb-1">Ville</label>
                 <input
                   type="text"
+                  list="verdeorto-cities"
                   value={form.ville || ''}
                   onChange={(e) => setForm({ ...form, ville: e.target.value })}
                   placeholder="ex: Marrakech"
@@ -691,6 +692,7 @@ export const CompanySettingsView: React.FC<CompanySettingsViewProps> = ({
               <label className="block text-xs font-semibold text-slate-700 mb-1">Banque & Agence</label>
               <input
                 type="text"
+                list="verdeorto-banks"
                 value={form.banque || ''}
                 onChange={(e) => setForm({ ...form, banque: e.target.value })}
                 placeholder="ex: BANQUE POPULAIRE Agence Ben Tachfine"

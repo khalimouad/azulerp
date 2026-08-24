@@ -148,14 +148,14 @@ export const DocumentPreviewModal: React.FC<DocumentPreviewModalProps> = ({
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white shadow-xs transition"
             >
               <Download className="w-3.5 h-3.5" />
-              Télécharger PDF (A5)
+              Télécharger PDF
             </button>
             <button
               onClick={handlePrint}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 transition"
             >
               <Printer className="w-3.5 h-3.5" />
-              Imprimer
+              Imprimer sur HP-printer
             </button>
             <button onClick={onClose} className="p-1.5 text-slate-400 hover:text-white rounded-lg">
               <X className="w-5 h-5" />
@@ -209,7 +209,7 @@ export const DocumentPreviewModal: React.FC<DocumentPreviewModalProps> = ({
                   <img
                     src={company.logo_image}
                     alt="Logo Entreprise"
-                    className="max-h-12 max-w-[150px] object-contain"
+                    className="h-20 w-[230px] object-contain"
                   />
                 </div>
               ) : (

@@ -28,7 +28,7 @@ export const ReglementsView: React.FC<ReglementsViewProps> = ({
         r.reference_paiement?.toLowerCase().includes(q) ||
         r.banque?.toLowerCase().includes(q)
       );
-    });
+    }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime() || b.id - a.id);
   }, [reglements, search]);
 
   const totalEncaisse = useMemo(() => {
