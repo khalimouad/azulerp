@@ -4,7 +4,6 @@ import {
   OFFICIAL_FAMILLES,
   OFFICIAL_MARQUES,
   OFFICIAL_FOURNISSEURS,
-  OFFICIAL_CLIENTS,
   OFFICIAL_PRODUITS,
 } from './official-seed-data';
 
@@ -1226,25 +1225,6 @@ export async function initNeonPostgresSchema(customUrl?: string) {
         await sql`
           INSERT INTO categories (id, code, libelle, nom)
           VALUES (${cat.id}, ${catCode}, ${cat.libelle}, ${cat.libelle})
-          ON CONFLICT (id) DO NOTHING;
-        `;
-      }
-    }
-  } catch (_) {}
-
-  // Check if clients are empty, seed official clients
-  try {
-    const existingClients: any = await sql`SELECT count(*) as count FROM clients;`;
-    if (parseInt(existingClients?.[0]?.count || '0', 10) === 0) {
-      for (let i = 0; i < OFFICIAL_CLIENTS.length; i++) {
-        const cl = OFFICIAL_CLIENTS[i];
-        const clientId = i + 1;
-        await sql`
-          INSERT INTO clients (id, code, nom, interlocuteur, adresse, ville, telephone, email, ice, solde)
-          VALUES (
-            ${clientId}, ${cl.code || ''}, ${cl.nom}, ${cl.interlocuteur || ''}, ${cl.adresse || ''},
-            ${cl.ville || 'Marrakech'}, ${cl.tel || cl.mobile || ''}, ${cl.email || ''}, ${cl.ice || ''}, ${cl.solde || 0}
-          )
           ON CONFLICT (id) DO NOTHING;
         `;
       }

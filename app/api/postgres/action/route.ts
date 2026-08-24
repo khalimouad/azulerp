@@ -13,7 +13,6 @@ import {
   OFFICIAL_FAMILLES,
   OFFICIAL_MARQUES,
   OFFICIAL_FOURNISSEURS,
-  OFFICIAL_CLIENTS,
   OFFICIAL_PRODUITS
 } from '@/lib/official-seed-data';
 import {
@@ -71,21 +70,7 @@ function getFallbackStore() {
       categories: OFFICIAL_CATEGORIES.map((c) => ({ id: c.id, code: `CAT${c.id}`, libelle: c.libelle, nom: c.libelle })),
       familles: OFFICIAL_FAMILLES.map((f) => ({ id: f.id, code: `FAM${f.id}`, libelle: f.libelle, categorie_id: f.categorie_id })),
       marques: OFFICIAL_MARQUES.map((m) => ({ id: m.id, code: `MARQ${m.id}`, libelle: m.libelle })),
-      clients: OFFICIAL_CLIENTS.map((cl, i) => ({
-        id: i + 1,
-        code: cl.code || `CLI${i + 1}`,
-        nom: cl.nom,
-        interlocuteur: cl.interlocuteur || '',
-        adresse: cl.adresse || '',
-        ville: cl.ville || 'Marrakech',
-        telephone: cl.tel || cl.mobile || '',
-        mobile: cl.mobile || '',
-        email: cl.email || '',
-        ice: cl.ice || '',
-        solde: cl.solde || 0,
-        total_achats: 0,
-        bl_non_factures_count: 0
-      })),
+      clients: [],
       fournisseurs: OFFICIAL_FOURNISSEURS.map((f, i) => ({
         id: i + 1,
         code: f.code || `FOURN${i + 1}`,
