@@ -378,8 +378,50 @@ export async function POST(req: NextRequest) {
 
         case 'update_bon_livraison_state': {
           const { id, etat } = payload;
-          await sql`UPDATE bons_livraison SET etat = ${etat} WHERE id = ${id};`;
+          if (!['Brouillon', 'Validé', 'Annulé'].includes(etat)) {
+            return NextResponse.json({ success: false, error: 'État de document invalide.' }, { status: 400 });
+          }
+          const updated: any = await sql`
+            UPDATE bons_livraison SET etat = ${etat} WHERE id = ${id}
+            RETURNING id, numero, etat;
+          `;
+          if (!updated.length) {
+            return NextResponse.json({ success: false, error: 'Bon de livraison introuvable.' }, { status: 404 });
+          }
+          console.info('[document-state] BL updated', updated[0]);
           return NextResponse.json({ success: true, message: `État mis à jour: ${etat}` });
+        }
+
+        case 'update_bon_retour_state': {
+          const { id, etat } = payload;
+          if (!['Brouillon', 'Validé', 'Annulé'].includes(etat)) {
+            return NextResponse.json({ success: false, error: 'État de document invalide.' }, { status: 400 });
+          }
+          const updated: any = await sql`
+            UPDATE bons_retour SET etat = ${etat} WHERE id = ${id}
+            RETURNING id, numero, etat;
+          `;
+          if (!updated.length) {
+            return NextResponse.json({ success: false, error: 'Bon de retour introuvable.' }, { status: 404 });
+          }
+          console.info('[document-state] BR updated', updated[0]);
+          return NextResponse.json({ success: true, message: `État du BR mis à jour: ${etat}` });
+        }
+
+        case 'update_facture_state': {
+          const { id, etat } = payload;
+          if (!['Brouillon', 'Validé', 'Annulé'].includes(etat)) {
+            return NextResponse.json({ success: false, error: 'État de document invalide.' }, { status: 400 });
+          }
+          const updated: any = await sql`
+            UPDATE factures SET etat = ${etat} WHERE id = ${id}
+            RETURNING id, numero, etat;
+          `;
+          if (!updated.length) {
+            return NextResponse.json({ success: false, error: 'Facture introuvable.' }, { status: 404 });
+          }
+          console.info('[document-state] Facture updated', updated[0]);
+          return NextResponse.json({ success: true, message: `État de la facture mis à jour: ${etat}` });
         }
 
         case 'close_bon_livraison_without_invoice': {
@@ -970,6 +1012,27 @@ export async function POST(req: NextRequest) {
           const newBl = { ...bl, id: nextId, lignes: lignes || [] };
           store.bons_livraison.unshift(newBl);
           return NextResponse.json({ success: true, id: nextId, message: 'BL créé' });
+        }
+
+        case 'update_bon_livraison_state': {
+          const document = store.bons_livraison.find((item) => Number(item.id) === Number(payload.id));
+          if (!document) return NextResponse.json({ success: false, error: 'Bon de livraison introuvable.' }, { status: 404 });
+          document.etat = payload.etat;
+          return NextResponse.json({ success: true, message: `État mis à jour: ${payload.etat}` });
+        }
+
+        case 'update_bon_retour_state': {
+          const document = store.bons_retour.find((item) => Number(item.id) === Number(payload.id));
+          if (!document) return NextResponse.json({ success: false, error: 'Bon de retour introuvable.' }, { status: 404 });
+          document.etat = payload.etat;
+          return NextResponse.json({ success: true, message: `État du BR mis à jour: ${payload.etat}` });
+        }
+
+        case 'update_facture_state': {
+          const document = store.factures.find((item) => Number(item.id) === Number(payload.id));
+          if (!document) return NextResponse.json({ success: false, error: 'Facture introuvable.' }, { status: 404 });
+          document.etat = payload.etat;
+          return NextResponse.json({ success: true, message: `État de la facture mis à jour: ${payload.etat}` });
         }
 
         case 'create_facture': {

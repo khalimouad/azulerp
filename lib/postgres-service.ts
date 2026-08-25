@@ -355,12 +355,12 @@ export async function createBonRetour(br: Partial<BonRetour>, lignes?: LineItem[
 }
 
 export async function updateBonRetour(id: number, br: Partial<BonRetour>, lignes?: LineItem[]): Promise<void> {
-  await apiCall('update_bon_livraison_state', { id, etat: br.etat || 'Validé' });
+  await apiCall('update_bon_retour_state', { id, etat: br.etat || 'Validé' });
   await fetchAllData();
 }
 
 export async function updateBonRetourState(id: number, etat: DocumentState): Promise<void> {
-  await apiCall('update_bon_livraison_state', { id, etat });
+  await apiCall('update_bon_retour_state', { id, etat });
   await fetchAllData();
 }
 
@@ -416,7 +416,7 @@ export async function updateFacture(id: number, facture: Partial<Facture>, ligne
 }
 
 export async function updateFactureState(id: number, etat: DocumentState): Promise<void> {
-  await apiCall('update_bon_livraison_state', { id, etat });
+  await apiCall('update_facture_state', { id, etat });
   await fetchAllData();
 }
 

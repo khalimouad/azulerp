@@ -821,8 +821,12 @@ export default function Home() {
                 navigateTo('create-facture');
               }}
               onUpdateFactureState={async (id, newState) => {
-                await updateFactureState(id, newState);
-                await reloadData();
+                try {
+                  await updateFactureState(id, newState);
+                  await reloadData();
+                } catch (error) {
+                  alert(error instanceof Error ? error.message : 'Impossible de modifier l’état de la facture.');
+                }
               }}
               onOpenPaymentModal={(f) => {
                 setPaymentFacture(f);
@@ -857,8 +861,12 @@ export default function Home() {
                 navigateTo('create-bl');
               }}
               onUpdateBlState={async (id, newState) => {
-                await updateBonLivraisonState(id, newState);
-                await reloadData();
+                try {
+                  await updateBonLivraisonState(id, newState);
+                  await reloadData();
+                } catch (error) {
+                  alert(error instanceof Error ? error.message : 'Impossible de modifier l’état du BL.');
+                }
               }}
               onViewBl={(bl) => {
                 setPreviewDocType('BL');
@@ -889,8 +897,12 @@ export default function Home() {
                 navigateTo('create-br');
               }}
               onUpdateBrState={async (id, newState) => {
-                await updateBonRetourState(id, newState);
-                await reloadData();
+                try {
+                  await updateBonRetourState(id, newState);
+                  await reloadData();
+                } catch (error) {
+                  alert(error instanceof Error ? error.message : 'Impossible de modifier l’état du BR.');
+                }
               }}
               onViewBr={(br) => {
                 setPreviewDocType('BR');
