@@ -245,8 +245,8 @@ export async function fetchMarques(): Promise<Marque[]> {
   return data?.marques || [];
 }
 
-export async function fetchBonsLivraison(): Promise<BonLivraison[]> {
-  const data = await fetchAllData();
+export async function fetchBonsLivraison(forceRefresh = false): Promise<BonLivraison[]> {
+  const data = await fetchAllData(forceRefresh);
   return data?.bons_livraison || [];
 }
 
@@ -255,8 +255,8 @@ export async function fetchBonsRetour(): Promise<BonRetour[]> {
   return data?.bons_retour || [];
 }
 
-export async function fetchFactures(): Promise<Facture[]> {
-  const data = await fetchAllData();
+export async function fetchFactures(forceRefresh = false): Promise<Facture[]> {
+  const data = await fetchAllData(forceRefresh);
   return data?.factures || [];
 }
 
@@ -326,32 +326,126 @@ export async function fetchDashboardStats(selectedYear: string = '2026'): Promis
 // BONS DE LIVRAISON CRUD
 // ----------------------------------------------------------------------------
 
-export async function createBonLivraison(bl: Partial<BonLivraison>, lignes?: LineItem[]): Promise<number> {
-  const lineItems = lignes || bl.lignes || [];
-  const res = await apiCall('create_bon_livraison', { bl, lignes: lineItems });
-  await fetchAllData();
-  return res.id;
+function patchCachedBonsLivraison(
+  updater: (bonsLivraison: BonLivraison[]) => BonLivraison[]
+): void {
+  if (!cachedData) return;
+  cachedData = {
+    ...cachedData,
+    bons_livraison: updater(cachedData.bons_livraison || []),
+  };
 }
 
-export async function updateBonLivraison(id: number, bl: Partial<BonLivraison>, lignes?: LineItem[]): Promise<void> {
+function buildSavedBonLivraison(
+  bl: Partial<BonLivraison>,
+  lineItems: LineItem[],
+  response: any
+): BonLivraison {
+  const cachedClient = (cachedData?.clients || []).find(
+    (client: Client) => Number(client.id) === Number(response.client_id || bl.client_id)
+  );
+
+  return {
+    id: Number(response.id),
+    numero: String(response.numero || bl.numero || ''),
+    date: String(bl.date || new Date().toISOString().slice(0, 10)),
+    client_id: Number(response.client_id || bl.client_id),
+    client_nom: String(response.client_nom || cachedClient?.nom || bl.client_nom || ''),
+    client_ice: cachedClient?.ice || bl.client_ice || '',
+    client_adresse: cachedClient?.adresse || bl.client_adresse || '',
+    client_ville: cachedClient?.ville || bl.client_ville || '',
+    total_ht: Number(bl.total_ht || 0),
+    tva_20: Number(bl.tva_20 || 0),
+    tva_10: Number(bl.tva_10 || 0),
+    total_tva: Number(bl.total_tva || 0),
+    total_ttc: Number(bl.total_ttc || 0),
+    montant_brut: Number(bl.montant_brut || 0),
+    remise_pct: Number(bl.remise_pct || 0),
+    ristourne_pct: Number(bl.ristourne_pct || 0),
+    escompte_pct: Number(bl.escompte_pct || 0),
+    port: Number(bl.port || 0),
+    statut: bl.statut || 'En attente',
+    etat: bl.etat || 'Validé',
+    cloture_sans_facture: Boolean(bl.cloture_sans_facture),
+    facture_id: bl.facture_id ?? null,
+    facture_numero: bl.facture_numero ?? null,
+    mode_reglement: bl.mode_reglement || 'Virement',
+    notes: bl.notes || '',
+    lignes: lineItems.map((line) => ({
+      ...line,
+      produit_id: line.produit_id == null ? undefined : Number(line.produit_id),
+      quantite: Number(line.quantite || 0),
+      prix_ht: Number(line.prix_ht || 0),
+      taux_tva: Number(line.taux_tva || 0),
+      remise_pct: Number(line.remise_pct || 0),
+      total_ht: Number(line.total_ht || 0),
+      total_tva: Number(line.total_tva || 0),
+      total_ttc: Number(line.total_ttc || 0),
+    })),
+    created_at: String(bl.created_at || new Date().toISOString()),
+  };
+}
+
+export async function createBonLivraison(
+  bl: Partial<BonLivraison>,
+  lignes?: LineItem[]
+): Promise<BonLivraison> {
   const lineItems = lignes || bl.lignes || [];
-  await apiCall('create_bon_livraison', { bl: { ...bl, id }, lignes: lineItems });
-  await fetchAllData();
+  const res = await apiCall('create_bon_livraison', { bl, lignes: lineItems });
+  const created = buildSavedBonLivraison(bl, lineItems, res);
+  patchCachedBonsLivraison((documents) => [
+    created,
+    ...documents.filter((document) => Number(document.id) !== created.id),
+  ]);
+  return created;
+}
+
+export async function updateBonLivraison(
+  id: number,
+  bl: Partial<BonLivraison>,
+  lignes?: LineItem[]
+): Promise<BonLivraison> {
+  const lineItems = lignes || bl.lignes || [];
+  const existing = (cachedData?.bons_livraison || []).find(
+    (document: BonLivraison) => Number(document.id) === Number(id)
+  );
+  const res = await apiCall('update_bon_livraison', { id, bl, lignes: lineItems });
+  const updated = buildSavedBonLivraison(
+    { ...existing, ...bl, id, numero: res.numero || existing?.numero },
+    lineItems,
+    { ...res, id }
+  );
+  patchCachedBonsLivraison((documents) =>
+    documents.map((document) => (Number(document.id) === Number(id) ? updated : document))
+  );
+  return updated;
 }
 
 export async function updateBonLivraisonState(id: number, etat: DocumentState): Promise<void> {
   await apiCall('update_bon_livraison_state', { id, etat });
-  await fetchAllData();
+  patchCachedBonsLivraison((documents) =>
+    documents.map((document) =>
+      Number(document.id) === Number(id) ? { ...document, etat } : document
+    )
+  );
 }
 
 export async function closeBonLivraisonWithoutInvoice(id: number): Promise<void> {
   await apiCall('close_bon_livraison_without_invoice', { id });
-  await fetchAllData(true);
+  patchCachedBonsLivraison((documents) =>
+    documents.map((document) =>
+      Number(document.id) === Number(id)
+        ? { ...document, cloture_sans_facture: true, statut: 'Clôturé' }
+        : document
+    )
+  );
 }
 
 export async function deleteBonLivraison(id: number): Promise<void> {
   await apiCall('delete_bon_livraison', { id });
-  await fetchAllData();
+  patchCachedBonsLivraison((documents) =>
+    documents.filter((document) => Number(document.id) !== Number(id))
+  );
 }
 
 // ----------------------------------------------------------------------------

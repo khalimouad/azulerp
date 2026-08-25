@@ -254,7 +254,7 @@ export default function Home() {
     if (!force && isFacturesLoaded) return;
     setLoadingFactures(true);
     try {
-      const fList = await fetchFactures();
+      const fList = await fetchFactures(force);
       setFactures(fList);
       setIsFacturesLoaded(true);
     } catch (err) {
@@ -269,7 +269,7 @@ export default function Home() {
     if (!force && isBlLoaded) return;
     setLoadingBls(true);
     try {
-      const blList = await fetchBonsLivraison();
+      const blList = await fetchBonsLivraison(force);
       setBonsLivraison(blList);
       setIsBlLoaded(true);
     } catch (err) {
@@ -864,10 +864,20 @@ export default function Home() {
                 navigateTo('create-bl');
               }}
               onUpdateBlState={async (id, newState) => {
+                const previousState = bonsLivraison.find((bl) => bl.id === id)?.etat || 'Validé';
+                setBonsLivraison((documents) =>
+                  documents.map((document) =>
+                    document.id === id ? { ...document, etat: newState } : document
+                  )
+                );
                 try {
                   await updateBonLivraisonState(id, newState);
-                  await reloadData();
                 } catch (error) {
+                  setBonsLivraison((documents) =>
+                    documents.map((document) =>
+                      document.id === id ? { ...document, etat: previousState } : document
+                    )
+                  );
                   alert(error instanceof Error ? error.message : 'Impossible de modifier l’état du BL.');
                 }
               }}
@@ -878,7 +888,7 @@ export default function Home() {
               }}
               onDeleteBl={async (id) => {
                 await deleteBonLivraison(id);
-                await reloadData();
+                setBonsLivraison((documents) => documents.filter((document) => document.id !== id));
               }}
               onBatchInvoiceSelected={() => {
                 navigateTo('workflow-bl-facture');
@@ -933,7 +943,13 @@ export default function Home() {
               onViewGeneratedFacture={handleViewFactureById}
               onCloseBl={async (blId) => {
                 await closeBonLivraisonWithoutInvoice(blId);
-                await reloadData();
+                setBonsLivraison((documents) =>
+                  documents.map((document) =>
+                    document.id === blId
+                      ? { ...document, cloture_sans_facture: true, statut: 'Clôturé' }
+                      : document
+                  )
+                );
               }}
             />
           )}
@@ -1192,12 +1208,17 @@ export default function Home() {
                 setCurrentTab(previousTab === 'create-bl' ? 'bl' : previousTab);
               }}
               onSave={async (data) => {
+                let saved: BonLivraison;
                 if (blToEdit) {
-                  await updateBonLivraison(blToEdit.id, data);
+                  saved = await updateBonLivraison(blToEdit.id, data);
                 } else {
-                  await createBonLivraison(data);
+                  saved = await createBonLivraison(data);
                 }
-                await reloadData();
+                setBonsLivraison((documents) => [
+                  saved,
+                  ...documents.filter((document) => document.id !== saved.id),
+                ]);
+                setIsBlLoaded(true);
                 setBlToEdit(null);
                 setCurrentTab('bl');
               }}

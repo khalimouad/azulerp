@@ -362,10 +362,11 @@ export async function POST(req: NextRequest) {
           `;
 
           if (Array.isArray(lignes)) {
+            const lineMaxIdRes: any = await sql`SELECT COALESCE(MAX(id), 0) + 1 as next_id FROM bons_livraison_lignes;`;
+            const firstLineId = Number(lineMaxIdRes[0]?.next_id || 1);
             for (let i = 0; i < lignes.length; i++) {
               const l = lignes[i];
-              const lineMaxIdRes: any = await sql`SELECT COALESCE(MAX(id), 0) + 1 as next_id FROM bons_livraison_lignes;`;
-              const lineId = lineMaxIdRes[0]?.next_id || i + 1;
+              const lineId = firstLineId + i;
               await sql`
                 INSERT INTO bons_livraison_lignes (
                   id, bon_livraison_id, produit_id, designation, groupe, unite, quantite,
@@ -395,6 +396,104 @@ export async function POST(req: NextRequest) {
             client_id: clientId,
             client_nom: selectedClient.nom,
             message: `Bon de livraison ${blNumero} créé avec succès`,
+          });
+        }
+
+        case 'update_bon_livraison': {
+          const { id, bl, lignes } = payload;
+          const documentId = Number(id);
+          const clientId = Number(bl.client_id);
+          if (!documentId || !clientId) {
+            return NextResponse.json(
+              { success: false, error: 'BL ou client invalide.' },
+              { status: 400 }
+            );
+          }
+
+          const existingRows: any = await sql`
+            SELECT id, numero, etat
+            FROM bons_livraison
+            WHERE id = ${documentId}
+            LIMIT 1;
+          `;
+          if (!existingRows.length) {
+            return NextResponse.json(
+              { success: false, error: 'Bon de livraison introuvable.' },
+              { status: 404 }
+            );
+          }
+          if (existingRows[0].etat !== 'Brouillon') {
+            return NextResponse.json(
+              { success: false, error: 'Seul un BL en brouillon peut être modifié.' },
+              { status: 409 }
+            );
+          }
+
+          const clientRows: any = await sql`
+            SELECT id, nom, ice, adresse, ville
+            FROM clients
+            WHERE id = ${clientId}
+            LIMIT 1;
+          `;
+          if (!clientRows.length) {
+            return NextResponse.json(
+              { success: false, error: 'Le client sélectionné est introuvable dans Neon.' },
+              { status: 404 }
+            );
+          }
+          const selectedClient = clientRows[0];
+
+          await sql`
+            UPDATE bons_livraison
+            SET date = ${String(bl.date || new Date().toISOString().slice(0, 10))},
+                client_id = ${clientId},
+                client_nom = ${selectedClient.nom},
+                client_ice = ${selectedClient.ice || ''},
+                client_adresse = ${selectedClient.adresse || ''},
+                client_ville = ${selectedClient.ville || ''},
+                total_ht = ${num(bl.total_ht)},
+                tva_20 = ${num(bl.tva_20)},
+                tva_10 = ${num(bl.tva_10)},
+                total_tva = ${num(bl.total_tva)},
+                total_ttc = ${num(bl.total_ttc)},
+                montant_brut = ${num(bl.montant_brut)},
+                remise_pct = ${num(bl.remise_pct)},
+                ristourne_pct = ${num(bl.ristourne_pct)},
+                escompte_pct = ${num(bl.escompte_pct)},
+                port = ${num(bl.port)},
+                etat = ${bl.etat || 'Brouillon'},
+                mode_reglement = ${bl.mode_reglement || 'Virement'},
+                notes = ${bl.notes || ''}
+            WHERE id = ${documentId};
+          `;
+
+          await sql`DELETE FROM bons_livraison_lignes WHERE bon_livraison_id = ${documentId};`;
+          if (Array.isArray(lignes) && lignes.length > 0) {
+            const lineMaxIdRes: any = await sql`SELECT COALESCE(MAX(id), 0) + 1 as next_id FROM bons_livraison_lignes;`;
+            const firstLineId = Number(lineMaxIdRes[0]?.next_id || 1);
+            for (let i = 0; i < lignes.length; i++) {
+              const l = lignes[i];
+              await sql`
+                INSERT INTO bons_livraison_lignes (
+                  id, bon_livraison_id, produit_id, designation, groupe, unite, quantite,
+                  prix_ht, taux_tva, remise_pct, total_ht, total_tva, total_ttc
+                ) VALUES (
+                  ${firstLineId + i}, ${documentId}, ${l.produit_id || null}, ${l.designation},
+                  ${l.groupe || ''}, ${l.unite || 'KG'}, ${num(l.quantite, 1)}, ${num(l.prix_ht)},
+                  ${num(l.taux_tva, 20)}, ${num(l.remise_pct)}, ${num(l.total_ht)},
+                  ${num(l.total_tva)}, ${num(l.total_ttc)}
+                );
+              `;
+            }
+          }
+
+          return NextResponse.json({
+            success: true,
+            id: documentId,
+            numero: existingRows[0].numero,
+            client_id: clientId,
+            client_nom: selectedClient.nom,
+            message: `Bon de livraison ${existingRows[0].numero} mis à jour`,
           });
         }
 
@@ -1256,9 +1355,32 @@ export async function POST(req: NextRequest) {
         case 'create_bon_livraison': {
           const { bl, lignes } = payload;
           const nextId = store.bons_livraison.length + 1;
-          const newBl = { ...bl, id: nextId, lignes: lignes || [] };
+          const yearSuffix = String(bl.date || new Date().toISOString().slice(0, 10)).slice(2, 4);
+          const numero = bl.numero || `${nextId}/${yearSuffix}`;
+          const newBl = { ...bl, id: nextId, numero, lignes: lignes || [] };
           store.bons_livraison.unshift(newBl);
-          return NextResponse.json({ success: true, id: nextId, message: 'BL créé' });
+          return NextResponse.json({
+            success: true,
+            id: nextId,
+            numero,
+            client_id: bl.client_id,
+            client_nom: bl.client_nom,
+            message: 'BL créé',
+          });
+        }
+
+        case 'update_bon_livraison': {
+          const document = store.bons_livraison.find((item) => Number(item.id) === Number(payload.id));
+          if (!document) return NextResponse.json({ success: false, error: 'Bon de livraison introuvable.' }, { status: 404 });
+          Object.assign(document, payload.bl, { lignes: payload.lignes || [], id: document.id, numero: document.numero });
+          return NextResponse.json({
+            success: true,
+            id: document.id,
+            numero: document.numero,
+            client_id: document.client_id,
+            client_nom: document.client_nom,
+            message: 'BL mis à jour',
+          });
         }
 
         case 'update_bon_livraison_state': {
