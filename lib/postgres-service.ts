@@ -148,6 +148,8 @@ export async function fetchAllData(forceRefresh = false) {
       if (res && res.data) {
         cachedData = {
           ...res.data,
+          clients: (res.data.clients || []).map(normalizeClient),
+          fournisseurs: (res.data.fournisseurs || []).map(normalizeClient),
           produits: (res.data.produits || []).map(normalizeProduit),
           reglements: (res.data.reglements || []).map(normalizeReglement),
           pos_tables: (res.data.pos_tables || []).map(normalizePosTable),
@@ -192,6 +194,15 @@ export async function fetchFournisseurs(): Promise<Fournisseur[]> {
 export async function fetchProduits(): Promise<Produit[]> {
   const data = await fetchAllData();
   return data?.produits || [];
+}
+
+function normalizeClient(client: any): Client {
+  return {
+    ...client,
+    id: Number(client.id),
+    solde: Number(client.solde || 0),
+    plafond_credit: Number(client.plafond_credit || 0),
+  };
 }
 
 function normalizeProduit(produit: any): Produit {

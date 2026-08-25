@@ -314,6 +314,26 @@ export async function POST(req: NextRequest) {
         // --- BONS DE LIVRAISON ---
         case 'create_bon_livraison': {
           const { bl, lignes } = payload;
+          const clientId = Number(bl.client_id);
+          if (!clientId) {
+            return NextResponse.json(
+              { success: false, error: 'Veuillez sélectionner un client valide.' },
+              { status: 400 }
+            );
+          }
+          const clientRows: any = await sql`
+            SELECT id, nom, ice, adresse, ville
+            FROM clients
+            WHERE id = ${clientId}
+            LIMIT 1;
+          `;
+          if (!clientRows.length) {
+            return NextResponse.json(
+              { success: false, error: 'Le client sélectionné est introuvable dans Neon.' },
+              { status: 404 }
+            );
+          }
+          const selectedClient = clientRows[0];
           const maxIdRes: any = await sql`SELECT COALESCE(MAX(id), 0) + 1 as next_id FROM bons_livraison;`;
           const blId = maxIdRes[0]?.next_id || 1;
           const documentDate = String(bl.date || new Date().toISOString().slice(0, 10));
@@ -333,8 +353,8 @@ export async function POST(req: NextRequest) {
               total_ht, tva_20, tva_10, total_tva, total_ttc, montant_brut, remise_pct, ristourne_pct,
               escompte_pct, port, statut, etat, mode_reglement, notes
             ) VALUES (
-              ${blId}, ${blNumero}, ${documentDate}, ${bl.client_id}, ${bl.client_nom}, ${bl.client_ice || ''},
-              ${bl.client_adresse || ''}, ${bl.client_ville || ''}, ${num(bl.total_ht)}, ${num(bl.tva_20)},
+              ${blId}, ${blNumero}, ${documentDate}, ${clientId}, ${selectedClient.nom}, ${selectedClient.ice || ''},
+              ${selectedClient.adresse || ''}, ${selectedClient.ville || ''}, ${num(bl.total_ht)}, ${num(bl.tva_20)},
               ${num(bl.tva_10)}, ${num(bl.total_tva)}, ${num(bl.total_ttc)}, ${num(bl.montant_brut)},
               ${num(bl.remise_pct)}, ${num(bl.ristourne_pct)}, ${num(bl.escompte_pct)}, ${num(bl.port)},
               ${bl.statut || 'En attente'}, ${bl.etat || 'Validé'}, ${bl.mode_reglement || 'Virement'}, ${bl.notes || ''}
@@ -372,6 +392,8 @@ export async function POST(req: NextRequest) {
             success: true,
             id: blId,
             numero: blNumero,
+            client_id: clientId,
+            client_nom: selectedClient.nom,
             message: `Bon de livraison ${blNumero} créé avec succès`,
           });
         }

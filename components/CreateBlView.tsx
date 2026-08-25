@@ -51,7 +51,7 @@ export const CreateBlView: React.FC<CreateBlViewProps> = ({
   onSave,
 }) => {
   const [clientId, setClientId] = useState<number>(
-    blToEdit?.client_id || preSelectedClientId || (clients[0]?.id ?? 0)
+    Number(blToEdit?.client_id || preSelectedClientId || 0)
   );
   const [date, setDate] = useState<string>(
     blToEdit?.date || new Date().toISOString().split('T')[0]
@@ -95,7 +95,7 @@ export const CreateBlView: React.FC<CreateBlViewProps> = ({
     ];
   });
 
-  const selectedClient = clients.find((c) => c.id === clientId) || clients[0];
+  const selectedClient = clients.find((c) => Number(c.id) === Number(clientId));
 
   const handleProductChange = (index: number, prodId: number) => {
     const prod = produits.find((p) => p.id === prodId);
@@ -277,8 +277,10 @@ export const CreateBlView: React.FC<CreateBlViewProps> = ({
               <select
                 value={clientId}
                 onChange={(e) => setClientId(Number(e.target.value))}
+                required
                 className="w-full px-3 py-2 text-xs bg-white rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
               >
+                <option value={0} disabled>Sélectionner un client…</option>
                 {clients.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.nom} {c.ice ? `(ICE: ${c.ice})` : ''} - {c.ville || 'Maroc'}
