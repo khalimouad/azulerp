@@ -39,6 +39,24 @@ export function formatDate(dateString: string | undefined | null): string {
 }
 
 /**
+ * Compare document numbers by their numeric sequence, newest/largest first.
+ * Works with BL/BR numbers (2637/26) and invoice numbers (FA001481/26).
+ */
+export function compareDocumentNumbersDesc(a?: string | null, b?: string | null): number {
+  const parse = (value?: string | null) => {
+    const match = String(value || '').match(/(\d+)(?:\s*\/\s*(\d+))?\s*$/);
+    return {
+      sequence: match ? Number(match[1]) : Number.NEGATIVE_INFINITY,
+      year: match?.[2] ? Number(match[2]) : Number.NEGATIVE_INFINITY,
+    };
+  };
+
+  const left = parse(a);
+  const right = parse(b);
+  return right.sequence - left.sequence || right.year - left.year;
+}
+
+/**
  * Number to French words for Invoice footer ("Arrêté la présente facture à la somme de...")
  */
 export function numberToFrenchWords(n: number): string {

@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { BonRetour, CompanyInfo, DocumentState } from '@/lib/types';
-import { formatCurrency, formatDate } from '@/lib/utils';
+import { compareDocumentNumbersDesc, formatCurrency, formatDate } from '@/lib/utils';
 import { generateBrPdf } from '@/lib/pdf-generator';
 import { TablePagination } from '@/components/TablePagination';
 import { DateRangeFilter } from '@/components/DateRangeFilter';
@@ -83,7 +83,12 @@ export const BonsRetourView: React.FC<BonsRetourViewProps> = ({
         if (!matchNum && !matchClient && !matchDate && !matchMotif && !matchFacture) return false;
       }
       return true;
-    }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime() || b.id - a.id);
+    }).sort((a, b) =>
+      compareDocumentNumbersDesc(a.numero, b.numero) ||
+      (a.client_nom || '').localeCompare(b.client_nom || '', 'fr', { sensitivity: 'base' }) ||
+      new Date(b.date).getTime() - new Date(a.date).getTime() ||
+      b.id - a.id
+    );
   }, [safeBrs, filterStatut, searchQuery, filterStartDate, filterEndDate]);
 
   const paginatedBrs = useMemo(() => {
@@ -130,6 +135,11 @@ export const BonsRetourView: React.FC<BonsRetourViewProps> = ({
     );
   }, [filteredBrs]);
 
+  const totalLines = useMemo(
+    () => filteredBrs.reduce((count, br) => count + (br.lignes?.length || 0), 0),
+    [filteredBrs]
+  );
+
   const counts = useMemo(() => {
     return {
       all: safeBrs.length,
@@ -151,7 +161,7 @@ export const BonsRetourView: React.FC<BonsRetourViewProps> = ({
             </span>
             Bons de Retour (BR)
             <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200">
-              {filteredBrs.length} affichés
+              {filteredBrs.length} BR • {totalLines} lignes
             </span>
           </h2>
           <p className="text-xs text-slate-500 mt-0.5">
@@ -518,7 +528,7 @@ export const BonsRetourView: React.FC<BonsRetourViewProps> = ({
             <tfoot>
               <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-xs">
                 <td colSpan={5} className="py-2.5 px-3 text-right uppercase tracking-wider">
-                  Total Déductions BR ({filteredBrs.length} retours) :
+                  Total Déductions BR ({filteredBrs.length} retours • {totalLines} lignes) :
                 </td>
                 <td className="py-2.5 px-3 text-right font-mono text-rose-300">
                   -{formatCurrency(totals.totalHt, false)}

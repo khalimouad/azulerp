@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { BonLivraison, BonRetour, Client, CompanyInfo } from '@/lib/types';
-import { formatCurrency, formatDate } from '@/lib/utils';
+import { compareDocumentNumbersDesc, formatCurrency, formatDate } from '@/lib/utils';
 import {
   Workflow,
   CheckSquare,
@@ -56,14 +56,24 @@ export const WorkflowBlFactureView: React.FC<WorkflowBlFactureViewProps> = ({
   const uninvoicedBls = useMemo(() => {
     return bonsLivraison
       .filter((b) => !b.facture_id && !b.facture_numero && !b.cloture_sans_facture && b.statut !== 'Clôturé' && b.etat !== 'Brouillon' && b.etat !== 'Annulé')
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime() || b.id - a.id);
+      .sort((a, b) =>
+        compareDocumentNumbersDesc(a.numero, b.numero) ||
+        (a.client_nom || '').localeCompare(b.client_nom || '', 'fr', { sensitivity: 'base' }) ||
+        new Date(b.date).getTime() - new Date(a.date).getTime() ||
+        b.id - a.id
+      );
   }, [bonsLivraison]);
 
   // Uninvoiced Validated BRs (Bons de retour)
   const uninvoicedBrs = useMemo(() => {
     return bonsRetour
       .filter((r) => !r.facture_id && !r.facture_numero && r.etat !== 'Brouillon' && r.etat !== 'Annulé')
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime() || b.id - a.id);
+      .sort((a, b) =>
+        compareDocumentNumbersDesc(a.numero, b.numero) ||
+        (a.client_nom || '').localeCompare(b.client_nom || '', 'fr', { sensitivity: 'base' }) ||
+        new Date(b.date).getTime() - new Date(a.date).getTime() ||
+        b.id - a.id
+      );
   }, [bonsRetour]);
 
   // Group uninvoiced BLs & BRs by client

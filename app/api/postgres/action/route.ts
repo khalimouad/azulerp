@@ -561,6 +561,59 @@ export async function POST(req: NextRequest) {
           if (!['Brouillon', 'Validé', 'Annulé'].includes(etat)) {
             return NextResponse.json({ success: false, error: 'État de document invalide.' }, { status: 400 });
           }
+
+          const currentRows: any = await sql`
+            SELECT id, numero, etat, bl_associes, br_associes
+            FROM factures
+            WHERE id = ${id}
+            LIMIT 1;
+          `;
+          if (!currentRows.length) {
+            return NextResponse.json({ success: false, error: 'Facture introuvable.' }, { status: 404 });
+          }
+
+          // Keep linked BL/BR workflow consistent with the invoice state:
+          // cancelling releases the source documents; validating a draft links them again.
+          if (etat === 'Annulé') {
+            await sql`
+              UPDATE bons_livraison
+              SET statut = 'En attente', facture_id = NULL, facture_numero = NULL
+              WHERE facture_id = ${id};
+            `;
+            await sql`
+              UPDATE bons_retour
+              SET statut = 'En attente', facture_id = NULL, facture_numero = NULL
+              WHERE facture_id = ${id};
+            `;
+          } else if (etat === 'Validé' && currentRows[0].etat === 'Brouillon') {
+            const parseIds = (value: unknown): number[] => {
+              if (Array.isArray(value)) return value.map(Number).filter(Boolean);
+              if (typeof value !== 'string' || !value.trim()) return [];
+              try {
+                const parsed = JSON.parse(value);
+                return Array.isArray(parsed) ? parsed.map(Number).filter(Boolean) : [];
+              } catch {
+                return [];
+              }
+            };
+            const linkedBlIds = parseIds(currentRows[0].bl_associes);
+            const linkedBrIds = parseIds(currentRows[0].br_associes);
+            for (const blId of linkedBlIds) {
+              await sql`
+                UPDATE bons_livraison
+                SET statut = 'Facturé', facture_id = ${id}, facture_numero = ${currentRows[0].numero}
+                WHERE id = ${blId} AND cloture_sans_facture = FALSE;
+              `;
+            }
+            for (const brId of linkedBrIds) {
+              await sql`
+                UPDATE bons_retour
+                SET statut = 'Facturé', facture_id = ${id}, facture_numero = ${currentRows[0].numero}
+                WHERE id = ${brId};
+              `;
+            }
+          }
+
           const updated: any = await sql`
             UPDATE factures SET etat = ${etat} WHERE id = ${id}
             RETURNING id, numero, etat;

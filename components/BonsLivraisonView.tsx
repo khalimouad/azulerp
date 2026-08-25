@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { BonLivraison, CompanyInfo, DocumentState } from '@/lib/types';
-import { formatCurrency, formatDate } from '@/lib/utils';
+import { compareDocumentNumbersDesc, formatCurrency, formatDate } from '@/lib/utils';
 import { generateBlPdf } from '@/lib/pdf-generator';
 import { TablePagination } from '@/components/TablePagination';
 import { DateRangeFilter } from '@/components/DateRangeFilter';
@@ -87,7 +87,12 @@ export const BonsLivraisonView: React.FC<BonsLivraisonViewProps> = ({
         if (!matchNum && !matchClient && !matchDate && !matchFacture) return false;
       }
       return true;
-    }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime() || b.id - a.id);
+    }).sort((a, b) =>
+      compareDocumentNumbersDesc(a.numero, b.numero) ||
+      (a.client_nom || '').localeCompare(b.client_nom || '', 'fr', { sensitivity: 'base' }) ||
+      new Date(b.date).getTime() - new Date(a.date).getTime() ||
+      b.id - a.id
+    );
   }, [bonsLivraison, filterStatut, searchQuery, filterStartDate, filterEndDate]);
 
   const paginatedBls = useMemo(() => {
@@ -134,6 +139,11 @@ export const BonsLivraisonView: React.FC<BonsLivraisonViewProps> = ({
     );
   }, [filteredBls]);
 
+  const totalLines = useMemo(
+    () => filteredBls.reduce((count, bl) => count + (bl.lignes?.length || 0), 0),
+    [filteredBls]
+  );
+
   const counts = useMemo(() => {
     return {
       all: bonsLivraison.length,
@@ -153,7 +163,7 @@ export const BonsLivraisonView: React.FC<BonsLivraisonViewProps> = ({
             <Truck className="w-5 h-5 text-emerald-600" />
             Bons de Livraison (BL)
             <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-              {filteredBls.length} affichés
+              {filteredBls.length} BL • {totalLines} lignes
             </span>
           </h2>
           <p className="text-xs text-slate-500 mt-0.5">
@@ -538,7 +548,7 @@ export const BonsLivraisonView: React.FC<BonsLivraisonViewProps> = ({
             <tfoot>
               <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-xs">
                 <td colSpan={4} className="py-2.5 px-3 text-right uppercase tracking-wider">
-                  Total Sélection / Filtre ({filteredBls.length} BLs) :
+                  Total Sélection / Filtre ({filteredBls.length} BLs • {totalLines} lignes) :
                 </td>
                 <td className="py-2.5 px-3 text-right font-mono">
                   {formatCurrency(totals.totalHt, false)}

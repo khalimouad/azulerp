@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { Facture, CompanyInfo, DocumentState } from '@/lib/types';
-import { formatCurrency, formatDate } from '@/lib/utils';
+import { compareDocumentNumbersDesc, formatCurrency, formatDate } from '@/lib/utils';
 import { generateFacturePdf } from '@/lib/pdf-generator';
 import { TablePagination } from '@/components/TablePagination';
 import { DateRangeFilter } from '@/components/DateRangeFilter';
@@ -93,7 +93,12 @@ export const FacturesView: React.FC<FacturesViewProps> = ({
       if (filterSociete && !f.client_nom.toLowerCase().includes(filterSociete.toLowerCase())) return false;
 
       return true;
-    }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime() || b.id - a.id);
+    }).sort((a, b) =>
+      compareDocumentNumbersDesc(a.numero, b.numero) ||
+      (a.client_nom || '').localeCompare(b.client_nom || '', 'fr', { sensitivity: 'base' }) ||
+      new Date(b.date).getTime() - new Date(a.date).getTime() ||
+      b.id - a.id
+    );
   }, [factures, filterEtat, filterStatutPaiement, filterNum, filterDate, filterStartDate, filterEndDate, filterSociete]);
 
   const paginatedFactures = useMemo(() => {
@@ -118,6 +123,11 @@ export const FacturesView: React.FC<FacturesViewProps> = ({
     );
   }, [filteredFactures]);
 
+  const totalLines = useMemo(
+    () => filteredFactures.reduce((count, facture) => count + (facture.lignes?.length || 0), 0),
+    [filteredFactures]
+  );
+
   const counts = useMemo(() => {
     return {
       all: factures.length,
@@ -139,7 +149,7 @@ export const FacturesView: React.FC<FacturesViewProps> = ({
             <FileText className="w-5 h-5 text-blue-600" />
             Liste des Factures Clients (2026)
             <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
-              {filteredFactures.length} pièces
+              {filteredFactures.length} factures • {totalLines} lignes
             </span>
           </h2>
           <p className="text-xs text-slate-500 mt-0.5">
@@ -586,7 +596,7 @@ export const FacturesView: React.FC<FacturesViewProps> = ({
             <tfoot>
               <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-xs">
                 <td colSpan={3} className="py-2.5 px-3 text-right uppercase tracking-wider">
-                  Cumul Sélection ({filteredFactures.length} Factures) :
+                  Cumul Sélection ({filteredFactures.length} Factures • {totalLines} lignes) :
                 </td>
                 <td className="py-2.5 px-3 text-right font-mono">
                   {formatCurrency(totals.totalHt, false)}
