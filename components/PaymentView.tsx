@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { Facture, Client } from '@/lib/types';
+import { Facture, Client, Reglement } from '@/lib/types';
 import { formatCurrency } from '@/lib/utils';
 import {
   ArrowLeft,
@@ -16,6 +16,7 @@ import {
 
 interface PaymentViewProps {
   facture?: Facture | null;
+  paymentToEdit?: Reglement | null;
   factures: Facture[];
   clients: Client[];
   onBack: () => void;
@@ -33,25 +34,35 @@ interface PaymentViewProps {
   }) => Promise<void>;
 }
 
+const getAvailableForFacture = (item: Facture, payment?: Reglement | null) =>
+  Number(item.reste_a_payer || 0) +
+  (Number(payment?.facture_id) === Number(item.id) ? Number(payment?.montant || 0) : 0);
+
 export const PaymentView: React.FC<PaymentViewProps> = ({
   facture,
+  paymentToEdit,
   factures,
   clients,
   onBack,
   onSave,
 }) => {
+  const isEditing = Boolean(paymentToEdit);
+  const isLegacyUnlinkedEdit = Boolean(paymentToEdit && !paymentToEdit.facture_id);
   const [clientId, setClientId] = useState<number>(
-    facture?.client_id || clients[0]?.id || 0
+    paymentToEdit?.client_id || facture?.client_id || clients[0]?.id || 0
   );
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
-  const [factureId, setFactureId] = useState<number>(facture?.id || 0);
+  const [date, setDate] = useState(paymentToEdit?.date || new Date().toISOString().split('T')[0]);
+  const [factureId, setFactureId] = useState<number>(paymentToEdit?.facture_id || facture?.id || 0);
   const [montant, setMontant] = useState<number>(
-    facture ? (facture.reste_a_payer > 0 ? facture.reste_a_payer : facture.total_ttc) : 0
+    paymentToEdit?.montant ||
+      (facture ? (facture.reste_a_payer > 0 ? facture.reste_a_payer : facture.total_ttc) : 0)
   );
-  const [mode, setMode] = useState<string>('Virement');
-  const [banque, setBanque] = useState<string>('Attijariwafa Bank');
-  const [refPaiement, setRefPaiement] = useState<string>('');
-  const [notes, setNotes] = useState<string>('');
+  const [mode, setMode] = useState<string>(
+    paymentToEdit?.mode_reglement || paymentToEdit?.mode || 'Virement'
+  );
+  const [banque, setBanque] = useState<string>(paymentToEdit?.banque || 'Attijariwafa Bank');
+  const [refPaiement, setRefPaiement] = useState<string>(paymentToEdit?.reference_paiement || '');
+  const [notes, setNotes] = useState<string>(paymentToEdit?.notes || '');
   const [clientQuery, setClientQuery] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
@@ -71,17 +82,18 @@ export const PaymentView: React.FC<PaymentViewProps> = ({
         .filter(
           (item) =>
             Number(item.client_id) === Number(clientId) &&
-            Number(item.reste_a_payer || 0) > 0.009 &&
+            getAvailableForFacture(item, paymentToEdit) > 0.009 &&
             item.etat !== 'Annulé'
         )
         .sort((a, b) => b.date.localeCompare(a.date) || Number(b.id) - Number(a.id)),
-    [clientId, factures]
+    [clientId, factures, paymentToEdit]
   );
   const selectedFacture = facture || payableFactures.find((item) => Number(item.id) === factureId);
+  const canSave = Boolean(selectedClient && (selectedFacture || isLegacyUnlinkedEdit));
 
   useEffect(() => {
-    if (!facture && !selectedClient && clients[0]) setClientId(clients[0].id);
-  }, [clients, facture, selectedClient]);
+    if (!facture && !paymentToEdit && !selectedClient && clients[0]) setClientId(clients[0].id);
+  }, [clients, facture, paymentToEdit, selectedClient]);
 
   useEffect(() => {
     if (facture) {
@@ -89,14 +101,23 @@ export const PaymentView: React.FC<PaymentViewProps> = ({
       setClientId(facture.client_id);
       return;
     }
+    if (isLegacyUnlinkedEdit && factureId === 0) return;
     const stillAvailable = payableFactures.some((item) => Number(item.id) === factureId);
     if (!stillAvailable) setFactureId(payableFactures[0]?.id || 0);
-  }, [facture, factureId, payableFactures]);
+  }, [facture, factureId, isLegacyUnlinkedEdit, payableFactures]);
 
   useEffect(() => {
     if (!selectedFacture) return;
-    setMontant(Number(selectedFacture.reste_a_payer || selectedFacture.total_ttc || 0));
-  }, [selectedFacture]);
+    if (
+      paymentToEdit &&
+      Number(selectedFacture.id) === Number(paymentToEdit.facture_id) &&
+      Number(factureId) === Number(paymentToEdit.facture_id)
+    ) {
+      setMontant(Number(paymentToEdit.montant));
+      return;
+    }
+    setMontant(getAvailableForFacture(selectedFacture, paymentToEdit));
+  }, [factureId, paymentToEdit, selectedFacture]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -108,7 +129,7 @@ export const PaymentView: React.FC<PaymentViewProps> = ({
       alert('Veuillez sélectionner un client valide.');
       return;
     }
-    if (!selectedFacture) {
+    if (!selectedFacture && !isLegacyUnlinkedEdit) {
       alert('Veuillez sélectionner une facture impayée pour associer cet encaissement.');
       return;
     }
@@ -116,8 +137,8 @@ export const PaymentView: React.FC<PaymentViewProps> = ({
     setIsSaving(true);
     try {
       await onSave({
-        facture_id: selectedFacture.id,
-        facture_numero: selectedFacture.numero,
+        facture_id: selectedFacture?.id,
+        facture_numero: selectedFacture?.numero,
         client_id: selectedClient.id,
         client_nom: selectedClient.nom,
         date,
@@ -153,7 +174,11 @@ export const PaymentView: React.FC<PaymentViewProps> = ({
           <div>
             <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
               <CreditCard className="w-5 h-5 text-emerald-600" />
-              {facture ? `Encaisser Facture : ${facture.numero}` : 'Enregistrer un Encaissement Client'}
+              {isEditing
+                ? `Modifier l’encaissement N° ${paymentToEdit?.id}`
+                : facture
+                  ? `Encaisser Facture : ${facture.numero}`
+                  : 'Enregistrer un Encaissement Client'}
             </h2>
             <p className="text-xs text-slate-500">
               Saisie du règlement client, lettrage de facture et mise à jour automatique du solde
@@ -172,11 +197,11 @@ export const PaymentView: React.FC<PaymentViewProps> = ({
           <button
             type="button"
             onClick={handleSubmit}
-            disabled={isSaving || !selectedClient || !selectedFacture}
+            disabled={isSaving || !canSave}
             className="flex items-center gap-1.5 px-5 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-xs transition active:scale-95 disabled:opacity-50"
           >
             <Save className="w-4 h-4" />
-            {isSaving ? 'Enregistrement...' : 'Valider l’Encaissement'}
+            {isSaving ? 'Enregistrement...' : isEditing ? 'Enregistrer les modifications' : 'Valider l’Encaissement'}
           </button>
         </div>
       </div>
@@ -196,8 +221,8 @@ export const PaymentView: React.FC<PaymentViewProps> = ({
                 <strong className="text-slate-900 font-mono text-sm">{formatCurrency(selectedFacture.total_ttc)}</strong>
               </div>
               <div className="text-right">
-                <span className="text-slate-500 block">Reste à Payer</span>
-                <strong className="text-red-600 font-mono text-sm">{formatCurrency(selectedFacture.reste_a_payer)}</strong>
+                <span className="text-slate-500 block">Disponible pour ce règlement</span>
+                <strong className="text-red-600 font-mono text-sm">{formatCurrency(getAvailableForFacture(selectedFacture, paymentToEdit))}</strong>
               </div>
             </div>
           </div>
@@ -236,21 +261,24 @@ export const PaymentView: React.FC<PaymentViewProps> = ({
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Facture impayée à encaisser *
+                Facture associée {isLegacyUnlinkedEdit ? '' : '*'}
               </label>
               <select
-                value={selectedFacture?.id || ''}
+                value={selectedFacture?.id || 0}
                 onChange={(e) => setFactureId(Number(e.target.value))}
                 disabled={!!facture}
-                required
+                required={!isLegacyUnlinkedEdit}
                 className="w-full px-3.5 py-2 text-xs bg-white rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium disabled:bg-slate-100"
               >
-                {payableFactures.length === 0 && !facture && (
+                {isLegacyUnlinkedEdit && (
+                  <option value={0}>Règlement historique non associé à une facture</option>
+                )}
+                {payableFactures.length === 0 && !facture && !isLegacyUnlinkedEdit && (
                   <option value="">Aucune facture impayée pour ce client</option>
                 )}
                 {(facture ? [facture] : payableFactures).map((item) => (
                   <option key={item.id} value={item.id}>
-                    {item.numero} — {item.date} — Reste {formatCurrency(item.reste_a_payer)}
+                    {item.numero} — {item.date} — Disponible {formatCurrency(getAvailableForFacture(item, paymentToEdit))}
                   </option>
                 ))}
               </select>
@@ -353,11 +381,11 @@ export const PaymentView: React.FC<PaymentViewProps> = ({
           <button
             type="button"
             onClick={handleSubmit}
-            disabled={isSaving || !selectedClient || !selectedFacture}
+            disabled={isSaving || !canSave}
             className="flex items-center gap-2 px-6 py-2.5 text-xs sm:text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-xs transition active:scale-95 disabled:opacity-50"
           >
             <Save className="w-4 h-4" />
-            {isSaving ? 'Enregistrement...' : 'Enregistrer le Règlement'}
+            {isSaving ? 'Enregistrement...' : isEditing ? 'Enregistrer les modifications' : 'Enregistrer le Règlement'}
           </button>
         </div>
       </form>

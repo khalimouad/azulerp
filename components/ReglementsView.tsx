@@ -3,17 +3,19 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { Reglement } from '@/lib/types';
 import { formatCurrency, formatDate } from '@/lib/utils';
-import { Plus, CreditCard, Search, Trash2, CheckCircle2 } from 'lucide-react';
+import { Plus, Search, Trash2, Pencil } from 'lucide-react';
 
 interface ReglementsViewProps {
   reglements: Reglement[];
   onOpenNewPayment: () => void;
+  onEditReglement: (reglement: Reglement) => void;
   onDeleteReglement: (id: number) => void;
 }
 
 export const ReglementsView: React.FC<ReglementsViewProps> = ({
   reglements,
   onOpenNewPayment,
+  onEditReglement,
   onDeleteReglement,
 }) => {
   const [search, setSearch] = useState('');
@@ -138,6 +140,16 @@ export const ReglementsView: React.FC<ReglementsViewProps> = ({
                     </td>
                     <td className="py-1.5 px-2 text-center">
                       <button
+                        type="button"
+                        onClick={() => onEditReglement(r)}
+                        className="p-1 hover:bg-blue-100 text-slate-400 hover:text-blue-700 rounded transition"
+                        title="Modifier l’encaissement"
+                        aria-label={`Modifier l’encaissement de ${r.client_nom}`}
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        type="button"
                         onClick={() => {
                           if (confirm(`Supprimer ce règlement de ${formatCurrency(r.montant)} ?`)) {
                             onDeleteReglement(r.id);

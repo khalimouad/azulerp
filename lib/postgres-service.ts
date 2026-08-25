@@ -549,9 +549,14 @@ export async function createReglement(reglement: Partial<Reglement>): Promise<nu
 
 export const recordPayment = createReglement;
 
+export async function updateReglement(id: number, reglement: Partial<Reglement>): Promise<void> {
+  await apiCall('update_reglement', { id, reglement }, 0);
+  await fetchAllData(true);
+}
+
 export async function deleteReglement(id: number): Promise<void> {
-  await apiCall('delete_bon_livraison', { id });
-  await fetchAllData();
+  await apiCall('delete_reglement', { id }, 0);
+  await fetchAllData(true);
 }
 
 // ----------------------------------------------------------------------------

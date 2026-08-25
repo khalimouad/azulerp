@@ -827,6 +827,231 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ success: true, id: regId, message: 'Règlement enregistré' });
         }
 
+        case 'update_reglement': {
+          const { id, reglement } = payload;
+          const paymentId = Number(id);
+          const amount = num(reglement.montant);
+          if (!paymentId || amount <= 0) {
+            return NextResponse.json(
+              { success: false, error: 'Le règlement ou son montant est invalide.' },
+              { status: 400 }
+            );
+          }
+
+          const previousRows: any = await sql`SELECT * FROM reglements WHERE id = ${paymentId};`;
+          if (!previousRows.length) {
+            return NextResponse.json({ success: false, error: 'Règlement introuvable.' }, { status: 404 });
+          }
+          const previous = previousRows[0];
+
+          let factureId = reglement.facture_id ? Number(reglement.facture_id) : null;
+          let factureNumero = '';
+          let clientId = Number(reglement.client_id || 0);
+          let clientNom = String(reglement.client_nom || '');
+          let targetFacture: any = null;
+
+          if (factureId) {
+            const factureRows: any = await sql`
+              SELECT f.id, f.numero, f.client_id, f.client_nom, f.total_ttc,
+                     GREATEST(
+                       f.total_ttc - COALESCE((
+                         SELECT SUM(r.montant)
+                         FROM reglements r
+                         WHERE r.facture_id = f.id AND r.id <> ${paymentId}
+                       ), 0),
+                       0
+                     ) AS disponible
+              FROM factures f
+              WHERE f.id = ${factureId};
+            `;
+            if (!factureRows.length) {
+              return NextResponse.json(
+                { success: false, error: 'La facture sélectionnée est introuvable.' },
+                { status: 404 }
+              );
+            }
+            targetFacture = factureRows[0];
+            factureNumero = targetFacture.numero;
+            clientId = Number(targetFacture.client_id);
+            clientNom = targetFacture.client_nom;
+            if (amount > num(targetFacture.disponible) + 0.009) {
+              return NextResponse.json(
+                {
+                  success: false,
+                  error: `Le montant dépasse le disponible de la facture (${num(targetFacture.disponible).toFixed(2)} DH).`,
+                },
+                { status: 409 }
+              );
+            }
+          } else {
+            if (previous.facture_id) {
+              return NextResponse.json(
+                { success: false, error: 'Un règlement déjà lettré doit rester associé à une facture.' },
+                { status: 400 }
+              );
+            }
+            const clientRows: any = await sql`SELECT id, nom FROM clients WHERE id = ${clientId};`;
+            if (!clientRows.length) {
+              return NextResponse.json(
+                { success: false, error: 'Veuillez sélectionner un client valide.' },
+                { status: 400 }
+              );
+            }
+            clientNom = clientRows[0].nom;
+          }
+
+          const paymentMode = reglement.mode_reglement || reglement.mode || 'Virement';
+          const invoiceIds = Array.from(
+            new Set(
+              [previous.facture_id ? Number(previous.facture_id) : null, factureId].filter(
+                (value): value is number => value !== null
+              )
+            )
+          );
+          const clientIds = Array.from(
+            new Set([Number(previous.client_id), clientId].filter((value) => value > 0))
+          );
+
+          const transactionResults: any = await sql.transaction(
+            (txn) => {
+              const queries: any[] = [];
+              if (targetFacture) {
+                queries.push(txn`
+                  UPDATE reglements
+                  SET facture_id = ${factureId}, facture_numero = ${factureNumero},
+                      piece_type = 'FACTURE', piece_id = ${factureId}, piece_numero = ${factureNumero},
+                      client_id = ${clientId}, client_nom = ${clientNom}, date = ${reglement.date},
+                      montant = ${amount}, mode_reglement = ${paymentMode}, mode = ${paymentMode},
+                      reference_paiement = ${reglement.reference_paiement || ''},
+                      banque = ${reglement.banque || ''}, notes = ${reglement.notes || ''}
+                  WHERE id = ${paymentId}
+                    AND ${amount} <= (
+                      SELECT GREATEST(
+                        f.total_ttc - COALESCE((
+                          SELECT SUM(other.montant)
+                          FROM reglements other
+                          WHERE other.facture_id = f.id AND other.id <> ${paymentId}
+                        ), 0),
+                        0
+                      ) + 0.009
+                      FROM factures f
+                      WHERE f.id = ${factureId}
+                    )
+                  RETURNING id;
+                `);
+              } else {
+                queries.push(txn`
+                  UPDATE reglements
+                  SET facture_id = NULL, facture_numero = '', piece_type = NULL,
+                      piece_id = NULL, piece_numero = NULL, client_id = ${clientId},
+                      client_nom = ${clientNom}, date = ${reglement.date}, montant = ${amount},
+                      mode_reglement = ${paymentMode}, mode = ${paymentMode},
+                      reference_paiement = ${reglement.reference_paiement || ''},
+                      banque = ${reglement.banque || ''}, notes = ${reglement.notes || ''}
+                  WHERE id = ${paymentId} AND facture_id IS NULL
+                  RETURNING id;
+                `);
+              }
+
+              for (const invoiceId of invoiceIds) {
+                queries.push(txn`
+                  UPDATE factures f
+                  SET montant_regle = totals.paid,
+                      reste_a_payer = GREATEST(totals.total_ttc - totals.paid, 0),
+                      statut_paiement = CASE
+                        WHEN GREATEST(totals.total_ttc - totals.paid, 0) <= 0.009 THEN 'Payé'
+                        WHEN totals.paid > 0 THEN 'Partiel'
+                        ELSE 'Impayé'
+                      END
+                  FROM (
+                    SELECT target.id, target.total_ttc, COALESCE(SUM(r.montant), 0) AS paid
+                    FROM factures target
+                    LEFT JOIN reglements r ON r.facture_id = target.id
+                    WHERE target.id = ${invoiceId}
+                    GROUP BY target.id, target.total_ttc
+                  ) totals
+                  WHERE f.id = totals.id;
+                `);
+              }
+
+              for (const affectedClientId of clientIds) {
+                queries.push(txn`
+                  UPDATE clients c
+                  SET solde = COALESCE((
+                    SELECT ROUND(SUM(GREATEST(COALESCE(f.reste_a_payer, f.total_ttc - COALESCE(f.montant_regle, 0)), 0))::numeric, 2)
+                    FROM factures f
+                    WHERE f.client_id = c.id
+                      AND GREATEST(COALESCE(f.reste_a_payer, f.total_ttc - COALESCE(f.montant_regle, 0)), 0) > 0.009
+                  ), 0)
+                  WHERE c.id = ${affectedClientId};
+                `);
+              }
+              return queries;
+            },
+            { isolationLevel: 'Serializable' }
+          );
+
+          if (!transactionResults[0]?.length) {
+            return NextResponse.json(
+              { success: false, error: 'Le règlement n’a pas été modifié. Vérifiez le montant disponible.' },
+              { status: 409 }
+            );
+          }
+          console.info('[reglement] updated', { id: paymentId, factureId, clientId, amount });
+          return NextResponse.json({ success: true, id: paymentId, message: 'Règlement modifié' });
+        }
+
+        case 'delete_reglement': {
+          const paymentId = Number(payload.id);
+          const previousRows: any = await sql`SELECT * FROM reglements WHERE id = ${paymentId};`;
+          if (!previousRows.length) {
+            return NextResponse.json({ success: false, error: 'Règlement introuvable.' }, { status: 404 });
+          }
+          const previous = previousRows[0];
+          const factureId = previous.facture_id ? Number(previous.facture_id) : null;
+          const clientId = Number(previous.client_id);
+
+          await sql.transaction(
+            (txn) => {
+              const queries: any[] = [txn`DELETE FROM reglements WHERE id = ${paymentId};`];
+              if (factureId) {
+                queries.push(txn`
+                  UPDATE factures f
+                  SET montant_regle = totals.paid,
+                      reste_a_payer = GREATEST(totals.total_ttc - totals.paid, 0),
+                      statut_paiement = CASE
+                        WHEN GREATEST(totals.total_ttc - totals.paid, 0) <= 0.009 THEN 'Payé'
+                        WHEN totals.paid > 0 THEN 'Partiel'
+                        ELSE 'Impayé'
+                      END
+                  FROM (
+                    SELECT target.id, target.total_ttc, COALESCE(SUM(r.montant), 0) AS paid
+                    FROM factures target
+                    LEFT JOIN reglements r ON r.facture_id = target.id
+                    WHERE target.id = ${factureId}
+                    GROUP BY target.id, target.total_ttc
+                  ) totals
+                  WHERE f.id = totals.id;
+                `);
+              }
+              queries.push(txn`
+                UPDATE clients c
+                SET solde = COALESCE((
+                  SELECT ROUND(SUM(GREATEST(COALESCE(f.reste_a_payer, f.total_ttc - COALESCE(f.montant_regle, 0)), 0))::numeric, 2)
+                  FROM factures f
+                  WHERE f.client_id = c.id
+                    AND GREATEST(COALESCE(f.reste_a_payer, f.total_ttc - COALESCE(f.montant_regle, 0)), 0) > 0.009
+                ), 0)
+                WHERE c.id = ${clientId};
+              `);
+              return queries;
+            },
+            { isolationLevel: 'Serializable' }
+          );
+          console.info('[reglement] deleted', { id: paymentId, factureId, clientId });
+          return NextResponse.json({ success: true, message: 'Règlement supprimé' });
+        }
+
         // --- COMPANY SETTINGS ---
         case 'update_company_info': {
           const { company } = payload;

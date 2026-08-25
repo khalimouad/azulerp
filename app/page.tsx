@@ -42,6 +42,7 @@ import {
   createDevis,
   deleteDevis,
   createReglement,
+  updateReglement,
   deleteReglement,
   updateCompanyInfo,
   exportSqliteDatabase,
@@ -233,6 +234,7 @@ export default function Home() {
   const [brToEdit, setBrToEdit] = useState<BonRetour | null>(null);
   const [factureToEdit, setFactureToEdit] = useState<Facture | null>(null);
   const [paymentFacture, setPaymentFacture] = useState<Facture | null>(null);
+  const [paymentToEdit, setPaymentToEdit] = useState<Reglement | null>(null);
   const [preSelectedClientId, setPreSelectedClientId] = useState<number | undefined>(undefined);
 
   // Document preview state
@@ -830,6 +832,7 @@ export default function Home() {
               }}
               onOpenPaymentModal={(f) => {
                 setPaymentFacture(f);
+                setPaymentToEdit(null);
                 navigateTo('create-payment');
               }}
               onViewFacture={(f) => {
@@ -1124,6 +1127,12 @@ export default function Home() {
               reglements={reglements}
               onOpenNewPayment={() => {
                 setPaymentFacture(null);
+                setPaymentToEdit(null);
+                navigateTo('create-payment');
+              }}
+              onEditReglement={(reglement) => {
+                setPaymentFacture(null);
+                setPaymentToEdit(reglement);
                 navigateTo('create-payment');
               }}
               onDeleteReglement={async (id) => {
@@ -1313,12 +1322,23 @@ export default function Home() {
           {currentTab === 'create-payment' && (
             <PaymentView
               facture={paymentFacture}
+              paymentToEdit={paymentToEdit}
               factures={factures}
               clients={clients}
-              onBack={() => setCurrentTab('reglements')}
+              onBack={() => {
+                setPaymentToEdit(null);
+                setPaymentFacture(null);
+                setCurrentTab('reglements');
+              }}
               onSave={async (pData) => {
-                await createReglement(pData);
+                if (paymentToEdit) {
+                  await updateReglement(paymentToEdit.id, pData);
+                } else {
+                  await createReglement(pData);
+                }
                 await reloadData();
+                setPaymentToEdit(null);
+                setPaymentFacture(null);
                 setCurrentTab('reglements');
               }}
             />
