@@ -10,6 +10,7 @@ interface ProductSearchSelectProps {
   onChange: (productId: number) => void;
   accent?: 'emerald' | 'blue' | 'rose';
   allowClear?: boolean;
+  clientPriceByProductId?: ReadonlyMap<number, number>;
 }
 
 const accentClasses = {
@@ -31,6 +32,7 @@ export const ProductSearchSelect: React.FC<ProductSearchSelectProps> = ({
   onChange,
   accent = 'emerald',
   allowClear = false,
+  clientPriceByProductId,
 }) => {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -154,6 +156,8 @@ export const ProductSearchSelect: React.FC<ProductSearchSelectProps> = ({
               {filteredProducts.length > 0 ? (
                 filteredProducts.map((product) => {
                   const selected = Number(product.id) === Number(value);
+                  const clientPrice = clientPriceByProductId?.get(Number(product.id));
+                  const displayedPrice = clientPrice ?? Number(product.prix_ht || 0);
                   return (
                     <button
                       key={product.id}
@@ -177,9 +181,10 @@ export const ProductSearchSelect: React.FC<ProductSearchSelectProps> = ({
                       </span>
                       <span className="shrink-0 text-right">
                         <span className="block text-xs font-bold text-slate-700">
-                          {Number(product.prix_ht || 0).toFixed(2)} DH
+                          {displayedPrice.toFixed(2)} DH
                         </span>
                         <span className="block text-[10px] text-slate-500">
+                          {clientPrice !== undefined ? 'Tarif client · ' : ''}
                           Stock {product.stock_actuel} {product.unite || 'U'}
                         </span>
                       </span>

@@ -1,9 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Client, Produit, BonRetour, DocumentState } from '@/lib/types';
 import { formatCurrency } from '@/lib/utils';
 import { ProductSearchSelect } from '@/components/ProductSearchSelect';
+import { DecimalInput } from '@/components/DecimalInput';
+import { useClientTariffs } from '@/hooks/use-client-tariffs';
+import { resolveClientProductPricing } from '@/lib/client-pricing';
 import {
   RotateCcw,
   ArrowLeft,
@@ -36,7 +39,7 @@ export const CreateBonRetourView: React.FC<CreateBonRetourViewProps> = ({
     brToEdit?.date || new Date().toISOString().split('T')[0]
   );
   const [selectedClientId, setSelectedClientId] = useState<number>(
-    brToEdit?.client_id || (clients.length > 0 ? clients[0].id : 0)
+    Number(brToEdit?.client_id || 0)
   );
   const [motif, setMotif] = useState<string>(
     brToEdit?.motif || 'Excédent chantier non utilisé (Retour pour déduction)'
@@ -87,25 +90,44 @@ export const CreateBonRetourView: React.FC<CreateBonRetourViewProps> = ({
   const [isSaving, setIsSaving] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
-  const selectedClient = clients.find((c) => c.id === Number(selectedClientId));
+  const selectedClient = clients.find((c) => Number(c.id) === Number(selectedClientId));
+  const productsById = useMemo(
+    () => new Map(produits.map((product) => [Number(product.id), product])),
+    [produits]
+  );
+  const clientTariffs = useClientTariffs(selectedClientId);
+  const lastAutoPricedClientRef = useRef<number>(Number(brToEdit?.client_id || 0));
 
-  const handleProductSelect = (index: number, prodId: number) => {
-    const prod = produits.find((p) => p.id === prodId);
-    if (!prod) return;
+  useEffect(() => {
+    if (
+      !selectedClientId ||
+      clientTariffs.loading ||
+      clientTariffs.clientId !== Number(selectedClientId) ||
+      lastAutoPricedClientRef.current === Number(selectedClientId)
+    ) return;
 
-    const newLignes = [...lignes];
-    newLignes[index] = {
-      ...newLignes[index],
-      produit_id: prod.id,
-      designation: prod.libelle,
-      groupe: prod.groupe || '',
-      prix_ht: prod.prix_ht || 0,
-      taux_tva: prod.taux_tva || 20,
-    };
-    setLignes(newLignes);
-  };
+    setLignes((currentLines) => currentLines.map((line) => {
+      const product = productsById.get(Number(line.produit_id));
+      if (!product) return line;
+      const pricing = resolveClientProductPricing(
+        product,
+        clientTariffs.byProductId.get(Number(product.id))
+      );
+      return {
+        ...line,
+        prix_ht: pricing.prix_ht,
+        remise_pct: pricing.remise_pct,
+        taux_tva: pricing.taux_tva,
+      };
+    }));
+    lastAutoPricedClientRef.current = Number(selectedClientId);
+  }, [clientTariffs.byProductId, clientTariffs.clientId, clientTariffs.loading, productsById, selectedClientId]);
 
-  const handleLineChange = (index: number, field: string, value: any) => {
+  const handleLineChange = (
+    index: number,
+    field: keyof (typeof lignes)[number],
+    value: string | number
+  ) => {
     const newLignes = [...lignes];
     newLignes[index] = {
       ...newLignes[index],
@@ -114,8 +136,42 @@ export const CreateBonRetourView: React.FC<CreateBonRetourViewProps> = ({
     setLignes(newLignes);
   };
 
+  const handleProductSelect = (index: number, prodId: number) => {
+    const prod = productsById.get(Number(prodId));
+    if (!prod) {
+      handleLineChange(index, 'produit_id', 0);
+      return;
+    }
+    const pricing = resolveClientProductPricing(
+      prod,
+      clientTariffs.clientId === Number(selectedClientId)
+        ? clientTariffs.byProductId.get(Number(prod.id))
+        : undefined
+    );
+
+    const newLignes = [...lignes];
+    newLignes[index] = {
+      ...newLignes[index],
+      produit_id: prod.id,
+      designation: prod.libelle,
+      groupe: prod.groupe || '',
+      prix_ht: pricing.prix_ht,
+      remise_pct: pricing.remise_pct,
+      taux_tva: pricing.taux_tva,
+    };
+    setLignes(newLignes);
+  };
+
   const addLine = () => {
     const defaultProd = produits.length > 0 ? produits[0] : null;
+    const pricing = defaultProd
+      ? resolveClientProductPricing(
+          defaultProd,
+          clientTariffs.clientId === Number(selectedClientId)
+            ? clientTariffs.byProductId.get(Number(defaultProd.id))
+            : undefined
+        )
+      : null;
     setLignes([
       ...lignes,
       {
@@ -123,9 +179,9 @@ export const CreateBonRetourView: React.FC<CreateBonRetourViewProps> = ({
         designation: defaultProd ? defaultProd.libelle : 'Nouvel article retourné',
         groupe: defaultProd ? defaultProd.groupe || '' : '',
         quantite: 1,
-        prix_ht: defaultProd ? defaultProd.prix_ht : 0,
-        taux_tva: defaultProd ? defaultProd.taux_tva || 20 : 20,
-        remise_pct: 0,
+        prix_ht: pricing?.prix_ht || 0,
+        taux_tva: pricing?.taux_tva ?? 20,
+        remise_pct: pricing?.remise_pct || 0,
       },
     ]);
   };
@@ -261,8 +317,10 @@ export const CreateBonRetourView: React.FC<CreateBonRetourViewProps> = ({
               <select
                 value={selectedClientId}
                 onChange={(e) => setSelectedClientId(Number(e.target.value))}
+                required
                 className="w-full text-xs p-2 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-rose-500 font-medium"
               >
+                <option value={0} disabled>Sélectionner un client…</option>
                 {clients.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.nom} {c.ice ? `(ICE: ${c.ice})` : ''} - {c.ville || 'Maroc'}
@@ -379,6 +437,7 @@ export const CreateBonRetourView: React.FC<CreateBonRetourViewProps> = ({
                           onChange={(productId) => handleProductSelect(idx, productId)}
                           accent="rose"
                           allowClear
+                          clientPriceByProductId={clientTariffs.priceByProductId}
                         />
                       </td>
 
@@ -393,27 +452,28 @@ export const CreateBonRetourView: React.FC<CreateBonRetourViewProps> = ({
                       </td>
 
                       <td className="py-2 px-3">
-                        <input
-                          type="number"
-                          step="any"
-                          min="0.01"
-                          value={ligne.quantite || ''}
-                          onChange={(e) => handleLineChange(idx, 'quantite', parseFloat(e.target.value) || 0)}
+                        <DecimalInput
+                          value={ligne.quantite || 0}
+                          min={0.01}
+                          onValueChange={(value) => handleLineChange(idx, 'quantite', value)}
+                          ariaLabel={`Quantité retour ligne ${idx + 1}`}
                           className="w-full text-xs p-1.5 bg-white border border-slate-300 rounded-lg text-right font-bold text-rose-700 focus:ring-1 focus:ring-rose-500"
                           placeholder="1"
                         />
                       </td>
 
                       <td className="py-2 px-3">
-                        <input
-                          type="number"
-                          step="0.01"
-                          min="0"
-                          value={ligne.prix_ht || ''}
-                          onChange={(e) => handleLineChange(idx, 'prix_ht', parseFloat(e.target.value) || 0)}
+                        <DecimalInput
+                          value={ligne.prix_ht || 0}
+                          min={0}
+                          onValueChange={(value) => handleLineChange(idx, 'prix_ht', value)}
+                          ariaLabel={`Prix HT retour ligne ${idx + 1}`}
                           className="w-full text-xs p-1.5 bg-white border border-slate-300 rounded-lg text-right font-mono focus:ring-1 focus:ring-rose-500"
                           placeholder="0.00"
                         />
+                        {ligne.produit_id && clientTariffs.byProductId.has(Number(ligne.produit_id)) ? (
+                          <span className="mt-1 block text-[10px] font-bold text-rose-700">Tarif client appliqué</span>
+                        ) : null}
                       </td>
 
                       <td className="py-2 px-3">
@@ -429,13 +489,12 @@ export const CreateBonRetourView: React.FC<CreateBonRetourViewProps> = ({
                       </td>
 
                       <td className="py-2 px-3">
-                        <input
-                          type="number"
-                          step="1"
-                          min="0"
-                          max="100"
+                        <DecimalInput
                           value={ligne.remise_pct || 0}
-                          onChange={(e) => handleLineChange(idx, 'remise_pct', parseFloat(e.target.value) || 0)}
+                          min={0}
+                          max={100}
+                          onValueChange={(value) => handleLineChange(idx, 'remise_pct', value)}
+                          ariaLabel={`Remise retour ligne ${idx + 1}`}
                           className="w-full text-xs p-1.5 bg-white border border-slate-300 rounded-lg text-center"
                         />
                       </td>

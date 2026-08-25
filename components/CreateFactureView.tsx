@@ -1,9 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Client, Produit, FactureLigne, Facture, DocumentState } from '@/lib/types';
 import { formatCurrency, numberToFrenchWords } from '@/lib/utils';
 import { ProductSearchSelect } from '@/components/ProductSearchSelect';
+import { DecimalInput } from '@/components/DecimalInput';
+import { useClientTariffs } from '@/hooks/use-client-tariffs';
+import { resolveClientProductPricing } from '@/lib/client-pricing';
 import {
   ArrowLeft,
   Plus,
@@ -47,7 +50,7 @@ export const CreateFactureView: React.FC<CreateFactureViewProps> = ({
   onSave,
 }) => {
   const [clientId, setClientId] = useState<number>(
-    factureToEdit?.client_id || preSelectedClientId || (clients[0]?.id ?? 0)
+    Number(factureToEdit?.client_id || preSelectedClientId || 0)
   );
   const [date, setDate] = useState<string>(
     factureToEdit?.date || new Date().toISOString().split('T')[0]
@@ -93,19 +96,57 @@ export const CreateFactureView: React.FC<CreateFactureViewProps> = ({
     ];
   });
 
-  const selectedClient = clients.find((c) => c.id === clientId) || clients[0];
+  const selectedClient = clients.find((c) => Number(c.id) === Number(clientId));
+  const productsById = useMemo(
+    () => new Map(produits.map((product) => [Number(product.id), product])),
+    [produits]
+  );
+  const clientTariffs = useClientTariffs(clientId);
+  const lastAutoPricedClientRef = useRef<number>(Number(factureToEdit?.client_id || 0));
+
+  useEffect(() => {
+    if (
+      !clientId ||
+      clientTariffs.loading ||
+      clientTariffs.clientId !== Number(clientId) ||
+      lastAutoPricedClientRef.current === Number(clientId)
+    ) return;
+
+    setLignes((currentLines) => currentLines.map((line) => {
+      const product = productsById.get(Number(line.produit_id));
+      if (!product) return line;
+      const pricing = resolveClientProductPricing(
+        product,
+        clientTariffs.byProductId.get(Number(product.id))
+      );
+      return {
+        ...line,
+        prix_ht: pricing.prix_ht,
+        remise_pct: pricing.remise_pct,
+        taux_tva: pricing.taux_tva,
+      };
+    }));
+    lastAutoPricedClientRef.current = Number(clientId);
+  }, [clientId, clientTariffs.byProductId, clientTariffs.clientId, clientTariffs.loading, productsById]);
 
   const handleProductChange = (index: number, prodId: number) => {
-    const prod = produits.find((p) => p.id === prodId);
+    const prod = productsById.get(Number(prodId));
     if (!prod) return;
+    const pricing = resolveClientProductPricing(
+      prod,
+      clientTariffs.clientId === Number(clientId)
+        ? clientTariffs.byProductId.get(Number(prod.id))
+        : undefined
+    );
     const newLignes = [...lignes];
     newLignes[index] = {
       ...newLignes[index],
       produit_id: prod.id,
       designation: prod.libelle,
       groupe: prod.groupe || 'GENERAL',
-      prix_ht: prod.prix_ht,
-      taux_tva: prod.taux_tva,
+      prix_ht: pricing.prix_ht,
+      remise_pct: pricing.remise_pct,
+      taux_tva: pricing.taux_tva,
     };
     setLignes(newLignes);
   };
@@ -141,16 +182,25 @@ export const CreateFactureView: React.FC<CreateFactureViewProps> = ({
   };
 
   const addLine = () => {
+    const product = produits[0];
+    const pricing = product
+      ? resolveClientProductPricing(
+          product,
+          clientTariffs.clientId === Number(clientId)
+            ? clientTariffs.byProductId.get(Number(product.id))
+            : undefined
+        )
+      : null;
     setLignes([
       ...lignes,
       {
-        produit_id: produits[0]?.id,
-        designation: produits[0]?.libelle || 'Nouvel article',
-        groupe: produits[0]?.groupe || 'GENERAL',
+        produit_id: product?.id,
+        designation: product?.libelle || 'Nouvel article',
+        groupe: product?.groupe || 'GENERAL',
         quantite: 1,
-        prix_ht: produits[0]?.prix_ht || 0,
-        taux_tva: produits[0]?.taux_tva || 20,
-        remise_pct: 0,
+        prix_ht: pricing?.prix_ht || 0,
+        taux_tva: pricing?.taux_tva ?? 20,
+        remise_pct: pricing?.remise_pct || 0,
       },
     ]);
   };
@@ -269,8 +319,10 @@ export const CreateFactureView: React.FC<CreateFactureViewProps> = ({
               <select
                 value={clientId}
                 onChange={(e) => setClientId(Number(e.target.value))}
+                required
                 className="w-full px-3 py-2 text-xs bg-white rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
               >
+                <option value={0} disabled>Sélectionner un client…</option>
                 {clients.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.nom} {c.ice ? `(ICE: ${c.ice})` : ''} - {c.ville || 'Maroc'}
@@ -387,6 +439,7 @@ export const CreateFactureView: React.FC<CreateFactureViewProps> = ({
                         value={l.produit_id}
                         onChange={(productId) => handleProductChange(index, productId)}
                         accent="blue"
+                        clientPriceByProductId={clientTariffs.priceByProductId}
                       />
                     </td>
 
@@ -402,28 +455,29 @@ export const CreateFactureView: React.FC<CreateFactureViewProps> = ({
 
                     {/* Quantity */}
                     <td className="p-2.5">
-                      <input
-                        type="number"
-                        step="any"
-                        min="0.01"
+                      <DecimalInput
                         required
                         value={l.quantite}
-                        onChange={(e) => handleQuantityChange(index, parseFloat(e.target.value) || 0)}
+                        min={0.01}
+                        onValueChange={(value) => handleQuantityChange(index, value)}
+                        ariaLabel={`Quantité ligne ${index + 1}`}
                         className="w-full p-2 text-xs font-mono font-bold text-right bg-white rounded-lg border border-slate-300 focus:outline-none focus:ring-1 focus:ring-blue-500 text-blue-900"
                       />
                     </td>
 
                     {/* Unit Price HT */}
                     <td className="p-2.5">
-                      <input
-                        type="number"
-                        step="any"
-                        min="0"
+                      <DecimalInput
                         required
                         value={l.prix_ht}
-                        onChange={(e) => handlePriceChange(index, parseFloat(e.target.value) || 0)}
+                        min={0}
+                        onValueChange={(value) => handlePriceChange(index, value)}
+                        ariaLabel={`Prix HT ligne ${index + 1}`}
                         className="w-full p-2 text-xs font-mono text-right bg-white rounded-lg border border-slate-300 focus:outline-none focus:ring-1 focus:ring-blue-500"
                       />
+                      {l.produit_id && clientTariffs.byProductId.has(Number(l.produit_id)) ? (
+                        <span className="mt-1 block text-[10px] font-bold text-blue-700">Tarif client appliqué</span>
+                      ) : null}
                     </td>
 
                     {/* TVA */}
@@ -441,13 +495,12 @@ export const CreateFactureView: React.FC<CreateFactureViewProps> = ({
 
                     {/* Remise % */}
                     <td className="p-2.5">
-                      <input
-                        type="number"
-                        step="any"
-                        min="0"
-                        max="100"
+                      <DecimalInput
                         value={l.remise_pct || 0}
-                        onChange={(e) => handleRemiseChange(index, parseFloat(e.target.value) || 0)}
+                        min={0}
+                        max={100}
+                        onValueChange={(value) => handleRemiseChange(index, value)}
+                        ariaLabel={`Remise ligne ${index + 1}`}
                         className="w-full p-2 text-xs font-mono text-center bg-white rounded-lg border border-slate-300 focus:outline-none focus:ring-1 focus:ring-blue-500"
                       />
                     </td>

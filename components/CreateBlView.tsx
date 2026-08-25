@@ -1,9 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Client, Produit, BonLivraisonLigne, BonLivraison, DocumentState } from '@/lib/types';
 import { formatCurrency } from '@/lib/utils';
 import { ProductSearchSelect } from '@/components/ProductSearchSelect';
+import { DecimalInput } from '@/components/DecimalInput';
+import { useClientTariffs } from '@/hooks/use-client-tariffs';
+import { resolveClientProductPricing } from '@/lib/client-pricing';
 import {
   ArrowLeft,
   Plus,
@@ -96,18 +99,56 @@ export const CreateBlView: React.FC<CreateBlViewProps> = ({
   });
 
   const selectedClient = clients.find((c) => Number(c.id) === Number(clientId));
+  const productsById = useMemo(
+    () => new Map(produits.map((product) => [Number(product.id), product])),
+    [produits]
+  );
+  const clientTariffs = useClientTariffs(clientId);
+  const lastAutoPricedClientRef = useRef<number>(Number(blToEdit?.client_id || 0));
+
+  useEffect(() => {
+    if (
+      !clientId ||
+      clientTariffs.loading ||
+      clientTariffs.clientId !== Number(clientId) ||
+      lastAutoPricedClientRef.current === Number(clientId)
+    ) return;
+
+    setLignes((currentLines) => currentLines.map((line) => {
+      const product = productsById.get(Number(line.produit_id));
+      if (!product) return line;
+      const pricing = resolveClientProductPricing(
+        product,
+        clientTariffs.byProductId.get(Number(product.id))
+      );
+      return {
+        ...line,
+        prix_ht: pricing.prix_ht,
+        remise_pct: pricing.remise_pct,
+        taux_tva: pricing.taux_tva,
+      };
+    }));
+    lastAutoPricedClientRef.current = Number(clientId);
+  }, [clientId, clientTariffs.byProductId, clientTariffs.clientId, clientTariffs.loading, productsById]);
 
   const handleProductChange = (index: number, prodId: number) => {
-    const prod = produits.find((p) => p.id === prodId);
+    const prod = productsById.get(Number(prodId));
     if (!prod) return;
+    const pricing = resolveClientProductPricing(
+      prod,
+      clientTariffs.clientId === Number(clientId)
+        ? clientTariffs.byProductId.get(Number(prod.id))
+        : undefined
+    );
     const newLignes = [...lignes];
     newLignes[index] = {
       ...newLignes[index],
       produit_id: prod.id,
       designation: prod.libelle,
       groupe: prod.groupe || 'GENERAL',
-      prix_ht: prod.prix_ht,
-      taux_tva: prod.taux_tva,
+      prix_ht: pricing.prix_ht,
+      remise_pct: pricing.remise_pct,
+      taux_tva: pricing.taux_tva,
     };
     setLignes(newLignes);
   };
@@ -143,16 +184,25 @@ export const CreateBlView: React.FC<CreateBlViewProps> = ({
   };
 
   const addLine = () => {
+    const product = produits[0];
+    const pricing = product
+      ? resolveClientProductPricing(
+          product,
+          clientTariffs.clientId === Number(clientId)
+            ? clientTariffs.byProductId.get(Number(product.id))
+            : undefined
+        )
+      : null;
     setLignes([
       ...lignes,
       {
-        produit_id: produits[0]?.id,
-        designation: produits[0]?.libelle || 'Nouvel article',
-        groupe: produits[0]?.groupe || 'GENERAL',
+        produit_id: product?.id,
+        designation: product?.libelle || 'Nouvel article',
+        groupe: product?.groupe || 'GENERAL',
         quantite: 1,
-        prix_ht: produits[0]?.prix_ht || 0,
-        taux_tva: produits[0]?.taux_tva || 20,
-        remise_pct: 0,
+        prix_ht: pricing?.prix_ht || 0,
+        taux_tva: pricing?.taux_tva ?? 20,
+        remise_pct: pricing?.remise_pct || 0,
       },
     ]);
   };
@@ -386,7 +436,7 @@ export const CreateBlView: React.FC<CreateBlViewProps> = ({
               </thead>
               <tbody className="divide-y divide-slate-200">
                 {lignes.map((l, index) => {
-                  const currentProd = produits.find((p) => p.id === l.produit_id);
+                  const currentProd = productsById.get(Number(l.produit_id));
                   return (
                     <tr key={index} className="divide-x divide-slate-100 hover:bg-slate-50/70 transition">
                       <td className="p-3 text-center text-slate-400 font-mono font-bold">
@@ -400,6 +450,7 @@ export const CreateBlView: React.FC<CreateBlViewProps> = ({
                           value={l.produit_id}
                           onChange={(productId) => handleProductChange(index, productId)}
                           accent="emerald"
+                          clientPriceByProductId={clientTariffs.priceByProductId}
                         />
                         {currentProd && (
                           <div className="text-[10px] text-slate-400 mt-1 pl-1">
@@ -420,28 +471,29 @@ export const CreateBlView: React.FC<CreateBlViewProps> = ({
 
                       {/* Quantity */}
                       <td className="p-2.5">
-                        <input
-                          type="number"
-                          step="any"
-                          min="0.01"
+                        <DecimalInput
                           required
                           value={l.quantite}
-                          onChange={(e) => handleQuantityChange(index, parseFloat(e.target.value) || 0)}
+                          min={0.01}
+                          onValueChange={(value) => handleQuantityChange(index, value)}
+                          ariaLabel={`Quantité ligne ${index + 1}`}
                           className="w-full p-2 text-xs font-mono font-bold text-right bg-white rounded-lg border border-slate-300 focus:outline-none focus:ring-1 focus:ring-emerald-500 text-emerald-800"
                         />
                       </td>
 
                       {/* Unit Price HT */}
                       <td className="p-2.5">
-                        <input
-                          type="number"
-                          step="any"
-                          min="0"
+                        <DecimalInput
                           required
                           value={l.prix_ht}
-                          onChange={(e) => handlePriceChange(index, parseFloat(e.target.value) || 0)}
+                          min={0}
+                          onValueChange={(value) => handlePriceChange(index, value)}
+                          ariaLabel={`Prix HT ligne ${index + 1}`}
                           className="w-full p-2 text-xs font-mono text-right bg-white rounded-lg border border-slate-300 focus:outline-none focus:ring-1 focus:ring-emerald-500"
                         />
+                        {l.produit_id && clientTariffs.byProductId.has(Number(l.produit_id)) ? (
+                          <span className="mt-1 block text-[10px] font-bold text-emerald-700">Tarif client appliqué</span>
+                        ) : null}
                       </td>
 
                       {/* TVA */}
@@ -459,13 +511,12 @@ export const CreateBlView: React.FC<CreateBlViewProps> = ({
 
                       {/* Remise % */}
                       <td className="p-2.5">
-                        <input
-                          type="number"
-                          step="any"
-                          min="0"
-                          max="100"
+                        <DecimalInput
                           value={l.remise_pct || 0}
-                          onChange={(e) => handleRemiseChange(index, parseFloat(e.target.value) || 0)}
+                          min={0}
+                          max={100}
+                          onValueChange={(value) => handleRemiseChange(index, value)}
+                          ariaLabel={`Remise ligne ${index + 1}`}
                           className="w-full p-2 text-xs font-mono text-center bg-white rounded-lg border border-slate-300 focus:outline-none focus:ring-1 focus:ring-emerald-500"
                         />
                       </td>
