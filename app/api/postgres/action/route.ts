@@ -602,7 +602,7 @@ export async function POST(req: NextRequest) {
               await sql`
                 UPDATE bons_livraison
                 SET statut = 'Facturé', facture_id = ${id}, facture_numero = ${currentRows[0].numero}
-                WHERE id = ${blId} AND cloture_sans_facture = FALSE;
+                WHERE id = ${blId} AND COALESCE(cloture_sans_facture, FALSE) = FALSE;
               `;
             }
             for (const brId of linkedBrIds) {
@@ -1625,6 +1625,52 @@ export async function POST(req: NextRequest) {
         case 'update_facture_state': {
           const document = store.factures.find((item) => Number(item.id) === Number(payload.id));
           if (!document) return NextResponse.json({ success: false, error: 'Facture introuvable.' }, { status: 404 });
+          if (!['Brouillon', 'Validé', 'Annulé'].includes(payload.etat)) {
+            return NextResponse.json({ success: false, error: 'État de document invalide.' }, { status: 400 });
+          }
+          if (payload.etat === 'Annulé') {
+            store.bons_livraison.forEach((bl) => {
+              if (Number(bl.facture_id) === Number(document.id)) {
+                bl.statut = 'En attente';
+                bl.facture_id = undefined;
+                bl.facture_numero = undefined;
+              }
+            });
+            store.bons_retour.forEach((br) => {
+              if (Number(br.facture_id) === Number(document.id)) {
+                br.statut = 'En attente';
+                br.facture_id = undefined;
+                br.facture_numero = undefined;
+              }
+            });
+          } else if (payload.etat === 'Validé' && document.etat === 'Brouillon') {
+            const parseIds = (value: unknown): number[] => {
+              if (Array.isArray(value)) return value.map(Number).filter(Boolean);
+              if (typeof value !== 'string' || !value.trim()) return [];
+              try {
+                const parsed = JSON.parse(value);
+                return Array.isArray(parsed) ? parsed.map(Number).filter(Boolean) : [];
+              } catch {
+                return [];
+              }
+            };
+            parseIds(document.bl_associes).forEach((blId) => {
+              const bl = store.bons_livraison.find((item) => Number(item.id) === blId);
+              if (bl && !bl.cloture_sans_facture) {
+                bl.statut = 'Facturé';
+                bl.facture_id = document.id;
+                bl.facture_numero = document.numero;
+              }
+            });
+            parseIds(document.br_associes).forEach((brId) => {
+              const br = store.bons_retour.find((item) => Number(item.id) === brId);
+              if (br) {
+                br.statut = 'Facturé';
+                br.facture_id = document.id;
+                br.facture_numero = document.numero;
+              }
+            });
+          }
           document.etat = payload.etat;
           return NextResponse.json({ success: true, message: `État de la facture mis à jour: ${payload.etat}` });
         }
