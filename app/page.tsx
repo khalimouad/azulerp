@@ -1216,7 +1216,7 @@ export default function Home() {
                 }
                 setBonsLivraison((documents) => [
                   saved,
-                  ...documents.filter((document) => document.id !== saved.id),
+                  ...documents.filter((document) => Number(document.id) !== Number(saved.id)),
                 ]);
                 setIsBlLoaded(true);
                 setBlToEdit(null);

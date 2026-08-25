@@ -481,7 +481,7 @@ export async function deleteBonRetour(id: number): Promise<void> {
 export async function createFacture(facture: Partial<Facture>, lignes?: LineItem[]): Promise<number> {
   const lineItems = lignes || facture.lignes || [];
   const res = await apiCall('create_facture', { facture, lignes: lineItems, blIds: [] });
-  await fetchAllData();
+  await fetchAllData(true);
   return res.id;
 }
 
@@ -517,17 +517,17 @@ export async function createFactureFromBLs(
 
 export async function updateFacture(id: number, facture: Partial<Facture>, lignes?: LineItem[]): Promise<void> {
   await apiCall('create_facture', { facture: { ...facture, id }, lignes: lignes || [], blIds: [] });
-  await fetchAllData();
+  await fetchAllData(true);
 }
 
 export async function updateFactureState(id: number, etat: DocumentState): Promise<void> {
   await apiCall('update_facture_state', { id, etat });
-  await fetchAllData();
+  await fetchAllData(true);
 }
 
 export async function deleteFacture(id: number): Promise<void> {
   await apiCall('delete_facture', { id });
-  await fetchAllData();
+  await fetchAllData(true);
 }
 
 // ----------------------------------------------------------------------------

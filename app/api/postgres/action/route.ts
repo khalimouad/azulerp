@@ -339,6 +339,17 @@ export async function POST(req: NextRequest) {
           const documentDate = String(bl.date || new Date().toISOString().slice(0, 10));
           const yearSuffix = documentDate.slice(2, 4);
           const requestedNumero = String(bl.numero || '').trim();
+          if (requestedNumero) {
+            const duplicateNumero: any = await sql`
+              SELECT id FROM bons_livraison WHERE numero = ${requestedNumero} LIMIT 1;
+            `;
+            if (duplicateNumero.length) {
+              return NextResponse.json(
+                { success: false, error: `Le numéro de BL ${requestedNumero} existe déjà.` },
+                { status: 409 }
+              );
+            }
+          }
           const nextNumeroRes: any = await sql`
             SELECT COALESCE(MAX(split_part(numero, '/', 1)::bigint), 0) + 1 AS next_numero
             FROM bons_livraison
@@ -411,7 +422,7 @@ export async function POST(req: NextRequest) {
           }
 
           const existingRows: any = await sql`
-            SELECT id, numero, etat
+            SELECT id, numero, date, etat
             FROM bons_livraison
             WHERE id = ${documentId}
             LIMIT 1;
@@ -442,10 +453,26 @@ export async function POST(req: NextRequest) {
             );
           }
           const selectedClient = clientRows[0];
+          const requestedNumero = String(bl.numero || '').trim();
+          const nextNumero = requestedNumero || existingRows[0].numero;
+          if (nextNumero !== existingRows[0].numero) {
+            const duplicateNumero: any = await sql`
+              SELECT id FROM bons_livraison
+              WHERE numero = ${nextNumero} AND id <> ${documentId}
+              LIMIT 1;
+            `;
+            if (duplicateNumero.length) {
+              return NextResponse.json(
+                { success: false, error: `Le numéro de BL ${nextNumero} existe déjà.` },
+                { status: 409 }
+              );
+            }
+          }
 
           await sql`
             UPDATE bons_livraison
-            SET date = ${String(bl.date || new Date().toISOString().slice(0, 10))},
+            SET numero = ${nextNumero},
+                date = ${String(bl.date || existingRows[0].date || new Date().toISOString().slice(0, 10))},
                 client_id = ${clientId},
                 client_nom = ${selectedClient.nom},
                 client_ice = ${selectedClient.ice || ''},
@@ -490,7 +517,7 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({
             success: true,
             id: documentId,
-            numero: existingRows[0].numero,
+            numero: nextNumero,
             client_id: clientId,
             client_nom: selectedClient.nom,
             message: `Bon de livraison ${existingRows[0].numero} mis à jour`,
@@ -628,6 +655,130 @@ export async function POST(req: NextRequest) {
         // --- FACTURES ---
         case 'create_facture': {
           const { facture, lignes, blIds } = payload;
+          const editingFactureId = Number(facture?.id || 0);
+
+          // Editing a facture must update the existing row. Keeping this branch
+          // separate from creation prevents the old facture from being duplicated.
+          if (editingFactureId) {
+            const existingRows: any = await sql`
+              SELECT id, numero, date, client_id, montant_regle, bl_associes, br_associes, etat
+              FROM factures WHERE id = ${editingFactureId} LIMIT 1;
+            `;
+            if (!existingRows.length) {
+              return NextResponse.json({ success: false, error: 'Facture introuvable.' }, { status: 404 });
+            }
+            if (existingRows[0].etat !== 'Brouillon') {
+              return NextResponse.json(
+                { success: false, error: 'Seule une facture en brouillon peut être modifiée.' },
+                { status: 409 }
+              );
+            }
+
+            const requestedNumero = String(facture.numero || '').trim();
+            const nextNumero = requestedNumero || existingRows[0].numero;
+            if (nextNumero !== existingRows[0].numero) {
+              const duplicateNumero: any = await sql`
+                SELECT id FROM factures
+                WHERE numero = ${nextNumero} AND id <> ${editingFactureId}
+                LIMIT 1;
+              `;
+              if (duplicateNumero.length) {
+                return NextResponse.json(
+                  { success: false, error: `Le numéro de facture ${nextNumero} existe déjà.` },
+                  { status: 409 }
+                );
+              }
+            }
+
+            const lineTotals = (Array.isArray(lignes) ? lignes : []).reduce(
+              (totals: { ht: number; tva: number; ttc: number }, line: any) => ({
+                ht: totals.ht + num(line.total_ht),
+                tva: totals.tva + num(line.total_tva),
+                ttc: totals.ttc + num(line.total_ttc),
+              }),
+              { ht: 0, tva: 0, ttc: 0 }
+            );
+            const totalHt = facture.total_ht == null ? lineTotals.ht : num(facture.total_ht);
+            const totalTva = facture.total_tva == null ? lineTotals.tva : num(facture.total_tva);
+            const totalTtc = facture.total_ttc == null ? lineTotals.ttc : num(facture.total_ttc);
+            const montantRegle = num(existingRows[0].montant_regle);
+            const resteAPayer = Math.max(0, totalTtc - montantRegle);
+            const statutPaiement = resteAPayer <= 0.009
+              ? 'Soldé'
+              : montantRegle > 0.009
+              ? 'Partiel'
+              : 'Impayé';
+            const nextClientId = Number(facture.client_id || existingRows[0].client_id);
+
+            await sql`
+              UPDATE factures
+              SET numero = ${nextNumero},
+                  date = ${String(facture.date || existingRows[0].date)},
+                  client_id = ${nextClientId},
+                  client_nom = ${facture.client_nom || ''},
+                  client_ice = ${facture.client_ice || ''},
+                  client_adresse = ${facture.client_adresse || ''},
+                  client_ville = ${facture.client_ville || ''},
+                  total_ht = ${totalHt},
+                  tva_20 = ${num(facture.tva_20)},
+                  tva_10 = ${num(facture.tva_10)},
+                  total_tva = ${totalTva},
+                  total_ttc = ${totalTtc},
+                  reste_a_payer = ${resteAPayer},
+                  statut_paiement = ${statutPaiement},
+                  etat = ${facture.etat || 'Brouillon'},
+                  mode_reglement = ${facture.mode_reglement || 'Virement'},
+                  notes = ${facture.notes || ''}
+              WHERE id = ${editingFactureId};
+            `;
+
+            await sql`DELETE FROM factures_lignes WHERE facture_id = ${editingFactureId};`;
+            if (Array.isArray(lignes)) {
+              for (let i = 0; i < lignes.length; i++) {
+                const l = lignes[i];
+                const lineMaxIdRes: any = await sql`SELECT COALESCE(MAX(id), 0) + 1 AS next_id FROM factures_lignes;`;
+                const lineId = Number(lineMaxIdRes[0]?.next_id || i + 1);
+                await sql`
+                  INSERT INTO factures_lignes (
+                    id, facture_id, produit_id, designation, groupe, unite, quantite,
+                    prix_ht, taux_tva, remise_pct, total_ht, total_tva, total_ttc
+                  ) VALUES (
+                    ${lineId}, ${editingFactureId}, ${l.produit_id || null}, ${l.designation}, ${l.groupe || ''},
+                    ${l.unite || 'KG'}, ${num(l.quantite, 1)}, ${num(l.prix_ht)}, ${num(l.taux_tva, 20)},
+                    ${num(l.remise_pct)}, ${num(l.total_ht)}, ${num(l.total_tva)}, ${num(l.total_ttc)}
+                  );
+                `;
+              }
+            }
+
+            await sql`
+              UPDATE bons_livraison
+              SET facture_numero = ${nextNumero}
+              WHERE facture_id = ${editingFactureId};
+            `;
+
+            const affectedClients = Array.from(new Set([Number(existingRows[0].client_id), nextClientId])).filter(Boolean);
+            for (const affectedClientId of affectedClients) {
+              await sql`
+                UPDATE clients c
+                SET solde = COALESCE((
+                  SELECT ROUND(SUM(GREATEST(COALESCE(f.reste_a_payer, COALESCE(f.total_ttc, 0) - COALESCE(f.montant_regle, 0)), 0))::numeric, 2)
+                  FROM factures f
+                  WHERE f.client_id = c.id
+                    AND GREATEST(COALESCE(f.reste_a_payer, COALESCE(f.total_ttc, 0) - COALESCE(f.montant_regle, 0)), 0) > 0.009
+                ), 0)
+                WHERE c.id = ${affectedClientId};
+              `;
+            }
+
+            return NextResponse.json({
+              success: true,
+              id: editingFactureId,
+              numero: nextNumero,
+              message: `Facture ${nextNumero} mise à jour`,
+            });
+          }
+
           if (Array.isArray(blIds) && blIds.length > 0) {
             for (const blId of blIds) {
               const rows: any = await sql`
@@ -644,6 +795,27 @@ export async function POST(req: NextRequest) {
           }
           const maxIdRes: any = await sql`SELECT COALESCE(MAX(id), 0) + 1 as next_id FROM factures;`;
           const factId = maxIdRes[0]?.next_id || 1;
+          const documentDate = String(facture.date || new Date().toISOString().slice(0, 10));
+          const yearSuffix = documentDate.slice(2, 4);
+          const requestedNumero = String(facture.numero || '').trim();
+          if (requestedNumero) {
+            const duplicateNumero: any = await sql`
+              SELECT id FROM factures WHERE numero = ${requestedNumero} LIMIT 1;
+            `;
+            if (duplicateNumero.length) {
+              return NextResponse.json(
+                { success: false, error: `Le numéro de facture ${requestedNumero} existe déjà.` },
+                { status: 409 }
+              );
+            }
+          }
+          const nextNumeroRes: any = await sql`
+            SELECT COALESCE(MAX((regexp_replace(split_part(numero, '/', 1), '[^0-9]', '', 'g'))::bigint), 0) + 1 AS next_numero
+            FROM factures
+            WHERE numero ~ '^FA[0-9]+/[0-9]{2}$'
+              AND split_part(numero, '/', 2) = ${yearSuffix};
+          `;
+          const factureNumero = requestedNumero || `FA${String(nextNumeroRes[0]?.next_numero || 1).padStart(6, '0')}/${yearSuffix}`;
 
           await sql`
             INSERT INTO factures (
@@ -651,7 +823,7 @@ export async function POST(req: NextRequest) {
               total_ht, tva_20, tva_10, total_tva, total_ttc, montant_regle, reste_a_payer,
               statut_paiement, etat, mode_reglement, notes, bl_associes
             ) VALUES (
-              ${factId}, ${facture.numero}, ${facture.date}, ${facture.client_id}, ${facture.client_nom},
+              ${factId}, ${factureNumero}, ${documentDate}, ${facture.client_id}, ${facture.client_nom},
               ${facture.client_ice || ''}, ${facture.client_adresse || ''}, ${facture.client_ville || ''},
               ${num(facture.total_ht)}, ${num(facture.tva_20)}, ${num(facture.tva_10)}, ${num(facture.total_tva)},
               ${num(facture.total_ttc)}, ${num(facture.montant_regle, 0)}, ${num(facture.reste_a_payer || facture.total_ttc)},
@@ -700,7 +872,7 @@ export async function POST(req: NextRequest) {
             WHERE c.id = ${facture.client_id};
           `;
 
-          return NextResponse.json({ success: true, id: factId, message: 'Facture créée avec succès' });
+          return NextResponse.json({ success: true, id: factId, numero: factureNumero, message: 'Facture créée avec succès' });
         }
 
         case 'delete_facture': {

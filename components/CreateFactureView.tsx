@@ -28,6 +28,7 @@ interface CreateFactureViewProps {
   factureToEdit?: Facture | null;
   onBack: () => void;
   onSave: (data: {
+    numero?: string;
     client_id: number;
     client_nom: string;
     client_ice?: string;
@@ -37,6 +38,11 @@ interface CreateFactureViewProps {
     mode_reglement?: string;
     notes?: string;
     etat: DocumentState;
+    total_ht: number;
+    tva_20: number;
+    tva_10: number;
+    total_tva: number;
+    total_ttc: number;
     lignes: Omit<FactureLigne, 'id' | 'facture_id'>[];
   }) => Promise<void>;
 }
@@ -52,6 +58,7 @@ export const CreateFactureView: React.FC<CreateFactureViewProps> = ({
   const [clientId, setClientId] = useState<number>(
     Number(factureToEdit?.client_id || preSelectedClientId || 0)
   );
+  const [numero, setNumero] = useState<string>(factureToEdit?.numero || '');
   const [date, setDate] = useState<string>(
     factureToEdit?.date || new Date().toISOString().split('T')[0]
   );
@@ -242,6 +249,7 @@ export const CreateFactureView: React.FC<CreateFactureViewProps> = ({
     try {
       setIsSaving(true);
       await onSave({
+        numero: numero.trim() || undefined,
         client_id: selectedClient.id,
         client_nom: selectedClient.nom,
         client_ice: selectedClient.ice,
@@ -251,6 +259,11 @@ export const CreateFactureView: React.FC<CreateFactureViewProps> = ({
         mode_reglement: modeReglement,
         notes,
         etat: targetState,
+        total_ht: totalHt,
+        tva_20: tva20,
+        tva_10: tva10,
+        total_tva: totalTva,
+        total_ttc: totalTtc,
         lignes: calculated,
       });
     } catch (err: any) {
@@ -340,6 +353,18 @@ export const CreateFactureView: React.FC<CreateFactureViewProps> = ({
 
             {/* Date & Règlement */}
             <div className="space-y-3">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                  N° Facture <span className="text-slate-400 font-normal">(auto si vide)</span>
+                </label>
+                <input
+                  type="text"
+                  value={numero}
+                  onChange={(e) => setNumero(e.target.value)}
+                  placeholder="Ex. FA001620/26"
+                  className="w-full px-3 py-2 text-xs bg-white rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"
+                />
+              </div>
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                   Date de la Facture <span className="text-rose-500">*</span>
