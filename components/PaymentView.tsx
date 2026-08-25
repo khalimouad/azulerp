@@ -66,7 +66,7 @@ export const PaymentView: React.FC<PaymentViewProps> = ({
   const [clientQuery, setClientQuery] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
-  const selectedClient = clients.find((c) => c.id === clientId);
+  const selectedClient = clients.find((c) => Number(c.id) === Number(clientId));
   const visibleClients = useMemo(() => {
     const query = clientQuery.trim().toLocaleLowerCase('fr');
     if (!query) return clients;
