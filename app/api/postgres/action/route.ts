@@ -590,13 +590,24 @@ export async function POST(req: NextRequest) {
           }
 
           const currentRows: any = await sql`
-            SELECT id, numero, etat, bl_associes, br_associes
-            FROM factures
-            WHERE id = ${id}
+            SELECT f.id, f.numero, f.etat, f.bl_associes, f.br_associes, f.montant_regle,
+                   COALESCE((SELECT SUM(r.montant) FROM reglements r WHERE r.facture_id = f.id), 0) AS payment_total
+            FROM factures f
+            WHERE f.id = ${id}
             LIMIT 1;
           `;
           if (!currentRows.length) {
             return NextResponse.json({ success: false, error: 'Facture introuvable.' }, { status: 404 });
+          }
+
+          // Never cancel or reopen an invoice with a recorded payment. This prevents
+          // a payment from becoming detached from its customer invoice.
+          const recordedPayment = Math.max(num(currentRows[0].montant_regle), num(currentRows[0].payment_total));
+          if ((etat === 'Annulé' || etat === 'Brouillon') && recordedPayment > 0.009) {
+            return NextResponse.json(
+              { success: false, error: 'Impossible : cette facture contient déjà un encaissement. Modifiez ou supprimez le règlement avant de changer son état.' },
+              { status: 409 }
+            );
           }
 
           // Keep linked BL/BR workflow consistent with the invoice state:

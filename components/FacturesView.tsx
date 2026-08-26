@@ -393,6 +393,8 @@ export const FacturesView: React.FC<FacturesViewProps> = ({
                   const isAnnule = etat === 'Annulé';
                   const isSolde = facture.statut_paiement === 'Soldé';
                   const isPartiel = facture.statut_paiement === 'Partiel';
+                  // A cancellation/draft must never detach an invoice that already has money recorded.
+                  const isUnpaid = toNumeric(facture.montant_regle) <= 0.009;
 
                   return (
                     <tr
@@ -503,7 +505,7 @@ export const FacturesView: React.FC<FacturesViewProps> = ({
                                   <CheckCircle2 className="w-3.5 h-3.5" />
                                 </button>
                               )}
-                              {onUpdateFactureState && (
+                              {isUnpaid && onUpdateFactureState && (
                                 <button
                                   onClick={() => {
                                     onUpdateFactureState(facture.id, 'Annulé');
@@ -517,10 +519,10 @@ export const FacturesView: React.FC<FacturesViewProps> = ({
                             </>
                           )}
 
-                          {/* 2. If Validé: allow Annuler (releases linked BLs back to pending) */}
+                          {/* 2. A validated invoice can be cancelled only before any payment is recorded. */}
                           {isValide && (
                             <>
-                              {onUpdateFactureState && (
+                              {isUnpaid && onUpdateFactureState && (
                                 <button
                                   onClick={() => {
                                     onUpdateFactureState(facture.id, 'Annulé');
@@ -541,10 +543,10 @@ export const FacturesView: React.FC<FacturesViewProps> = ({
                             </>
                           )}
 
-                          {/* 3. If Annulé: allow Set to Draft to Edit! */}
+                          {/* 3. An unpaid cancellation can be restored as a draft, like a BL. */}
                           {isAnnule && (
                             <>
-                              {onUpdateFactureState && (
+                              {isUnpaid && onUpdateFactureState && (
                                 <button
                                   onClick={() => {
                                     onUpdateFactureState(facture.id, 'Brouillon');
