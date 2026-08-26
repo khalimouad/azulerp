@@ -2,8 +2,9 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { Devis, CompanyInfo } from '@/lib/types';
-import { formatCurrency, formatDate } from '@/lib/utils';
+import { formatCurrency, formatDate, getCurrentYearDateRange, toNumeric } from '@/lib/utils';
 import { TablePagination } from '@/components/TablePagination';
+import { DateRangeFilter } from '@/components/DateRangeFilter';
 import { generateDevisPdf } from '@/lib/pdf-generator';
 import { Plus, Printer, Trash2, Eye, FileSpreadsheet, Search } from 'lucide-react';
 
@@ -23,15 +24,20 @@ export const DevisView: React.FC<DevisViewProps> = ({
   onDeleteDevis,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [filterStartDate, setFilterStartDate] = useState(() => getCurrentYearDateRange().start);
+  const [filterEndDate, setFilterEndDate] = useState(() => getCurrentYearDateRange().end);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery]);
+  }, [searchQuery, filterStartDate, filterEndDate]);
 
   const filteredDevis = useMemo(() => {
     return devisList.filter((d) => {
+      const docDate = d.date ? d.date.slice(0, 10) : '';
+      if (filterStartDate && docDate < filterStartDate) return false;
+      if (filterEndDate && docDate > filterEndDate) return false;
       if (searchQuery) {
         const q = searchQuery.toLowerCase();
         const matchNum = d.numero.toLowerCase().includes(q);
@@ -40,12 +46,22 @@ export const DevisView: React.FC<DevisViewProps> = ({
       }
       return true;
     }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime() || b.id - a.id);
-  }, [devisList, searchQuery]);
+  }, [devisList, searchQuery, filterStartDate, filterEndDate]);
 
   const paginatedDevis = useMemo(() => {
     const start = (currentPage - 1) * pageSize;
     return filteredDevis.slice(start, start + pageSize);
   }, [filteredDevis, currentPage, pageSize]);
+
+  const totals = useMemo(() => filteredDevis.reduce(
+    (acc, devis) => {
+      acc.totalHt += toNumeric(devis.total_ht);
+      acc.totalTva += toNumeric(devis.total_tva);
+      acc.totalTtc += toNumeric(devis.total_ttc);
+      return acc;
+    },
+    { totalHt: 0, totalTva: 0, totalTtc: 0 }
+  ), [filteredDevis]);
 
   return (
     <div className="space-y-4">
@@ -55,7 +71,7 @@ export const DevisView: React.FC<DevisViewProps> = ({
           <h2 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
             Offres de Prix & Devis
             <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
-              {devisList.length} devis
+              {filteredDevis.length} devis
             </span>
           </h2>
           <p className="text-xs text-slate-500 mt-0.5">
@@ -74,7 +90,7 @@ export const DevisView: React.FC<DevisViewProps> = ({
 
       {/* Search and Table */}
       <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
-        <div className="p-3 border-b border-slate-200">
+        <div className="p-3 border-b border-slate-200 flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
           <div className="relative max-w-sm">
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
@@ -85,6 +101,16 @@ export const DevisView: React.FC<DevisViewProps> = ({
               className="w-full pl-9 pr-3 py-1.5 text-xs bg-slate-50 text-slate-800 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
           </div>
+          <DateRangeFilter
+            startDate={filterStartDate}
+            endDate={filterEndDate}
+            onDateChange={(start, end) => {
+              setFilterStartDate(start);
+              setFilterEndDate(end);
+            }}
+            variant="indigo"
+            compact
+          />
         </div>
 
         <div className="overflow-x-auto">
@@ -177,6 +203,17 @@ export const DevisView: React.FC<DevisViewProps> = ({
                 ))
               )}
             </tbody>
+            <tfoot>
+              <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-xs">
+                <td colSpan={4} className="py-2.5 px-3 text-right uppercase tracking-wider">
+                  Cumul Filtre ({filteredDevis.length} devis) :
+                </td>
+                <td className="py-2.5 px-3 text-right font-mono">{formatCurrency(totals.totalHt, false)}</td>
+                <td className="py-2.5 px-3 text-right font-mono">{formatCurrency(totals.totalTva, false)}</td>
+                <td className="py-2.5 px-3 text-right font-mono text-emerald-400 bg-slate-950 font-extrabold">{formatCurrency(totals.totalTtc, false)}</td>
+                <td colSpan={2} className="py-2.5 px-3 text-center text-slate-400">MAD (DH)</td>
+              </tr>
+            </tfoot>
           </table>
 
           {/* Devis Pagination */}

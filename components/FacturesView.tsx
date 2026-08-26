@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { Facture, CompanyInfo, DocumentState } from '@/lib/types';
-import { compareDocumentNumbersDesc, formatCurrency, formatDate } from '@/lib/utils';
+import { compareDocumentNumbersDesc, formatCurrency, formatDate, getCurrentYearDateRange, toNumeric } from '@/lib/utils';
 import { generateFacturePdf } from '@/lib/pdf-generator';
 import { TablePagination } from '@/components/TablePagination';
 import { DateRangeFilter } from '@/components/DateRangeFilter';
@@ -53,8 +53,8 @@ export const FacturesView: React.FC<FacturesViewProps> = ({
   // Filters
   const [filterNum, setFilterNum] = useState('');
   const [filterDate, setFilterDate] = useState('');
-  const [filterStartDate, setFilterStartDate] = useState('');
-  const [filterEndDate, setFilterEndDate] = useState('');
+  const [filterStartDate, setFilterStartDate] = useState(() => getCurrentYearDateRange().start);
+  const [filterEndDate, setFilterEndDate] = useState(() => getCurrentYearDateRange().end);
   const [filterSociete, setFilterSociete] = useState('');
   const [filterEtat, setFilterEtat] = useState<'ALL' | 'VALIDE' | 'BROUILLON' | 'ANNULE'>('ALL');
   const [filterStatutPaiement, setFilterStatutPaiement] = useState<'ALL' | 'SOLDE' | 'PARTIEL' | 'IMPAYE'>('ALL');
@@ -110,13 +110,13 @@ export const FacturesView: React.FC<FacturesViewProps> = ({
   const totals = useMemo(() => {
     return filteredFactures.reduce(
       (acc, f) => {
-        acc.totalHt += f.total_ht || 0;
-        acc.tva20 += f.tva_20 || 0;
-        acc.tva10 += f.tva_10 || 0;
-        acc.totalTva += f.total_tva || 0;
-        acc.totalTtc += f.total_ttc || 0;
-        acc.montantRegle += f.montant_regle || 0;
-        acc.restePayer += f.reste_a_payer || 0;
+        acc.totalHt += toNumeric(f.total_ht);
+        acc.tva20 += toNumeric(f.tva_20);
+        acc.tva10 += toNumeric(f.tva_10);
+        acc.totalTva += toNumeric(f.total_tva);
+        acc.totalTtc += toNumeric(f.total_ttc);
+        acc.montantRegle += toNumeric(f.montant_regle);
+        acc.restePayer += toNumeric(f.reste_a_payer);
         return acc;
       },
       { totalHt: 0, tva20: 0, tva10: 0, totalTva: 0, totalTtc: 0, montantRegle: 0, restePayer: 0 }

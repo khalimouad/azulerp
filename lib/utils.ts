@@ -39,6 +39,27 @@ export function formatDate(dateString: string | undefined | null): string {
 }
 
 /**
+ * PostgreSQL NUMERIC values may arrive in the browser as strings. Convert them
+ * once at the display boundary so table footers always add values instead of
+ * concatenating strings or falling back to zero.
+ */
+export function toNumeric(value: unknown): number {
+  if (typeof value === 'number') return Number.isFinite(value) ? value : 0;
+  if (typeof value === 'string') {
+    const normalized = value.trim().replace(/\s/g, '').replace(',', '.');
+    const parsed = Number(normalized);
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+export function getCurrentYearDateRange(referenceDate = new Date()) {
+  const year = referenceDate.getFullYear();
+  return { start: `${year}-01-01`, end: `${year}-12-31` };
+}
+
+/**
  * Compare document numbers by exercise/year first, then sequence, newest first.
  * Works with BL/BR numbers (2637/26) and invoice numbers (FA001481/26).
  */

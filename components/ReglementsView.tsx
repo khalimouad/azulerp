@@ -2,8 +2,9 @@
 
 import React, { useEffect, useState, useMemo } from 'react';
 import { Reglement } from '@/lib/types';
-import { formatCurrency, formatDate } from '@/lib/utils';
+import { formatCurrency, formatDate, getCurrentYearDateRange, toNumeric } from '@/lib/utils';
 import { Plus, Search, Trash2, Pencil } from 'lucide-react';
+import { DateRangeFilter } from '@/components/DateRangeFilter';
 
 interface ReglementsViewProps {
   reglements: Reglement[];
@@ -19,11 +20,16 @@ export const ReglementsView: React.FC<ReglementsViewProps> = ({
   onDeleteReglement,
 }) => {
   const [search, setSearch] = useState('');
+  const [filterStartDate, setFilterStartDate] = useState(() => getCurrentYearDateRange().start);
+  const [filterEndDate, setFilterEndDate] = useState(() => getCurrentYearDateRange().end);
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 100;
 
   const filtered = useMemo(() => {
     return reglements.filter((r) => {
+      const paymentDate = r.date ? r.date.slice(0, 10) : '';
+      if (filterStartDate && paymentDate < filterStartDate) return false;
+      if (filterEndDate && paymentDate > filterEndDate) return false;
       if (!search) return true;
       const q = search.toLowerCase();
       return (
@@ -33,10 +39,10 @@ export const ReglementsView: React.FC<ReglementsViewProps> = ({
         String(r.banque || '').toLowerCase().includes(q)
       );
     }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime() || b.id - a.id);
-  }, [reglements, search]);
+  }, [reglements, search, filterStartDate, filterEndDate]);
 
   const totalEncaisse = useMemo(() => {
-    return filtered.reduce((sum, r) => sum + Number(r.montant || 0), 0);
+    return filtered.reduce((sum, r) => sum + toNumeric(r.montant), 0);
   }, [filtered]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
@@ -47,7 +53,7 @@ export const ReglementsView: React.FC<ReglementsViewProps> = ({
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [search]);
+  }, [search, filterStartDate, filterEndDate]);
 
   useEffect(() => {
     if (currentPage > totalPages) setCurrentPage(totalPages);
@@ -78,7 +84,7 @@ export const ReglementsView: React.FC<ReglementsViewProps> = ({
       </div>
 
       <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
-        <div className="p-3 border-b border-slate-200 flex items-center justify-between">
+        <div className="p-3 border-b border-slate-200 flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
           <div className="relative max-w-sm">
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
@@ -205,6 +211,16 @@ export const ReglementsView: React.FC<ReglementsViewProps> = ({
               Suivant
             </button>
           </div>
+          <DateRangeFilter
+            startDate={filterStartDate}
+            endDate={filterEndDate}
+            onDateChange={(start, end) => {
+              setFilterStartDate(start);
+              setFilterEndDate(end);
+            }}
+            variant="emerald"
+            compact
+          />
         </div>
       </div>
     </div>

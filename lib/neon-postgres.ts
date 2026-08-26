@@ -601,6 +601,31 @@ CREATE TABLE IF NOT EXISTS app_users (
   derniere_connexion VARCHAR(50),
   created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Query indexes used by document lists, selectors and reconciliation views.
+-- These improve database work; reducing egress comes from bounded/selective
+-- reads and caching (implemented in the API route), not from indexes alone.
+CREATE INDEX IF NOT EXISTS clients_nom_idx ON clients (nom);
+CREATE INDEX IF NOT EXISTS produits_libelle_idx ON produits (libelle);
+CREATE INDEX IF NOT EXISTS fournisseurs_nom_idx ON fournisseurs (nom);
+CREATE INDEX IF NOT EXISTS bons_livraison_date_idx ON bons_livraison (date);
+CREATE INDEX IF NOT EXISTS bons_livraison_client_idx ON bons_livraison (client_id);
+CREATE INDEX IF NOT EXISTS bons_livraison_numero_idx ON bons_livraison (numero);
+CREATE INDEX IF NOT EXISTS bons_livraison_lignes_document_idx ON bons_livraison_lignes (bon_livraison_id);
+CREATE INDEX IF NOT EXISTS bons_retour_date_idx ON bons_retour (date);
+CREATE INDEX IF NOT EXISTS bons_retour_client_idx ON bons_retour (client_id);
+CREATE INDEX IF NOT EXISTS bons_retour_lignes_document_idx ON bons_retour_lignes (bon_retour_id);
+CREATE INDEX IF NOT EXISTS factures_date_idx ON factures (date);
+CREATE INDEX IF NOT EXISTS factures_client_idx ON factures (client_id);
+CREATE INDEX IF NOT EXISTS factures_numero_idx ON factures (numero);
+CREATE INDEX IF NOT EXISTS factures_lignes_document_idx ON factures_lignes (facture_id);
+CREATE INDEX IF NOT EXISTS devis_date_idx ON devis (date);
+CREATE INDEX IF NOT EXISTS devis_client_idx ON devis (client_id);
+CREATE INDEX IF NOT EXISTS devis_lignes_document_idx ON devis_lignes (devis_id);
+CREATE INDEX IF NOT EXISTS reglements_date_idx ON reglements (date);
+CREATE INDEX IF NOT EXISTS reglements_client_idx ON reglements (client_id);
+CREATE INDEX IF NOT EXISTS reglements_facture_idx ON reglements (facture_id);
+CREATE INDEX IF NOT EXISTS client_tarifs_client_idx ON client_tarifs (client_id);
 `;
 
 /**
@@ -1208,6 +1233,36 @@ export async function initNeonPostgresSchema(customUrl?: string) {
       created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
     );
   `;
+
+  // Indexes for the frequent list, filter and document-line lookups. They are
+  // idempotent and also repair databases that were created before these
+  // indexes were added.
+  const indexStatements = [
+    'CREATE INDEX IF NOT EXISTS clients_nom_idx ON clients (nom)',
+    'CREATE INDEX IF NOT EXISTS produits_libelle_idx ON produits (libelle)',
+    'CREATE INDEX IF NOT EXISTS fournisseurs_nom_idx ON fournisseurs (nom)',
+    'CREATE INDEX IF NOT EXISTS bons_livraison_date_idx ON bons_livraison (date)',
+    'CREATE INDEX IF NOT EXISTS bons_livraison_client_idx ON bons_livraison (client_id)',
+    'CREATE INDEX IF NOT EXISTS bons_livraison_numero_idx ON bons_livraison (numero)',
+    'CREATE INDEX IF NOT EXISTS bons_livraison_lignes_document_idx ON bons_livraison_lignes (bon_livraison_id)',
+    'CREATE INDEX IF NOT EXISTS bons_retour_date_idx ON bons_retour (date)',
+    'CREATE INDEX IF NOT EXISTS bons_retour_client_idx ON bons_retour (client_id)',
+    'CREATE INDEX IF NOT EXISTS bons_retour_lignes_document_idx ON bons_retour_lignes (bon_retour_id)',
+    'CREATE INDEX IF NOT EXISTS factures_date_idx ON factures (date)',
+    'CREATE INDEX IF NOT EXISTS factures_client_idx ON factures (client_id)',
+    'CREATE INDEX IF NOT EXISTS factures_numero_idx ON factures (numero)',
+    'CREATE INDEX IF NOT EXISTS factures_lignes_document_idx ON factures_lignes (facture_id)',
+    'CREATE INDEX IF NOT EXISTS devis_date_idx ON devis (date)',
+    'CREATE INDEX IF NOT EXISTS devis_client_idx ON devis (client_id)',
+    'CREATE INDEX IF NOT EXISTS devis_lignes_document_idx ON devis_lignes (devis_id)',
+    'CREATE INDEX IF NOT EXISTS reglements_date_idx ON reglements (date)',
+    'CREATE INDEX IF NOT EXISTS reglements_client_idx ON reglements (client_id)',
+    'CREATE INDEX IF NOT EXISTS reglements_facture_idx ON reglements (facture_id)',
+    'CREATE INDEX IF NOT EXISTS client_tarifs_client_idx ON client_tarifs (client_id)',
+  ];
+  await Promise.all(indexStatements.map((statement) => sql.query(statement, []).catch((err: any) => {
+    console.warn(`Notice création index (${statement}):`, err?.message || err);
+  })));
 
   // Check if company_info is empty, if so insert default Verde Orto company info
   try {

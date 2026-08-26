@@ -35,6 +35,16 @@ function num(val: any, fallback = 0): number {
 // In-memory persistent server cache as fallback when DATABASE_URL is not set
 let fallbackMemoryStore: Record<string, any[]> | null = null;
 
+// `fetch_all` is intentionally kept as one compatibility endpoint for the
+// existing UI, but it used to execute 23 full-table queries on every request.
+// A short-lived per-instance cache prevents page navigations and concurrent
+// components from repeatedly downloading the same database snapshot. Writes
+// invalidate it before they run, so a saved document is never hidden behind a
+// stale snapshot for the next read.
+const FETCH_ALL_CACHE_TTL_MS = 30_000;
+let fetchAllCache: { body: any; expiresAt: number } | null = null;
+let schemaInitializedForRuntime = false;
+
 function getFallbackStore() {
   if (!fallbackMemoryStore) {
     fallbackMemoryStore = {
@@ -147,6 +157,15 @@ export async function POST(req: NextRequest) {
     const session = readSession(req);
     if (!publicActions.has(action) && !session) return unauthorizedResponse();
 
+    // Any authenticated action other than the snapshot read may mutate data.
+    // Invalidate before handling it so the next `fetch_all` sees the commit.
+    // This is deliberately conservative: invalidating on a read-only action
+    // costs at most one refresh, while serving stale financial documents is
+    // much more harmful.
+    if (action !== 'fetch_all' && action !== 'session' && action !== 'logout') {
+      fetchAllCache = null;
+    }
+
     if (action === 'session') {
       return session
         ? NextResponse.json({ success: true, user: session })
@@ -165,9 +184,10 @@ export async function POST(req: NextRequest) {
       const sql = getNeonSql();
 
       // Make sure schema is initialized
-      if (action === 'init_schema' || action === 'fetch_all') {
+      if ((action === 'init_schema' || action === 'fetch_all') && !schemaInitializedForRuntime) {
         try {
           await initNeonPostgresSchema();
+          schemaInitializedForRuntime = true;
         } catch (initErr) {
           console.warn('Postgres schema init check notice:', initErr);
         }
@@ -175,6 +195,11 @@ export async function POST(req: NextRequest) {
 
       switch (action) {
         case 'fetch_all': {
+          const now = Date.now();
+          if (fetchAllCache && fetchAllCache.expiresAt > now) {
+            return NextResponse.json(fetchAllCache.body);
+          }
+
           // Query all entities directly from PostgreSQL
           const [
             companyRes,
@@ -284,7 +309,7 @@ export async function POST(req: NextRequest) {
             }
           });
 
-          return NextResponse.json({
+          const responseBody = {
             success: true,
             database: 'Neon PostgreSQL (Connected)',
             data: {
@@ -308,7 +333,9 @@ export async function POST(req: NextRequest) {
               pos_ventes: Object.values(posVentesMap),
               users: usersRes
             }
-          });
+          };
+          fetchAllCache = { body: responseBody, expiresAt: now + FETCH_ALL_CACHE_TTL_MS };
+          return NextResponse.json(responseBody);
         }
 
         // --- BONS DE LIVRAISON ---

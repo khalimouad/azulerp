@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { BonLivraison, CompanyInfo, DocumentState } from '@/lib/types';
-import { compareDocumentNumbersDesc, formatCurrency, formatDate } from '@/lib/utils';
+import { compareDocumentNumbersDesc, formatCurrency, formatDate, getCurrentYearDateRange, toNumeric } from '@/lib/utils';
 import { generateBlPdf } from '@/lib/pdf-generator';
 import { TablePagination } from '@/components/TablePagination';
 import { DateRangeFilter } from '@/components/DateRangeFilter';
@@ -52,8 +52,8 @@ export const BonsLivraisonView: React.FC<BonsLivraisonViewProps> = ({
 }) => {
   const [filterStatut, setFilterStatut] = useState<'ALL' | 'VALIDE' | 'BROUILLON' | 'ANNULE' | 'ATTENTE'>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterStartDate, setFilterStartDate] = useState('');
-  const [filterEndDate, setFilterEndDate] = useState('');
+  const [filterStartDate, setFilterStartDate] = useState(() => getCurrentYearDateRange().start);
+  const [filterEndDate, setFilterEndDate] = useState(() => getCurrentYearDateRange().end);
   const [selectedBlIds, setSelectedBlIds] = useState<number[]>([]);
 
   // Pagination state
@@ -130,9 +130,9 @@ export const BonsLivraisonView: React.FC<BonsLivraisonViewProps> = ({
   const totals = useMemo(() => {
     return filteredBls.reduce(
       (acc, b) => {
-        acc.totalHt += b.total_ht || 0;
-        acc.totalTva += b.total_tva || 0;
-        acc.totalTtc += b.total_ttc || 0;
+        acc.totalHt += toNumeric(b.total_ht);
+        acc.totalTva += toNumeric(b.total_tva);
+        acc.totalTtc += toNumeric(b.total_ttc);
         return acc;
       },
       { totalHt: 0, totalTva: 0, totalTtc: 0 }
