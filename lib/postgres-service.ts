@@ -961,16 +961,22 @@ export async function fetchAllUsers(): Promise<AppUser[]> {
 }
 
 export async function createUserInDb(user: any): Promise<number> {
-  await fetchAllData();
-  return 1;
+  const res = await apiCall('create_user', { user });
+  cachedData = null;
+  isInitialized = false;
+  return Number(res?.id || 0);
 }
 
 export async function updateUserInDb(id: number, user: any): Promise<void> {
-  await fetchAllData();
+  await apiCall('update_user', { id, user });
+  cachedData = null;
+  isInitialized = false;
 }
 
 export async function deleteUserFromDb(id: number): Promise<void> {
-  await fetchAllData();
+  await apiCall('delete_user', { id });
+  cachedData = null;
+  isInitialized = false;
 }
 
 // ----------------------------------------------------------------------------

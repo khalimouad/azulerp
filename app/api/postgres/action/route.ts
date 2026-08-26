@@ -1441,6 +1441,76 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ success: true, id: saleId, message: 'Ticket de caisse enregistré avec succès' });
         }
 
+        // --- USER MANAGEMENT ---
+        case 'create_user': {
+          if (session?.role !== 'ADMIN') {
+            return NextResponse.json({ success: false, error: 'Accès administrateur requis.' }, { status: 403 });
+          }
+          const user = payload?.user || {};
+          const username = String(user.username || '').trim();
+          const nomComplet = String(user.nom_complet || '').trim();
+          const motDePasse = String(user.mot_de_passe || '').trim();
+          if (!username || !nomComplet || !motDePasse) {
+            return NextResponse.json({ success: false, error: 'Nom, identifiant et mot de passe sont obligatoires.' }, { status: 400 });
+          }
+          const nextIdRows: any = await sql`SELECT COALESCE(MAX(id), 0) + 1 AS next_id FROM app_users;`;
+          const nextId = Number(nextIdRows[0]?.next_id || 1);
+          const created: any = await sql`
+            INSERT INTO app_users (id, username, nom_complet, email, role, pin_code, mot_de_passe, avatar, statut)
+            VALUES (
+              ${nextId}, ${username}, ${nomComplet}, ${String(user.email || '').trim()},
+              ${user.role || 'CAISSE'}, ${String(user.pin_code || '').trim()}, ${motDePasse},
+              ${String(user.avatar || 'US').trim()}, 1
+            )
+            RETURNING id;
+          `;
+          return NextResponse.json({ success: true, id: Number(created[0]?.id || nextId), message: 'Utilisateur créé' });
+        }
+
+        case 'update_user': {
+          if (session?.role !== 'ADMIN') {
+            return NextResponse.json({ success: false, error: 'Accès administrateur requis.' }, { status: 403 });
+          }
+          const userId = Number(payload?.id);
+          const user = payload?.user || {};
+          const username = String(user.username || '').trim();
+          const nomComplet = String(user.nom_complet || '').trim();
+          if (!userId || !username || !nomComplet) {
+            return NextResponse.json({ success: false, error: 'Nom et identifiant sont obligatoires.' }, { status: 400 });
+          }
+          const newPassword = typeof user.mot_de_passe === 'string' ? user.mot_de_passe.trim() : '';
+          const updated: any = await sql`
+            UPDATE app_users SET
+              username = ${username},
+              nom_complet = ${nomComplet},
+              email = ${String(user.email || '').trim()},
+              role = ${user.role || 'CAISSE'},
+              pin_code = ${String(user.pin_code || '').trim()},
+              mot_de_passe = CASE WHEN ${newPassword} <> '' THEN ${newPassword} ELSE mot_de_passe END
+            WHERE id = ${userId}
+            RETURNING id;
+          `;
+          if (!updated.length) {
+            return NextResponse.json({ success: false, error: 'Utilisateur introuvable.' }, { status: 404 });
+          }
+          return NextResponse.json({ success: true, id: userId, message: 'Utilisateur mis à jour' });
+        }
+
+        case 'delete_user': {
+          if (session?.role !== 'ADMIN') {
+            return NextResponse.json({ success: false, error: 'Accès administrateur requis.' }, { status: 403 });
+          }
+          const userId = Number(payload?.id);
+          if (!userId || userId === 1) {
+            return NextResponse.json({ success: false, error: 'L’administrateur principal ne peut pas être supprimé.' }, { status: 400 });
+          }
+          const deleted: any = await sql`DELETE FROM app_users WHERE id = ${userId} RETURNING id;`;
+          if (!deleted.length) {
+            return NextResponse.json({ success: false, error: 'Utilisateur introuvable.' }, { status: 404 });
+          }
+          return NextResponse.json({ success: true, message: 'Utilisateur supprimé' });
+        }
+
         // --- AUTH ---
         case 'auth_password': {
           const { username, password } = payload;
@@ -1713,6 +1783,80 @@ export async function POST(req: NextRequest) {
           const { id } = payload;
           store.clients = store.clients.filter((c) => c.id !== id);
           return NextResponse.json({ success: true, message: 'Client supprimé' });
+        }
+
+        case 'create_user': {
+          if (session?.role !== 'ADMIN') {
+            return NextResponse.json({ success: false, error: 'Accès administrateur requis.' }, { status: 403 });
+          }
+          const user = payload?.user || {};
+          const username = String(user.username || '').trim();
+          const nomComplet = String(user.nom_complet || '').trim();
+          const motDePasse = String(user.mot_de_passe || '').trim();
+          if (!username || !nomComplet || !motDePasse) {
+            return NextResponse.json({ success: false, error: 'Nom, identifiant et mot de passe sont obligatoires.' }, { status: 400 });
+          }
+          if (store.app_users.some((u) => u.username.toLowerCase() === username.toLowerCase())) {
+            return NextResponse.json({ success: false, error: 'Cet identifiant existe déjà.' }, { status: 409 });
+          }
+          const nextId = Math.max(0, ...store.app_users.map((u) => Number(u.id) || 0)) + 1;
+          store.app_users.push({
+            id: nextId,
+            username,
+            nom_complet: nomComplet,
+            email: String(user.email || '').trim(),
+            role: user.role || 'CAISSE',
+            pin_code: String(user.pin_code || '').trim(),
+            mot_de_passe: motDePasse,
+            avatar: String(user.avatar || 'US').trim(),
+            statut: 1,
+          });
+          return NextResponse.json({ success: true, id: nextId, message: 'Utilisateur créé' });
+        }
+
+        case 'update_user': {
+          if (session?.role !== 'ADMIN') {
+            return NextResponse.json({ success: false, error: 'Accès administrateur requis.' }, { status: 403 });
+          }
+          const userId = Number(payload?.id);
+          const user = payload?.user || {};
+          const target = store.app_users.find((u) => Number(u.id) === userId);
+          const username = String(user.username || '').trim();
+          const nomComplet = String(user.nom_complet || '').trim();
+          if (!target) return NextResponse.json({ success: false, error: 'Utilisateur introuvable.' }, { status: 404 });
+          if (!username || !nomComplet) {
+            return NextResponse.json({ success: false, error: 'Nom et identifiant sont obligatoires.' }, { status: 400 });
+          }
+          if (store.app_users.some((u) => Number(u.id) !== userId && u.username.toLowerCase() === username.toLowerCase())) {
+            return NextResponse.json({ success: false, error: 'Cet identifiant existe déjà.' }, { status: 409 });
+          }
+          Object.assign(target, {
+            username,
+            nom_complet: nomComplet,
+            email: String(user.email || '').trim(),
+            role: user.role || 'CAISSE',
+            pin_code: String(user.pin_code || '').trim(),
+          });
+          if (typeof user.mot_de_passe === 'string' && user.mot_de_passe.trim()) {
+            target.mot_de_passe = user.mot_de_passe.trim();
+          }
+          return NextResponse.json({ success: true, id: userId, message: 'Utilisateur mis à jour' });
+        }
+
+        case 'delete_user': {
+          if (session?.role !== 'ADMIN') {
+            return NextResponse.json({ success: false, error: 'Accès administrateur requis.' }, { status: 403 });
+          }
+          const userId = Number(payload?.id);
+          if (!userId || userId === 1) {
+            return NextResponse.json({ success: false, error: 'L’administrateur principal ne peut pas être supprimé.' }, { status: 400 });
+          }
+          const before = store.app_users.length;
+          store.app_users = store.app_users.filter((u) => Number(u.id) !== userId);
+          if (store.app_users.length === before) {
+            return NextResponse.json({ success: false, error: 'Utilisateur introuvable.' }, { status: 404 });
+          }
+          return NextResponse.json({ success: true, message: 'Utilisateur supprimé' });
         }
 
         case 'auth_password': {
