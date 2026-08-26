@@ -339,7 +339,20 @@ export const BonsRetourView: React.FC<BonsRetourViewProps> = ({
                   return (
                     <tr
                       key={br.id}
-                      className={`hover:bg-rose-50/40 transition divide-x divide-slate-100 ${
+                      onClick={(event) => {
+                        if (event.target instanceof Element && event.target.closest('button, input, a, select')) return;
+                        onViewBr(br);
+                      }}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                          event.preventDefault();
+                          onViewBr(br);
+                        }
+                      }}
+                      tabIndex={0}
+                      role="button"
+                      title="Ouvrir l’aperçu du bon de retour"
+                      className={`cursor-pointer hover:bg-rose-50/40 transition focus:outline-none focus:ring-2 focus:ring-inset focus:ring-rose-500 divide-x divide-slate-100 ${
                         isAnnule
                           ? 'bg-rose-50/30 opacity-75'
                           : isBrouillon

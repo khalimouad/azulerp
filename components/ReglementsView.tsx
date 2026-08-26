@@ -126,7 +126,23 @@ export const ReglementsView: React.FC<ReglementsViewProps> = ({
                 </tr>
               ) : (
                 paginatedReglements.map((r) => (
-                  <tr key={r.id} className="hover:bg-slate-50 transition divide-x divide-slate-100 even:bg-slate-50/40">
+                  <tr
+                    key={r.id}
+                    onClick={(event) => {
+                      if (event.target instanceof Element && event.target.closest('button, input, a, select')) return;
+                      onEditReglement(r);
+                    }}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        onEditReglement(r);
+                      }
+                    }}
+                    tabIndex={0}
+                    role="button"
+                    title="Ouvrir la fiche de cet encaissement"
+                    className="cursor-pointer hover:bg-slate-100 transition focus:outline-none focus:ring-2 focus:ring-inset focus:ring-emerald-500 divide-x divide-slate-100 even:bg-slate-50/40"
+                  >
                     <td className="py-2 px-3 text-slate-600 whitespace-nowrap">{formatDate(r.date)}</td>
                     <td className="py-2 px-3 font-semibold text-slate-900">{r.client_nom}</td>
                     <td className="py-2 px-3 font-mono text-blue-700 font-medium">

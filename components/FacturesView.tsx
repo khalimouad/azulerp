@@ -399,8 +399,21 @@ export const FacturesView: React.FC<FacturesViewProps> = ({
                   return (
                     <tr
                       key={facture.id}
-                      onClick={() => setSelectedFactureId(facture.id)}
-                      className={`cursor-pointer transition hover:bg-blue-50/70 divide-x divide-slate-100 ${
+                      onClick={() => {
+                        setSelectedFactureId(facture.id);
+                        onViewFacture(facture);
+                      }}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                          event.preventDefault();
+                          setSelectedFactureId(facture.id);
+                          onViewFacture(facture);
+                        }
+                      }}
+                      tabIndex={0}
+                      role="button"
+                      title="Ouvrir l’aperçu de la facture"
+                      className={`cursor-pointer transition hover:bg-blue-50/70 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 divide-x divide-slate-100 ${
                         isAnnule
                           ? 'bg-rose-50/30 opacity-75'
                           : isBrouillon

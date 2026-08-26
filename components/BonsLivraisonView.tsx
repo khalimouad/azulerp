@@ -362,7 +362,20 @@ export const BonsLivraisonView: React.FC<BonsLivraisonViewProps> = ({
                   return (
                     <tr
                       key={bl.id}
-                      className={`hover:bg-emerald-50/50 transition divide-x divide-slate-100 ${
+                      onClick={(event) => {
+                        if (event.target instanceof Element && event.target.closest('button, input, a, select')) return;
+                        onViewBl(bl);
+                      }}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                          event.preventDefault();
+                          onViewBl(bl);
+                        }
+                      }}
+                      tabIndex={0}
+                      role="button"
+                      title="Ouvrir l’aperçu du bon de livraison"
+                      className={`cursor-pointer hover:bg-emerald-50/50 transition focus:outline-none focus:ring-2 focus:ring-inset focus:ring-emerald-500 divide-x divide-slate-100 ${
                         isAnnule
                           ? 'bg-rose-50/30 opacity-75'
                           : isBrouillon
