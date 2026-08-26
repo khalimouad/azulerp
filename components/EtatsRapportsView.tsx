@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Facture, BonLivraison, Client, Produit, LineItem } from '@/lib/types';
-import { formatCurrency, formatDate } from '@/lib/utils';
+import { formatCurrency, formatDate, toNumeric } from '@/lib/utils';
+import { TablePagination } from '@/components/TablePagination';
 import {
   BarChart3,
   Download,
@@ -34,6 +35,9 @@ interface EtatsRapportsViewProps {
 }
 
 type ReportTab = 'COMPTABLE' | 'BLS' | 'JOURNAL' | 'TVA' | 'BALANCE_CLIENTS' | 'GROUPES';
+type PaginatedReport = 'COMPTABLE' | 'BLS' | 'JOURNAL' | 'BALANCE_CLIENTS' | 'GROUPES';
+
+const REPORT_PAGE_SIZE_OPTIONS = [25, 50, 100, 250];
 
 export const EtatsRapportsView: React.FC<EtatsRapportsViewProps> = ({
   factures = [],
@@ -60,6 +64,23 @@ export const EtatsRapportsView: React.FC<EtatsRapportsViewProps> = ({
   const [comptableSearch, setComptableSearch] = useState<string>('');
   const [comptableClientFilter, setComptableClientFilter] = useState<number | 'TOUS'>('TOUS');
   const [comptableTvaFilter, setComptableTvaFilter] = useState<string>('TOUS');
+  const [reportPageSize, setReportPageSize] = useState(50);
+  const [reportPages, setReportPages] = useState<Record<PaginatedReport, number>>({
+    COMPTABLE: 1,
+    BLS: 1,
+    JOURNAL: 1,
+    BALANCE_CLIENTS: 1,
+    GROUPES: 1,
+  });
+
+  const setReportPage = (report: PaginatedReport, page: number) => {
+    setReportPages((pages) => ({ ...pages, [report]: page }));
+  };
+
+  const changeReportPageSize = (size: number) => {
+    setReportPageSize(size);
+    setReportPages({ COMPTABLE: 1, BLS: 1, JOURNAL: 1, BALANCE_CLIENTS: 1, GROUPES: 1 });
+  };
 
   // Set date preset helpers
   const applyPreset = (type: 'today' | 'this_month' | 'last_month' | 'this_quarter' | 'year' | 'all') => {
@@ -130,13 +151,15 @@ export const EtatsRapportsView: React.FC<EtatsRapportsViewProps> = ({
     for (const f of filteredFactures) {
       if (f.lignes && f.lignes.length > 0) {
         f.lignes.forEach((l, idx) => {
-          const lQuantite = l.quantite || 1;
-          const lPrix = l.prix_ht || 0;
-          const lRemise = l.remise_pct || 0;
-          const lHt = l.total_ht ?? (lQuantite * lPrix * (1 - lRemise / 100));
-          const lTvaRate = l.taux_tva ?? (f.tva_20 ? 20 : (f.tva_10 ? 10 : 20));
-          const lTvaMontant = l.total_tva ?? (lHt * (lTvaRate / 100));
-          const lTtc = l.total_ttc ?? (lHt + lTvaMontant);
+          const lQuantite = toNumeric(l.quantite) || 1;
+          const lPrix = toNumeric(l.prix_ht);
+          const lRemise = toNumeric(l.remise_pct);
+          const lHt = l.total_ht == null ? lQuantite * lPrix * (1 - lRemise / 100) : toNumeric(l.total_ht);
+          const lTvaRate = l.taux_tva == null
+            ? (toNumeric(f.tva_20) > 0 ? 20 : (toNumeric(f.tva_10) > 0 ? 10 : 20))
+            : toNumeric(l.taux_tva);
+          const lTvaMontant = l.total_tva == null ? lHt * (lTvaRate / 100) : toNumeric(l.total_tva);
+          const lTtc = l.total_ttc == null ? lHt + lTvaMontant : toNumeric(l.total_ttc);
           
           let taxTypeStr = `TVA ${lTvaRate}%`;
           if (lTvaRate === 0) taxTypeStr = 'Exonéré (0%)';
@@ -165,7 +188,7 @@ export const EtatsRapportsView: React.FC<EtatsRapportsViewProps> = ({
         });
       } else {
         // Fallback if no decomposed lines: synthesize line from header
-        const tvaRate = f.tva_10 > 0 && f.tva_20 === 0 ? 10 : 20;
+        const tvaRate = toNumeric(f.tva_10) > 0 && toNumeric(f.tva_20) === 0 ? 10 : 20;
         let taxTypeStr = `TVA ${tvaRate}%`;
         if (tvaRate === 20) taxTypeStr = 'Taux Normal (20%)';
         else if (tvaRate === 10) taxTypeStr = 'Taux Intermédiaire (10%)';
@@ -180,13 +203,13 @@ export const EtatsRapportsView: React.FC<EtatsRapportsViewProps> = ({
           client_ice: f.client_ice || '',
           produit_id: null,
           designation: f.notes ? `Ventes / Prestations (${f.notes})` : 'Marchandises & Matériel',
-          prix_unitaire_ht: f.total_ht,
+          prix_unitaire_ht: toNumeric(f.total_ht),
           quantite: 1,
-          total_ht: f.total_ht,
+          total_ht: toNumeric(f.total_ht),
           taux_tva: tvaRate,
           tax_type: taxTypeStr,
-          montant_tva: f.total_tva,
-          total_ttc: f.total_ttc,
+          montant_tva: toNumeric(f.total_tva),
+          total_ttc: toNumeric(f.total_ttc),
         });
       }
     }
@@ -247,13 +270,13 @@ export const EtatsRapportsView: React.FC<EtatsRapportsViewProps> = ({
   const factureTotals = useMemo(() => {
     return filteredFactures.reduce(
       (acc, f) => {
-        acc.ht += f.total_ht || 0;
-        acc.tva20 += f.tva_20 || 0;
-        acc.tva10 += f.tva_10 || 0;
-        acc.tva += f.total_tva || 0;
-        acc.ttc += f.total_ttc || 0;
-        acc.regle += f.montant_regle || 0;
-        acc.reste += f.reste_a_payer || 0;
+        acc.ht += toNumeric(f.total_ht);
+        acc.tva20 += toNumeric(f.tva_20);
+        acc.tva10 += toNumeric(f.tva_10);
+        acc.tva += toNumeric(f.total_tva);
+        acc.ttc += toNumeric(f.total_ttc);
+        acc.regle += toNumeric(f.montant_regle);
+        acc.reste += toNumeric(f.reste_a_payer);
         return acc;
       },
       { ht: 0, tva20: 0, tva10: 0, tva: 0, ttc: 0, regle: 0, reste: 0 }
@@ -271,14 +294,14 @@ export const EtatsRapportsView: React.FC<EtatsRapportsViewProps> = ({
     const pending = allInRange.filter((bl) => bl.statut !== 'Facturé');
     const billed = allInRange.filter((bl) => bl.statut === 'Facturé');
 
-    const totalHt = allInRange.reduce((s, bl) => s + (bl.total_ht || 0), 0);
-    const totalTtc = allInRange.reduce((s, bl) => s + (bl.total_ttc || 0), 0);
+    const totalHt = allInRange.reduce((s, bl) => s + toNumeric(bl.total_ht), 0);
+    const totalTtc = allInRange.reduce((s, bl) => s + toNumeric(bl.total_ttc), 0);
 
-    const pendingHt = pending.reduce((s, bl) => s + (bl.total_ht || 0), 0);
-    const pendingTtc = pending.reduce((s, bl) => s + (bl.total_ttc || 0), 0);
+    const pendingHt = pending.reduce((s, bl) => s + toNumeric(bl.total_ht), 0);
+    const pendingTtc = pending.reduce((s, bl) => s + toNumeric(bl.total_ttc), 0);
 
-    const billedHt = billed.reduce((s, bl) => s + (bl.total_ht || 0), 0);
-    const billedTtc = billed.reduce((s, bl) => s + (bl.total_ttc || 0), 0);
+    const billedHt = billed.reduce((s, bl) => s + toNumeric(bl.total_ht), 0);
+    const billedTtc = billed.reduce((s, bl) => s + toNumeric(bl.total_ttc), 0);
 
     const billingRate = allInRange.length > 0 ? (billed.length / allInRange.length) * 100 : 0;
 
@@ -317,7 +340,7 @@ export const EtatsRapportsView: React.FC<EtatsRapportsViewProps> = ({
       }
       const group = map.get(bl.client_id)!;
       group.bls.push(bl);
-      group.totalTtc += bl.total_ttc;
+      group.totalTtc += toNumeric(bl.total_ttc);
     });
 
     return Array.from(map.values()).sort((a, b) => b.totalTtc - a.totalTtc);
@@ -328,9 +351,9 @@ export const EtatsRapportsView: React.FC<EtatsRapportsViewProps> = ({
     return clients
       .map((c) => {
         const cFactures = filteredFactures.filter((f) => f.client_id === c.id);
-        const totalTtc = cFactures.reduce((s, f) => s + (f.total_ttc || 0), 0);
-        const totalRegle = cFactures.reduce((s, f) => s + (f.montant_regle || 0), 0);
-        const reste = cFactures.reduce((s, f) => s + (f.reste_a_payer || 0), 0);
+        const totalTtc = cFactures.reduce((s, f) => s + toNumeric(f.total_ttc), 0);
+        const totalRegle = cFactures.reduce((s, f) => s + toNumeric(f.montant_regle), 0);
+        const reste = cFactures.reduce((s, f) => s + toNumeric(f.reste_a_payer), 0);
         return {
           client: c,
           count: cFactures.length,
@@ -344,21 +367,111 @@ export const EtatsRapportsView: React.FC<EtatsRapportsViewProps> = ({
 
   // Sales by product group
   const salesByGroup = useMemo(() => {
+    const productGroups = new Map(produits.map((product) => [product.id, product.groupe]));
     const map = new Map<string, { group: string; count: number; totalHt: number }>();
     for (const f of filteredFactures) {
       for (const line of f.lignes || []) {
-        const prod = produits.find((p) => p.id === line.produit_id);
-        const group = prod?.groupe || line.groupe || 'GENERAL';
+        const group = productGroups.get(line.produit_id ?? -1) || line.groupe || 'GENERAL';
         if (!map.has(group)) {
           map.set(group, { group, count: 0, totalHt: 0 });
         }
         const item = map.get(group)!;
-        item.count += line.quantite;
-        item.totalHt += line.total_ht ?? line.quantite * line.prix_ht;
+        item.count += toNumeric(line.quantite);
+        item.totalHt += line.total_ht == null
+          ? toNumeric(line.quantite) * toNumeric(line.prix_ht)
+          : toNumeric(line.total_ht);
       }
     }
     return Array.from(map.values()).sort((a, b) => b.totalHt - a.totalHt);
   }, [filteredFactures, produits]);
+
+  // Exact tax bases come from invoice lines; never derive them with a multiplier.
+  const taxBreakdown = useMemo(() => {
+    const breakdown = new Map<number, { baseHt: number; tax: number; ttc: number }>();
+    accountantLines.forEach((line) => {
+      const item = breakdown.get(line.taux_tva) || { baseHt: 0, tax: 0, ttc: 0 };
+      item.baseHt += line.total_ht;
+      item.tax += line.montant_tva;
+      item.ttc += line.total_ttc;
+      breakdown.set(line.taux_tva, item);
+    });
+    return breakdown;
+  }, [accountantLines]);
+
+  const paginatedAccountantLines = useMemo(
+    () => accountantLines.slice((reportPages.COMPTABLE - 1) * reportPageSize, reportPages.COMPTABLE * reportPageSize),
+    [accountantLines, reportPages.COMPTABLE, reportPageSize]
+  );
+  const paginatedBls = useMemo(
+    () => filteredBonsLivraison.slice((reportPages.BLS - 1) * reportPageSize, reportPages.BLS * reportPageSize),
+    [filteredBonsLivraison, reportPages.BLS, reportPageSize]
+  );
+  const paginatedFactures = useMemo(
+    () => filteredFactures.slice((reportPages.JOURNAL - 1) * reportPageSize, reportPages.JOURNAL * reportPageSize),
+    [filteredFactures, reportPages.JOURNAL, reportPageSize]
+  );
+  const paginatedClientBalances = useMemo(
+    () => clientBalances.slice((reportPages.BALANCE_CLIENTS - 1) * reportPageSize, reportPages.BALANCE_CLIENTS * reportPageSize),
+    [clientBalances, reportPages.BALANCE_CLIENTS, reportPageSize]
+  );
+  const paginatedSalesByGroup = useMemo(
+    () => salesByGroup.slice((reportPages.GROUPES - 1) * reportPageSize, reportPages.GROUPES * reportPageSize),
+    [salesByGroup, reportPages.GROUPES, reportPageSize]
+  );
+  const clientBalanceTotals = useMemo(
+    () => clientBalances.reduce(
+      (totals, item) => ({
+        invoices: totals.invoices + item.count,
+        billed: totals.billed + item.totalTtc,
+        paid: totals.paid + item.totalRegle,
+        due: totals.due + item.reste,
+      }),
+      { invoices: 0, billed: 0, paid: 0, due: 0 }
+    ),
+    [clientBalances]
+  );
+  const groupSalesTotals = useMemo(
+    () => salesByGroup.reduce(
+      (totals, item) => ({ quantity: totals.quantity + item.count, totalHt: totals.totalHt + item.totalHt }),
+      { quantity: 0, totalHt: 0 }
+    ),
+    [salesByGroup]
+  );
+
+  useEffect(() => {
+    const totals: Record<PaginatedReport, number> = {
+      COMPTABLE: accountantLines.length,
+      BLS: filteredBonsLivraison.length,
+      JOURNAL: filteredFactures.length,
+      BALANCE_CLIENTS: clientBalances.length,
+      GROUPES: salesByGroup.length,
+    };
+    setReportPages((pages) => {
+      let changed = false;
+      const next = { ...pages };
+      (Object.keys(totals) as PaginatedReport[]).forEach((report) => {
+        const max = Math.max(1, Math.ceil(totals[report] / reportPageSize));
+        if (next[report] > max) {
+          next[report] = max;
+          changed = true;
+        }
+      });
+      return changed ? next : pages;
+    });
+  }, [accountantLines.length, filteredBonsLivraison.length, filteredFactures.length, clientBalances.length, salesByGroup.length, reportPageSize]);
+
+  // A changed filter always starts the affected report on its first page.
+  useEffect(() => {
+    setReportPages((pages) => ({ ...pages, COMPTABLE: 1, BLS: 1, JOURNAL: 1, BALANCE_CLIENTS: 1, GROUPES: 1 }));
+  }, [startDate, endDate]);
+
+  useEffect(() => {
+    setReportPages((pages) => ({ ...pages, COMPTABLE: 1 }));
+  }, [comptableSearch, comptableClientFilter, comptableTvaFilter]);
+
+  useEffect(() => {
+    setReportPages((pages) => ({ ...pages, BLS: 1 }));
+  }, [blStatusFilter, blClientFilter]);
 
   // Export BLs to CSV
   const exportBlsToCsv = () => {
@@ -794,7 +907,7 @@ export const EtatsRapportsView: React.FC<EtatsRapportsViewProps> = ({
                       </td>
                     </tr>
                   ) : (
-                    accountantLines.map((line) => (
+                    paginatedAccountantLines.map((line) => (
                       <tr key={line.id} className="hover:bg-slate-50/80 transition">
                         <td className="p-3 font-mono font-bold text-slate-900 whitespace-nowrap">
                           {line.facture_numero}
@@ -868,6 +981,15 @@ export const EtatsRapportsView: React.FC<EtatsRapportsViewProps> = ({
                 )}
               </table>
             </div>
+            <TablePagination
+              currentPage={reportPages.COMPTABLE}
+              pageSize={reportPageSize}
+              totalItems={accountantLines.length}
+              itemLabel="lignes comptables"
+              pageSizeOptions={REPORT_PAGE_SIZE_OPTIONS}
+              onPageChange={(page) => setReportPage('COMPTABLE', page)}
+              onPageSizeChange={changeReportPageSize}
+            />
           </div>
         </div>
       )}
@@ -1085,7 +1207,7 @@ export const EtatsRapportsView: React.FC<EtatsRapportsViewProps> = ({
                       </td>
                     </tr>
                   ) : (
-                    filteredBonsLivraison.map((bl) => {
+                    paginatedBls.map((bl) => {
                       const isFacture = bl.statut === 'Facturé';
                       return (
                         <tr key={bl.id} className="hover:bg-slate-50/80 transition">
@@ -1163,10 +1285,10 @@ export const EtatsRapportsView: React.FC<EtatsRapportsViewProps> = ({
                         Total des {filteredBonsLivraison.length} Bons de Livraison :
                       </td>
                       <td className="p-3 text-right font-mono">
-                        {formatCurrency(filteredBonsLivraison.reduce((s, bl) => s + bl.total_ht, 0))}
+                        {formatCurrency(filteredBonsLivraison.reduce((s, bl) => s + toNumeric(bl.total_ht), 0))}
                       </td>
                       <td className="p-3 text-right font-mono text-emerald-400">
-                        {formatCurrency(filteredBonsLivraison.reduce((s, bl) => s + bl.total_ttc, 0))}
+                        {formatCurrency(filteredBonsLivraison.reduce((s, bl) => s + toNumeric(bl.total_ttc), 0))}
                       </td>
                       <td colSpan={2}></td>
                     </tr>
@@ -1174,6 +1296,15 @@ export const EtatsRapportsView: React.FC<EtatsRapportsViewProps> = ({
                 )}
               </table>
             </div>
+            <TablePagination
+              currentPage={reportPages.BLS}
+              pageSize={reportPageSize}
+              totalItems={filteredBonsLivraison.length}
+              itemLabel="bons de livraison"
+              pageSizeOptions={REPORT_PAGE_SIZE_OPTIONS}
+              onPageChange={(page) => setReportPage('BLS', page)}
+              onPageSizeChange={changeReportPageSize}
+            />
           </div>
         </div>
       )}
@@ -1255,7 +1386,7 @@ export const EtatsRapportsView: React.FC<EtatsRapportsViewProps> = ({
                       </td>
                     </tr>
                   ) : (
-                    filteredFactures.map((f) => (
+                    paginatedFactures.map((f) => (
                       <tr key={f.id} className="hover:bg-slate-50/80 transition">
                         <td className="p-3 font-mono font-bold text-slate-900">{f.numero}</td>
                         <td className="p-3 text-slate-600">{formatDate(f.date)}</td>
@@ -1289,6 +1420,15 @@ export const EtatsRapportsView: React.FC<EtatsRapportsViewProps> = ({
                 )}
               </table>
             </div>
+            <TablePagination
+              currentPage={reportPages.JOURNAL}
+              pageSize={reportPageSize}
+              totalItems={filteredFactures.length}
+              itemLabel="factures"
+              pageSizeOptions={REPORT_PAGE_SIZE_OPTIONS}
+              onPageChange={(page) => setReportPage('JOURNAL', page)}
+              onPageSizeChange={changeReportPageSize}
+            />
           </div>
         </div>
       )}
@@ -1324,25 +1464,25 @@ export const EtatsRapportsView: React.FC<EtatsRapportsViewProps> = ({
                 <tr>
                   <td className="p-3 font-semibold text-slate-900">TVA au Taux Normal (20%)</td>
                   <td className="p-3 text-right font-mono font-bold">
-                    {formatCurrency(factureTotals.tva20 > 0 ? factureTotals.tva20 * 5 : 0)}
+                    {formatCurrency(taxBreakdown.get(20)?.baseHt || 0)}
                   </td>
                   <td className="p-3 text-right font-mono font-bold text-blue-700">
-                    {formatCurrency(factureTotals.tva20)}
+                    {formatCurrency(taxBreakdown.get(20)?.tax || 0)}
                   </td>
                   <td className="p-3 text-right font-mono">
-                    {formatCurrency(factureTotals.tva20 > 0 ? factureTotals.tva20 * 6 : 0)}
+                    {formatCurrency(taxBreakdown.get(20)?.ttc || 0)}
                   </td>
                 </tr>
                 <tr>
                   <td className="p-3 font-semibold text-slate-900">TVA au Taux Intermédiaire (10%)</td>
                   <td className="p-3 text-right font-mono font-bold">
-                    {formatCurrency(factureTotals.tva10 > 0 ? factureTotals.tva10 * 10 : 0)}
+                    {formatCurrency(taxBreakdown.get(10)?.baseHt || 0)}
                   </td>
                   <td className="p-3 text-right font-mono font-bold text-blue-700">
-                    {formatCurrency(factureTotals.tva10)}
+                    {formatCurrency(taxBreakdown.get(10)?.tax || 0)}
                   </td>
                   <td className="p-3 text-right font-mono">
-                    {formatCurrency(factureTotals.tva10 > 0 ? factureTotals.tva10 * 11 : 0)}
+                    {formatCurrency(taxBreakdown.get(10)?.ttc || 0)}
                   </td>
                 </tr>
               </tbody>
@@ -1393,7 +1533,7 @@ export const EtatsRapportsView: React.FC<EtatsRapportsViewProps> = ({
                     </td>
                   </tr>
                 ) : (
-                  clientBalances.map(({ client, count, totalTtc, totalRegle, reste }) => (
+                  paginatedClientBalances.map(({ client, count, totalTtc, totalRegle, reste }) => (
                     <tr key={client.id} className="hover:bg-slate-50/80 transition">
                       <td className="p-3 font-mono font-bold text-slate-900">{client.code}</td>
                       <td className="p-3 font-medium text-slate-900">{client.nom}</td>
@@ -1408,9 +1548,29 @@ export const EtatsRapportsView: React.FC<EtatsRapportsViewProps> = ({
                   ))
                 )}
               </tbody>
+              {clientBalances.length > 0 && (
+                <tfoot>
+                  <tr className="bg-slate-900 text-white font-bold">
+                    <td colSpan={3} className="p-3 text-right uppercase text-[11px]">Cumul filtré ({clientBalances.length} clients) :</td>
+                    <td className="p-3 text-center font-mono">{clientBalanceTotals.invoices}</td>
+                    <td className="p-3 text-right font-mono">{formatCurrency(clientBalanceTotals.billed)}</td>
+                    <td className="p-3 text-right font-mono text-emerald-300">{formatCurrency(clientBalanceTotals.paid)}</td>
+                    <td className="p-3 text-right font-mono text-red-300">{formatCurrency(clientBalanceTotals.due)}</td>
+                  </tr>
+                </tfoot>
+              )}
             </table>
+            </div>
+            <TablePagination
+              currentPage={reportPages.BALANCE_CLIENTS}
+              pageSize={reportPageSize}
+              totalItems={clientBalances.length}
+              itemLabel="clients"
+              pageSizeOptions={REPORT_PAGE_SIZE_OPTIONS}
+              onPageChange={(page) => setReportPage('BALANCE_CLIENTS', page)}
+              onPageSizeChange={changeReportPageSize}
+            />
           </div>
-        </div>
       )}
 
       {/* ============================================================ */}
@@ -1442,7 +1602,7 @@ export const EtatsRapportsView: React.FC<EtatsRapportsViewProps> = ({
                     </td>
                   </tr>
                 ) : (
-                  salesByGroup.map((item) => {
+                  paginatedSalesByGroup.map((item) => {
                     const pct = factureTotals.ht > 0 ? (item.totalHt / factureTotals.ht) * 100 : 0;
                     return (
                       <tr key={item.group} className="hover:bg-slate-50/80 transition">
@@ -1463,14 +1623,33 @@ export const EtatsRapportsView: React.FC<EtatsRapportsViewProps> = ({
                                 className="bg-blue-600 h-full rounded-full"
                                 style={{ width: `${pct}%` }}
                               />
-                            </div>
-                          </div>
+            </div>
+            <TablePagination
+              currentPage={reportPages.GROUPES}
+              pageSize={reportPageSize}
+              totalItems={salesByGroup.length}
+              itemLabel="familles"
+              pageSizeOptions={REPORT_PAGE_SIZE_OPTIONS}
+              onPageChange={(page) => setReportPage('GROUPES', page)}
+              onPageSizeChange={changeReportPageSize}
+            />
+          </div>
                         </td>
                       </tr>
                     );
                   })
                 )}
               </tbody>
+              {salesByGroup.length > 0 && (
+                <tfoot>
+                  <tr className="bg-slate-900 text-white font-bold">
+                    <td className="p-3 text-right uppercase text-[11px]">Cumul filtré ({salesByGroup.length} familles) :</td>
+                    <td className="p-3 text-right font-mono">{groupSalesTotals.quantity.toLocaleString('fr-FR', { maximumFractionDigits: 3 })}</td>
+                    <td className="p-3 text-right font-mono text-emerald-300">{formatCurrency(groupSalesTotals.totalHt)}</td>
+                    <td className="p-3 text-right font-mono">100,0%</td>
+                  </tr>
+                </tfoot>
+              )}
             </table>
           </div>
         </div>
