@@ -39,7 +39,7 @@ export function formatDate(dateString: string | undefined | null): string {
 }
 
 /**
- * Compare document numbers by their numeric sequence, newest/largest first.
+ * Compare document numbers by exercise/year first, then sequence, newest first.
  * Works with BL/BR numbers (2637/26) and invoice numbers (FA001481/26).
  */
 export function compareDocumentNumbersDesc(a?: string | null, b?: string | null): number {
@@ -53,7 +53,7 @@ export function compareDocumentNumbersDesc(a?: string | null, b?: string | null)
 
   const left = parse(a);
   const right = parse(b);
-  return right.sequence - left.sequence || right.year - left.year;
+  return right.year - left.year || right.sequence - left.sequence;
 }
 
 /**
