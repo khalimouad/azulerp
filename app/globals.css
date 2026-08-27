@@ -44,15 +44,21 @@
     box-shadow: none !important;
     color: #000 !important;
     background: #fff !important;
+    font-variant-numeric: normal !important;
+    font-feature-settings: "zero" 0 !important;
+    font-family: Arial, Helvetica, sans-serif !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
   }
 
   body.printing-document .print-document-sheet[data-page-size='A4'] {
-    min-height: 281mm !important;
+    min-height: 283mm !important;
   }
 
   body.printing-document .print-document-sheet[data-page-size='A5'] {
-    min-height: 194mm !important;
+    min-height: 196mm !important;
   }
 }

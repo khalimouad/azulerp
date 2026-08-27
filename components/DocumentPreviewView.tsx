@@ -382,7 +382,7 @@ export const DocumentPreviewView: React.FC<DocumentPreviewViewProps> = ({
           <div className="border border-slate-400 rounded-xl p-3 bg-slate-100/80 space-y-1 min-h-24">
             <div className="flex justify-between items-center text-[11px]">
               <span className="font-bold text-slate-900">N° de {docTitle} :</span>
-              <span className="font-bold font-mono text-slate-950">{doc.numero}</span>
+              <span className="font-bold tabular-nums text-slate-950">{doc.numero}</span>
             </div>
             <div className="flex justify-between items-center text-[10px] text-slate-700">
               <span>Date :</span>
@@ -391,13 +391,13 @@ export const DocumentPreviewView: React.FC<DocumentPreviewViewProps> = ({
             {isFacture && (doc as Facture).bl_associes && (doc as Facture).bl_associes!.length > 0 && (
               <div className="flex justify-between items-center text-[9.5px] text-slate-600">
                 <span>BLs liés :</span>
-                <span className="font-mono">{(doc as Facture).bl_associes!.join(', ')}</span>
+                <span className="tabular-nums">{(doc as Facture).bl_associes!.join(', ')}</span>
               </div>
             )}
             {isFacture && (doc as Facture).br_associes && (doc as Facture).br_associes!.length > 0 && (
               <div className="flex justify-between items-center text-[9.5px] text-rose-700 font-medium">
                 <span>Retours déduits (-) :</span>
-                <span className="font-mono font-bold">{(doc as Facture).br_associes!.join(', ')}</span>
+                <span className="tabular-nums font-bold">{(doc as Facture).br_associes!.join(', ')}</span>
               </div>
             )}
             {isBr && (doc as BonRetour).motif && (
@@ -450,20 +450,20 @@ export const DocumentPreviewView: React.FC<DocumentPreviewViewProps> = ({
                           </span>
                         )}
                       </td>
-                      <td className="p-1.5 text-right font-mono font-medium">
+                      <td className="p-1.5 text-right tabular-nums font-medium">
                         {formatDisplayQuantity(
                           isBr ? -Math.abs(l.quantite) : l.quantite,
                           l.designation,
                           l.unite
                         )}
                       </td>
-                      <td className="p-1.5 text-right font-mono">{formatCurrency(l.prix_ht, false)}</td>
-                      <td className="p-1.5 text-center font-mono">{l.taux_tva ?? 20}</td>
-                      <td className="p-1.5 text-center font-mono">
+                      <td className="p-1.5 text-right tabular-nums">{formatCurrency(l.prix_ht, false)}</td>
+                      <td className="p-1.5 text-center tabular-nums">{l.taux_tva ?? 20}</td>
+                      <td className="p-1.5 text-center tabular-nums">
                         {l.remise_pct ? `${l.remise_pct}%` : ''}
                       </td>
                       <td
-                        className={`p-1.5 text-right font-mono font-bold ${
+                        className={`p-1.5 text-right tabular-nums font-bold ${
                           isNegativeLine || isBr ? 'text-rose-700' : 'text-slate-900'
                         }`}
                       >
@@ -511,23 +511,23 @@ export const DocumentPreviewView: React.FC<DocumentPreviewViewProps> = ({
           <div className="space-y-1 text-right text-[10.5px] bg-slate-100 rounded-lg p-2.5">
             <div className="flex justify-between text-slate-700">
               <span>Total HT :</span>
-              <span className="font-mono font-semibold">{formatCurrency(totalHt, false)} DH</span>
+              <span className="tabular-nums font-semibold">{formatCurrency(totalHt, false)} DH</span>
             </div>
             {tva10 > 0 && (
               <div className="flex justify-between text-slate-600">
                 <span>Total TVA 10 % :</span>
-                <span className="font-mono">{formatCurrency(tva10, false)} DH</span>
+                <span className="tabular-nums">{formatCurrency(tva10, false)} DH</span>
               </div>
             )}
             <div className="flex justify-between text-slate-600">
               <span>Total TVA 20 % :</span>
-              <span className="font-mono">{formatCurrency(tva20, false)} DH</span>
+              <span className="tabular-nums">{formatCurrency(tva20, false)} DH</span>
             </div>
 
             {/* Net à payer box */}
             <div className="border border-slate-500 bg-slate-200/80 rounded-lg p-2 flex justify-between items-center text-xs font-black text-slate-950 mt-1">
               <span>Net à payer TTC :</span>
-              <span>{formatCurrency(totalTtc, false)} DH</span>
+              <span className="tabular-nums">{formatCurrency(totalTtc, false)} DH</span>
             </div>
           </div>
         </div>

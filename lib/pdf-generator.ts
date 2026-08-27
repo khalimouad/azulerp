@@ -265,7 +265,7 @@ function drawVerdeOrtoHeader(
  * Draw Official Footer Banner on A5 page completely driven by parameterizable CompanyInfo
  */
 function drawVerdeOrtoFooter(doc: jsPDF, company: CompanyInfo) {
-  const footerY = 196;
+  const footerY = 198;
   const footerW = 132;
   const footerH = 8.5;
 
@@ -822,10 +822,10 @@ function generateA4CommercialPdf(document: A4CommercialDocument, company: Compan
   doc.text(`${formatCurrency(document.total_ttc || 0, false)} DH`, 192, finalY + 23.5, { align: 'right' });
 
   if (company.agrement_onssa || company.banque || company.rib) {
-    doc.setDrawColor(170, 174, 178); doc.rect(14, 278, 182, 10);
+    doc.setDrawColor(170, 174, 178); doc.rect(14, 283, 182, 8.5);
     doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5);
-    if (company.agrement_onssa) doc.text(`Agrément ONSSA N° : ${company.agrement_onssa}`, 105, 282, { align: 'center' });
-    if (company.banque || company.rib) doc.text(`${company.banque || ''}${company.banque && company.rib ? ' — ' : ''}${company.rib ? `R.I.B : ${company.rib}` : ''}`, 105, 286, { align: 'center' });
+    if (company.agrement_onssa) doc.text(`Agrément ONSSA N° : ${company.agrement_onssa}`, 105, 286.5, { align: 'center' });
+    if (company.banque || company.rib) doc.text(`${company.banque || ''}${company.banque && company.rib ? ' — ' : ''}${company.rib ? `R.I.B : ${company.rib}` : ''}`, 105, 290, { align: 'center' });
   }
 
   const prefix = kind === 'Facture' ? 'Facture' : kind === 'Bon de Livraison' ? 'BL' : 'BR';
