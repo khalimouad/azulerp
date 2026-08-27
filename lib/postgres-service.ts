@@ -843,15 +843,18 @@ export async function fetchPosDashboardStats(): Promise<PosDashboardStats> {
 export async function createPosSale(sale: Partial<PosSale>, lignes: any[], ...rest: any[]): Promise<PosSale | any> {
   const res = await apiCall('create_pos_sale', { sale, lignes });
   await fetchAllData();
+  const ticketNumero = res?.numero_ticket || sale.numero_ticket || `TCK-${Date.now().toString().slice(-6)}`;
   return {
-    id: res.id,
-    numero_ticket: sale.numero_ticket || `TCK-${Date.now().toString().slice(-6)}`,
-    total_ttc: sale.total_ttc || 0,
+    id: res?.id,
     ...sale,
+    numero_ticket: ticketNumero,
+    total_ttc: sale.total_ttc || 0,
+    lignes: lignes || sale.lignes || [],
   };
 }
 
 export async function cancelPosSale(id: number, motif?: string, ...rest: any[]): Promise<void> {
+  await apiCall('cancel_pos_sale', { id, motif });
   await fetchAllData();
 }
 
@@ -890,11 +893,13 @@ export async function deletePosTable(id: number, ...rest: any[]): Promise<void> 
   await fetchAllData();
 }
 
-export async function savePosTableDraft(tableId: number, items: any[], nbCouverts?: number, ...rest: any[]): Promise<void> {
+export async function savePosTableDraft(tableId: number, items: any[], nbCouverts?: number, serveur?: string, notes?: string, statut?: string): Promise<void> {
+  await apiCall('save_pos_table_draft', { tableId, items, nbCouverts, serveur, notes, statut });
   await fetchAllData();
 }
 
 export async function liberatePosTable(tableId: number, ...rest: any[]): Promise<void> {
+  await apiCall('liberate_pos_table', { tableId });
   await fetchAllData();
 }
 

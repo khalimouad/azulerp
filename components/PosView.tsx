@@ -739,21 +739,43 @@ export const PosView: React.FC<PosViewProps> = ({
     try {
       setIsProcessingPayment(true);
 
+      const now = new Date();
+      const dateStr = now.toISOString().slice(0, 10);
+      const timeStr = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+      const tableTag = activeTable?.numero ? `T${activeTable.numero}` : 'CPT';
+      const ticketNum = `TCK-${tableTag}-${Date.now().toString().slice(-6)}`;
+
       const saleData: Partial<PosSale> = {
+        numero_ticket: ticketNum,
+        session_id: activeSession?.id,
         table_id: activeTable?.id,
         table_numero: activeTable?.numero || 'Comptoir',
-        zone: 'Salle',
+        zone: activeTable?.zone || 'Salle',
         type_commande: typeCommande,
         nb_couverts: nbCouverts || 1,
         serveur: 'Caisse',
+        date_vente: dateStr,
+        heure_commande: activeTable?.heure_ouverture || timeStr,
+        heure_paiement: timeStr,
         client_nom: activeTable ? `Table ${activeTable.numero}` : 'Client Restaurant',
+        total_ht: orderCalculations.subtotalHt,
+        total_tva: orderCalculations.subtotalTva,
+        tva_20: orderCalculations.subtotalTva,
+        tva_10: 0,
+        tva_7: 0,
+        tva_0: 0,
+        total_ttc: orderCalculations.subtotalTtc,
         remise_globale_montant: orderCalculations.remiseMontant,
         pourboire: orderCalculations.pourboire,
+        montant_net_a_payer: orderCalculations.netAPayer,
         montant_donne: montantRecu,
+        montant_rendu: Math.max(0, Number((montantRecu - orderCalculations.netAPayer).toFixed(2))),
         mode_reglement: modeReglement,
         reference_paiement: referencePaiement.trim() || undefined,
+        statut: 'PAYE',
         caissier: 'Caisse',
         notes: notesCommande.trim() || undefined,
+        lignes: cart,
       };
 
       const completedSale = await createPosSale(saleData, cart);

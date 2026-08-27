@@ -1457,26 +1457,155 @@ export async function POST(req: NextRequest) {
         case 'create_pos_sale': {
           const { sale, lignes } = payload;
           const maxIdRes: any = await sql`SELECT COALESCE(MAX(id), 0) + 1 as next_id FROM pos_ventes;`;
-          const saleId = maxIdRes[0]?.next_id || 1;
+          const saleId = Number(maxIdRes[0]?.next_id || 1);
+
+          const now = new Date();
+          const dateStr = String(sale?.date_vente || now.toISOString().slice(0, 10));
+          const timeStr = String(sale?.heure_paiement || now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }));
+          const yearSuffix = dateStr.slice(2, 4) + dateStr.slice(5, 7) + dateStr.slice(8, 10);
+          const defaultTicket = `TCK-${yearSuffix}-${String(saleId).padStart(4, '0')}`;
+          const ticketNumero = String(sale?.numero_ticket || '').trim() || defaultTicket;
+
+          const totalHt = num(sale?.total_ht);
+          const totalTva = num(sale?.total_tva);
+          const totalTtc = num(sale?.total_ttc);
+          const netAPayer = num(sale?.montant_net_a_payer, totalTtc);
+          const montantDonne = num(sale?.montant_donne, netAPayer);
+          const montantRendu = num(sale?.montant_rendu);
 
           await sql`
             INSERT INTO pos_ventes (
               id, numero_ticket, session_id, table_id, table_numero, zone, type_commande,
-              nb_couverts, date_vente, total_ht, total_tva, total_ttc, mode_reglement, statut, caissier
+              nb_couverts, serveur, date_vente, heure_commande, heure_paiement, client_nom,
+              client_telephone, client_ice, total_ht, total_tva, tva_20, tva_10, tva_7, tva_0,
+              total_ttc, remise_globale_montant, pourboire, montant_net_a_payer, montant_donne,
+              montant_rendu, mode_reglement, reference_paiement, statut, caissier, notes
             ) VALUES (
-              ${saleId}, ${sale.numero_ticket}, ${sale.session_id || null}, ${sale.table_id || null},
-              ${sale.table_numero || ''}, ${sale.zone || ''}, ${sale.type_commande || 'SUR_PLACE'},
-              ${num(sale.nb_couverts, 1)}, ${sale.date_vente || new Date().toISOString().slice(0, 10)},
-              ${num(sale.total_ht)}, ${num(sale.total_tva)}, ${num(sale.total_ttc)},
-              ${sale.mode_reglement || 'Espèces'}, 'PAYE', ${sale.caissier || 'Caisse'}
+              ${saleId},
+              ${ticketNumero},
+              ${sale?.session_id ? Number(sale.session_id) : null},
+              ${sale?.table_id ? Number(sale.table_id) : null},
+              ${sale?.table_numero || ''},
+              ${sale?.zone || 'Salle'},
+              ${sale?.type_commande || 'SUR_PLACE'},
+              ${num(sale?.nb_couverts, 1)},
+              ${sale?.serveur || 'Chef de Rang'},
+              ${dateStr},
+              ${sale?.heure_commande || timeStr},
+              ${timeStr},
+              ${sale?.client_nom || 'Client Restaurant'},
+              ${sale?.client_telephone || null},
+              ${sale?.client_ice || null},
+              ${totalHt},
+              ${totalTva},
+              ${num(sale?.tva_20, totalTva)},
+              ${num(sale?.tva_10, 0)},
+              ${num(sale?.tva_7, 0)},
+              ${num(sale?.tva_0, 0)},
+              ${totalTtc},
+              ${num(sale?.remise_globale_montant, 0)},
+              ${num(sale?.pourboire, 0)},
+              ${netAPayer},
+              ${montantDonne},
+              ${montantRendu},
+              ${sale?.mode_reglement || 'Espèces'},
+              ${sale?.reference_paiement || null},
+              ${sale?.statut || 'PAYE'},
+              ${sale?.caissier || 'Caisse Principale'},
+              ${sale?.notes || ''}
             );
           `;
 
-          if (sale.table_id) {
-            await sql`UPDATE pos_tables SET statut = 'LIBRE', nb_couverts = 0, montant_en_cours = 0, commande_json = NULL WHERE id = ${sale.table_id};`;
+          if (Array.isArray(lignes) && lignes.length > 0) {
+            const lineMaxIdRes: any = await sql`SELECT COALESCE(MAX(id), 0) + 1 as next_id FROM pos_ventes_lignes;`;
+            const firstLineId = Number(lineMaxIdRes[0]?.next_id || 1);
+            for (let i = 0; i < lignes.length; i++) {
+              const l = lignes[i];
+              const lineId = firstLineId + i;
+              await sql`
+                INSERT INTO pos_ventes_lignes (
+                  id, vente_id, produit_id, produit_code, produit_nom, prix_unitaire_ttc,
+                  taux_tva, quantite, remise_pct, total_ht, total_tva, total_ttc, notes, suite
+                ) VALUES (
+                  ${lineId},
+                  ${saleId},
+                  ${l.produit_id ? Number(l.produit_id) : null},
+                  ${l.produit_code || null},
+                  ${l.produit_nom || l.nom || 'Article'},
+                  ${num(l.prix_unitaire_ttc)},
+                  ${num(l.taux_tva, 20)},
+                  ${num(l.quantite, 1)},
+                  ${num(l.remise_pct, 0)},
+                  ${num(l.total_ht)},
+                  ${num(l.total_tva)},
+                  ${num(l.total_ttc)},
+                  ${l.notes || ''},
+                  ${Boolean(l.suite)}
+                );
+              `;
+            }
           }
 
-          return NextResponse.json({ success: true, id: saleId, message: 'Ticket de caisse enregistré avec succès' });
+          if (sale?.table_id) {
+            await sql`UPDATE pos_tables SET statut = 'LIBRE', nb_couverts = 0, montant_en_cours = 0, commande_json = NULL WHERE id = ${Number(sale.table_id)};`;
+          }
+
+          return NextResponse.json({
+            success: true,
+            id: saleId,
+            numero_ticket: ticketNumero,
+            message: 'Ticket de caisse enregistré avec succès'
+          });
+        }
+
+        case 'save_pos_table_draft': {
+          const { tableId, items, nbCouverts, serveur, notes, statut } = payload;
+          const tId = Number(tableId);
+          if (!tId) {
+            return NextResponse.json({ success: false, error: 'Table invalide' }, { status: 400 });
+          }
+          const totalTtc = Array.isArray(items)
+            ? items.reduce((acc: number, item: any) => acc + (Number(item.total_ttc) || 0), 0)
+            : 0;
+          const statusToSet = statut || (Array.isArray(items) && items.length > 0 ? 'OCCUPEE' : 'LIBRE');
+          const commandeJson = Array.isArray(items) && items.length > 0 ? JSON.stringify(items) : null;
+          const nowTime = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+
+          await sql`
+            UPDATE pos_tables SET
+              statut = ${statusToSet},
+              nb_couverts = ${num(nbCouverts, 0)},
+              montant_en_cours = ${num(totalTtc, 0)},
+              commande_json = ${commandeJson},
+              notes = ${notes || null},
+              serveur = ${serveur || 'Caisse'},
+              heure_ouverture = CASE WHEN heure_ouverture IS NULL OR heure_ouverture = '' THEN ${nowTime} ELSE heure_ouverture END
+            WHERE id = ${tId};
+          `;
+          return NextResponse.json({ success: true, message: 'Table mise à jour' });
+        }
+
+        case 'liberate_pos_table': {
+          const { tableId } = payload;
+          const tId = Number(tableId);
+          if (tId) {
+            await sql`UPDATE pos_tables SET statut = 'LIBRE', nb_couverts = 0, montant_en_cours = 0, commande_json = NULL, heure_ouverture = NULL, notes = NULL WHERE id = ${tId};`;
+          }
+          return NextResponse.json({ success: true, message: 'Table libérée' });
+        }
+
+        case 'cancel_pos_sale': {
+          const { id, motif } = payload;
+          const saleId = Number(id);
+          if (saleId) {
+            await sql`
+              UPDATE pos_ventes SET
+                statut = 'ANNULE',
+                notes = COALESCE(notes, '') || ' [Annulé: ' || ${motif || 'Non spécifié'} || ']'
+              WHERE id = ${saleId};
+            `;
+          }
+          return NextResponse.json({ success: true, message: 'Vente annulée' });
         }
 
         // --- USER MANAGEMENT ---
@@ -1798,6 +1927,88 @@ export async function POST(req: NextRequest) {
             });
           }
           return NextResponse.json({ success: true, id: nextId, message: 'Facture créée' });
+        }
+
+        case 'create_pos_sale': {
+          const { sale, lignes } = payload;
+          const nextId = (store.pos_ventes?.length || 0) + 1;
+          const now = new Date();
+          const dateStr = String(sale?.date_vente || now.toISOString().slice(0, 10));
+          const timeStr = String(sale?.heure_paiement || now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }));
+          const yearSuffix = dateStr.slice(2, 4) + dateStr.slice(5, 7) + dateStr.slice(8, 10);
+          const defaultTicket = `TCK-${yearSuffix}-${String(nextId).padStart(4, '0')}`;
+          const ticketNumero = String(sale?.numero_ticket || '').trim() || defaultTicket;
+          const newSale = {
+            ...sale,
+            id: nextId,
+            numero_ticket: ticketNumero,
+            date_vente: dateStr,
+            heure_paiement: timeStr,
+            statut: 'PAYE',
+            lignes: lignes || []
+          };
+          store.pos_ventes = store.pos_ventes || [];
+          store.pos_ventes.unshift(newSale);
+          if (sale?.table_id && store.pos_tables) {
+            const table = store.pos_tables.find((t: any) => t.id === Number(sale.table_id));
+            if (table) {
+              table.statut = 'LIBRE';
+              table.nb_couverts = 0;
+              table.montant_en_cours = 0;
+              table.commande_json = null;
+            }
+          }
+          return NextResponse.json({ success: true, id: nextId, numero_ticket: ticketNumero, message: 'Ticket créé' });
+        }
+
+        case 'save_pos_table_draft': {
+          const { tableId, items, nbCouverts, serveur, notes, statut } = payload;
+          if (store.pos_tables) {
+            const table = store.pos_tables.find((t: any) => t.id === Number(tableId));
+            if (table) {
+              const totalTtc = Array.isArray(items)
+                ? items.reduce((acc: number, item: any) => acc + (Number(item.total_ttc) || 0), 0)
+                : 0;
+              table.statut = statut || (Array.isArray(items) && items.length > 0 ? 'OCCUPEE' : 'LIBRE');
+              table.nb_couverts = Number(nbCouverts) || 0;
+              table.montant_en_cours = totalTtc;
+              table.commande_json = Array.isArray(items) && items.length > 0 ? JSON.stringify(items) : null;
+              table.notes = notes || null;
+              table.serveur = serveur || 'Caisse';
+              if (!table.heure_ouverture) {
+                table.heure_ouverture = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+              }
+            }
+          }
+          return NextResponse.json({ success: true, message: 'Table mise à jour' });
+        }
+
+        case 'liberate_pos_table': {
+          const { tableId } = payload;
+          if (store.pos_tables) {
+            const table = store.pos_tables.find((t: any) => t.id === Number(tableId));
+            if (table) {
+              table.statut = 'LIBRE';
+              table.nb_couverts = 0;
+              table.montant_en_cours = 0;
+              table.commande_json = null;
+              table.heure_ouverture = null;
+              table.notes = null;
+            }
+          }
+          return NextResponse.json({ success: true, message: 'Table libérée' });
+        }
+
+        case 'cancel_pos_sale': {
+          const { id, motif } = payload;
+          if (store.pos_ventes) {
+            const sale = store.pos_ventes.find((s: any) => s.id === Number(id));
+            if (sale) {
+              sale.statut = 'ANNULE';
+              sale.notes = (sale.notes || '') + ` [Annulé: ${motif || 'Non spécifié'}]`;
+            }
+          }
+          return NextResponse.json({ success: true, message: 'Vente annulée' });
         }
 
         case 'create_client': {
