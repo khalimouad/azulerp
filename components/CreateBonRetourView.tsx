@@ -213,6 +213,8 @@ export const CreateBonRetourView: React.FC<CreateBonRetourViewProps> = ({
 
   const totalTtc = totals.totalHt + totals.totalTva;
 
+  const handleValidateAndSave = () => handleSaveWithState('Validé');
+
   const handleSaveWithState = async (targetState: DocumentState) => {
     setErrorMsg('');
     if (!selectedClient) {
@@ -461,7 +463,7 @@ export const CreateBonRetourView: React.FC<CreateBonRetourViewProps> = ({
                           value={ligne.quantite || 0}
                           min={0.01}
                           selectOnFocus
-                          onEnter={handleSave}
+                          onEnter={handleValidateAndSave}
                           onValueChange={(value) => handleLineChange(idx, 'quantite', value)}
                           ariaLabel={`Quantité retour ligne ${idx + 1}`}
                           className="w-full text-xs p-1.5 bg-white border border-slate-300 rounded-lg text-right font-bold text-rose-700 focus:ring-1 focus:ring-rose-500 tabular-nums"
@@ -474,7 +476,7 @@ export const CreateBonRetourView: React.FC<CreateBonRetourViewProps> = ({
                           value={ligne.prix_ht || 0}
                           min={0}
                           selectOnFocus
-                          onEnter={handleSave}
+                          onEnter={handleValidateAndSave}
                           onValueChange={(value) => handleLineChange(idx, 'prix_ht', value)}
                           ariaLabel={`Prix HT retour ligne ${idx + 1}`}
                           className="w-full text-xs p-1.5 bg-white border border-slate-300 rounded-lg text-right tabular-nums focus:ring-1 focus:ring-rose-500"

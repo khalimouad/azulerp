@@ -235,6 +235,8 @@ export const CreateBlView: React.FC<CreateBlViewProps> = ({
     .reduce((sum, line) => sum + line.total_tva, 0);
   const montantBrut = lignes.reduce((sum, line) => sum + line.quantite * line.prix_ht, 0);
 
+  const handleValidateAndSave = () => handleSaveWithState('Validé');
+
   const handleSaveWithState = async (targetState: DocumentState) => {
     if (!selectedClient) {
       alert('Veuillez sélectionner un client.');
@@ -496,7 +498,7 @@ export const CreateBlView: React.FC<CreateBlViewProps> = ({
                           value={l.quantite}
                           min={0.01}
                           selectOnFocus
-                          onEnter={handleSubmit}
+                          onEnter={handleValidateAndSave}
                           onValueChange={(value) => handleQuantityChange(index, value)}
                           ariaLabel={`Quantité ligne ${index + 1}`}
                           className="w-full p-2 text-xs tabular-nums font-bold text-right bg-white rounded-lg border border-slate-300 focus:outline-none focus:ring-1 focus:ring-emerald-500 text-emerald-800"
@@ -510,7 +512,7 @@ export const CreateBlView: React.FC<CreateBlViewProps> = ({
                           value={l.prix_ht}
                           min={0}
                           selectOnFocus
-                          onEnter={handleSubmit}
+                          onEnter={handleValidateAndSave}
                           onValueChange={(value) => handlePriceChange(index, value)}
                           ariaLabel={`Prix HT ligne ${index + 1}`}
                           className="w-full p-2 text-xs tabular-nums text-right bg-white rounded-lg border border-slate-300 focus:outline-none focus:ring-1 focus:ring-emerald-500"
