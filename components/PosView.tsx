@@ -745,9 +745,11 @@ export const PosView: React.FC<PosViewProps> = ({
       const tableTag = activeTable?.numero ? `T${activeTable.numero}` : 'CPT';
       const ticketNum = `TCK-${tableTag}-${Date.now().toString().slice(-6)}`;
 
+      const currentActiveSession = stats?.session_active || sessions.find((s) => s.statut === 'OUVERTE');
+
       const saleData: Partial<PosSale> = {
         numero_ticket: ticketNum,
-        session_id: activeSession?.id,
+        session_id: currentActiveSession?.id,
         table_id: activeTable?.id,
         table_numero: activeTable?.numero || 'Comptoir',
         zone: activeTable?.zone || 'Salle',
