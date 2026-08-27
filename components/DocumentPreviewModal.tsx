@@ -441,7 +441,7 @@ export const DocumentPreviewModal: React.FC<DocumentPreviewModalProps> = ({
 
           {/* Footer (purely from company settings) */}
           {(company.agrement_onssa || company.banque || company.rib) && (
-            <div className="border border-slate-300 rounded-md p-2 text-center text-[9px] text-slate-600 leading-tight space-y-0.5 mt-4">
+            <div className="border border-slate-300 rounded-md py-1 px-2 text-center text-[8.5px] text-slate-600 leading-tight space-y-0.2 mt-auto mb-0">
               {company.agrement_onssa && (
                 <div>Agrement ONSSA N° : {company.agrement_onssa}</div>
               )}

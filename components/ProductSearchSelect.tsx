@@ -19,7 +19,7 @@ const accentClasses = {
   rose: 'focus:border-rose-500 focus:ring-rose-500/20 text-rose-700',
 };
 
-const normalizeSearch = (value: unknown) =>
+const normalize = (value: unknown) =>
   String(value ?? '')
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
@@ -41,16 +41,51 @@ export const ProductSearchSelect: React.FC<ProductSearchSelectProps> = ({
   const selectedProduct = products.find((product) => Number(product.id) === Number(value));
 
   const filteredProducts = useMemo(() => {
-    const needle = normalizeSearch(deferredQuery);
-    if (!needle) return products.slice(0, 100);
+    const q = normalize(deferredQuery);
+    const list = [...products];
 
-    return products
-      .filter((product) =>
-        normalizeSearch(
-          `${product.code} ${product.libelle} ${product.famille || ''} ${product.groupe || ''}`
-        ).includes(needle)
-      )
-      .slice(0, 100);
+    if (!q) {
+      // Default: Strict alphabetical order A-Z
+      return list.sort((a, b) =>
+        (a.libelle || '').localeCompare(b.libelle || '', 'fr', { sensitivity: 'base' })
+      );
+    }
+
+    // Prioritize alphabetical order of the searched term
+    const scored = list
+      .map((prod) => {
+        const lib = normalize(prod.libelle);
+        const code = normalize(prod.code);
+        const fam = normalize(prod.famille);
+        const grp = normalize(prod.groupe);
+
+        let score = 999;
+
+        if (lib.startsWith(q)) {
+          score = 1; // Direct prefix match on product name (Highest priority)
+        } else if (lib.split(/[\s,/\-_]+/).some((w) => w.startsWith(q))) {
+          score = 2; // Word inside product name starts with search term
+        } else if (code.startsWith(q)) {
+          score = 3; // Code starts with search term
+        } else if (lib.includes(q)) {
+          score = 4; // Product name contains search term
+        } else if (code.includes(q) || fam.includes(q) || grp.includes(q)) {
+          score = 5; // Family / group / code contains search term
+        } else {
+          return null;
+        }
+
+        return { prod, score, lib: prod.libelle || '' };
+      })
+      .filter(Boolean) as { prod: Produit; score: number; lib: string }[];
+
+    // Sort by relevance score first, then alphabetically A-Z
+    scored.sort((a, b) => {
+      if (a.score !== b.score) return a.score - b.score;
+      return a.lib.localeCompare(b.lib, 'fr', { sensitivity: 'base' });
+    });
+
+    return scored.map((s) => s.prod);
   }, [deferredQuery, products]);
 
   useEffect(() => {
@@ -74,33 +109,34 @@ export const ProductSearchSelect: React.FC<ProductSearchSelectProps> = ({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className={`w-full min-h-11 rounded-xl border border-slate-300 bg-white px-3 py-2 text-left shadow-sm transition focus:outline-none focus:ring-4 ${accentClasses[accent]}`}
+        className={`w-full min-h-9 rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-left shadow-xs transition focus:outline-none focus:ring-2 ${accentClasses[accent]}`}
         aria-haspopup="dialog"
         aria-expanded={open}
       >
         <span className="flex items-center gap-2">
-          <Search className="h-4 w-4 shrink-0 text-slate-400" />
+          <Search className="h-3.5 w-3.5 shrink-0 text-slate-400" />
           <span className="min-w-0 flex-1">
             {selectedProduct ? (
-              <>
-                <span className="block truncate text-xs font-bold text-slate-900">
-                  {selectedProduct.code} · {selectedProduct.libelle}
+              <span className="flex items-baseline justify-between gap-2">
+                <span className="truncate text-xs font-bold text-slate-900">
+                  <span className="text-emerald-700 font-semibold mr-1">{selectedProduct.code}</span>
+                  {selectedProduct.libelle}
                 </span>
-                <span className="block truncate text-[10px] text-slate-500">
-                  Stock : {selectedProduct.stock_actuel} {selectedProduct.unite || 'U'}
+                <span className="shrink-0 text-[10px] text-slate-500 font-medium">
+                  Stock: {selectedProduct.stock_actuel} {selectedProduct.unite || 'U'}
                 </span>
-              </>
+              </span>
             ) : (
-              <span className="text-xs font-medium text-slate-500">Rechercher un article…</span>
+              <span className="text-xs font-medium text-slate-400">Sélectionner un article…</span>
             )}
           </span>
-          <ChevronDown className="h-4 w-4 shrink-0 text-slate-400" />
+          <ChevronDown className="h-3.5 w-3.5 shrink-0 text-slate-400" />
         </span>
       </button>
 
       {open ? (
         <div
-          className="fixed inset-0 z-[100] flex items-end justify-center bg-slate-950/50 p-0 backdrop-blur-sm sm:items-center sm:p-4"
+          className="fixed inset-0 z-[100] flex items-end justify-center bg-slate-950/60 p-0 backdrop-blur-xs sm:items-center sm:p-3"
           role="dialog"
           aria-modal="true"
           aria-label="Sélectionner un article"
@@ -108,36 +144,39 @@ export const ProductSearchSelect: React.FC<ProductSearchSelectProps> = ({
             if (event.target === event.currentTarget) setOpen(false);
           }}
         >
-          <div className="flex max-h-[90dvh] w-full flex-col overflow-hidden rounded-t-3xl bg-white shadow-2xl sm:max-w-2xl sm:rounded-2xl">
-            <div className="border-b border-slate-200 p-4">
-              <div className="mb-3 flex items-center justify-between gap-3">
-                <div>
-                  <h3 className="text-base font-black text-slate-900">Choisir un article</h3>
-                  <p className="text-xs text-slate-500">Recherche par code, désignation, famille ou groupe</p>
+          <div className="flex max-h-[88dvh] w-full flex-col overflow-hidden rounded-t-2xl bg-white shadow-2xl sm:max-w-2xl sm:rounded-xl border border-slate-200">
+            {/* Header - Compact */}
+            <div className="border-b border-slate-200 bg-slate-50/80 px-3.5 py-2.5">
+              <div className="mb-2 flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <Package className="h-4 w-4 text-emerald-700" />
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900">Choisir un article</h3>
+                  <span className="text-[11px] font-semibold text-slate-500">({filteredProducts.length} articles)</span>
                 </div>
                 <button
                   type="button"
                   onClick={() => setOpen(false)}
-                  className="grid h-11 w-11 place-items-center rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200"
+                  className="grid h-7 w-7 place-items-center rounded-lg bg-slate-200/70 text-slate-600 hover:bg-slate-300 transition"
                   aria-label="Fermer"
                 >
-                  <X className="h-5 w-5" />
+                  <X className="h-4 w-4" />
                 </button>
               </div>
               <div className="relative">
-                <Search className="absolute left-3.5 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                 <input
                   ref={searchRef}
                   type="search"
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
-                  placeholder="Ex. PRD686, burrata, fromage…"
-                  className="h-12 w-full rounded-xl border border-slate-300 bg-slate-50 pl-11 pr-4 text-base text-slate-900 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10"
+                  placeholder="Tapez pour filtrer (ex. tomate, burrata, PRD01...)"
+                  className="h-9 w-full rounded-lg border border-slate-300 bg-white pl-9 pr-3 text-xs text-slate-900 placeholder:text-slate-400 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/20"
                 />
               </div>
             </div>
 
-            <div className="overflow-y-auto overscroll-contain p-2 sm:p-3">
+            {/* List - Condensed Rows */}
+            <div className="overflow-y-auto overscroll-contain p-1.5 max-h-[58vh]">
               {allowClear ? (
                 <button
                   type="button"
@@ -146,9 +185,9 @@ export const ProductSearchSelect: React.FC<ProductSearchSelectProps> = ({
                     setQuery('');
                     setOpen(false);
                   }}
-                  className="mb-1 flex min-h-12 w-full items-center gap-3 rounded-xl px-3 text-left text-sm font-semibold text-slate-600 hover:bg-slate-100"
+                  className="mb-1 flex min-h-8 w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-xs font-semibold text-slate-600 hover:bg-slate-100"
                 >
-                  <Package className="h-5 w-5 text-slate-400" />
+                  <Package className="h-3.5 w-3.5 text-slate-400" />
                   Article libre hors catalogue
                 </button>
               ) : null}
@@ -163,47 +202,56 @@ export const ProductSearchSelect: React.FC<ProductSearchSelectProps> = ({
                       key={product.id}
                       type="button"
                       onClick={() => selectProduct(product)}
-                      className={`mb-1 flex min-h-16 w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition active:scale-[0.99] ${
+                      className={`mb-0.5 flex w-full items-center justify-between gap-2.5 rounded-lg border px-2.5 py-1.5 text-left transition active:scale-[0.99] ${
                         selected
-                          ? 'border-emerald-300 bg-emerald-50'
+                          ? 'border-emerald-400 bg-emerald-50/80 shadow-xs'
                           : 'border-transparent hover:border-slate-200 hover:bg-slate-50'
                       }`}
                     >
-                      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-slate-100 text-slate-500">
-                        <Package className="h-5 w-5" />
-                      </span>
-                      <span className="min-w-0 flex-1">
-                        <span className="block text-xs font-black text-slate-900">{product.code}</span>
-                        <span className="block truncate text-sm font-semibold text-slate-700">{product.libelle}</span>
-                        <span className="block truncate text-[11px] text-slate-500">
-                          {[product.famille, product.groupe].filter(Boolean).join(' · ') || 'Sans famille'}
+                      <div className="min-w-0 flex-1 flex items-center gap-2">
+                        <span className="shrink-0 px-1.5 py-0.5 rounded text-[10px] font-black bg-slate-100 text-slate-700">
+                          {product.code}
                         </span>
-                      </span>
-                      <span className="shrink-0 text-right">
-                        <span className="block text-xs font-bold text-slate-700">
-                          {displayedPrice.toFixed(2)} DH
-                        </span>
-                        <span className="block text-[10px] text-slate-500">
-                          {clientPrice !== undefined ? 'Tarif client · ' : ''}
-                          Stock {product.stock_actuel} {product.unite || 'U'}
-                        </span>
-                      </span>
-                      {selected ? <Check className="h-5 w-5 shrink-0 text-emerald-600" /> : null}
+                        <span className="truncate text-xs font-bold text-slate-900">{product.libelle}</span>
+                        {product.famille && (
+                          <span className="hidden sm:inline shrink-0 text-[10px] text-slate-500 font-medium">
+                            · {product.famille}
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="shrink-0 flex items-center gap-3 text-right">
+                        <div className="text-right">
+                          <span className="block text-xs font-bold text-slate-900 tabular-nums">
+                            {displayedPrice.toFixed(2)} DH
+                          </span>
+                          <span className="block text-[9.5px] text-slate-500 font-medium">
+                            {clientPrice !== undefined ? <span className="text-emerald-700 font-bold">Tarif client · </span> : ''}
+                            Stock: {product.stock_actuel} {product.unite || 'U'}
+                          </span>
+                        </div>
+                        {selected ? (
+                          <Check className="h-4 w-4 shrink-0 text-emerald-600" />
+                        ) : (
+                          <div className="w-4 h-4" />
+                        )}
+                      </div>
                     </button>
                   );
                 })
               ) : (
-                <div className="px-4 py-12 text-center">
-                  <Package className="mx-auto mb-3 h-8 w-8 text-slate-300" />
-                  <p className="text-sm font-bold text-slate-700">Aucun article trouvé</p>
-                  <p className="mt-1 text-xs text-slate-500">Essayez un autre code ou mot-clé.</p>
+                <div className="px-4 py-8 text-center">
+                  <Package className="mx-auto mb-2 h-6 w-6 text-slate-300" />
+                  <p className="text-xs font-bold text-slate-700">Aucun article trouvé pour « {query} »</p>
+                  <p className="mt-0.5 text-[11px] text-slate-500">Vérifiez l’orthographe ou le code.</p>
                 </div>
               )}
             </div>
 
-            <div className="border-t border-slate-200 bg-slate-50 px-4 py-2 text-center text-[11px] text-slate-500">
-              {filteredProducts.length} résultat{filteredProducts.length > 1 ? 's' : ''}
-              {products.length > 100 && !query ? ` sur ${products.length} · Recherchez pour affiner` : ''}
+            {/* Footer */}
+            <div className="border-t border-slate-200 bg-slate-50 px-3 py-1.5 text-center text-[10px] font-medium text-slate-500 flex justify-between items-center">
+              <span>Trié par pertinence alphabétique (A-Z)</span>
+              <span>{filteredProducts.length} article{filteredProducts.length > 1 ? 's' : ''}</span>
             </div>
           </div>
         </div>

@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Client, Produit, BonLivraisonLigne, BonLivraison, DocumentState } from '@/lib/types';
 import { formatCurrency } from '@/lib/utils';
 import { ProductSearchSelect } from '@/components/ProductSearchSelect';
+import { ClientSearchSelect } from '@/components/ClientSearchSelect';
 import { DecimalInput } from '@/components/DecimalInput';
 import { useClientTariffs } from '@/hooks/use-client-tariffs';
 import { resolveClientProductPricing } from '@/lib/client-pricing';
@@ -327,19 +328,12 @@ export const CreateBlView: React.FC<CreateBlViewProps> = ({
               <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                 Client Destinataire <span className="text-rose-500">*</span>
               </label>
-              <select
+              <ClientSearchSelect
+                clients={clients}
                 value={clientId}
-                onChange={(e) => setClientId(Number(e.target.value))}
-                required
-                className="w-full px-3 py-2 text-xs bg-white rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
-              >
-                <option value={0} disabled>Sélectionner un client…</option>
-                {clients.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.nom} {c.ice ? `(ICE: ${c.ice})` : ''} - {c.ville || 'Maroc'}
-                  </option>
-                ))}
-              </select>
+                onChange={(newId) => setClientId(newId)}
+                accent="emerald"
+              />
               {selectedClient && (
                 <div className="mt-2 p-2.5 bg-slate-50 rounded-lg text-xs text-slate-600 border border-slate-200 grid grid-cols-2 gap-2">
                   <div><strong>ICE :</strong> {selectedClient.ice || 'Non spécifié'}</div>

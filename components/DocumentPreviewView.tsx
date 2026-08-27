@@ -534,7 +534,7 @@ export const DocumentPreviewView: React.FC<DocumentPreviewViewProps> = ({
 
         {/* 6. BOTTOM FOOTER BANNER (purely from company settings) */}
         {(company.agrement_onssa || company.banque || company.rib) && (
-          <div className="border border-slate-400 p-2 text-center text-[10px] font-semibold text-slate-900 leading-tight space-y-0.5 mt-auto">
+          <div className="border border-slate-400 rounded-sm py-1 px-2 text-center text-[9px] font-semibold text-slate-800 leading-tight space-y-0.2 mt-auto mb-0">
             {company.agrement_onssa && (
               <div>Agrément ONSSA N° : {company.agrement_onssa}</div>
             )}

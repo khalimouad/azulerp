@@ -33,7 +33,15 @@ export const CreateBlModal: React.FC<CreateBlModalProps> = ({
   preSelectedClientId,
   onSave,
 }) => {
-  const [clientId, setClientId] = useState<number>(preSelectedClientId || (clients[0]?.id ?? 0));
+  const sortedClients = React.useMemo(() => {
+    return [...clients].sort((a, b) => (a.nom || '').localeCompare(b.nom || '', 'fr', { sensitivity: 'base' }));
+  }, [clients]);
+
+  const sortedProduits = React.useMemo(() => {
+    return [...produits].sort((a, b) => (a.libelle || '').localeCompare(b.libelle || '', 'fr', { sensitivity: 'base' }));
+  }, [produits]);
+
+  const [clientId, setClientId] = useState<number>(preSelectedClientId || (sortedClients[0]?.id ?? 0));
   const [date, setDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [chauffeur, setChauffeur] = useState('');
   const [immatriculation, setImmatriculation] = useState('');
@@ -50,17 +58,17 @@ export const CreateBlModal: React.FC<CreateBlModalProps> = ({
     }>
   >([
     {
-      produit_id: produits[0]?.id,
-      designation: produits[0]?.libelle || '',
+      produit_id: sortedProduits[0]?.id,
+      designation: sortedProduits[0]?.libelle || '',
       quantite: 1,
-      prix_ht: produits[0]?.prix_ht || 0,
-      taux_tva: produits[0]?.taux_tva || 20,
+      prix_ht: sortedProduits[0]?.prix_ht || 0,
+      taux_tva: sortedProduits[0]?.taux_tva || 20,
     },
   ]);
 
   if (!isOpen) return null;
 
-  const selectedClient = clients.find((c) => c.id === clientId) || clients[0];
+  const selectedClient = sortedClients.find((c) => c.id === clientId) || sortedClients[0];
 
   const handleProductChange = (index: number, prodId: number) => {
     const prod = produits.find((p) => p.id === prodId);
@@ -183,7 +191,7 @@ export const CreateBlModal: React.FC<CreateBlModalProps> = ({
                 onChange={(e) => setClientId(Number(e.target.value))}
                 className="w-full px-3 py-2 text-xs bg-white rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
               >
-                {clients.map((c) => (
+                {sortedClients.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.nom} {c.ville ? `(${c.ville})` : ''} {c.ice ? `- ICE: ${c.ice}` : ''}
                   </option>
@@ -276,7 +284,7 @@ export const CreateBlModal: React.FC<CreateBlModalProps> = ({
                             onChange={(e) => handleProductChange(idx, Number(e.target.value))}
                             className="w-full p-1 text-xs bg-slate-50 rounded border border-slate-300 focus:outline-none focus:ring-1 focus:ring-emerald-500 font-medium"
                           >
-                            {produits.map((p) => (
+                            {sortedProduits.map((p) => (
                               <option key={p.id} value={p.id}>
                                 {p.libelle} (Stock dispo: {p.stock_actuel} {p.unite})
                               </option>

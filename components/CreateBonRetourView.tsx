@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Client, Produit, BonRetour, DocumentState } from '@/lib/types';
 import { formatCurrency } from '@/lib/utils';
 import { ProductSearchSelect } from '@/components/ProductSearchSelect';
+import { ClientSearchSelect } from '@/components/ClientSearchSelect';
 import { DecimalInput } from '@/components/DecimalInput';
 import { useClientTariffs } from '@/hooks/use-client-tariffs';
 import { resolveClientProductPricing } from '@/lib/client-pricing';
@@ -314,19 +315,12 @@ export const CreateBonRetourView: React.FC<CreateBonRetourViewProps> = ({
               <label className="block text-[11px] font-semibold text-slate-700 mb-1">
                 Client concerné *
               </label>
-              <select
+              <ClientSearchSelect
+                clients={clients}
                 value={selectedClientId}
-                onChange={(e) => setSelectedClientId(Number(e.target.value))}
-                required
-                className="w-full text-xs p-2 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-rose-500 font-medium"
-              >
-                <option value={0} disabled>Sélectionner un client…</option>
-                {clients.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.nom} {c.ice ? `(ICE: ${c.ice})` : ''} - {c.ville || 'Maroc'}
-                  </option>
-                ))}
-              </select>
+                onChange={(newId) => setSelectedClientId(newId)}
+                accent="rose"
+              />
             </div>
 
             <div>

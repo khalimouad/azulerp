@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Client, Produit, DevisLigne } from '@/lib/types';
 import { formatCurrency } from '@/lib/utils';
 import { ProductSearchSelect } from '@/components/ProductSearchSelect';
+import { ClientSearchSelect } from '@/components/ClientSearchSelect';
 import {
   ArrowLeft,
   Plus,
@@ -235,17 +236,12 @@ export const CreateDevisView: React.FC<CreateDevisViewProps> = ({
               <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                 Client / Prospect *
               </label>
-              <select
+              <ClientSearchSelect
+                clients={clients}
                 value={clientId}
-                onChange={(e) => setClientId(Number(e.target.value))}
-                className="w-full px-3.5 py-2.5 text-xs sm:text-sm bg-white rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium"
-              >
-                {clients.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.nom} {c.ville ? `(${c.ville})` : ''} {c.ice ? `- ICE: ${c.ice}` : ''}
-                  </option>
-                ))}
-              </select>
+                onChange={(newId) => setClientId(newId)}
+                accent="blue"
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-2">
