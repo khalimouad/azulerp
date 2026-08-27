@@ -147,8 +147,8 @@ export const CreateDevisView: React.FC<CreateDevisViewProps> = ({
   const totalTva = calculated.reduce((sum, l) => sum + l.total_tva, 0);
   const totalTtc = totalHt + totalTva;
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: React.FormEvent) => {
+    e?.preventDefault?.();
     if (!selectedClient) {
       alert('Veuillez sélectionner un client.');
       return;
@@ -359,7 +359,7 @@ export const CreateDevisView: React.FC<CreateDevisViewProps> = ({
                         value={l.quantite}
                         min={0.01}
                         selectOnFocus
-                        onEnter={handleSubmit}
+                        onEnter={() => handleSubmit()}
                         onValueChange={(val) => handleQuantityChange(index, val)}
                         ariaLabel={`Quantité ligne ${index + 1}`}
                         className="w-full p-2 text-xs tabular-nums font-bold text-right bg-white rounded-lg border border-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500 text-indigo-900"
@@ -371,7 +371,7 @@ export const CreateDevisView: React.FC<CreateDevisViewProps> = ({
                         value={l.prix_ht}
                         min={0}
                         selectOnFocus
-                        onEnter={handleSubmit}
+                        onEnter={() => handleSubmit()}
                         onValueChange={(val) => handlePriceChange(index, val)}
                         ariaLabel={`Prix HT ligne ${index + 1}`}
                         className="w-full p-2 text-xs tabular-nums text-right bg-white rounded-lg border border-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500"
