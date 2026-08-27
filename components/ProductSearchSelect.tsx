@@ -8,6 +8,7 @@ interface ProductSearchSelectProps {
   products: Produit[];
   value?: number | null;
   onChange: (productId: number) => void;
+  onSelected?: () => void;
   accent?: 'emerald' | 'blue' | 'rose';
   allowClear?: boolean;
   clientPriceByProductId?: ReadonlyMap<number, number>;
@@ -30,6 +31,7 @@ export const ProductSearchSelect: React.FC<ProductSearchSelectProps> = ({
   products,
   value,
   onChange,
+  onSelected,
   accent = 'emerald',
   allowClear = false,
   clientPriceByProductId,
@@ -102,6 +104,9 @@ export const ProductSearchSelect: React.FC<ProductSearchSelectProps> = ({
     onChange(Number(product.id));
     setQuery('');
     setOpen(false);
+    requestAnimationFrame(() => {
+      onSelected?.();
+    });
   };
 
   return (

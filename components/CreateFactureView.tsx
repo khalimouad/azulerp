@@ -104,6 +104,7 @@ export const CreateFactureView: React.FC<CreateFactureViewProps> = ({
     ];
   });
 
+  const quantityInputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const selectedClient = clients.find((c) => Number(c.id) === Number(clientId));
   const productsById = useMemo(
     () => new Map(produits.map((product) => [Number(product.id), product])),
@@ -457,6 +458,13 @@ export const CreateFactureView: React.FC<CreateFactureViewProps> = ({
                         products={produits}
                         value={l.produit_id}
                         onChange={(productId) => handleProductChange(index, productId)}
+                        onSelected={() => {
+                          const input = quantityInputRefs.current[index];
+                          if (input) {
+                            input.focus();
+                            input.select();
+                          }
+                        }}
                         accent="blue"
                         clientPriceByProductId={clientTariffs.priceByProductId}
                       />
@@ -475,12 +483,17 @@ export const CreateFactureView: React.FC<CreateFactureViewProps> = ({
                     {/* Quantity */}
                     <td className="p-2.5">
                       <DecimalInput
+                        ref={(el) => {
+                          quantityInputRefs.current[index] = el;
+                        }}
                         required
                         value={l.quantite}
                         min={0.01}
+                        selectOnFocus
+                        onEnter={handleSubmit}
                         onValueChange={(value) => handleQuantityChange(index, value)}
                         ariaLabel={`Quantité ligne ${index + 1}`}
-                        className="w-full p-2 text-xs font-mono font-bold text-right bg-white rounded-lg border border-slate-300 focus:outline-none focus:ring-1 focus:ring-blue-500 text-blue-900"
+                        className="w-full p-2 text-xs tabular-nums font-bold text-right bg-white rounded-lg border border-slate-300 focus:outline-none focus:ring-1 focus:ring-blue-500 text-blue-900"
                       />
                     </td>
 
@@ -490,9 +503,11 @@ export const CreateFactureView: React.FC<CreateFactureViewProps> = ({
                         required
                         value={l.prix_ht}
                         min={0}
+                        selectOnFocus
+                        onEnter={handleSubmit}
                         onValueChange={(value) => handlePriceChange(index, value)}
                         ariaLabel={`Prix HT ligne ${index + 1}`}
-                        className="w-full p-2 text-xs font-mono text-right bg-white rounded-lg border border-slate-300 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        className="w-full p-2 text-xs tabular-nums text-right bg-white rounded-lg border border-slate-300 focus:outline-none focus:ring-1 focus:ring-blue-500"
                       />
                       {l.produit_id && clientTariffs.byProductId.has(Number(l.produit_id)) ? (
                         <span className="mt-1 block text-[10px] font-bold text-blue-700">Tarif client appliqué</span>

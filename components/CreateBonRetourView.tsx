@@ -90,6 +90,7 @@ export const CreateBonRetourView: React.FC<CreateBonRetourViewProps> = ({
 
   const [isSaving, setIsSaving] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const quantityInputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   const selectedClient = clients.find((c) => Number(c.id) === Number(selectedClientId));
   const productsById = useMemo(
@@ -429,6 +430,13 @@ export const CreateBonRetourView: React.FC<CreateBonRetourViewProps> = ({
                           products={produits}
                           value={ligne.produit_id}
                           onChange={(productId) => handleProductSelect(idx, productId)}
+                          onSelected={() => {
+                            const input = quantityInputRefs.current[idx];
+                            if (input) {
+                              input.focus();
+                              input.select();
+                            }
+                          }}
                           accent="rose"
                           allowClear
                           clientPriceByProductId={clientTariffs.priceByProductId}
@@ -447,11 +455,16 @@ export const CreateBonRetourView: React.FC<CreateBonRetourViewProps> = ({
 
                       <td className="py-2 px-3">
                         <DecimalInput
+                          ref={(el) => {
+                            quantityInputRefs.current[idx] = el;
+                          }}
                           value={ligne.quantite || 0}
                           min={0.01}
+                          selectOnFocus
+                          onEnter={handleSave}
                           onValueChange={(value) => handleLineChange(idx, 'quantite', value)}
                           ariaLabel={`Quantité retour ligne ${idx + 1}`}
-                          className="w-full text-xs p-1.5 bg-white border border-slate-300 rounded-lg text-right font-bold text-rose-700 focus:ring-1 focus:ring-rose-500"
+                          className="w-full text-xs p-1.5 bg-white border border-slate-300 rounded-lg text-right font-bold text-rose-700 focus:ring-1 focus:ring-rose-500 tabular-nums"
                           placeholder="1"
                         />
                       </td>
@@ -460,9 +473,11 @@ export const CreateBonRetourView: React.FC<CreateBonRetourViewProps> = ({
                         <DecimalInput
                           value={ligne.prix_ht || 0}
                           min={0}
+                          selectOnFocus
+                          onEnter={handleSave}
                           onValueChange={(value) => handleLineChange(idx, 'prix_ht', value)}
                           ariaLabel={`Prix HT retour ligne ${idx + 1}`}
-                          className="w-full text-xs p-1.5 bg-white border border-slate-300 rounded-lg text-right font-mono focus:ring-1 focus:ring-rose-500"
+                          className="w-full text-xs p-1.5 bg-white border border-slate-300 rounded-lg text-right tabular-nums focus:ring-1 focus:ring-rose-500"
                           placeholder="0.00"
                         />
                         {ligne.produit_id && clientTariffs.byProductId.has(Number(ligne.produit_id)) ? (

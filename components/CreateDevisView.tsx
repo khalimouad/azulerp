@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Client, Produit, DevisLigne } from '@/lib/types';
 import { formatCurrency } from '@/lib/utils';
 import { ProductSearchSelect } from '@/components/ProductSearchSelect';
 import { ClientSearchSelect } from '@/components/ClientSearchSelect';
+import { DecimalInput } from '@/components/DecimalInput';
 import {
   ArrowLeft,
   Plus,
@@ -45,6 +46,7 @@ export const CreateDevisView: React.FC<CreateDevisViewProps> = ({
   });
   const [notes, setNotes] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const quantityInputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   const [lignes, setLignes] = useState<
     Array<{
@@ -330,6 +332,13 @@ export const CreateDevisView: React.FC<CreateDevisViewProps> = ({
                         products={produits}
                         value={l.produit_id}
                         onChange={(productId) => handleProductChange(index, productId)}
+                        onSelected={() => {
+                          const input = quantityInputRefs.current[index];
+                          if (input) {
+                            input.focus();
+                            input.select();
+                          }
+                        }}
                         accent="blue"
                       />
                     </td>
@@ -342,25 +351,30 @@ export const CreateDevisView: React.FC<CreateDevisViewProps> = ({
                       />
                     </td>
                     <td className="p-2.5">
-                      <input
-                        type="number"
-                        step="any"
-                        min="0.01"
+                      <DecimalInput
+                        ref={(el) => {
+                          quantityInputRefs.current[index] = el;
+                        }}
                         required
                         value={l.quantite}
-                        onChange={(e) => handleQuantityChange(index, parseFloat(e.target.value) || 0)}
-                        className="w-full p-2 text-xs font-mono font-bold text-right bg-white rounded-lg border border-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500 text-indigo-900"
+                        min={0.01}
+                        selectOnFocus
+                        onEnter={handleSubmit}
+                        onValueChange={(val) => handleQuantityChange(index, val)}
+                        ariaLabel={`Quantité ligne ${index + 1}`}
+                        className="w-full p-2 text-xs tabular-nums font-bold text-right bg-white rounded-lg border border-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500 text-indigo-900"
                       />
                     </td>
                     <td className="p-2.5">
-                      <input
-                        type="number"
-                        step="any"
-                        min="0"
+                      <DecimalInput
                         required
                         value={l.prix_ht}
-                        onChange={(e) => handlePriceChange(index, parseFloat(e.target.value) || 0)}
-                        className="w-full p-2 text-xs font-mono text-right bg-white rounded-lg border border-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                        min={0}
+                        selectOnFocus
+                        onEnter={handleSubmit}
+                        onValueChange={(val) => handlePriceChange(index, val)}
+                        ariaLabel={`Prix HT ligne ${index + 1}`}
+                        className="w-full p-2 text-xs tabular-nums text-right bg-white rounded-lg border border-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                       />
                     </td>
                     <td className="p-2.5">
