@@ -39,6 +39,7 @@ import {
   DEFAULT_TICKET_PRINTER_SETTINGS,
   getTicketPrinterSettings,
   saveTicketPrinterSettings,
+  sendNetworkPrint,
   TicketPrinterSettings,
 } from '@/lib/ticket-printer';
 import { DEFAULT_REFERENCE_SETTINGS, getReferenceSettings, saveReferenceSettings, ReferenceSettings } from '@/lib/reference-settings';
@@ -68,6 +69,8 @@ export const SqliteConsoleView: React.FC<SqliteConsoleViewProps> = ({ onDatabase
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [printerSettings, setPrinterSettings] = useState<TicketPrinterSettings>(DEFAULT_TICKET_PRINTER_SETTINGS);
   const [printerSaved, setPrinterSaved] = useState(false);
+  const [isTestingPrinter, setIsTestingPrinter] = useState(false);
+  const [printerTestResult, setPrinterTestResult] = useState<{ success: boolean; message: string } | null>(null);
   const [referenceSettings, setReferenceSettings] = useState<ReferenceSettings>(DEFAULT_REFERENCE_SETTINGS);
 
   const refreshHealth = async () => {
@@ -93,6 +96,36 @@ export const SqliteConsoleView: React.FC<SqliteConsoleViewProps> = ({ onDatabase
     saveReferenceSettings(referenceSettings);
     setPrinterSaved(true);
     window.setTimeout(() => setPrinterSaved(false), 2500);
+  };
+
+  const handleTestPrinter = async () => {
+    setIsTestingPrinter(true);
+    setPrinterTestResult(null);
+    try {
+      saveTicketPrinterSettings(printerSettings);
+      const testSale: any = {
+        numero_ticket: `TEST-${Date.now().toString().slice(-4)}`,
+        date_vente: new Date().toISOString().slice(0, 10),
+        table_numero: 'TEST CAISSE',
+        caissier: 'Caisse',
+        total_ht: 100,
+        total_tva: 20,
+        total_ttc: 120,
+        lignes: [
+          { quantite: 1, produit_nom: 'Test Impression Thermique', total_ttc: 120 },
+        ],
+      };
+      const res = await sendNetworkPrint(testSale, null, 'TICKET_FINAL');
+      if (res.success) {
+        setPrinterTestResult({ success: true, message: res.message || 'Ticket de test envoyé avec succès !' });
+      } else {
+        setPrinterTestResult({ success: false, message: res.message || 'Échec d’envoi direct : vérifiez l’adresse IP (192.168.1.87) et le réseau local' });
+      }
+    } catch (err: any) {
+      setPrinterTestResult({ success: false, message: err?.message || 'Erreur lors du test' });
+    } finally {
+      setIsTestingPrinter(false);
+    }
   };
 
   const sampleQueriesPostgres = [
@@ -224,13 +257,21 @@ export const SqliteConsoleView: React.FC<SqliteConsoleViewProps> = ({ onDatabase
             <input value={printerSettings.model} onChange={(e) => setPrinterSettings({ ...printerSettings, model: e.target.value })} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm" />
           </label>
           <label className="text-xs font-semibold text-slate-700">
-            Adresse IP
-            <input value={printerSettings.ipAddress} onChange={(e) => setPrinterSettings({ ...printerSettings, ipAddress: e.target.value })} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm font-mono" />
+            Adresse IP Imprimante
+            <input value={printerSettings.ipAddress} onChange={(e) => setPrinterSettings({ ...printerSettings, ipAddress: e.target.value })} placeholder="192.168.1.87" className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm font-mono" />
+          </label>
+          <label className="text-xs font-semibold text-slate-700">
+            Passerelle / Routeur
+            <input value={printerSettings.gatewayIp || '192.168.1.1'} onChange={(e) => setPrinterSettings({ ...printerSettings, gatewayIp: e.target.value })} placeholder="192.168.1.1" className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm font-mono" />
+          </label>
+          <label className="text-xs font-semibold text-slate-700">
+            Port Réseau RAW
+            <input type="number" value={printerSettings.port || 9100} onChange={(e) => setPrinterSettings({ ...printerSettings, port: Number(e.target.value) || 9100 })} placeholder="9100" className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm font-mono" />
           </label>
           <label className="text-xs font-semibold text-slate-700">
             Largeur papier
             <select value={printerSettings.paperWidth} onChange={(e) => setPrinterSettings({ ...printerSettings, paperWidth: Number(e.target.value) as 80 | 58 })} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm bg-white">
-              <option value={80}>80 mm</option><option value={58}>58 mm</option>
+              <option value={80}>80 mm (Standard)</option><option value={58}>58 mm (Compact)</option>
             </select>
           </label>
           <label className="text-xs font-semibold text-slate-700">
@@ -240,7 +281,7 @@ export const SqliteConsoleView: React.FC<SqliteConsoleViewProps> = ({ onDatabase
             </select>
           </label>
           <label className="text-xs font-semibold text-slate-700">
-            Imprimante documents
+            Imprimante documents A4/A5
             <input value={printerSettings.documentPrinterName} onChange={(e) => setPrinterSettings({ ...printerSettings, documentPrinterName: e.target.value })} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm" />
           </label>
           <label className="text-xs font-semibold text-slate-700">
@@ -248,6 +289,14 @@ export const SqliteConsoleView: React.FC<SqliteConsoleViewProps> = ({ onDatabase
             <select value={printerSettings.documentPaperSize} onChange={(e) => setPrinterSettings({ ...printerSettings, documentPaperSize: e.target.value as 'A4' | 'A5' })} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm bg-white"><option value="A4">A4</option><option value="A5">A5</option></select>
           </label>
         </div>
+
+        {printerTestResult && (
+          <div className={`mt-4 p-3 rounded-lg text-xs flex items-center gap-2 border ${printerTestResult.success ? 'bg-emerald-50 border-emerald-300 text-emerald-800' : 'bg-amber-50 border-amber-300 text-amber-800'}`}>
+            <Printer className="w-4 h-4 shrink-0" />
+            <span>{printerTestResult.message}</span>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4 pt-4 border-t border-slate-200">
           <label className="text-xs font-semibold text-slate-700">Villes proposées
             <textarea rows={3} value={referenceSettings.cities.join('\n')} onChange={(e) => setReferenceSettings({ ...referenceSettings, cities: e.target.value.split('\n').map((v) => v.trim()).filter(Boolean) })} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" />
@@ -257,9 +306,13 @@ export const SqliteConsoleView: React.FC<SqliteConsoleViewProps> = ({ onDatabase
           </label>
         </div>
         <div className="flex flex-wrap items-center gap-2 mt-4">
-          <button type="button" onClick={handleSavePrinter} className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold">{printerSaved ? 'Réglages enregistrés' : 'Enregistrer les réglages'}</button>
+          <button type="button" onClick={handleSavePrinter} className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold shadow-xs transition">{printerSaved ? 'Réglages enregistrés' : 'Enregistrer les réglages'}</button>
+          <button type="button" onClick={handleTestPrinter} disabled={isTestingPrinter} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-xs transition disabled:opacity-50">
+            <Printer className="w-3.5 h-3.5" />
+            {isTestingPrinter ? 'Envoi du test...' : `Tester l'impression (${printerSettings.ipAddress || '192.168.1.87'})`}
+          </button>
           <a href={`http://${printerSettings.ipAddress}`} target="_blank" rel="noreferrer" className="px-4 py-2 border border-slate-300 hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-bold flex items-center gap-1.5"><ExternalLink className="w-3.5 h-3.5" /> Ouvrir la page Epson</a>
-          <p className="text-[11px] text-slate-500">Tickets : Epson réseau. Documents : sélectionnez HP-printer dans la fenêtre système, puis définissez-la comme imprimante par défaut pour accélérer l’impression.</p>
+          <p className="text-[11px] text-slate-500 w-full mt-1">Tickets de caisse : Epson réseau (IP: {printerSettings.ipAddress || '192.168.1.87'}, Port: {printerSettings.port || 9100}). Documents : HP-printer.</p>
         </div>
       </div>
 
