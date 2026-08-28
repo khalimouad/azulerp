@@ -67,15 +67,24 @@ function escapeHtml(value: unknown): string {
     .replaceAll("'", '&#039;');
 }
 
+export function bytesToBase64(bytes: Uint8Array): string {
+  let binary = '';
+  const len = bytes.byteLength;
+  for (let i = 0; i < len; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return typeof window !== 'undefined' ? window.btoa(binary) : Buffer.from(bytes).toString('base64');
+}
+
 /**
- * Builds pure binary 80mm ESC/POS ticket (NO XML, NO HTML) with exact layout:
- * - Header: VERDEORTO Snack Italy (Bold / Double-Height), address, phones, website, DUPLICATA
+ * Builds pure binary 80mm ESC/POS ticket for Epson TM-T20X:
+ * - Header: VERDEORTO Snack Italy (Double Height/Width), address, phones, website, DUPLICATA
  * - Metadata: Date creation, Boutique, Ticket, Caissier
  * - 3-Col Items: QTE, * ARTICLE *, PRIX
  * - Summary: Nombre d'articles, Sous-total
  * - Total: Double-Height font
  * - Tax Breakdown: Taux TVA, Montant H.T., T.V.A
- * - Footer: NOTE, blank line feeds & Universal Cut commands
+ * - Footer: NOTE, Feed 4 lines & SINGLE Partial Cut (GS V 66 0)
  */
 export function buildEscPosBytes(
   sale: PosSale,
@@ -211,26 +220,24 @@ export function buildEscPosBytes(
 
   addLine(divider);
 
-  // 8. FOOTER - Center Aligned & Condensed
+  // 8. FOOTER - Center Aligned
   addBytes(0x1b, 0x61, 0x01); // Center
   addBytes(0x1b, 0x45, 0x01); // Bold
   addLine('NOTE');
   addBytes(0x1b, 0x45, 0x00); // Bold off
 
-  // 9. Feed lines past printhead & Universal Cut commands
-  addBytes(0x0a, 0x0a, 0x0a, 0x0a); // 4 blank lines
-  addBytes(0x1b, 0x64, 0x04);       // ESC d 4
-  addBytes(0x1d, 0x56, 0x41, 0x00); // GS V 65 0 (Full Cut)
-  addBytes(0x1d, 0x56, 0x00);       // GS V 0 (Standard Full Cut)
-  addBytes(0x1b, 0x69);             // ESC i (Full Cut)
-  addBytes(0x1b, 0x6d);             // ESC m (Partial Cut)
+  // 9. Feed 4 lines past printhead & SINGLE Partial Cut (GS V 66 0 / 29 86 66 0)
+  addBytes(0x0a, 0x0a, 0x0a, 0x0a); // 4 line feeds
+  addBytes(0x1d, 0x56, 0x42, 0x00); // GS V 66 0 (Single Partial Cut)
 
   return new Uint8Array(bytes);
 }
 
 /**
- * Direct silent network print to thermal printer using pure ESC/POS binary data
- * (Never sends XML tags, HTML tags, or creates popup dialogs)
+ * Print Delivery via:
+ * Option B: Local Relay Server / Node.js net.Socket (/api/printer/print)
+ * Option A: Android RawBT Intent / Local Bridge (for Android tablets)
+ * (Never sends direct HTTP fetch to port 9100 to avoid printing raw HTTP headers)
  */
 export async function sendNetworkPrint(
   sale: PosSale,
@@ -239,11 +246,12 @@ export async function sendNetworkPrint(
 ): Promise<{ success: boolean; message?: string }> {
   const settings = getTicketPrinterSettings();
   const rawBytes = buildEscPosBytes(sale, company, receiptType, settings.paperWidth);
+  const b64 = bytesToBase64(rawBytes);
 
-  // 1. Try local server socket route (/api/printer/print - RAW TCP port 9100)
+  // 1. Option B: Local Relay Server / Local Node.js TCP Socket (zero HTTP headers on printer)
   try {
     const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 1200);
+    const timer = setTimeout(() => ctrl.abort(), 1500);
     const res = await fetch('/api/printer/print', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -253,36 +261,34 @@ export async function sendNetworkPrint(
     clearTimeout(timer);
     const data = await res.json();
     if (data && data.success) {
-      return { success: true, message: data.message || `Ticket envoyé à l'imprimante (${settings.ipAddress})` };
+      return { success: true, message: data.message || `Ticket imprimé sur ${settings.ipAddress}:${settings.port || 9100}` };
     }
   } catch {
-    // API route unreachable or running on Vercel cloud
+    // Hosted on cloud Vercel
   }
 
-  // 2. Direct pure binary stream to local printer IP / port 9100 (NO XML, NO HTML)
-  if (settings.ipAddress) {
-    const blob = new Blob([rawBytes as any], { type: 'application/octet-stream' });
-    const targetUrls = [
-      `http://${settings.ipAddress}:${settings.port || 9100}/`,
-      `http://${settings.ipAddress}:${settings.port || 9100}/ipp/print`,
-      `http://${settings.ipAddress}/`,
-    ];
-
-    for (const url of targetUrls) {
-      try {
-        const ctrl = new AbortController();
-        const timeout = setTimeout(() => ctrl.abort(), 2000);
-        await fetch(url, {
-          method: 'POST',
-          body: blob,
-          signal: ctrl.signal,
-          mode: 'no-cors',
-        });
-        clearTimeout(timeout);
-        return { success: true, message: `Ticket envoyé à l'imprimante (${settings.ipAddress})` };
-      } catch {
-        // try next target
+  // 2. Option A: Android Print Bridge / RawBT Deep Link Intent (for Android POS tablets)
+  if (typeof window !== 'undefined' && /android/i.test(navigator.userAgent)) {
+    try {
+      // Try RawBT local web service bridge first
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 800);
+      const bridgeRes = await fetch('http://localhost:40213/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/octet-stream' },
+        body: rawBytes as any,
+        signal: ctrl.signal,
+      });
+      clearTimeout(timer);
+      if (bridgeRes.ok) {
+        return { success: true, message: `Ticket envoyé à l'imprimante (RawBT Bridge)` };
       }
+    } catch {
+      // Fallback to Android Intent
+      try {
+        window.location.href = `intent:base64,${b64}#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;end;`;
+        return { success: true, message: `Ticket envoyé à RawBT` };
+      } catch {}
     }
   }
 
@@ -301,7 +307,18 @@ export async function printPosTicketDirect(
 }
 
 /**
- * System / Browser Print dialog (manual fallback)
+ * Main print ticket function: sends directly to thermal printer
+ */
+export function printPosTicket(
+  sale: PosSale,
+  company: CompanyInfo | null,
+  receiptType: 'ADDITION' | 'TICKET_FINAL' | 'DUPLICATA' = 'TICKET_FINAL'
+): Promise<{ success: boolean; message?: string }> {
+  return sendNetworkPrint(sale, company, receiptType);
+}
+
+/**
+ * Browser Print Spooler (manual fallback for AirPrint / PDF export)
  */
 export function printPosTicketBrowser(
   sale: PosSale,
@@ -445,15 +462,4 @@ export function printPosTicketBrowser(
   popup.document.close();
   popup.focus();
   return true;
-}
-
-/**
- * Main print ticket function: sends directly to thermal printer
- */
-export function printPosTicket(
-  sale: PosSale,
-  company: CompanyInfo | null,
-  receiptType: 'ADDITION' | 'TICKET_FINAL' | 'DUPLICATA' = 'TICKET_FINAL'
-): Promise<{ success: boolean; message?: string }> {
-  return sendNetworkPrint(sale, company, receiptType);
 }

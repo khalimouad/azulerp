@@ -20,7 +20,7 @@ function formatTicketDate(dateStr?: string): string {
  * - Summary: Nombre d'articles, Sous-total
  * - Total: Double-Height font
  * - Tax Breakdown: Taux TVA, Montant H.T., T.V.A
- * - Footer: NOTE, Feed & Universal Cut
+ * - Footer: NOTE, Feed 4 lines & SINGLE Partial Cut (GS V 66 0)
  */
 function buildEscPosBuffer(
   sale: any,
@@ -161,13 +161,9 @@ function buildEscPosBuffer(
   addLine('NOTE');
   addCmd([0x1b, 0x45, 0x00]); // Bold off
 
-  // 9. Feed lines past printhead & Universal Cut commands
-  addCmd([0x0a, 0x0a, 0x0a, 0x0a]); // 4 blank line feeds
-  addCmd([0x1b, 0x64, 0x04]);       // ESC d 4
-  addCmd([0x1d, 0x56, 0x41, 0x00]); // GS V 65 0 (Full Cut)
-  addCmd([0x1d, 0x56, 0x00]);       // GS V 0 (Standard Cut)
-  addCmd([0x1b, 0x69]);             // ESC i (Full Cut)
-  addCmd([0x1b, 0x6d]);             // ESC m (Partial Cut)
+  // 9. Feed 4 lines & SINGLE Partial Cut (GS V 66 0 / 29 86 66 0)
+  addCmd([0x0a, 0x0a, 0x0a, 0x0a]); // 4 line feeds
+  addCmd([0x1d, 0x56, 0x42, 0x00]); // GS V 66 0 (Single Partial Cut)
 
   return Buffer.concat(chunks);
 }
@@ -186,7 +182,7 @@ export async function POST(req: NextRequest) {
 
     const payloadBuffer = buildEscPosBuffer(sale || {}, company || {}, receiptType, settings?.paperWidth || 80);
 
-    // Attempt direct TCP socket connection to printer (RAW socket with 0 HTTP headers)
+    // Relay pure binary ESC/POS stream directly via TCP socket to printer
     const sendResult = await new Promise<{ success: boolean; error?: string }>((resolve) => {
       const socket = new net.Socket();
       socket.setTimeout(2500);
@@ -214,7 +210,7 @@ export async function POST(req: NextRequest) {
     if (sendResult.success) {
       return NextResponse.json({
         success: true,
-        message: `Ticket imprimé directement avec succès sur ${host}:${port}`
+        message: `Ticket imprimé avec succès sur ${host}:${port}`
       });
     } else {
       return NextResponse.json({
