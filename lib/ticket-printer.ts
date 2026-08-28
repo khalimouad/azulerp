@@ -263,7 +263,7 @@ export async function sendNetworkPrint(
             'Content-Type': 'application/ipp',
             'User-Agent': 'CUPS/2.2.9 (Linux; aarch64) IPP/2.0',
           },
-          body: ippPayload,
+          body: new Blob([ippPayload as BlobPart], { type: 'application/ipp' }),
           signal: ctrl.signal,
           mode: 'no-cors',
         });
@@ -283,7 +283,7 @@ export async function sendNetworkPrint(
         headers: {
           'Content-Type': 'application/octet-stream',
         },
-        body: rawEscPos,
+        body: new Blob([rawEscPos as BlobPart], { type: 'application/octet-stream' }),
         signal: ctrl.signal,
         mode: 'no-cors',
       });
