@@ -1485,8 +1485,8 @@ export const PosView: React.FC<PosViewProps> = ({
                       </div>
                     </div>
 
-                    {/* Dishes Touch Grid */}
-                    <div className="flex-1 min-h-0 p-3 overflow-y-auto overscroll-contain grid grid-cols-2 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 auto-rows-[220px] content-start gap-3 touch-pan-y">
+                    {/* Dishes Touch Grid (Compact 4-Columns: Photo + Name + Price Only) */}
+                    <div className="flex-1 min-h-0 p-3 overflow-y-auto overscroll-contain grid grid-cols-2 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 auto-rows-[145px] sm:auto-rows-[155px] content-start touch-pan-y">
                       {filteredProducts.map((prod) => {
                         const isAvailable = prod.disponible === 1;
 
@@ -1506,18 +1506,18 @@ export const PosView: React.FC<PosViewProps> = ({
                               showToast(`"${prod.nom}" ajouté à l'addition`);
                             }}
                             disabled={!isAvailable}
-                            className={`group relative h-[220px] min-h-[220px] text-left rounded-2xl border overflow-hidden transition flex flex-col justify-between active:scale-95 touch-manipulation cursor-pointer ${
+                            className={`group relative h-[145px] sm:h-[155px] min-h-[145px] text-left rounded-2xl border overflow-hidden transition flex flex-col justify-between active:scale-95 touch-manipulation cursor-pointer ${
                               isAvailable
                                 ? posTheme === 'dark'
-                                  ? 'bg-slate-900 border-slate-800 hover:border-emerald-500 hover:shadow-xl hover:shadow-emerald-950/40'
-                                  : 'bg-white border-slate-200 shadow-sm hover:border-emerald-500 hover:shadow-md'
+                                  ? 'bg-slate-900 border-slate-800 hover:border-emerald-500 hover:shadow-lg hover:shadow-emerald-950/40'
+                                  : 'bg-white border-slate-200 shadow-xs hover:border-emerald-500 hover:shadow-sm'
                                 : posTheme === 'dark'
                                   ? 'bg-slate-900/40 border-slate-800 opacity-50 cursor-not-allowed'
                                   : 'bg-slate-100 border-slate-200 opacity-50 cursor-not-allowed'
                             }`}
                           >
                             {/* Dish Photo */}
-                            <div className={`relative h-28 w-full overflow-hidden ${
+                            <div className={`relative h-24 sm:h-26 w-full overflow-hidden shrink-0 ${
                               posTheme === 'dark' ? 'bg-slate-950' : 'bg-slate-100'
                             }`}>
                               {prod.image_url ? (
@@ -1530,44 +1530,29 @@ export const PosView: React.FC<PosViewProps> = ({
                                 <div className={`w-full h-full flex items-center justify-center ${
                                   posTheme === 'dark' ? 'bg-gradient-to-tr from-slate-900 to-slate-800 text-slate-600' : 'bg-slate-100 text-slate-400'
                                 }`}>
-                                  <Utensils className="w-8 h-8" />
+                                  <Utensils className="w-6 h-6" />
                                 </div>
                               )}
                               <div className={`absolute inset-0 ${
-                                posTheme === 'dark' ? 'bg-gradient-to-t from-slate-950/90 via-transparent to-transparent' : 'bg-gradient-to-t from-black/40 via-transparent to-transparent'
+                                posTheme === 'dark' ? 'bg-gradient-to-t from-slate-950/80 via-transparent to-transparent' : 'bg-gradient-to-t from-black/30 via-transparent to-transparent'
                               }`} />
-                              <span className="absolute bottom-2 right-2 px-2 py-0.5 rounded-md text-xs font-black bg-emerald-600 text-white shadow">
+                              <span className="absolute bottom-1.5 right-1.5 px-2 py-0.5 rounded-md text-[11px] font-black bg-emerald-600 text-white shadow-xs">
                                 {prod.prix_vente_ttc.toFixed(2)} DH
                               </span>
                               {!isAvailable && (
-                                <span className="absolute top-2 left-2 px-2 py-0.5 rounded text-[10px] font-black bg-rose-600 text-white">
+                                <span className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded text-[9px] font-black bg-rose-600 text-white shadow-xs">
                                   Épuisé
                                 </span>
                               )}
                             </div>
 
-                            {/* Dish Info */}
-                            <div className="p-2.5 flex-1 flex flex-col justify-between">
-                              <div>
-                                <h4 className={`text-xs font-bold line-clamp-1 ${
-                                  posTheme === 'dark' ? 'text-white group-hover:text-emerald-400' : 'text-slate-900 group-hover:text-emerald-600'
-                                }`}>
-                                  {prod.nom}
-                                </h4>
-                                {prod.description && (
-                                  <p className={`text-[10px] line-clamp-2 mt-0.5 ${
-                                    posTheme === 'dark' ? 'text-slate-400' : 'text-slate-500'
-                                  }`}>
-                                    {prod.description}
-                                  </p>
-                                )}
-                              </div>
-                              <div className={`mt-2 pt-1.5 border-t flex items-center justify-between text-[10px] ${
-                                posTheme === 'dark' ? 'border-slate-800/80 text-slate-500' : 'border-slate-150 text-slate-400'
+                            {/* Dish Name Only */}
+                            <div className="p-2 flex-1 flex items-center justify-between min-w-0">
+                              <h4 className={`text-xs font-bold truncate leading-tight flex-1 ${
+                                posTheme === 'dark' ? 'text-white group-hover:text-emerald-400' : 'text-slate-900 group-hover:text-emerald-600'
                               }`}>
-                                <span>{prod.categorie_nom}</span>
-                                <span>{prod.temps_preparation_min || 15} min</span>
-                              </div>
+                                {prod.nom}
+                              </h4>
                             </div>
                           </button>
                         );
