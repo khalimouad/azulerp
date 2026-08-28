@@ -235,10 +235,8 @@ export function buildEscPosBytes(
 
 /**
  * Direct print:
- * 1. Server raw TCP socket (/api/printer/print) - ZERO HTTP headers
- * 2. Android RawBT app intent (rawbt:data:base64,...) - ZERO HTTP headers
- * 3. Browser clean 80mm print spooler fallback
- * (Never sends HTTP fetch directly to port 9100)
+ * 1. Server raw TCP socket (/api/printer/print) if running on local network
+ * 2. System Print Spooler (CUPS / eCUPS / Android Print Service / AirPrint) with 80mm template
  */
 export async function sendNetworkPrint(
   sale: PosSale,
@@ -246,9 +244,8 @@ export async function sendNetworkPrint(
   receiptType: 'ADDITION' | 'TICKET_FINAL' | 'DUPLICATA' = 'TICKET_FINAL'
 ): Promise<{ success: boolean; message?: string }> {
   const settings = getTicketPrinterSettings();
-  const rawEscPos = buildEscPosBytes(sale, company, receiptType, settings.paperWidth);
 
-  // 1. Try server socket route (Node.js RAW TCP socket - sends pure binary bytes without HTTP headers)
+  // 1. Try server socket route (Node.js RAW TCP socket - for local server installations)
   try {
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), 1200);
@@ -267,18 +264,9 @@ export async function sendNetworkPrint(
     // Hosted on Vercel cloud
   }
 
-  // 2. On Android: Send pure ESC/POS binary directly to RawBT printer driver
-  if (typeof window !== 'undefined' && /android/i.test(navigator.userAgent)) {
-    try {
-      const b64 = bytesToBase64(rawEscPos);
-      window.location.href = `rawbt:data:base64,${b64}`;
-      return { success: true, message: `Ticket envoyé à l'imprimante (RawBT)` };
-    } catch {}
-  }
-
-  // 3. Browser Print Spooler (CUPS / Android Print Service / AirPrint / Kiosk Print)
+  // 2. System Print Spooler (CUPS / eCUPS / Android Print Service / AirPrint / Kiosk Print)
   printPosTicketBrowser(sale, company, receiptType);
-  return { success: true, message: `Impression ticket lancée` };
+  return { success: true, message: `Ticket envoyé au serveur d'impression CUPS` };
 }
 
 /**
