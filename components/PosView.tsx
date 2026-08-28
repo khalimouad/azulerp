@@ -59,7 +59,7 @@ import {
   CompanyInfo,
   AppUser
 } from '@/lib/types';
-import { getTicketPrinterSettings, printPosTicket, printPosTicketBrowser } from '@/lib/ticket-printer';
+import { getTicketPrinterSettings, printPosTicket, printPosTicketBrowser, formatTicketDateTime } from '@/lib/ticket-printer';
 import {
   fetchPosTables,
   fetchPosCategories,
@@ -1763,60 +1763,95 @@ export const PosView: React.FC<PosViewProps> = ({
         {/* RECEIPT PREVIEW MODAL */}
         {showReceiptModal && lastSale && (
           <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="max-w-sm w-full bg-white text-slate-900 rounded-2xl p-6 shadow-2xl space-y-4 font-mono text-xs">
-              <div className="text-center border-b border-slate-200 pb-3">
-                <h3 className="text-sm font-black uppercase">{companyInfo?.nom || 'Verde Orto Restaurant'}</h3>
-                <p className="text-[10px] text-slate-500">ICE: {companyInfo?.ice || '002345678000091'}</p>
-                <p className="text-xs font-bold mt-1">
-                  {receiptType === 'ADDITION' ? '*** NOTE D’ADDITION CLIENT ***' : '*** TICKET DE CAISSE (REÇU) ***'}
+            <div className="max-w-sm w-full bg-white text-slate-900 rounded-2xl p-5 shadow-2xl space-y-3 font-mono text-[11px]">
+              {/* HEADER */}
+              <div className="text-center space-y-0.5">
+                <h3 className="text-sm font-black uppercase">VERDEORTO Snack Italy</h3>
+                <p className="text-[10px] text-slate-600 leading-tight">
+                  Av al moukawama Quartier Merrodi Residence Davin<br />
+                  c1 Bloc F Mag N 20 Marrakech<br />
+                  08 08 55 11 56 / 06 62 12 34 49<br />
+                  www.verdeorto.weebly.com
                 </p>
-                <p className="text-[10px] text-slate-500">
-                  {lastSale.numero_ticket} • {lastSale.date_vente}
+                <p className="text-xs font-bold pt-1">
+                  {receiptType === 'ADDITION' ? "NOTE D'ADDITION" : 'DUPLICATA'}
                 </p>
               </div>
 
-              <div className="border-b border-slate-200 pb-2 text-[11px] space-y-0.5">
+              <div className="border-t border-dashed border-slate-400" />
+
+              {/* METADATA */}
+              <div className="text-[10px] space-y-0.5">
+                <div>Date creation : {formatTicketDateTime(lastSale.date_vente)}</div>
                 <div className="flex justify-between">
-                  <span>Table : {lastSale.table_numero}</span>
-                  <span>Couverts : {lastSale.nb_couverts}</span>
+                  <span>Boutique : VerdeOrto 1</span>
+                  <span>Ticket: {lastSale.numero_ticket}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span>Caissier : {lastSale.caissier}</span>
-                  <span>Mode : {lastSale.mode_reglement}</span>
-                </div>
+                <div>Caissier : {lastSale.caissier || 'Admin'}</div>
               </div>
 
-              {/* Items */}
-              <div className="border-b border-slate-200 pb-2 space-y-1">
+              <div className="border-t border-dashed border-slate-400" />
+
+              {/* ITEMS TABLE */}
+              <div className="space-y-1">
+                <div className="flex justify-between font-bold text-[10px] pb-1 border-b border-dashed border-slate-300">
+                  <span className="w-10 text-left">QTE</span>
+                  <span className="flex-1 text-left px-2">* ARTICLE *</span>
+                  <span className="w-16 text-right">PRIX</span>
+                </div>
                 {(lastSale.lignes || []).map((l, i) => (
                   <div key={i} className="flex justify-between text-[11px]">
-                    <span className="truncate max-w-[180px]">
-                      {l.quantite}x {l.produit_nom}
-                    </span>
-                    <span className="font-bold">{l.total_ttc.toFixed(2)} DH</span>
+                    <span className="w-10 text-left">{l.quantite}</span>
+                    <span className="flex-1 text-left px-2 truncate">{l.produit_nom}</span>
+                    <span className="w-16 text-right font-medium">{Number(l.total_ttc || 0).toFixed(2)}</span>
                   </div>
                 ))}
               </div>
 
-              {/* Totals */}
-              <div className="space-y-1 text-xs">
+              <div className="border-t border-dashed border-slate-400" />
+
+              {/* SUMMARY */}
+              <div className="space-y-0.5 text-[11px]">
                 <div className="flex justify-between">
-                  <span>Total HT :</span>
-                  <span>{lastSale.total_ht.toFixed(2)} DH</span>
+                  <span>Nombre d'articles</span>
+                  <span>({(lastSale.lignes || []).reduce((sum, l) => sum + Number(l.quantite || 1), 0)})</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>TVA (20%) :</span>
-                  <span>{lastSale.total_tva.toFixed(2)} DH</span>
-                </div>
-                <div className="flex justify-between font-black text-sm pt-1 border-t border-slate-300">
-                  <span>TOTAL TTC :</span>
-                  <span>{lastSale.total_ttc.toFixed(2)} DH</span>
+                  <span>Sous-total</span>
+                  <span>{Number(lastSale.total_ht || 0).toFixed(2)} MAD</span>
                 </div>
               </div>
 
-              <div className="text-center text-[10px] text-slate-500 pt-2 border-t border-slate-200">
-                Merci de votre visite et à très bientôt !
+              <div className="border-t border-dashed border-slate-400" />
+
+              {/* TOTAL */}
+              <div className="flex justify-between font-black text-sm py-0.5">
+                <span>Total</span>
+                <span>{Number(lastSale.total_ttc || 0).toFixed(2)} MAD</span>
               </div>
+
+              <div className="border-t border-dashed border-slate-400" />
+
+              {/* TAX BREAKDOWN */}
+              <div className="text-[10px] space-y-1">
+                <div className="flex justify-between font-bold">
+                  <span className="w-1/3 text-left">Taux TVA</span>
+                  <span className="w-1/3 text-center">Montant H.T.</span>
+                  <span className="w-1/3 text-right">T.V.A</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="w-1/3 text-left">
+                    {lastSale.tva_10 && lastSale.tva_10 > 0 ? '10 %' : (lastSale.tva_7 && lastSale.tva_7 > 0 ? '7 %' : '20 %')}
+                  </span>
+                  <span className="w-1/3 text-center">{Number(lastSale.total_ht || 0).toFixed(2)}</span>
+                  <span className="w-1/3 text-right">{Number(lastSale.total_tva || 0).toFixed(2)}</span>
+                </div>
+              </div>
+
+              <div className="border-t border-dashed border-slate-400" />
+
+              {/* FOOTER */}
+              <div className="text-center font-bold text-xs pt-1">NOTE</div>
 
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 pt-2">
                 <button

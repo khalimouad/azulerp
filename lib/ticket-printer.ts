@@ -47,6 +47,17 @@ export function saveTicketPrinterSettings(settings: TicketPrinterSettings): void
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
 }
 
+export function formatTicketDateTime(dateStr?: string): string {
+  const d = dateStr ? new Date(dateStr) : new Date();
+  if (isNaN(d.getTime())) {
+    const now = new Date();
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${pad(now.getDate())}/${pad(now.getMonth() + 1)}/${now.getFullYear()} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  }
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
 function escapeHtml(value: unknown): string {
   return String(value ?? '')
     .replaceAll('&', '&amp;')
@@ -57,26 +68,32 @@ function escapeHtml(value: unknown): string {
 }
 
 /**
- * Builds standard ESC/POS binary buffer for thermal ticket
+ * Builds 80mm ESC/POS binary ticket matching the requested design:
+ * - Header: VERDEORTO Snack Italy (Bold/Double Height), address, phones, website, DUPLICATA
+ * - Metadata: Date creation, Boutique, Ticket, Caissier
+ * - 3-Col Items: QTE, * ARTICLE *, PRIX
+ * - Summary: Nombre d'articles, Sous-total
+ * - Total: Double-Height font
+ * - Tax Breakdown: Taux TVA, Montant H.T., T.V.A
+ * - Footer: NOTE, Feed & Cut
  */
 export function buildEscPosBytes(
   sale: PosSale,
   company: CompanyInfo | null,
-  receiptType: 'ADDITION' | 'TICKET_FINAL' = 'TICKET_FINAL',
+  receiptType: 'ADDITION' | 'TICKET_FINAL' | 'DUPLICATA' = 'TICKET_FINAL',
   paperWidth: number = 80
 ): Uint8Array {
   const is58mm = paperWidth === 58;
-  const colWidth = is58mm ? 32 : 42;
+  const colWidth = is58mm ? 32 : 48;
   const divider = '-'.repeat(colWidth);
 
   const bytes: number[] = [];
-
   const addBytes = (...b: number[]) => bytes.push(...b);
 
   const addText = (str: string) => {
     const clean = (str || '')
       .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, ''); // strip accents for clean ESC/POS thermal printing
+      .replace(/[\u0300-\u036f]/g, ''); // normalize accents for ESC/POS ASCII
     for (let i = 0; i < clean.length; i++) {
       const code = clean.charCodeAt(i);
       bytes.push(code < 128 ? code : 0x20);
@@ -89,142 +106,137 @@ export function buildEscPosBytes(
   };
 
   // 1. Initialize printer
-  addBytes(0x1b, 0x40); // ESC @ (Initialize)
-  addBytes(0x1b, 0x74, 0x00); // ESC t 0 (Standard PC437)
+  addBytes(0x1b, 0x40); // ESC @
+  addBytes(0x1b, 0x74, 0x00); // ESC t 0 (PC437)
 
-  // 2. Header: Centered & Double Size
-  addBytes(0x1b, 0x61, 0x01); // ESC a 1 (Center)
-  addBytes(0x1d, 0x21, 0x11); // GS ! 0x11 (Double Width & Height)
-  addLine(company?.nom || 'VerdeOrto');
+  // 2. HEADER - Center Aligned
+  addBytes(0x1b, 0x61, 0x01); // Center
+  addBytes(0x1d, 0x21, 0x11); // GS ! 0x11 (Double Width & Height Bold)
+  addLine('VERDEORTO Snack Italy');
+  addBytes(0x1d, 0x21, 0x00); // Normal font
 
-  addBytes(0x1d, 0x21, 0x00); // GS ! 0 (Normal size)
-  if (company?.adresse) addLine(company.adresse);
-  if (company?.telephone) addLine(`Tel: ${company.telephone}`);
-  if (company?.ice) addLine(`ICE: ${company.ice}`);
-
-  addLine(divider);
-
-  // Title
-  addBytes(0x1b, 0x45, 0x01); // Bold on
-  addLine(receiptType === 'ADDITION' ? "NOTE D'ADDITION" : 'TICKET DE CAISSE');
+  addLine('Av al moukawama Quartier Merrodi Residence Davin');
+  addLine('c1 Bloc F Mag N 20 Marrakech');
+  addLine('08 08 55 11 56 / 06 62 12 34 49');
+  addLine('www.verdeorto.weebly.com');
+  
+  const docTitle = receiptType === 'ADDITION' ? "NOTE D'ADDITION" : (receiptType === 'DUPLICATA' ? 'DUPLICATA' : 'TICKET DE CAISSE');
+  addBytes(0x1b, 0x45, 0x01); // Bold
+  addLine(docTitle);
   addBytes(0x1b, 0x45, 0x00); // Bold off
-  addLine(sale.numero_ticket || '');
+
   addLine(divider);
 
-  // Metadata: Left aligned
-  addBytes(0x1b, 0x61, 0x00); // ESC a 0 (Left)
-  addLine(`Date    : ${sale.date_vente || new Date().toISOString().slice(0, 10)}`);
-  addLine(`Table   : ${sale.table_numero || 'Comptoir'}`);
-  addLine(`Caissier: ${sale.caissier || 'Caisse'}`);
+  // 3. METADATA - Left Aligned
+  addBytes(0x1b, 0x61, 0x00); // Left
+  const createdDate = formatTicketDateTime(sale.date_vente);
+  addLine(`Date creation : ${createdDate}`);
+  const boutiqueInfo = `Boutique : VerdeOrto 1`;
+  const ticketInfo = `Ticket: ${sale.numero_ticket || '1'}`;
+  const metaSpaces = Math.max(1, colWidth - boutiqueInfo.length - ticketInfo.length);
+  addLine(`${boutiqueInfo}${' '.repeat(metaSpaces)}${ticketInfo}`);
+  addLine(`Caissier : ${sale.caissier || 'Admin'}`);
+
   addLine(divider);
 
-  // Format row with label on left and amount on right
-  const formatRow = (left: string, right: string) => {
+  // 4. ITEMS TABLE - 3 Columns: QTE (Left), * ARTICLE * (Center), PRIX (Right)
+  // Columns width: QTE (6), ARTICLE (28), PRIX (14) = 48
+  const qteCol = is58mm ? 4 : 6;
+  const priceCol = is58mm ? 10 : 14;
+  const nameCol = colWidth - qteCol - priceCol;
+
+  const format3Col = (c1: string, c2: string, c3: string) => {
+    const qteStr = c1.padEnd(qteCol, ' ');
+    const nameStr = c2.length > nameCol ? c2.substring(0, nameCol) : c2.padEnd(nameCol, ' ');
+    const priceStr = c3.padStart(priceCol, ' ');
+    return `${qteStr}${nameStr}${priceStr}`;
+  };
+
+  addBytes(0x1b, 0x45, 0x01); // Bold table header
+  addLine(format3Col('QTE', '* ARTICLE *', 'PRIX'));
+  addBytes(0x1b, 0x45, 0x00); // Bold off
+
+  let totalItemsCount = 0;
+  const lignes = sale.lignes || [];
+  for (const item of lignes) {
+    const qty = Number(item.quantite || 1);
+    totalItemsCount += qty;
+    const name = item.produit_nom || 'Article';
+    const price = Number(item.total_ttc || 0).toFixed(2);
+    addLine(format3Col(String(qty), name, price));
+  }
+
+  addLine(divider);
+
+  // 5. SUMMARY - Left & Right Aligned
+  const format2Col = (left: string, right: string) => {
     const spaces = Math.max(1, colWidth - left.length - right.length);
     return `${left}${' '.repeat(spaces)}${right}`;
   };
 
-  // Lines
-  for (const item of sale.lignes || []) {
-    const qty = item.quantite || 1;
-    const name = (item.produit_nom || 'Article').slice(0, colWidth - 12);
-    const total = `${Number(item.total_ttc || 0).toFixed(2)} DH`;
-    addLine(formatRow(`${qty}x ${name}`, total));
-  }
+  addLine(format2Col("Nombre d'articles", `(${totalItemsCount})`));
+  addLine(format2Col('Sous-total', `${Number(sale.total_ht || 0).toFixed(2)} MAD`));
 
   addLine(divider);
 
-  // Totals
-  addLine(formatRow('Total HT', `${Number(sale.total_ht || 0).toFixed(2)} DH`));
-  addLine(formatRow('TVA', `${Number(sale.total_tva || 0).toFixed(2)} DH`));
-
-  // TOTAL TTC Double Height
-  addBytes(0x1d, 0x21, 0x01); // Double height
-  addBytes(0x1b, 0x45, 0x01); // Bold on
-  addLine(formatRow('TOTAL TTC', `${Number(sale.total_ttc || 0).toFixed(2)} DH`));
+  // 6. TOTAL - Large / Double-Height Font
+  addBytes(0x1d, 0x21, 0x11); // Double Height & Width
+  addBytes(0x1b, 0x45, 0x01); // Bold
+  const totalLeft = 'Total';
+  const totalRight = `${Number(sale.total_ttc || 0).toFixed(2)} MAD`;
+  const halfCol = Math.floor(colWidth / 2);
+  const totalSpaces = Math.max(1, halfCol - totalLeft.length - totalRight.length);
+  addLine(`${totalLeft}${' '.repeat(totalSpaces)}${totalRight}`);
   addBytes(0x1d, 0x21, 0x00); // Normal
   addBytes(0x1b, 0x45, 0x00); // Bold off
 
-  if (sale.montant_donne && Number(sale.montant_donne) > 0) {
-    addLine(formatRow('Montant Recu', `${Number(sale.montant_donne).toFixed(2)} DH`));
-    addLine(formatRow('Rendu Monnaie', `${Number(sale.montant_rendu || 0).toFixed(2)} DH`));
-  }
+  addLine(divider);
+
+  // 7. TAX BREAKDOWN - 3 Columns
+  // Taux TVA (12), Montant H.T. (20), T.V.A (16) = 48
+  const taxCol1 = is58mm ? 8 : 12;
+  const taxCol3 = is58mm ? 10 : 16;
+  const taxCol2 = colWidth - taxCol1 - taxCol3;
+
+  const formatTaxRow = (t1: string, t2: string, t3: string) => {
+    return `${t1.padEnd(taxCol1, ' ')}${t2.padStart(taxCol2, ' ')}${t3.padStart(taxCol3, ' ')}`;
+  };
+
+  addBytes(0x1b, 0x45, 0x01); // Bold
+  addLine(formatTaxRow('Taux TVA', 'Montant H.T.', 'T.V.A'));
+  addBytes(0x1b, 0x45, 0x00); // Bold off
+
+  const ht = Number(sale.total_ht || 0).toFixed(2);
+  const tva = Number(sale.total_tva || 0).toFixed(2);
+  const taxRate = sale.tva_10 && sale.tva_10 > 0 ? '10 %' : (sale.tva_7 && sale.tva_7 > 0 ? '7 %' : '20 %');
+  addLine(formatTaxRow(taxRate, ht, tva));
 
   addLine(divider);
 
-  // Footer
+  // 8. FOOTER - Center Aligned & Condensed
   addBytes(0x1b, 0x61, 0x01); // Center
-  addLine('Merci de votre visite et a tres bientot !');
-  addLine('');
-  addLine('');
-  addLine('');
+  addBytes(0x1b, 0x45, 0x01); // Bold
+  addLine('NOTE');
+  addBytes(0x1b, 0x45, 0x00); // Bold off
 
-  // Cut paper
-  addBytes(0x1b, 0x64, 0x03); // Feed 3 lines
-  addBytes(0x1d, 0x56, 0x41, 0x03); // Full cut (GS V A 3)
+  // Cut command (feed 3 lines and cut)
+  addBytes(0x1b, 0x64, 0x03);
+  addBytes(0x1d, 0x56, 0x41, 0x03);
 
   return new Uint8Array(bytes);
 }
 
 /**
- * Builds valid binary IPP (Internet Printing Protocol) 2.0 packet
- */
-function createIppPrintJobBuffer(
-  printerUri: string,
-  docData: Uint8Array,
-  docFormat = 'application/octet-stream'
-): Uint8Array {
-  const chunks: number[] = [];
-
-  // IPP version 2.0 (0x02, 0x00)
-  chunks.push(0x02, 0x00);
-  // Operation-Id: Print-Job (0x0002)
-  chunks.push(0x00, 0x02);
-  // Request-Id: 1
-  chunks.push(0x00, 0x00, 0x00, 0x01);
-
-  // Operation Attributes Tag (0x01)
-  chunks.push(0x01);
-
-  const addAttr = (tag: number, name: string, value: string) => {
-    chunks.push(tag);
-    chunks.push((name.length >> 8) & 0xff, name.length & 0xff);
-    for (let i = 0; i < name.length; i++) chunks.push(name.charCodeAt(i));
-    const valBytes = new TextEncoder().encode(value);
-    chunks.push((valBytes.length >> 8) & 0xff, valBytes.length & 0xff);
-    for (let i = 0; i < valBytes.length; i++) chunks.push(valBytes[i]);
-  };
-
-  addAttr(0x47, 'attributes-charset', 'utf-8');
-  addAttr(0x48, 'attributes-natural-language', 'fr');
-  addAttr(0x45, 'printer-uri', printerUri);
-  addAttr(0x42, 'job-name', 'VerdeOrto Ticket');
-  addAttr(0x49, 'document-format', docFormat);
-
-  // End of attributes tag (0x03)
-  chunks.push(0x03);
-
-  const headerBytes = new Uint8Array(chunks);
-  const combined = new Uint8Array(headerBytes.length + docData.length);
-  combined.set(headerBytes, 0);
-  combined.set(docData, headerBytes.length);
-
-  return combined;
-}
-
-/**
- * Attempts direct network print to thermal printer using IPP and RAW ESC/POS streams
- * (Never sends XML or HTML tags)
+ * Direct network print to thermal printer using backend TCP socket
  */
 export async function sendNetworkPrint(
   sale: PosSale,
   company: CompanyInfo | null,
-  receiptType: 'ADDITION' | 'TICKET_FINAL' = 'TICKET_FINAL'
+  receiptType: 'ADDITION' | 'TICKET_FINAL' | 'DUPLICATA' = 'TICKET_FINAL'
 ): Promise<{ success: boolean; message?: string }> {
   const settings = getTicketPrinterSettings();
-  const rawEscPos = buildEscPosBytes(sale, company, receiptType, settings.paperWidth);
 
-  // 1. Try local server socket route (/api/printer/print)
+  // Send to backend RAW TCP socket route (zero HTTP headers on printer)
   try {
     const res = await fetch('/api/printer/print', {
       method: 'POST',
@@ -234,126 +246,176 @@ export async function sendNetworkPrint(
     const data = await res.json();
     if (data && data.success) {
       return { success: true, message: data.message || `Ticket imprimé sur ${settings.ipAddress}` };
+    } else if (data && data.error) {
+      return { success: false, message: data.error };
     }
-  } catch {
-    // continue to direct local network attempts
-  }
-
-  // 2. Try direct IPP Print-Job request to http://192.168.1.87:9100/ipp/print
-  if (settings.ipAddress) {
-    const ippPayload = createIppPrintJobBuffer(
-      `ipp://${settings.ipAddress}:${settings.port || 9100}/ipp/print`,
-      rawEscPos,
-      'application/octet-stream'
-    );
-
-    const ippEndpoints = [
-      `http://${settings.ipAddress}:${settings.port || 9100}/ipp/print`,
-      `http://${settings.ipAddress}:631/printers/printer`,
-      `http://${settings.ipAddress}:${settings.port || 9100}/`,
-    ];
-
-    for (const url of ippEndpoints) {
-      try {
-        const ctrl = new AbortController();
-        const timeout = setTimeout(() => ctrl.abort(), 2000);
-        await fetch(url, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/ipp',
-            'User-Agent': 'CUPS/2.2.9 (Linux; aarch64) IPP/2.0',
-          },
-          body: new Blob([ippPayload as BlobPart], { type: 'application/ipp' }),
-          signal: ctrl.signal,
-          mode: 'no-cors',
-        });
-        clearTimeout(timeout);
-        return { success: true, message: `Ticket envoyé à l'imprimante (${settings.ipAddress})` };
-      } catch {
-        // try next endpoint
-      }
-    }
-
-    // 3. Try raw binary stream POST
-    try {
-      const ctrl = new AbortController();
-      const timeout = setTimeout(() => ctrl.abort(), 2000);
-      await fetch(`http://${settings.ipAddress}:${settings.port || 9100}/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/octet-stream',
-        },
-        body: new Blob([rawEscPos as BlobPart], { type: 'application/octet-stream' }),
-        signal: ctrl.signal,
-        mode: 'no-cors',
-      });
-      clearTimeout(timeout);
-      return { success: true, message: `Ticket envoyé à l'imprimante (${settings.ipAddress})` };
-    } catch {
-      // failed
-    }
+  } catch (err: any) {
+    return { success: false, message: err?.message || 'Erreur de communication imprimante' };
   }
 
   return { success: false, message: `Impossible de joindre l'imprimante (${settings.ipAddress})` };
 }
 
 /**
- * Direct thermal ticket printing: sends straight to physical printer over local network (no browser popup)
+ * Direct thermal ticket printing
  */
 export async function printPosTicketDirect(
   sale: PosSale,
   company: CompanyInfo | null,
-  receiptType: 'ADDITION' | 'TICKET_FINAL' = 'TICKET_FINAL'
+  receiptType: 'ADDITION' | 'TICKET_FINAL' | 'DUPLICATA' = 'TICKET_FINAL'
 ): Promise<{ success: boolean; message?: string }> {
   return sendNetworkPrint(sale, company, receiptType);
 }
 
 /**
- * System / Browser Print dialog (fallback for AirPrint / Android system print dialog)
+ * System / Browser Print dialog with EXACT 80mm template matching requested design
  */
 export function printPosTicketBrowser(
   sale: PosSale,
   company: CompanyInfo | null,
-  receiptType: 'ADDITION' | 'TICKET_FINAL' = 'TICKET_FINAL'
+  receiptType: 'ADDITION' | 'TICKET_FINAL' | 'DUPLICATA' = 'TICKET_FINAL'
 ): boolean {
   const settings = getTicketPrinterSettings();
 
   const popup = window.open('', 'verdeorto-ticket', 'popup,width=460,height=720');
   if (!popup) return false;
 
-  const rows = (sale.lignes || []).map((line) => `
-    <tr>
-      <td>${escapeHtml(line.quantite)} × ${escapeHtml(line.produit_nom)}</td>
-      <td class="num">${Number(line.total_ttc || 0).toFixed(2)} DH</td>
-    </tr>`).join('');
+  const docTitle = receiptType === 'ADDITION' ? "NOTE D'ADDITION" : (receiptType === 'DUPLICATA' ? 'DUPLICATA' : 'TICKET DE CAISSE');
+  const createdDate = formatTicketDateTime(sale.date_vente);
+  let totalItemsCount = 0;
+
+  const rows = (sale.lignes || []).map((line) => {
+    const qty = Number(line.quantite || 1);
+    totalItemsCount += qty;
+    return `
+      <tr>
+        <td style="width: 15%; text-align: left; padding: 2px 0;">${escapeHtml(qty)}</td>
+        <td style="width: 55%; text-align: left; padding: 2px 0;">${escapeHtml(line.produit_nom)}</td>
+        <td style="width: 30%; text-align: right; padding: 2px 0; font-family: monospace;">${Number(line.total_ttc || 0).toFixed(2)}</td>
+      </tr>`;
+  }).join('');
+
+  const ht = Number(sale.total_ht || 0).toFixed(2);
+  const tva = Number(sale.total_tva || 0).toFixed(2);
+  const ttc = Number(sale.total_ttc || 0).toFixed(2);
+  const taxRate = sale.tva_10 && sale.tva_10 > 0 ? '10 %' : (sale.tva_7 && sale.tva_7 > 0 ? '7 %' : '20 %');
 
   popup.document.open();
   popup.document.write(`<!doctype html>
-<html lang="fr"><head><meta charset="utf-8"><title>${escapeHtml(sale.numero_ticket)}</title>
-<style>
-  @page { size: ${settings.paperWidth}mm auto; margin: 3mm; }
-  * { box-sizing: border-box; font-variant-numeric: normal; }
-  body { width: ${settings.paperWidth - 6}mm; margin: 0; color: #000; font: 12px/1.35 Arial, Helvetica, sans-serif; }
-  h1 { margin: 0; font-size: 18px; text-align: center; font-weight: bold; }
-  .center { text-align: center; } .small { font-size: 10px; }
-  .rule { border-top: 1px dashed #000; margin: 7px 0; }
-  .meta, table { width: 100%; border-collapse: collapse; }
-  td { padding: 2px 0; vertical-align: top; }
-  td:last-child { text-align: right; white-space: nowrap; }
-  .num { font-family: Arial, Helvetica, sans-serif; font-variant-numeric: tabular-nums; }
-  .total { font-size: 15px; font-weight: 800; border-top: 1px solid #000; padding-top: 5px; }
-</style></head><body>
-  <h1>${escapeHtml(company?.nom || 'VerdeOrto')}</h1>
-  <div class="center small">${escapeHtml(company?.adresse || '')}<br>${escapeHtml(company?.telephone || '')}</div>
-  <div class="rule"></div>
-  <div class="center"><strong>${receiptType === 'ADDITION' ? 'NOTE D’ADDITION' : 'TICKET DE CAISSE'}</strong><br>${escapeHtml(sale.numero_ticket)}</div>
-  <div class="rule"></div>
-  <table class="meta"><tr><td>Date</td><td class="num">${escapeHtml(sale.date_vente)}</td></tr><tr><td>Table</td><td>${escapeHtml(sale.table_numero || 'Comptoir')}</td></tr><tr><td>Caissier</td><td>${escapeHtml(sale.caissier)}</td></tr></table>
-  <div class="rule"></div><table>${rows}</table><div class="rule"></div>
-  <table><tr><td>Total HT</td><td class="num">${Number(sale.total_ht || 0).toFixed(2)} DH</td></tr><tr><td>TVA</td><td class="num">${Number(sale.total_tva || 0).toFixed(2)} DH</td></tr><tr class="total"><td>TOTAL TTC</td><td class="num">${Number(sale.total_ttc || 0).toFixed(2)} DH</td></tr></table>
-  <div class="rule"></div><div class="center small">Merci de votre visite et à très bientôt !</div>
-<script>window.addEventListener('load', () => { setTimeout(() => { window.print(); window.close(); }, 180); });<\/script>
-</body></html>`);
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>Ticket - ${escapeHtml(sale.numero_ticket)}</title>
+  <style>
+    @page { size: ${settings.paperWidth}mm auto; margin: 2mm; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Courier New', Courier, monospace; }
+    body { width: ${settings.paperWidth - 6}mm; margin: 0 auto; color: #000; font-size: 11px; line-height: 1.25; padding: 2px 0; }
+    .center { text-align: center; }
+    .right { text-align: right; }
+    .left { text-align: left; }
+    .bold { font-weight: bold; }
+    .title-large { font-size: 15px; font-weight: bold; text-align: center; margin-bottom: 2px; }
+    .divider { border-top: 1px dashed #000; margin: 4px 0; }
+    table { width: 100%; border-collapse: collapse; font-size: 11px; }
+    .flex-between { display: flex; justify-content: space-between; }
+    .total-row { font-size: 14px; font-weight: bold; padding: 3px 0; display: flex; justify-content: space-between; }
+    .tax-table th, .tax-table td { padding: 1px 0; font-size: 10px; }
+  </style>
+</head>
+<body>
+  <!-- HEADER -->
+  <div class="title-large">VERDEORTO Snack Italy</div>
+  <div class="center" style="font-size: 10px;">
+    Av al moukawama Quartier Merrodi Residence Davin<br>
+    c1 Bloc F Mag N 20 Marrakech<br>
+    08 08 55 11 56 / 06 62 12 34 49<br>
+    www.verdeorto.weebly.com
+  </div>
+  <div class="center bold" style="margin-top: 2px;">${docTitle}</div>
+
+  <div class="divider"></div>
+
+  <!-- METADATA -->
+  <div style="font-size: 10px;">
+    <div>Date creation : ${createdDate}</div>
+    <div class="flex-between">
+      <span>Boutique : VerdeOrto 1</span>
+      <span>Ticket: ${escapeHtml(sale.numero_ticket || '1')}</span>
+    </div>
+    <div>Caissier : ${escapeHtml(sale.caissier || 'Admin')}</div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ITEMS TABLE -->
+  <table>
+    <thead>
+      <tr class="bold" style="border-bottom: 1px dashed #000;">
+        <th style="width: 15%; text-align: left; padding-bottom: 2px;">QTE</th>
+        <th style="width: 55%; text-align: left; padding-bottom: 2px;">* ARTICLE *</th>
+        <th style="width: 30%; text-align: right; padding-bottom: 2px;">PRIX</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${rows}
+    </tbody>
+  </table>
+
+  <div class="divider"></div>
+
+  <!-- SUMMARY -->
+  <div class="flex-between" style="font-size: 11px;">
+    <span>Nombre d'articles</span>
+    <span>(${totalItemsCount})</span>
+  </div>
+  <div class="flex-between" style="font-size: 11px; margin-top: 2px;">
+    <span>Sous-total</span>
+    <span>${ht} MAD</span>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- TOTAL -->
+  <div class="total-row">
+    <span>Total</span>
+    <span>${ttc} MAD</span>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- TAX BREAKDOWN -->
+  <table class="tax-table">
+    <thead>
+      <tr class="bold">
+        <th style="width: 30%; text-align: left;">Taux TVA</th>
+        <th style="width: 40%; text-align: right;">Montant H.T.</th>
+        <th style="width: 30%; text-align: right;">T.V.A</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="text-align: left;">${taxRate}</td>
+        <td style="text-align: right;">${ht}</td>
+        <td style="text-align: right;">${tva}</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="divider"></div>
+
+  <!-- FOOTER -->
+  <div class="center bold" style="margin-top: 3px; font-size: 11px;">NOTE</div>
+
+  <script>
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        window.print();
+        window.close();
+      }, 200);
+    });
+  <\/script>
+</body>
+</html>`);
   popup.document.close();
   popup.focus();
   return true;
@@ -365,7 +427,7 @@ export function printPosTicketBrowser(
 export function printPosTicket(
   sale: PosSale,
   company: CompanyInfo | null,
-  receiptType: 'ADDITION' | 'TICKET_FINAL' = 'TICKET_FINAL'
+  receiptType: 'ADDITION' | 'TICKET_FINAL' | 'DUPLICATA' = 'TICKET_FINAL'
 ): Promise<{ success: boolean; message?: string }> {
   return sendNetworkPrint(sale, company, receiptType);
 }

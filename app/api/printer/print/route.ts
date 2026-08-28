@@ -1,103 +1,169 @@
 import { NextRequest, NextResponse } from 'next/server';
 import net from 'net';
 
+function formatTicketDate(dateStr?: string): string {
+  const d = dateStr ? new Date(dateStr) : new Date();
+  if (isNaN(d.getTime())) {
+    const now = new Date();
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${pad(now.getDate())}/${pad(now.getMonth() + 1)}/${now.getFullYear()} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  }
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
 /**
- * Helper to build standard ESC/POS bytes for thermal ticket
+ * Builds 80mm ESC/POS binary ticket matching the requested design:
+ * - Header: VERDEORTO Snack Italy (Bold/Double Height), address, phones, website, DUPLICATA
+ * - Metadata: Date creation, Boutique, Ticket, Caissier
+ * - 3-Col Items: QTE, * ARTICLE *, PRIX
+ * - Summary: Nombre d'articles, Sous-total
+ * - Total: Double-Height font
+ * - Tax Breakdown: Taux TVA, Montant H.T., T.V.A
+ * - Footer: NOTE, Feed & Cut
  */
 function buildEscPosBuffer(
   sale: any,
   company: any,
-  receiptType: 'ADDITION' | 'TICKET_FINAL' = 'TICKET_FINAL',
+  receiptType: 'ADDITION' | 'TICKET_FINAL' | 'DUPLICATA' = 'TICKET_FINAL',
   paperWidth: number = 80
 ): Buffer {
   const is58mm = paperWidth === 58;
-  const colWidth = is58mm ? 32 : 42;
+  const colWidth = is58mm ? 32 : 48;
   const divider = '-'.repeat(colWidth);
 
   const chunks: Buffer[] = [];
 
   const addText = (text: string) => {
-    chunks.push(Buffer.from(text, 'latin1'));
+    const clean = (text || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
+    chunks.push(Buffer.from(clean, 'latin1'));
   };
 
   const addCmd = (bytes: number[]) => {
     chunks.push(Buffer.from(bytes));
   };
 
-  // 1. Initialize printer
-  addCmd([0x1b, 0x40]); // ESC @
-
-  // Select character code table (PC858 / Euro)
-  addCmd([0x1b, 0x74, 19]); // ESC t 19
-
-  // 2. Header: Centered & bold double height
-  addCmd([0x1b, 0x61, 0x01]); // ESC a 1 (Center)
-  addCmd([0x1b, 0x21, 0x30]); // ESC ! 0x30 (Double width & height)
-  addText(`${company?.nom || 'VerdeOrto'}\n`);
-
-  addCmd([0x1b, 0x21, 0x00]); // Normal text
-  if (company?.adresse) addText(`${company.adresse}\n`);
-  if (company?.telephone) addText(`Tel: ${company.telephone}\n`);
-  if (company?.ice) addText(`ICE: ${company.ice}\n`);
-
-  addText(`${divider}\n`);
-
-  // Document Title
-  addCmd([0x1b, 0x21, 0x08]); // Bold
-  const title = receiptType === 'ADDITION' ? "NOTE D'ADDITION" : 'TICKET DE CAISSE';
-  addText(`${title}\n`);
-  addCmd([0x1b, 0x21, 0x00]); // Normal
-  addText(`${sale.numero_ticket || ''}\n`);
-  addText(`${divider}\n`);
-
-  // Metadata: Left aligned
-  addCmd([0x1b, 0x61, 0x00]); // Left
-  addText(`Date    : ${sale.date_vente || new Date().toISOString().slice(0, 10)}\n`);
-  addText(`Table   : ${sale.table_numero || 'Comptoir'}\n`);
-  addText(`Caissier: ${sale.caissier || 'Caisse'}\n`);
-  addText(`${divider}\n`);
-
-  // Line items
-  const lignes = sale.lignes || [];
-  for (const item of lignes) {
-    const qty = item.quantite || 1;
-    const name = (item.produit_nom || item.nom || 'Article').slice(0, colWidth - 12);
-    const total = `${Number(item.total_ttc || 0).toFixed(2)} DH`;
-    const lineLeft = `${qty}x ${name}`;
-    const spaces = Math.max(1, colWidth - lineLeft.length - total.length);
-    addText(`${lineLeft}${' '.repeat(spaces)}${total}\n`);
-  }
-
-  addText(`${divider}\n`);
-
-  // Totals
-  const formatLine = (label: string, value: string) => {
-    const spaces = Math.max(1, colWidth - label.length - value.length);
-    return `${label}${' '.repeat(spaces)}${value}\n`;
+  const addLine = (text: string = '') => {
+    addText(text);
+    chunks.push(Buffer.from([0x0a]));
   };
 
-  addText(formatLine('Total HT', `${Number(sale.total_ht || 0).toFixed(2)} DH`));
-  addText(formatLine('TVA', `${Number(sale.total_tva || 0).toFixed(2)} DH`));
+  // 1. Initialize printer
+  addCmd([0x1b, 0x40]); // ESC @
+  addCmd([0x1b, 0x74, 0]); // ESC t 0
 
-  // Big Bold Total TTC
-  addCmd([0x1b, 0x21, 0x20]); // Double height bold
-  addText(formatLine('TOTAL TTC', `${Number(sale.total_ttc || 0).toFixed(2)} DH`));
-  addCmd([0x1b, 0x21, 0x00]); // Normal
+  // 2. HEADER - Center Aligned
+  addCmd([0x1b, 0x61, 0x01]); // Center
+  addCmd([0x1d, 0x21, 0x11]); // GS ! 0x11 (Double Width & Height)
+  addLine('VERDEORTO Snack Italy');
+  addCmd([0x1d, 0x21, 0x00]); // Normal size
 
-  if (sale.montant_donne && Number(sale.montant_donne) > 0) {
-    addText(formatLine('Montant Recu', `${Number(sale.montant_donne).toFixed(2)} DH`));
-    addText(formatLine('Rendu Monnaie', `${Number(sale.montant_rendu || 0).toFixed(2)} DH`));
+  addLine('Av al moukawama Quartier Merrodi Residence Davin');
+  addLine('c1 Bloc F Mag N 20 Marrakech');
+  addLine('08 08 55 11 56 / 06 62 12 34 49');
+  addLine('www.verdeorto.weebly.com');
+
+  const docTitle = receiptType === 'ADDITION' ? "NOTE D'ADDITION" : (receiptType === 'DUPLICATA' ? 'DUPLICATA' : 'TICKET DE CAISSE');
+  addCmd([0x1b, 0x45, 0x01]); // Bold
+  addLine(docTitle);
+  addCmd([0x1b, 0x45, 0x00]); // Bold off
+
+  addLine(divider);
+
+  // 3. METADATA - Left Aligned
+  addCmd([0x1b, 0x61, 0x00]); // Left
+  addLine(`Date creation : ${formatTicketDate(sale.date_vente)}`);
+  const boutiqueInfo = `Boutique : VerdeOrto 1`;
+  const ticketInfo = `Ticket: ${sale.numero_ticket || '1'}`;
+  const metaSpaces = Math.max(1, colWidth - boutiqueInfo.length - ticketInfo.length);
+  addLine(`${boutiqueInfo}${' '.repeat(metaSpaces)}${ticketInfo}`);
+  addLine(`Caissier : ${sale.caissier || 'Admin'}`);
+
+  addLine(divider);
+
+  // 4. ITEMS TABLE - 3 Columns: QTE (Left), * ARTICLE * (Center), PRIX (Right)
+  const qteCol = is58mm ? 4 : 6;
+  const priceCol = is58mm ? 10 : 14;
+  const nameCol = colWidth - qteCol - priceCol;
+
+  const format3Col = (c1: string, c2: string, c3: string) => {
+    const qteStr = c1.padEnd(qteCol, ' ');
+    const nameStr = c2.length > nameCol ? c2.substring(0, nameCol) : c2.padEnd(nameCol, ' ');
+    const priceStr = c3.padStart(priceCol, ' ');
+    return `${qteStr}${nameStr}${priceStr}`;
+  };
+
+  addCmd([0x1b, 0x45, 0x01]); // Bold
+  addLine(format3Col('QTE', '* ARTICLE *', 'PRIX'));
+  addCmd([0x1b, 0x45, 0x00]); // Bold off
+
+  let totalItemsCount = 0;
+  const lignes = sale.lignes || [];
+  for (const item of lignes) {
+    const qty = Number(item.quantite || 1);
+    totalItemsCount += qty;
+    const name = item.produit_nom || 'Article';
+    const price = Number(item.total_ttc || 0).toFixed(2);
+    addLine(format3Col(String(qty), name, price));
   }
 
-  addText(`${divider}\n`);
+  addLine(divider);
 
-  // Footer: Centered
+  // 5. SUMMARY - Left & Right Aligned
+  const format2Col = (left: string, right: string) => {
+    const spaces = Math.max(1, colWidth - left.length - right.length);
+    return `${left}${' '.repeat(spaces)}${right}`;
+  };
+
+  addLine(format2Col("Nombre d'articles", `(${totalItemsCount})`));
+  addLine(format2Col('Sous-total', `${Number(sale.total_ht || 0).toFixed(2)} MAD`));
+
+  addLine(divider);
+
+  // 6. TOTAL - Large / Double-Height Font
+  addCmd([0x1d, 0x21, 0x11]); // Double Height & Width
+  addCmd([0x1b, 0x45, 0x01]); // Bold
+  const totalLeft = 'Total';
+  const totalRight = `${Number(sale.total_ttc || 0).toFixed(2)} MAD`;
+  const halfCol = Math.floor(colWidth / 2);
+  const totalSpaces = Math.max(1, halfCol - totalLeft.length - totalRight.length);
+  addLine(`${totalLeft}${' '.repeat(totalSpaces)}${totalRight}`);
+  addCmd([0x1d, 0x21, 0x00]); // Normal
+  addCmd([0x1b, 0x45, 0x00]); // Bold off
+
+  addLine(divider);
+
+  // 7. TAX BREAKDOWN - 3 Columns
+  const taxCol1 = is58mm ? 8 : 12;
+  const taxCol3 = is58mm ? 10 : 16;
+  const taxCol2 = colWidth - taxCol1 - taxCol3;
+
+  const formatTaxRow = (t1: string, t2: string, t3: string) => {
+    return `${t1.padEnd(taxCol1, ' ')}${t2.padStart(taxCol2, ' ')}${t3.padStart(taxCol3, ' ')}`;
+  };
+
+  addCmd([0x1b, 0x45, 0x01]); // Bold
+  addLine(formatTaxRow('Taux TVA', 'Montant H.T.', 'T.V.A'));
+  addCmd([0x1b, 0x45, 0x00]); // Bold off
+
+  const ht = Number(sale.total_ht || 0).toFixed(2);
+  const tva = Number(sale.total_tva || 0).toFixed(2);
+  const taxRate = sale.tva_10 && sale.tva_10 > 0 ? '10 %' : (sale.tva_7 && sale.tva_7 > 0 ? '7 %' : '20 %');
+  addLine(formatTaxRow(taxRate, ht, tva));
+
+  addLine(divider);
+
+  // 8. FOOTER - Center Aligned
   addCmd([0x1b, 0x61, 0x01]); // Center
-  addText('Merci de votre visite et a tres bientot !\n');
+  addCmd([0x1b, 0x45, 0x01]); // Bold
+  addLine('NOTE');
+  addCmd([0x1b, 0x45, 0x00]); // Bold off
 
-  // Feed 4 lines & Full Cut
-  addCmd([0x1b, 0x64, 0x04]); // ESC d 4 (feed 4 lines)
-  addCmd([0x1d, 0x56, 0x41, 0x03]); // GS V A 3 (feed and cut)
+  // Cut command (feed 3 lines and cut)
+  addCmd([0x1b, 0x64, 0x03]);
+  addCmd([0x1d, 0x56, 0x41, 0x03]);
 
   return Buffer.concat(chunks);
 }
@@ -116,7 +182,7 @@ export async function POST(req: NextRequest) {
 
     const payloadBuffer = buildEscPosBuffer(sale || {}, company || {}, receiptType, settings?.paperWidth || 80);
 
-    // Attempt direct TCP socket connection to printer
+    // Attempt direct TCP socket connection to printer (RAW socket with 0 HTTP headers)
     const sendResult = await new Promise<{ success: boolean; error?: string }>((resolve) => {
       const socket = new net.Socket();
       socket.setTimeout(2500);
