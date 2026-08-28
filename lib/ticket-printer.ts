@@ -67,18 +67,9 @@ function escapeHtml(value: unknown): string {
     .replaceAll("'", '&#039;');
 }
 
-export function bytesToBase64(bytes: Uint8Array): string {
-  let binary = '';
-  const len = bytes.byteLength;
-  for (let i = 0; i < len; i++) {
-    binary += String.fromCharCode(bytes[i]);
-  }
-  return typeof window !== 'undefined' ? window.btoa(binary) : Buffer.from(bytes).toString('base64');
-}
-
 /**
  * Builds pure binary 80mm ESC/POS ticket for Epson TM-T20X:
- * - Header: VERDEORTO Snack Italy (Double Height/Width), address, phones, website, DUPLICATA
+ * - Header: VERDEORTO Snack Italy (Bold/Double-Height), address, phones, website, DUPLICATA
  * - Metadata: Date creation, Boutique, Ticket, Caissier
  * - 3-Col Items: QTE, * ARTICLE *, PRIX
  * - Summary: Nombre d'articles, Sous-total
@@ -102,7 +93,7 @@ export function buildEscPosBytes(
   const addText = (str: string) => {
     const clean = (str || '')
       .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, ''); // strip accents for ESC/POS ASCII
+      .replace(/[\u0300-\u036f]/g, ''); // strip accents for standard ASCII ESC/POS
     for (let i = 0; i < clean.length; i++) {
       const code = clean.charCodeAt(i);
       bytes.push(code < 128 ? code : 0x20);
@@ -226,7 +217,7 @@ export function buildEscPosBytes(
   addLine('NOTE');
   addBytes(0x1b, 0x45, 0x00); // Bold off
 
-  // 9. Feed 4 lines past printhead & SINGLE Partial Cut (GS V 66 0 / 29 86 66 0)
+  // 9. Feed 4 lines & SINGLE Partial Cut (GS V 66 0 / 29 86 66 0)
   addBytes(0x0a, 0x0a, 0x0a, 0x0a); // 4 line feeds
   addBytes(0x1d, 0x56, 0x42, 0x00); // GS V 66 0 (Single Partial Cut)
 
@@ -234,10 +225,10 @@ export function buildEscPosBytes(
 }
 
 /**
- * Print Delivery via:
- * Option B: Local Relay Server / Node.js net.Socket (/api/printer/print)
- * Option A: Android RawBT Intent / Local Bridge (for Android tablets)
- * (Never sends direct HTTP fetch to port 9100 to avoid printing raw HTTP headers)
+ * Print Delivery:
+ * 1. Node.js RAW TCP socket relay (/api/printer/print) - Pure binary ESC/POS stream with ZERO HTTP headers
+ * 2. System Print Spooler (CUPS / eCUPS / AirPrint / Android Print Service) with exact 80mm template
+ * (NEVER sends raw HTTP fetch to port 9100 from browser, preventing HTTP header printing)
  */
 export async function sendNetworkPrint(
   sale: PosSale,
@@ -245,10 +236,8 @@ export async function sendNetworkPrint(
   receiptType: 'ADDITION' | 'TICKET_FINAL' | 'DUPLICATA' = 'TICKET_FINAL'
 ): Promise<{ success: boolean; message?: string }> {
   const settings = getTicketPrinterSettings();
-  const rawBytes = buildEscPosBytes(sale, company, receiptType, settings.paperWidth);
-  const b64 = bytesToBase64(rawBytes);
 
-  // 1. Option B: Local Relay Server / Local Node.js TCP Socket (zero HTTP headers on printer)
+  // 1. Try local server socket route (Node.js net.Socket - pure TCP socket, zero HTTP headers)
   try {
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), 1500);
@@ -261,38 +250,15 @@ export async function sendNetworkPrint(
     clearTimeout(timer);
     const data = await res.json();
     if (data && data.success) {
-      return { success: true, message: data.message || `Ticket imprimé sur ${settings.ipAddress}:${settings.port || 9100}` };
+      return { success: true, message: data.message || `Ticket imprimé sur ${settings.ipAddress}` };
     }
   } catch {
     // Hosted on cloud Vercel
   }
 
-  // 2. Option A: Android Print Bridge / RawBT Deep Link Intent (for Android POS tablets)
-  if (typeof window !== 'undefined' && /android/i.test(navigator.userAgent)) {
-    try {
-      // Try RawBT local web service bridge first
-      const ctrl = new AbortController();
-      const timer = setTimeout(() => ctrl.abort(), 800);
-      const bridgeRes = await fetch('http://localhost:40213/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/octet-stream' },
-        body: rawBytes as any,
-        signal: ctrl.signal,
-      });
-      clearTimeout(timer);
-      if (bridgeRes.ok) {
-        return { success: true, message: `Ticket envoyé à l'imprimante (RawBT Bridge)` };
-      }
-    } catch {
-      // Fallback to Android Intent
-      try {
-        window.location.href = `intent:base64,${b64}#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;end;`;
-        return { success: true, message: `Ticket envoyé à RawBT` };
-      } catch {}
-    }
-  }
-
-  return { success: false, message: `Impossible de joindre l'imprimante (${settings.ipAddress})` };
+  // 2. System Print Spooler (CUPS / eCUPS / AirPrint / Android Print Service - zero HTTP headers)
+  printPosTicketBrowser(sale, company, receiptType);
+  return { success: true, message: `Ticket envoyé à l'imprimante` };
 }
 
 /**
@@ -318,7 +284,7 @@ export function printPosTicket(
 }
 
 /**
- * Browser Print Spooler (manual fallback for AirPrint / PDF export)
+ * Browser / System Print Spooler with EXACT 80mm template matching requested design
  */
 export function printPosTicketBrowser(
   sale: PosSale,
@@ -373,6 +339,7 @@ export function printPosTicketBrowser(
   </style>
 </head>
 <body>
+  <!-- HEADER -->
   <div class="title-large">VERDEORTO Snack Italy</div>
   <div class="center" style="font-size: 10px;">
     Av al moukawama Quartier Merrodi Residence Davin<br>
@@ -384,6 +351,7 @@ export function printPosTicketBrowser(
 
   <div class="divider"></div>
 
+  <!-- METADATA -->
   <div style="font-size: 10px;">
     <div>Date creation : ${createdDate}</div>
     <div class="flex-between">
@@ -395,6 +363,7 @@ export function printPosTicketBrowser(
 
   <div class="divider"></div>
 
+  <!-- ITEMS TABLE -->
   <table>
     <thead>
       <tr class="bold" style="border-bottom: 1px dashed #000;">
@@ -410,6 +379,7 @@ export function printPosTicketBrowser(
 
   <div class="divider"></div>
 
+  <!-- SUMMARY -->
   <div class="flex-between" style="font-size: 11px;">
     <span>Nombre d'articles</span>
     <span>(${totalItemsCount})</span>
@@ -421,6 +391,7 @@ export function printPosTicketBrowser(
 
   <div class="divider"></div>
 
+  <!-- TOTAL -->
   <div class="total-row">
     <span>Total</span>
     <span>${ttc} MAD</span>
@@ -428,6 +399,7 @@ export function printPosTicketBrowser(
 
   <div class="divider"></div>
 
+  <!-- TAX BREAKDOWN -->
   <table class="tax-table">
     <thead>
       <tr class="bold">
@@ -447,6 +419,7 @@ export function printPosTicketBrowser(
 
   <div class="divider"></div>
 
+  <!-- FOOTER -->
   <div class="center bold" style="margin-top: 3px; font-size: 11px;">NOTE</div>
 
   <script>
@@ -454,7 +427,7 @@ export function printPosTicketBrowser(
       setTimeout(() => {
         window.print();
         window.close();
-      }, 200);
+      }, 150);
     });
   <\/script>
 </body>
