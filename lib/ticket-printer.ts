@@ -261,7 +261,7 @@ export async function sendNetworkPrint(
 
   // 2. Direct pure binary stream to local printer IP / port 9100 (NO XML, NO HTML)
   if (settings.ipAddress) {
-    const blob = new Blob([rawBytes], { type: 'application/octet-stream' });
+    const blob = new Blob([rawBytes as any], { type: 'application/octet-stream' });
     const targetUrls = [
       `http://${settings.ipAddress}:${settings.port || 9100}/`,
       `http://${settings.ipAddress}:${settings.port || 9100}/ipp/print`,
