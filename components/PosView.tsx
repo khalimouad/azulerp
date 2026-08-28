@@ -1485,8 +1485,8 @@ export const PosView: React.FC<PosViewProps> = ({
                       </div>
                     </div>
 
-                    {/* Dishes Touch Grid (Compact 4-Columns: Photo + Name + Price Only) */}
-                    <div className="flex-1 min-h-0 p-3 overflow-y-auto overscroll-contain grid grid-cols-2 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 auto-rows-[145px] sm:auto-rows-[155px] content-start touch-pan-y">
+                    {/* Dishes Touch Grid (Strict 4-Columns: Photo + Name + Price Only) */}
+                    <div className="flex-1 min-h-0 p-3 overflow-y-auto overscroll-contain grid grid-cols-2 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-4 gap-2 sm:gap-2.5 auto-rows-[140px] sm:auto-rows-[150px] content-start touch-pan-y">
                       {filteredProducts.map((prod) => {
                         const isAvailable = prod.disponible === 1;
 
