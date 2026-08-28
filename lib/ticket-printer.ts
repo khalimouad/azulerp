@@ -32,7 +32,6 @@ export function getTicketPrinterSettings(): TicketPrinterSettings {
     if (saved && saved.ipAddress) {
       return { ...DEFAULT_TICKET_PRINTER_SETTINGS, ...saved };
     }
-    // Check legacy storage
     const legacy = JSON.parse(window.localStorage.getItem(LEGACY_STORAGE_KEY) || '{}');
     if (legacy && legacy.ipAddress && legacy.ipAddress !== '192.168.1.100') {
       return { ...DEFAULT_TICKET_PRINTER_SETTINGS, ...legacy };
@@ -58,52 +57,164 @@ function escapeHtml(value: unknown): string {
 }
 
 /**
- * Builds ePOS-Print XML for direct Epson printer communication over HTTP
+ * Builds standard ESC/POS binary buffer for thermal ticket
  */
-function buildEposXml(sale: PosSale, company: CompanyInfo | null, receiptType: string): string {
-  const isAddition = receiptType === 'ADDITION';
-  const rowsXml = (sale.lignes || [])
-    .map(
-      (line) =>
-        `<text>${escapeHtml(line.quantite)}x ${escapeHtml(line.produit_nom)}&#10;</text>` +
-        `<text align="right">${Number(line.total_ttc || 0).toFixed(2)} DH&#10;</text>`
-    )
-    .join('');
+export function buildEscPosBytes(
+  sale: PosSale,
+  company: CompanyInfo | null,
+  receiptType: 'ADDITION' | 'TICKET_FINAL' = 'TICKET_FINAL',
+  paperWidth: number = 80
+): Uint8Array {
+  const is58mm = paperWidth === 58;
+  const colWidth = is58mm ? 32 : 42;
+  const divider = '-'.repeat(colWidth);
 
-  return `<?xml version="1.0" encoding="utf-8"?>
-<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/">
-  <s:Body>
-    <epos-print xmlns="http://www.epson-pos.com/schemas/2011/03/epos-print">
-      <text align="center" width="2" height="2">${escapeHtml(company?.nom || 'VerdeOrto')}&#10;</text>
-      <text align="center">${escapeHtml(company?.adresse || '')}&#10;</text>
-      <text align="center">Tel: ${escapeHtml(company?.telephone || '')}&#10;</text>
-      <text>------------------------------------------&#10;</text>
-      <text align="center" font="font_b">${isAddition ? "NOTE D'ADDITION" : 'TICKET DE CAISSE'}&#10;</text>
-      <text align="center">${escapeHtml(sale.numero_ticket)}&#10;</text>
-      <text>------------------------------------------&#10;</text>
-      <text align="left">Date: ${escapeHtml(sale.date_vente)}  Table: ${escapeHtml(sale.table_numero || 'Comptoir')}&#10;</text>
-      <text align="left">Caissier: ${escapeHtml(sale.caissier)}&#10;</text>
-      <text>------------------------------------------&#10;</text>
-      ${rowsXml}
-      <text>------------------------------------------&#10;</text>
-      <text align="left">Total HT :&#10;</text>
-      <text align="right">${Number(sale.total_ht || 0).toFixed(2)} DH&#10;</text>
-      <text align="left">TVA :&#10;</text>
-      <text align="right">${Number(sale.total_tva || 0).toFixed(2)} DH&#10;</text>
-      <text align="left" width="2" height="2">TOTAL TTC :&#10;</text>
-      <text align="right" width="2" height="2">${Number(sale.total_ttc || 0).toFixed(2)} DH&#10;</text>
-      <text>------------------------------------------&#10;</text>
-      <text align="center">Merci de votre visite et a tres bientot !&#10;</text>
-      <feed line="4"/>
-      <cut type="feed"/>
-    </epos-print>
-  </s:Body>
-</s:Envelope>`;
+  const bytes: number[] = [];
+
+  const addBytes = (...b: number[]) => bytes.push(...b);
+
+  const addText = (str: string) => {
+    const clean = (str || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, ''); // strip accents for clean ESC/POS thermal printing
+    for (let i = 0; i < clean.length; i++) {
+      const code = clean.charCodeAt(i);
+      bytes.push(code < 128 ? code : 0x20);
+    }
+  };
+
+  const addLine = (str: string = '') => {
+    addText(str);
+    bytes.push(0x0a); // LF
+  };
+
+  // 1. Initialize printer
+  addBytes(0x1b, 0x40); // ESC @ (Initialize)
+  addBytes(0x1b, 0x74, 0x00); // ESC t 0 (Standard PC437)
+
+  // 2. Header: Centered & Double Size
+  addBytes(0x1b, 0x61, 0x01); // ESC a 1 (Center)
+  addBytes(0x1d, 0x21, 0x11); // GS ! 0x11 (Double Width & Height)
+  addLine(company?.nom || 'VerdeOrto');
+
+  addBytes(0x1d, 0x21, 0x00); // GS ! 0 (Normal size)
+  if (company?.adresse) addLine(company.adresse);
+  if (company?.telephone) addLine(`Tel: ${company.telephone}`);
+  if (company?.ice) addLine(`ICE: ${company.ice}`);
+
+  addLine(divider);
+
+  // Title
+  addBytes(0x1b, 0x45, 0x01); // Bold on
+  addLine(receiptType === 'ADDITION' ? "NOTE D'ADDITION" : 'TICKET DE CAISSE');
+  addBytes(0x1b, 0x45, 0x00); // Bold off
+  addLine(sale.numero_ticket || '');
+  addLine(divider);
+
+  // Metadata: Left aligned
+  addBytes(0x1b, 0x61, 0x00); // ESC a 0 (Left)
+  addLine(`Date    : ${sale.date_vente || new Date().toISOString().slice(0, 10)}`);
+  addLine(`Table   : ${sale.table_numero || 'Comptoir'}`);
+  addLine(`Caissier: ${sale.caissier || 'Caisse'}`);
+  addLine(divider);
+
+  // Format row with label on left and amount on right
+  const formatRow = (left: string, right: string) => {
+    const spaces = Math.max(1, colWidth - left.length - right.length);
+    return `${left}${' '.repeat(spaces)}${right}`;
+  };
+
+  // Lines
+  for (const item of sale.lignes || []) {
+    const qty = item.quantite || 1;
+    const name = (item.produit_nom || 'Article').slice(0, colWidth - 12);
+    const total = `${Number(item.total_ttc || 0).toFixed(2)} DH`;
+    addLine(formatRow(`${qty}x ${name}`, total));
+  }
+
+  addLine(divider);
+
+  // Totals
+  addLine(formatRow('Total HT', `${Number(sale.total_ht || 0).toFixed(2)} DH`));
+  addLine(formatRow('TVA', `${Number(sale.total_tva || 0).toFixed(2)} DH`));
+
+  // TOTAL TTC Double Height
+  addBytes(0x1d, 0x21, 0x01); // Double height
+  addBytes(0x1b, 0x45, 0x01); // Bold on
+  addLine(formatRow('TOTAL TTC', `${Number(sale.total_ttc || 0).toFixed(2)} DH`));
+  addBytes(0x1d, 0x21, 0x00); // Normal
+  addBytes(0x1b, 0x45, 0x00); // Bold off
+
+  if (sale.montant_donne && Number(sale.montant_donne) > 0) {
+    addLine(formatRow('Montant Recu', `${Number(sale.montant_donne).toFixed(2)} DH`));
+    addLine(formatRow('Rendu Monnaie', `${Number(sale.montant_rendu || 0).toFixed(2)} DH`));
+  }
+
+  addLine(divider);
+
+  // Footer
+  addBytes(0x1b, 0x61, 0x01); // Center
+  addLine('Merci de votre visite et a tres bientot !');
+  addLine('');
+  addLine('');
+  addLine('');
+
+  // Cut paper
+  addBytes(0x1b, 0x64, 0x03); // Feed 3 lines
+  addBytes(0x1d, 0x56, 0x41, 0x03); // Full cut (GS V A 3)
+
+  return new Uint8Array(bytes);
 }
 
 /**
- * Attempts direct network print to thermal printer (via API route socket & direct ePOS HTTP)
- * Completely silent, without triggering iOS/Android system printer popups.
+ * Builds valid binary IPP (Internet Printing Protocol) 2.0 packet
+ */
+function createIppPrintJobBuffer(
+  printerUri: string,
+  docData: Uint8Array,
+  docFormat = 'application/octet-stream'
+): Uint8Array {
+  const chunks: number[] = [];
+
+  // IPP version 2.0 (0x02, 0x00)
+  chunks.push(0x02, 0x00);
+  // Operation-Id: Print-Job (0x0002)
+  chunks.push(0x00, 0x02);
+  // Request-Id: 1
+  chunks.push(0x00, 0x00, 0x00, 0x01);
+
+  // Operation Attributes Tag (0x01)
+  chunks.push(0x01);
+
+  const addAttr = (tag: number, name: string, value: string) => {
+    chunks.push(tag);
+    chunks.push((name.length >> 8) & 0xff, name.length & 0xff);
+    for (let i = 0; i < name.length; i++) chunks.push(name.charCodeAt(i));
+    const valBytes = new TextEncoder().encode(value);
+    chunks.push((valBytes.length >> 8) & 0xff, valBytes.length & 0xff);
+    for (let i = 0; i < valBytes.length; i++) chunks.push(valBytes[i]);
+  };
+
+  addAttr(0x47, 'attributes-charset', 'utf-8');
+  addAttr(0x48, 'attributes-natural-language', 'fr');
+  addAttr(0x45, 'printer-uri', printerUri);
+  addAttr(0x42, 'job-name', 'VerdeOrto Ticket');
+  addAttr(0x49, 'document-format', docFormat);
+
+  // End of attributes tag (0x03)
+  chunks.push(0x03);
+
+  const headerBytes = new Uint8Array(chunks);
+  const combined = new Uint8Array(headerBytes.length + docData.length);
+  combined.set(headerBytes, 0);
+  combined.set(docData, headerBytes.length);
+
+  return combined;
+}
+
+/**
+ * Attempts direct network print to thermal printer using IPP and RAW ESC/POS streams
+ * (Never sends XML or HTML tags)
  */
 export async function sendNetworkPrint(
   sale: PosSale,
@@ -111,8 +222,9 @@ export async function sendNetworkPrint(
   receiptType: 'ADDITION' | 'TICKET_FINAL' = 'TICKET_FINAL'
 ): Promise<{ success: boolean; message?: string }> {
   const settings = getTicketPrinterSettings();
+  const rawEscPos = buildEscPosBytes(sale, company, receiptType, settings.paperWidth);
 
-  // 1. Try local server socket route (/api/printer/print - RAW TCP port 9100)
+  // 1. Try local server socket route (/api/printer/print)
   try {
     const res = await fetch('/api/printer/print', {
       method: 'POST',
@@ -121,36 +233,64 @@ export async function sendNetworkPrint(
     });
     const data = await res.json();
     if (data && data.success) {
-      return { success: true, message: data.message || `Ticket envoyé à l'imprimante (${settings.ipAddress})` };
+      return { success: true, message: data.message || `Ticket imprimé sur ${settings.ipAddress}` };
     }
   } catch {
-    // API route unreachable or failed
+    // continue to direct local network attempts
   }
 
-  // 2. Try direct Epson ePOS XML over HTTP to printer IP
+  // 2. Try direct IPP Print-Job request to http://192.168.1.87:9100/ipp/print
   if (settings.ipAddress) {
-    const xml = buildEposXml(sale, company, receiptType);
-    const endpoints = [
-      `http://${settings.ipAddress}/cgi-bin/epos/service.cgi`,
-      `http://${settings.ipAddress}:8008/cgi-bin/epos/service.cgi`,
+    const ippPayload = createIppPrintJobBuffer(
+      `ipp://${settings.ipAddress}:${settings.port || 9100}/ipp/print`,
+      rawEscPos,
+      'application/octet-stream'
+    );
+
+    const ippEndpoints = [
+      `http://${settings.ipAddress}:${settings.port || 9100}/ipp/print`,
+      `http://${settings.ipAddress}:631/printers/printer`,
+      `http://${settings.ipAddress}:${settings.port || 9100}/`,
     ];
 
-    for (const url of endpoints) {
+    for (const url of ippEndpoints) {
       try {
         const ctrl = new AbortController();
         const timeout = setTimeout(() => ctrl.abort(), 2000);
         await fetch(url, {
           method: 'POST',
-          headers: { 'Content-Type': 'text/xml; charset=utf-8' },
-          body: xml,
+          headers: {
+            'Content-Type': 'application/ipp',
+            'User-Agent': 'CUPS/2.2.9 (Linux; aarch64) IPP/2.0',
+          },
+          body: ippPayload,
           signal: ctrl.signal,
           mode: 'no-cors',
         });
         clearTimeout(timeout);
         return { success: true, message: `Ticket envoyé à l'imprimante (${settings.ipAddress})` };
       } catch {
-        // continue to next endpoint
+        // try next endpoint
       }
+    }
+
+    // 3. Try raw binary stream POST
+    try {
+      const ctrl = new AbortController();
+      const timeout = setTimeout(() => ctrl.abort(), 2000);
+      await fetch(`http://${settings.ipAddress}:${settings.port || 9100}/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/octet-stream',
+        },
+        body: rawEscPos,
+        signal: ctrl.signal,
+        mode: 'no-cors',
+      });
+      clearTimeout(timeout);
+      return { success: true, message: `Ticket envoyé à l'imprimante (${settings.ipAddress})` };
+    } catch {
+      // failed
     }
   }
 
