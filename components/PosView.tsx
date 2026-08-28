@@ -727,7 +727,13 @@ export const PosView: React.FC<PosViewProps> = ({
 
     setLastSale(additionMock);
     setReceiptType('ADDITION');
-    setShowReceiptModal(true);
+    setShowReceiptModal(false);
+
+    printPosTicket(additionMock, companyInfo, 'ADDITION').then((res) => {
+      if (res.success) {
+        showToast(`Addition imprimée sur l'imprimante.`);
+      }
+    }).catch(() => {});
 
     if (activeTable) {
       handleSaveDraftTable('ADDITION');
@@ -783,7 +789,7 @@ export const PosView: React.FC<PosViewProps> = ({
 
       const completedSale = await createPosSale(saleData, cart);
 
-      showToast(`Encaissement réussi ! Ticket ${completedSale.numero_ticket} clôturé.`);
+      showToast(`Encaissement réussi ! Ticket ${completedSale.numero_ticket} validé.`);
 
       setActiveTable(null);
       setCart([]);
@@ -793,15 +799,15 @@ export const PosView: React.FC<PosViewProps> = ({
       setRightPanelTab('TABLES');
 
       setLastSale(completedSale);
-      if (getTicketPrinterSettings().autoPrint) {
-        printPosTicket(completedSale, companyInfo, 'TICKET_FINAL').then((res) => {
-          if (res.success) {
-            showToast(res.message || `Ticket imprimé sur l'imprimante 192.168.1.87`);
-          }
-        });
-      }
       setReceiptType('TICKET_FINAL');
-      setShowReceiptModal(true);
+      setShowReceiptModal(false);
+
+      // Automatically trigger thermal print immediately on encaissement
+      printPosTicket(completedSale, companyInfo, 'TICKET_FINAL').then((res) => {
+        if (res.success) {
+          showToast(`Ticket ${completedSale.numero_ticket} imprimé.`);
+        }
+      }).catch(() => {});
 
       await loadAllData();
     } catch (err: any) {
@@ -2174,13 +2180,16 @@ export const PosView: React.FC<PosViewProps> = ({
                         <button
                           type="button"
                           onClick={() => {
-                            setLastSale(sale);
-                            setReceiptType('TICKET_FINAL');
-                            setShowReceiptModal(true);
+                            printPosTicket(sale, companyInfo, 'DUPLICATA').then((res) => {
+                              if (res.success) {
+                                showToast(`Duplicata Ticket #${sale.numero_ticket} imprimé.`);
+                              }
+                            });
                           }}
-                          className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded text-xs font-bold transition"
+                          className="px-2.5 py-1 bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 text-slate-700 rounded text-xs font-bold transition inline-flex items-center gap-1"
                         >
-                          Voir Reçu
+                          <Printer className="w-3.5 h-3.5" />
+                          <span>Imprimer</span>
                         </button>
                       </td>
                     </tr>
