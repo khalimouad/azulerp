@@ -235,25 +235,45 @@ export async function sendNetworkPrint(
   receiptType: 'ADDITION' | 'TICKET_FINAL' | 'DUPLICATA' = 'TICKET_FINAL'
 ): Promise<{ success: boolean; message?: string }> {
   const settings = getTicketPrinterSettings();
+  const rawEscPos = buildEscPosBytes(sale, company, receiptType, settings.paperWidth);
 
-  // Send to backend RAW TCP socket route (zero HTTP headers on printer)
+  // 1. Try server socket route (/api/printer/print - works when running on LAN)
   try {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 1200);
     const res = await fetch('/api/printer/print', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ sale, company, settings, receiptType }),
+      signal: ctrl.signal,
     });
+    clearTimeout(timer);
     const data = await res.json();
     if (data && data.success) {
       return { success: true, message: data.message || `Ticket imprimé sur ${settings.ipAddress}` };
-    } else if (data && data.error) {
-      return { success: false, message: data.error };
     }
-  } catch (err: any) {
-    return { success: false, message: err?.message || 'Erreur de communication imprimante' };
+  } catch {
+    // Vercel cloud cannot reach private LAN IP 192.168.1.87
   }
 
-  return { success: false, message: `Impossible de joindre l'imprimante (${settings.ipAddress})` };
+  // 2. On Android: Try direct RawBT ESC/POS intent
+  if (typeof window !== 'undefined' && /android/i.test(navigator.userAgent)) {
+    try {
+      let binary = '';
+      for (let i = 0; i < rawEscPos.byteLength; i++) {
+        binary += String.fromCharCode(rawEscPos[i]);
+      }
+      const base64 = window.btoa(binary);
+      window.location.href = `rawbt:data:base64,${base64}`;
+      return { success: true, message: `Ticket envoyé à l'imprimante` };
+    } catch {
+      // fallback
+    }
+  }
+
+  // 3. Fallback: Browser 80mm Print Spooler (CUPS / Android Print Service / AirPrint)
+  printPosTicketBrowser(sale, company, receiptType);
+  return { success: true, message: `Impression ticket lancée` };
 }
 
 /**
