@@ -225,7 +225,9 @@ export async function POST(req: NextRequest) {
             posSessionsRes,
             posVentesRes,
             posVentesLignesRes,
-            usersRes
+            usersRes,
+            facturesFournisseursRes,
+            paiementsFournisseursRes
           ] = await Promise.all([
             sql`SELECT * FROM company_info LIMIT 1;`.catch(() => []),
             sql`SELECT * FROM clients ORDER BY nom ASC;`.catch(() => []),
@@ -250,7 +252,9 @@ export async function POST(req: NextRequest) {
             sql`SELECT * FROM pos_sessions ORDER BY id DESC LIMIT 100;`.catch(() => []),
             sql`SELECT * FROM pos_ventes ORDER BY id DESC LIMIT 500;`.catch(() => []),
             sql`SELECT * FROM pos_ventes_lignes ORDER BY id ASC;`.catch(() => []),
-            sql`SELECT id, username, nom_complet, email, role, avatar, statut, derniere_connexion, created_at FROM app_users ORDER BY id ASC;`.catch(() => [])
+            sql`SELECT id, username, nom_complet, email, role, avatar, statut, derniere_connexion, created_at FROM app_users ORDER BY id ASC;`.catch(() => []),
+            sql`SELECT ff.*, COALESCE((SELECT json_agg(ffl.*) FROM factures_fournisseurs_lignes ffl WHERE ffl.facture_fournisseur_id = ff.id), '[]'::json) as lignes FROM factures_fournisseurs ff ORDER BY ff.date_facture DESC, ff.id DESC;`.catch(() => []),
+            sql`SELECT * FROM paiements_fournisseurs ORDER BY date_paiement DESC, id DESC;`.catch(() => [])
           ]);
 
           // Assemble documents with line items
@@ -331,7 +335,9 @@ export async function POST(req: NextRequest) {
               pos_produits: posPrdsRes,
               pos_sessions: posSessionsRes,
               pos_ventes: Object.values(posVentesMap),
-              users: usersRes
+              users: usersRes,
+              factures_fournisseurs: facturesFournisseursRes || [],
+              paiements_fournisseurs: paiementsFournisseursRes || []
             }
           };
           fetchAllCache = { body: responseBody, expiresAt: now + FETCH_ALL_CACHE_TTL_MS };
@@ -1700,6 +1706,109 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ success: false, error: 'Utilisateur introuvable.' }, { status: 404 });
           }
           return NextResponse.json({ success: true, message: 'Utilisateur supprimé' });
+        }
+
+        // --- FACTURES FOURNISSEURS & PAIEMENTS ---
+        case 'fetch_factures_fournisseurs': {
+          const rows: any = await sql`
+            SELECT ff.*,
+                   COALESCE(
+                     (SELECT json_agg(ffl.*) FROM factures_fournisseurs_lignes ffl WHERE ffl.facture_fournisseur_id = ff.id),
+                     '[]'::json
+                   ) as lignes
+            FROM factures_fournisseurs ff
+            ORDER BY ff.date_facture DESC, ff.id DESC;
+          `.catch(() => []);
+          return NextResponse.json({ success: true, factures: rows });
+        }
+
+        case 'fetch_paiements_fournisseurs': {
+          const rows: any = await sql`
+            SELECT * FROM paiements_fournisseurs ORDER BY date_paiement DESC, id DESC;
+          `.catch(() => []);
+          return NextResponse.json({ success: true, paiements: rows });
+        }
+
+        case 'create_facture_fournisseur': {
+          const { facture, lignes } = payload;
+          const facMaxIdRes: any = await sql`SELECT COALESCE(MAX(id), 0) + 1 as next_id FROM factures_fournisseurs;`;
+          const facId = Number(facMaxIdRes[0]?.next_id || 1);
+          
+          await sql`
+            INSERT INTO factures_fournisseurs (
+              id, numero, fournisseur_id, fournisseur_nom, fournisseur_ice,
+              date_facture, date_echeance, total_ht, tva_20, tva_10, tva_7, total_tva,
+              total_ttc, montant_paye, reste_a_payer, statut, etat, designation_achat, notes
+            ) VALUES (
+              ${facId}, ${facture.numero}, ${facture.fournisseur_id}, ${facture.fournisseur_nom}, ${facture.fournisseur_ice || ''},
+              ${facture.date_facture}, ${facture.date_echeance || ''}, ${num(facture.total_ht)}, ${num(facture.tva_20)},
+              ${num(facture.tva_10)}, ${num(facture.tva_7)}, ${num(facture.total_tva)}, ${num(facture.total_ttc)},
+              ${num(facture.montant_paye)}, ${num(facture.reste_a_payer)}, ${facture.statut || 'A payer'},
+              ${facture.etat || 'Validé'}, ${facture.designation_achat || ''}, ${facture.notes || ''}
+            );
+          `;
+
+          if (Array.isArray(lignes) && lignes.length > 0) {
+            const lineMaxIdRes: any = await sql`SELECT COALESCE(MAX(id), 0) + 1 as next_id FROM factures_fournisseurs_lignes;`;
+            const firstLineId = Number(lineMaxIdRes[0]?.next_id || 1);
+            for (let i = 0; i < lignes.length; i++) {
+              const l = lignes[i];
+              await sql`
+                INSERT INTO factures_fournisseurs_lignes (
+                  id, facture_fournisseur_id, produit_id, designation, quantite,
+                  prix_achat_ht, taux_tva, total_ht, total_tva, total_ttc
+                ) VALUES (
+                  ${firstLineId + i}, ${facId}, ${l.produit_id || null}, ${l.designation},
+                  ${num(l.quantite, 1)}, ${num(l.prix_achat_ht)}, ${num(l.taux_tva, 20)},
+                  ${num(l.total_ht)}, ${num(l.total_tva)}, ${num(l.total_ttc)}
+                );
+              `;
+            }
+          }
+          return NextResponse.json({ success: true, id: facId });
+        }
+
+        case 'delete_facture_fournisseur': {
+          const { id } = payload;
+          await sql`DELETE FROM factures_fournisseurs_lignes WHERE facture_fournisseur_id = ${id};`;
+          await sql`DELETE FROM factures_fournisseurs WHERE id = ${id};`;
+          return NextResponse.json({ success: true, message: 'Facture fournisseur supprimée' });
+        }
+
+        case 'create_paiement_fournisseur': {
+          const { paiement } = payload;
+          const payMaxIdRes: any = await sql`SELECT COALESCE(MAX(id), 0) + 1 as next_id FROM paiements_fournisseurs;`;
+          const payId = Number(payMaxIdRes[0]?.next_id || 1);
+          await sql`
+            INSERT INTO paiements_fournisseurs (
+              id, fournisseur_id, fournisseur_nom, facture_fournisseur_id, facture_numero,
+              date_paiement, montant, mode_paiement, numero_cheque_ref, banque_emettrice,
+              date_echeance_depot, statut_cheque, notes
+            ) VALUES (
+              ${payId}, ${paiement.fournisseur_id}, ${paiement.fournisseur_nom}, ${paiement.facture_fournisseur_id || null},
+              ${paiement.facture_numero || ''}, ${paiement.date_paiement}, ${num(paiement.montant)},
+              ${paiement.mode_paiement || 'Chèque'}, ${paiement.numero_cheque_ref || ''}, ${paiement.banque_emettrice || ''},
+              ${paiement.date_echeance_depot || ''}, ${paiement.statut_cheque || 'En attente'}, ${paiement.notes || ''}
+            );
+          `;
+          return NextResponse.json({ success: true, id: payId });
+        }
+
+        case 'delete_paiement_fournisseur': {
+          const { id } = payload;
+          await sql`DELETE FROM paiements_fournisseurs WHERE id = ${id};`;
+          return NextResponse.json({ success: true, message: 'Paiement fournisseur supprimé' });
+        }
+
+        case 'update_statut_cheque_fournisseur': {
+          const { id, statut, dateEncaissement } = payload;
+          await sql`
+            UPDATE paiements_fournisseurs
+            SET statut_cheque = ${statut},
+                notes = COALESCE(notes, '') || ${dateEncaissement ? ` (Encaissé le ${dateEncaissement})` : ''}
+            WHERE id = ${id};
+          `;
+          return NextResponse.json({ success: true, message: 'Statut chèque mis à jour' });
         }
 
         // --- AUTH ---

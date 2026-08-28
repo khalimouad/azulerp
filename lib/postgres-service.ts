@@ -1241,35 +1241,53 @@ export async function deleteClientTarif(id: number): Promise<void> {
 }
 
 export async function fetchFacturesFournisseurs(): Promise<any[]> {
-  return [];
+  try {
+    const res = await apiCall('fetch_factures_fournisseurs');
+    return res?.factures || [];
+  } catch (err) {
+    console.error('Error fetching supplier invoices:', err);
+    return [];
+  }
 }
 
 export async function fetchPaiementsFournisseurs(): Promise<any[]> {
-  return [];
+  try {
+    const res = await apiCall('fetch_paiements_fournisseurs');
+    return res?.paiements || [];
+  } catch (err) {
+    console.error('Error fetching supplier payments:', err);
+    return [];
+  }
 }
 
 export async function fetchSupplierReconciliation(): Promise<any[]> {
   return [];
 }
 
+export async function fetchImpendingSupplierCheques(): Promise<any[]> {
+  return [];
+}
+
 export async function createFactureFournisseur(facture: any, lignes?: any[]): Promise<number> {
-  return 1;
+  const res = await apiCall('create_facture_fournisseur', { facture, lignes });
+  return res?.id || 1;
 }
 
 export async function createPaiementFournisseur(paiement: any): Promise<number> {
-  return 1;
+  const res = await apiCall('create_paiement_fournisseur', { paiement });
+  return res?.id || 1;
 }
 
 export async function updateStatutChequeFournisseur(id: number, statut: string, dateEncaissement?: string): Promise<void> {
-  return;
+  await apiCall('update_statut_cheque_fournisseur', { id, statut, dateEncaissement });
 }
 
 export async function deleteFactureFournisseur(id: number): Promise<void> {
-  return;
+  await apiCall('delete_facture_fournisseur', { id });
 }
 
 export async function deletePaiementFournisseur(id: number): Promise<void> {
-  return;
+  await apiCall('delete_paiement_fournisseur', { id });
 }
 
 export async function resetToSampleData(): Promise<void> {

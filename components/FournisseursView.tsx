@@ -21,7 +21,7 @@ import {
   fetchImpendingSupplierCheques,
   fetchSupplierReconciliation,
   updateFournisseur,
-} from '@/lib/sqlite-service';
+} from '@/lib/postgres-service';
 import {
   Plus,
   Search,
