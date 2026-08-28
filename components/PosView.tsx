@@ -1283,11 +1283,6 @@ export const PosView: React.FC<PosViewProps> = ({
                   <span>Mettre en Attente</span>
                 </button>
               </div>
-                >
-                  <Clock className="w-4 h-4 text-blue-400" />
-                  <span>Mettre en Attente</span>
-                </button>
-              </div>
             </div>
           </div>
 
@@ -1376,29 +1371,29 @@ export const PosView: React.FC<PosViewProps> = ({
                       <span>{categories.length} catégories</span>
                     </div>
 
-                    {/* Categories Touch Grid */}
-                    <div className="flex-1 p-3 overflow-y-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5">
+                    {/* Categories Touch Grid (Compact Rectangles) */}
+                    <div className="flex-1 p-3 overflow-y-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2.5">
                       {categories.map((cat, idx) => {
                         const count = categoryDishCounts[cat.id] || 0;
                         const darkGradients = [
-                          'from-emerald-950/80 to-slate-900 border-emerald-600/50 text-emerald-400 hover:border-emerald-400 hover:shadow-emerald-950/60',
-                          'from-blue-950/80 to-slate-900 border-blue-600/50 text-blue-400 hover:border-blue-400 hover:shadow-blue-950/60',
-                          'from-amber-950/80 to-slate-900 border-amber-600/50 text-amber-400 hover:border-amber-400 hover:shadow-amber-950/60',
-                          'from-purple-950/80 to-slate-900 border-purple-600/50 text-purple-400 hover:border-purple-400 hover:shadow-purple-950/60',
-                          'from-rose-950/80 to-slate-900 border-rose-600/50 text-rose-400 hover:border-rose-400 hover:shadow-rose-950/60',
-                          'from-cyan-950/80 to-slate-900 border-cyan-600/50 text-cyan-400 hover:border-cyan-400 hover:shadow-cyan-950/60',
-                          'from-teal-950/80 to-slate-900 border-teal-600/50 text-teal-400 hover:border-teal-400 hover:shadow-teal-950/60',
-                          'from-orange-950/80 to-slate-900 border-orange-600/50 text-orange-400 hover:border-orange-400 hover:shadow-orange-950/60',
+                          'from-emerald-950/90 to-slate-900 border-emerald-600/50 text-emerald-400 hover:border-emerald-400',
+                          'from-blue-950/90 to-slate-900 border-blue-600/50 text-blue-400 hover:border-blue-400',
+                          'from-amber-950/90 to-slate-900 border-amber-600/50 text-amber-400 hover:border-amber-400',
+                          'from-purple-950/90 to-slate-900 border-purple-600/50 text-purple-400 hover:border-purple-400',
+                          'from-rose-950/90 to-slate-900 border-rose-600/50 text-rose-400 hover:border-rose-400',
+                          'from-cyan-950/90 to-slate-900 border-cyan-600/50 text-cyan-400 hover:border-cyan-400',
+                          'from-teal-950/90 to-slate-900 border-teal-600/50 text-teal-400 hover:border-teal-400',
+                          'from-orange-950/90 to-slate-900 border-orange-600/50 text-orange-400 hover:border-orange-400',
                         ];
                         const lightGradients = [
-                          'from-emerald-50 via-white to-emerald-50/40 border-emerald-300 text-emerald-700 hover:border-emerald-500 shadow-sm hover:shadow-md',
-                          'from-blue-50 via-white to-blue-50/40 border-blue-300 text-blue-700 hover:border-blue-500 shadow-sm hover:shadow-md',
-                          'from-amber-50 via-white to-amber-50/40 border-amber-300 text-amber-800 hover:border-amber-500 shadow-sm hover:shadow-md',
-                          'from-purple-50 via-white to-purple-50/40 border-purple-300 text-purple-700 hover:border-purple-500 shadow-sm hover:shadow-md',
-                          'from-rose-50 via-white to-rose-50/40 border-rose-300 text-rose-700 hover:border-rose-500 shadow-sm hover:shadow-md',
-                          'from-cyan-50 via-white to-cyan-50/40 border-cyan-300 text-cyan-700 hover:border-cyan-500 shadow-sm hover:shadow-md',
-                          'from-teal-50 via-white to-teal-50/40 border-teal-300 text-teal-700 hover:border-teal-500 shadow-sm hover:shadow-md',
-                          'from-orange-50 via-white to-orange-50/40 border-orange-300 text-orange-800 hover:border-orange-500 shadow-sm hover:shadow-md',
+                          'from-emerald-50 via-white to-emerald-50/50 border-emerald-300 text-emerald-700 hover:border-emerald-500 shadow-xs hover:shadow-sm',
+                          'from-blue-50 via-white to-blue-50/50 border-blue-300 text-blue-700 hover:border-blue-500 shadow-xs hover:shadow-sm',
+                          'from-amber-50 via-white to-amber-50/50 border-amber-300 text-amber-800 hover:border-amber-500 shadow-xs hover:shadow-sm',
+                          'from-purple-50 via-white to-purple-50/50 border-purple-300 text-purple-700 hover:border-purple-500 shadow-xs hover:shadow-sm',
+                          'from-rose-50 via-white to-rose-50/50 border-rose-300 text-rose-700 hover:border-rose-500 shadow-xs hover:shadow-sm',
+                          'from-cyan-50 via-white to-cyan-50/50 border-cyan-300 text-cyan-700 hover:border-cyan-500 shadow-xs hover:shadow-sm',
+                          'from-teal-50 via-white to-teal-50/50 border-teal-300 text-teal-700 hover:border-teal-500 shadow-xs hover:shadow-sm',
+                          'from-orange-50 via-white to-orange-50/50 border-orange-300 text-orange-800 hover:border-orange-500 shadow-xs hover:shadow-sm',
                         ];
                         const styleClass = (posTheme === 'dark' ? darkGradients : lightGradients)[idx % 8];
 
@@ -1407,34 +1402,31 @@ export const PosView: React.FC<PosViewProps> = ({
                             key={cat.id}
                             type="button"
                             onClick={() => setSelectedCategory(cat.id)}
-                            className={`p-4 rounded-2xl border bg-gradient-to-br transition-all flex flex-col justify-between text-left active:scale-95 touch-manipulation min-h-[120px] cursor-pointer ${styleClass}`}
+                            className={`p-2.5 sm:p-3 rounded-xl border bg-gradient-to-r transition-all flex items-center justify-between text-left active:scale-95 touch-manipulation min-h-[64px] sm:min-h-[68px] cursor-pointer ${styleClass}`}
                           >
-                            <div className="flex items-center justify-between">
-                              <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-lg border ${
+                            <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                              <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center font-bold text-sm shrink-0 border ${
                                 posTheme === 'dark' ? 'bg-slate-950/80 border-white/10' : 'bg-white border-slate-200 shadow-xs'
                               }`}>
-                                <Utensils className="w-5 h-5" />
+                                <Utensils className="w-4 h-4" />
                               </div>
-                              <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-black border ${
-                                posTheme === 'dark' ? 'bg-slate-950/90 border-white/10 text-white' : 'bg-white border-slate-200 text-slate-800 shadow-xs'
-                              }`}>
-                                {count} plat{count > 1 ? 's' : ''}
-                              </span>
+                              <div className="min-w-0 flex-1">
+                                <h3 className={`text-xs sm:text-sm font-black tracking-tight uppercase truncate ${
+                                  posTheme === 'dark' ? 'text-white' : 'text-slate-900'
+                                }`}>
+                                  {cat.nom}
+                                </h3>
+                                <p className={`text-[10px] truncate ${
+                                  posTheme === 'dark' ? 'text-slate-400' : 'text-slate-500'
+                                }`}>
+                                  {count} plat{count > 1 ? 's' : ''}
+                                </p>
+                              </div>
                             </div>
 
-                            <div className="mt-4">
-                              <h3 className={`text-sm sm:text-base font-black tracking-tight uppercase line-clamp-1 ${
-                                posTheme === 'dark' ? 'text-white' : 'text-slate-900'
-                              }`}>
-                                {cat.nom}
-                              </h3>
-                              <p className={`text-[11px] mt-0.5 flex items-center gap-1 font-medium ${
-                                posTheme === 'dark' ? 'text-slate-400' : 'text-slate-500'
-                              }`}>
-                                <span>Ouvrir les plats</span>
-                                <ChevronRight className="w-3 h-3" />
-                              </p>
-                            </div>
+                            <ChevronRight className={`w-4 h-4 shrink-0 ml-1.5 transition-transform group-hover:translate-x-0.5 ${
+                              posTheme === 'dark' ? 'text-slate-500' : 'text-slate-400'
+                            }`} />
                           </button>
                         );
                       })}
