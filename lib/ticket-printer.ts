@@ -69,7 +69,7 @@ function escapeHtml(value: unknown): string {
 
 /**
  * Builds pure binary 80mm ESC/POS ticket for Epson TM-T20X:
- * - Header: VERDEORTO Snack Italy (Bold/Double-Height), address, phones, website, DUPLICATA
+ * - Header: VERDEORTO Snack Italy (Bold / Double-Height), address, phones, website, DUPLICATA
  * - Metadata: Date creation, Boutique, Ticket, Caissier
  * - 3-Col Items: QTE, * ARTICLE *, PRIX
  * - Summary: Nombre d'articles, Sous-total
@@ -93,7 +93,7 @@ export function buildEscPosBytes(
   const addText = (str: string) => {
     const clean = (str || '')
       .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, ''); // strip accents for standard ASCII ESC/POS
+      .replace(/[\u0300-\u036f]/g, ''); // strip accents for ESC/POS ASCII
     for (let i = 0; i < clean.length; i++) {
       const code = clean.charCodeAt(i);
       bytes.push(code < 128 ? code : 0x20);
@@ -217,18 +217,55 @@ export function buildEscPosBytes(
   addLine('NOTE');
   addBytes(0x1b, 0x45, 0x00); // Bold off
 
-  // 9. Feed 4 lines & SINGLE Partial Cut (GS V 66 0 / 29 86 66 0)
-  addBytes(0x0a, 0x0a, 0x0a, 0x0a); // 4 line feeds
+  // 9. Feed 4 lines & SINGLE Partial Cut (GS V 66 0 / 29 86 66 0) - ONLY ONCE
+  addBytes(0x0a, 0x0a, 0x0a, 0x0a);
   addBytes(0x1d, 0x56, 0x42, 0x00); // GS V 66 0 (Single Partial Cut)
 
   return new Uint8Array(bytes);
 }
 
 /**
- * Print Delivery:
- * 1. Node.js RAW TCP socket relay (/api/printer/print) - Pure binary ESC/POS stream with ZERO HTTP headers
- * 2. System Print Spooler (CUPS / eCUPS / AirPrint / Android Print Service) with exact 80mm template
- * (NEVER sends raw HTTP fetch to port 9100 from browser, preventing HTTP header printing)
+ * Creates binary IPP Print-Job packet so CUPS server strips HTTP headers
+ */
+function createIppPrintJob(printerUri: string, rawEscPos: Uint8Array): Uint8Array {
+  const chunks: number[] = [];
+  // IPP Version 2.0 (0x02, 0x00)
+  chunks.push(0x02, 0x00);
+  // Operation-ID: Print-Job (0x0002)
+  chunks.push(0x00, 0x02);
+  // Request-ID: 1 (0x00000001)
+  chunks.push(0x00, 0x00, 0x00, 0x01);
+
+  // Operation Attributes Tag (0x01)
+  chunks.push(0x01);
+
+  const addAttr = (tag: number, name: string, value: string) => {
+    chunks.push(tag);
+    chunks.push((name.length >> 8) & 0xff, name.length & 0xff);
+    for (let i = 0; i < name.length; i++) chunks.push(name.charCodeAt(i));
+    chunks.push((value.length >> 8) & 0xff, value.length & 0xff);
+    for (let i = 0; i < value.length; i++) chunks.push(value.charCodeAt(i));
+  };
+
+  addAttr(0x47, 'attributes-charset', 'utf-8');
+  addAttr(0x48, 'attributes-natural-language', 'fr-fr');
+  addAttr(0x45, 'printer-uri', printerUri);
+  addAttr(0x42, 'job-name', 'VerdeOrto Ticket');
+  addAttr(0x49, 'document-format', 'application/octet-stream');
+
+  // End of Attributes Tag (0x03)
+  chunks.push(0x03);
+
+  const header = new Uint8Array(chunks);
+  const combined = new Uint8Array(header.length + rawEscPos.length);
+  combined.set(header, 0);
+  combined.set(rawEscPos, header.length);
+  return combined;
+}
+
+/**
+ * Direct silent network print to thermal printer using pure binary ESC/POS and IPP
+ * (Never opens popup dialogs, never cuts triple times)
  */
 export async function sendNetworkPrint(
   sale: PosSale,
@@ -236,11 +273,12 @@ export async function sendNetworkPrint(
   receiptType: 'ADDITION' | 'TICKET_FINAL' | 'DUPLICATA' = 'TICKET_FINAL'
 ): Promise<{ success: boolean; message?: string }> {
   const settings = getTicketPrinterSettings();
+  const rawBytes = buildEscPosBytes(sale, company, receiptType, settings.paperWidth);
 
-  // 1. Try local server socket route (Node.js net.Socket - pure TCP socket, zero HTTP headers)
+  // 1. Try local server socket route (/api/printer/print - RAW TCP net.Socket, 0 HTTP headers)
   try {
     const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 1500);
+    const timer = setTimeout(() => ctrl.abort(), 1200);
     const res = await fetch('/api/printer/print', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -250,15 +288,57 @@ export async function sendNetworkPrint(
     clearTimeout(timer);
     const data = await res.json();
     if (data && data.success) {
-      return { success: true, message: data.message || `Ticket imprimé sur ${settings.ipAddress}` };
+      return { success: true, message: data.message || `Ticket envoyé à l'imprimante (${settings.ipAddress})` };
     }
   } catch {
-    // Hosted on cloud Vercel
+    // API route unreachable or running on Vercel cloud
   }
 
-  // 2. System Print Spooler (CUPS / eCUPS / AirPrint / Android Print Service - zero HTTP headers)
-  printPosTicketBrowser(sale, company, receiptType);
-  return { success: true, message: `Ticket envoyé à l'imprimante` };
+  // 2. Direct IPP Print-Job request to CUPS server (CUPS parses IPP, strips HTTP headers, and prints cleanly)
+  if (settings.ipAddress) {
+    const printerUri = `ipp://${settings.ipAddress}:${settings.port || 9100}/ipp/print`;
+    const ippPayload = createIppPrintJob(printerUri, rawBytes);
+    const ippBlob = new Blob([ippPayload as any], { type: 'application/ipp' });
+    const rawBlob = new Blob([rawBytes as any], { type: 'application/octet-stream' });
+
+    const requests = [
+      {
+        url: `http://${settings.ipAddress}:${settings.port || 9100}/ipp/print`,
+        body: ippBlob,
+        headers: { 'Content-Type': 'application/ipp' },
+      },
+      {
+        url: `http://${settings.ipAddress}:${settings.port || 9100}/`,
+        body: rawBlob,
+        headers: { 'Content-Type': 'application/octet-stream' },
+      },
+      {
+        url: `http://${settings.ipAddress}/`,
+        body: rawBlob,
+        headers: { 'Content-Type': 'application/octet-stream' },
+      },
+    ];
+
+    for (const req of requests) {
+      try {
+        const ctrl = new AbortController();
+        const timeout = setTimeout(() => ctrl.abort(), 2000);
+        await fetch(req.url, {
+          method: 'POST',
+          headers: req.headers,
+          body: req.body,
+          signal: ctrl.signal,
+          mode: 'no-cors',
+        });
+        clearTimeout(timeout);
+        return { success: true, message: `Ticket envoyé à l'imprimante (${settings.ipAddress})` };
+      } catch {
+        // try next endpoint
+      }
+    }
+  }
+
+  return { success: false, message: `Impossible de joindre l'imprimante (${settings.ipAddress})` };
 }
 
 /**
@@ -273,18 +353,7 @@ export async function printPosTicketDirect(
 }
 
 /**
- * Main print ticket function: sends directly to thermal printer
- */
-export function printPosTicket(
-  sale: PosSale,
-  company: CompanyInfo | null,
-  receiptType: 'ADDITION' | 'TICKET_FINAL' | 'DUPLICATA' = 'TICKET_FINAL'
-): Promise<{ success: boolean; message?: string }> {
-  return sendNetworkPrint(sale, company, receiptType);
-}
-
-/**
- * Browser / System Print Spooler with EXACT 80mm template matching requested design
+ * System / Browser Print dialog (manual fallback for AirPrint / PDF export)
  */
 export function printPosTicketBrowser(
   sale: PosSale,
@@ -339,7 +408,6 @@ export function printPosTicketBrowser(
   </style>
 </head>
 <body>
-  <!-- HEADER -->
   <div class="title-large">VERDEORTO Snack Italy</div>
   <div class="center" style="font-size: 10px;">
     Av al moukawama Quartier Merrodi Residence Davin<br>
@@ -351,7 +419,6 @@ export function printPosTicketBrowser(
 
   <div class="divider"></div>
 
-  <!-- METADATA -->
   <div style="font-size: 10px;">
     <div>Date creation : ${createdDate}</div>
     <div class="flex-between">
@@ -363,7 +430,6 @@ export function printPosTicketBrowser(
 
   <div class="divider"></div>
 
-  <!-- ITEMS TABLE -->
   <table>
     <thead>
       <tr class="bold" style="border-bottom: 1px dashed #000;">
@@ -379,7 +445,6 @@ export function printPosTicketBrowser(
 
   <div class="divider"></div>
 
-  <!-- SUMMARY -->
   <div class="flex-between" style="font-size: 11px;">
     <span>Nombre d'articles</span>
     <span>(${totalItemsCount})</span>
@@ -391,7 +456,6 @@ export function printPosTicketBrowser(
 
   <div class="divider"></div>
 
-  <!-- TOTAL -->
   <div class="total-row">
     <span>Total</span>
     <span>${ttc} MAD</span>
@@ -399,7 +463,6 @@ export function printPosTicketBrowser(
 
   <div class="divider"></div>
 
-  <!-- TAX BREAKDOWN -->
   <table class="tax-table">
     <thead>
       <tr class="bold">
@@ -419,7 +482,6 @@ export function printPosTicketBrowser(
 
   <div class="divider"></div>
 
-  <!-- FOOTER -->
   <div class="center bold" style="margin-top: 3px; font-size: 11px;">NOTE</div>
 
   <script>
@@ -435,4 +497,15 @@ export function printPosTicketBrowser(
   popup.document.close();
   popup.focus();
   return true;
+}
+
+/**
+ * Main print ticket function: sends directly to thermal printer
+ */
+export function printPosTicket(
+  sale: PosSale,
+  company: CompanyInfo | null,
+  receiptType: 'ADDITION' | 'TICKET_FINAL' | 'DUPLICATA' = 'TICKET_FINAL'
+): Promise<{ success: boolean; message?: string }> {
+  return sendNetworkPrint(sale, company, receiptType);
 }
