@@ -46,7 +46,9 @@ import {
   DownloadCloud,
   Cloud,
   CheckCircle2,
-  ChevronRight
+  ChevronRight,
+  Sun,
+  Moon
 } from 'lucide-react';
 import {
   PosTable,
@@ -132,6 +134,26 @@ export const PosView: React.FC<PosViewProps> = ({
   // Full Screen Touch POS state
   const [isFullScreenPos, setIsFullScreenPos] = useState(currentUser?.role === 'CAISSE');
   const [rightPanelTab, setRightPanelTab] = useState<'CARTE' | 'TABLES'>('CARTE');
+  const [posTheme, setPosTheme] = useState<'dark' | 'light'>('dark');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const saved = window.localStorage.getItem('verdeorto_pos_theme');
+      if (saved === 'light' || saved === 'dark') {
+        setPosTheme(saved);
+      }
+    }
+  }, []);
+
+  const togglePosTheme = () => {
+    setPosTheme((prev) => {
+      const next = prev === 'dark' ? 'light' : 'dark';
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem('verdeorto_pos_theme', next);
+      }
+      return next;
+    });
+  };
 
   // Network offline status detection
   const [isOnline, setIsOnline] = useState(true);
@@ -875,7 +897,9 @@ export const PosView: React.FC<PosViewProps> = ({
   // ==========================================================================
   if (isFullScreenPos) {
     return (
-      <div className="fixed inset-0 z-50 bg-slate-950 text-slate-100 flex flex-col font-sans select-none overflow-hidden">
+      <div className={`fixed inset-0 z-50 flex flex-col font-sans select-none overflow-hidden ${
+        posTheme === 'dark' ? 'bg-slate-950 text-slate-100' : 'bg-slate-100 text-slate-900'
+      }`}>
         {/* Toast Notification */}
         {notification && (
           <div
@@ -893,15 +917,21 @@ export const PosView: React.FC<PosViewProps> = ({
         )}
 
         {/* FULL SCREEN TOP HEADER BAR */}
-        <header className="h-14 bg-slate-900 border-b border-slate-800 px-3 sm:px-4 flex items-center justify-between shrink-0 select-none">
+        <header className={`h-14 px-3 sm:px-4 flex items-center justify-between shrink-0 select-none border-b transition-colors ${
+          posTheme === 'dark' ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200 shadow-xs'
+        }`}>
           <div className="flex items-center gap-2 sm:gap-3">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center text-white shadow-md">
                 <Utensils className="w-4 h-4" />
               </div>
               <div>
-                <span className="text-xs sm:text-sm font-black text-white">{companyInfo?.nom || 'Verde Orto'}</span>
-                <span className="hidden sm:inline-block text-[10px] text-emerald-400 font-bold ml-2 px-1.5 py-0.5 bg-emerald-950/80 rounded border border-emerald-800">
+                <span className={`text-xs sm:text-sm font-black ${posTheme === 'dark' ? 'text-white' : 'text-slate-900'}`}>{companyInfo?.nom || 'Verde Orto'}</span>
+                <span className={`hidden sm:inline-block text-[10px] font-bold ml-2 px-1.5 py-0.5 rounded border ${
+                  posTheme === 'dark'
+                    ? 'text-emerald-400 bg-emerald-950/80 border-emerald-800'
+                    : 'text-emerald-700 bg-emerald-50 border-emerald-300'
+                }`}>
                   POS iPad & Touch
                 </span>
               </div>
@@ -911,23 +941,31 @@ export const PosView: React.FC<PosViewProps> = ({
             <div
               className={`flex items-center gap-1.5 px-2 sm:px-2.5 py-1 rounded-full text-[10px] sm:text-[11px] font-bold border ${
                 isOnline
-                  ? 'bg-emerald-950/60 border-emerald-500/40 text-emerald-300'
-                  : 'bg-amber-950/60 border-amber-500/40 text-amber-300'
+                  ? posTheme === 'dark'
+                    ? 'bg-emerald-950/60 border-emerald-500/40 text-emerald-300'
+                    : 'bg-emerald-50 border-emerald-300 text-emerald-800'
+                  : posTheme === 'dark'
+                    ? 'bg-amber-950/60 border-amber-500/40 text-amber-300'
+                    : 'bg-amber-50 border-amber-300 text-amber-800'
               }`}
               title={isOnline ? 'Base SQLite synchronisée localement' : 'Mode 100% Hors-Ligne autonome'}
             >
-              {isOnline ? <Wifi className="w-3 h-3 text-emerald-400" /> : <WifiOff className="w-3 h-3 text-amber-400" />}
+              {isOnline ? <Wifi className="w-3 h-3 text-emerald-500" /> : <WifiOff className="w-3 h-3 text-amber-500" />}
               <span className="hidden sm:inline">{isOnline ? 'En Ligne' : 'Hors-Ligne (SQLite)'}</span>
             </div>
           </div>
 
           {/* iPad Portrait Screen Switcher (Addition vs Carte/Salle) */}
-          <div className="flex md:hidden items-center bg-slate-950 p-1 rounded-xl border border-slate-800">
+          <div className={`flex md:hidden items-center p-1 rounded-xl border ${
+            posTheme === 'dark' ? 'bg-slate-950 border-slate-800' : 'bg-slate-100 border-slate-200'
+          }`}>
             <button
               type="button"
               onClick={() => setIpadViewTab('CARTE')}
               className={`px-3 py-1 rounded-lg text-xs font-bold transition ${
-                ipadViewTab === 'CARTE' ? 'bg-emerald-600 text-white shadow' : 'text-slate-400'
+                ipadViewTab === 'CARTE'
+                  ? 'bg-emerald-600 text-white shadow'
+                  : posTheme === 'dark' ? 'text-slate-400' : 'text-slate-600'
               }`}
             >
               Plats & Tables
@@ -936,7 +974,9 @@ export const PosView: React.FC<PosViewProps> = ({
               type="button"
               onClick={() => setIpadViewTab('ADDITION')}
               className={`px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 transition ${
-                ipadViewTab === 'ADDITION' ? 'bg-emerald-600 text-white shadow' : 'text-slate-400'
+                ipadViewTab === 'ADDITION'
+                  ? 'bg-emerald-600 text-white shadow'
+                  : posTheme === 'dark' ? 'text-slate-400' : 'text-slate-600'
               }`}
             >
               <span>Addition</span>
@@ -950,8 +990,10 @@ export const PosView: React.FC<PosViewProps> = ({
 
           {/* Center Table & Direct Order Info */}
           <div className="hidden md:flex items-center gap-3">
-            <div className="flex items-center gap-2 bg-slate-950 border border-slate-800 px-3.5 py-1.5 rounded-xl">
-              <span className="text-xs font-bold text-slate-300">
+            <div className={`flex items-center gap-2 border px-3.5 py-1.5 rounded-xl ${
+              posTheme === 'dark' ? 'bg-slate-950 border-slate-800 text-slate-300' : 'bg-slate-50 border-slate-200 text-slate-800'
+            }`}>
+              <span className="text-xs font-bold">
                 {activeTable ? `Table ${activeTable.numero} (${activeTable.nom})` : 'Vente Directe / Comptoir'}
               </span>
             </div>
@@ -972,7 +1014,7 @@ export const PosView: React.FC<PosViewProps> = ({
                   setShowOpenSessionModal(true);
                 }
               }}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-600/90 hover:bg-rose-600 active:bg-rose-700 text-white rounded-xl text-xs font-black shadow-md border border-rose-500/40 transition active:scale-95"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-600/90 hover:bg-rose-600 active:bg-rose-700 text-white rounded-xl text-xs font-black shadow-md border border-rose-500/40 transition active:scale-95 cursor-pointer"
               title="Clôturer le service et imprimer le rapport Z"
             >
               <Lock className="w-3.5 h-3.5 text-rose-200" />
@@ -987,9 +1029,13 @@ export const PosView: React.FC<PosViewProps> = ({
               type="button"
               onClick={handleQuickExportBackup}
               title="Sauvegarder les données de caisse sur fichier d'urgence (.sqlite)"
-              className="flex items-center gap-1 px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 active:bg-blue-600 text-slate-200 rounded-lg text-xs font-bold border border-slate-700 transition"
+              className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold border transition cursor-pointer ${
+                posTheme === 'dark'
+                  ? 'bg-slate-800 hover:bg-slate-700 active:bg-blue-600 text-slate-200 border-slate-700'
+                  : 'bg-slate-100 hover:bg-slate-200 active:bg-blue-600 text-slate-700 border-slate-300'
+              }`}
             >
-              <Download className="w-3.5 h-3.5 text-blue-400" />
+              <Download className="w-3.5 h-3.5 text-blue-500" />
               <span className="hidden xl:inline">Sauvegarde Fichier</span>
             </button>
 
@@ -999,18 +1045,41 @@ export const PosView: React.FC<PosViewProps> = ({
                 type="button"
                 onClick={onLockScreen}
                 title="Verrouiller la session (Déverrouillage par Code PIN)"
-                className="flex items-center gap-1 px-2.5 py-1.5 bg-slate-800 hover:bg-amber-600 text-slate-200 hover:text-white rounded-lg text-xs font-bold border border-slate-700 transition"
+                className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold border transition cursor-pointer ${
+                  posTheme === 'dark'
+                    ? 'bg-slate-800 hover:bg-amber-600 text-slate-200 hover:text-white border-slate-700'
+                    : 'bg-slate-100 hover:bg-amber-500 text-slate-700 hover:text-white border-slate-300'
+                }`}
               >
-                <Lock className="w-3.5 h-3.5 text-amber-400" />
+                <Lock className="w-3.5 h-3.5 text-amber-500" />
                 <span className="hidden lg:inline">Verrouiller</span>
               </button>
             )}
+
+            {/* Theme Toggle (☀️ Clair / 🌙 Sombre) */}
+            <button
+              type="button"
+              onClick={togglePosTheme}
+              title={posTheme === 'dark' ? 'Passer en Mode Clair' : 'Passer en Mode Sombre'}
+              className={`flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-bold transition border cursor-pointer ${
+                posTheme === 'dark'
+                  ? 'bg-slate-800 hover:bg-slate-700 text-amber-300 border-slate-700'
+                  : 'bg-amber-50 hover:bg-amber-100 text-amber-900 border-amber-300'
+              }`}
+            >
+              {posTheme === 'dark' ? <Sun className="w-3.5 h-3.5 text-amber-400" /> : <Moon className="w-3.5 h-3.5 text-amber-700" />}
+              <span className="hidden sm:inline">{posTheme === 'dark' ? 'Clair' : 'Sombre'}</span>
+            </button>
 
             {/* Exit Full Screen */}
             <button
               type="button"
               onClick={() => setIsFullScreenPos(false)}
-              className="flex items-center gap-1 px-2.5 sm:px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg text-xs font-bold transition border border-slate-700"
+              className={`flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-bold transition border cursor-pointer ${
+                posTheme === 'dark'
+                  ? 'bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border-slate-700'
+                  : 'bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 border-slate-300'
+              }`}
             >
               <Minimize2 className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Quitter</span>
@@ -1024,14 +1093,18 @@ export const PosView: React.FC<PosViewProps> = ({
           {/* ================================================================ */}
           {/* LEFT PANEL: L'ADDITION / TICKET DE CAISSE (380px - 420px) */}
           {/* ================================================================ */}
-          <div className={`w-full md:w-[390px] lg:w-[430px] bg-slate-900 border-r border-slate-800 flex-col shrink-0 h-full overflow-hidden ${
+          <div className={`w-full md:w-[390px] lg:w-[430px] flex-col shrink-0 h-full overflow-hidden border-r transition-colors ${
+            posTheme === 'dark' ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200 shadow-xs'
+          } ${
             ipadViewTab === 'ADDITION' ? 'flex' : 'hidden md:flex'
           }`}>
             {/* Addition Top Bar */}
-            <div className="p-3 bg-slate-950 border-b border-slate-800 flex items-center justify-between">
+            <div className={`p-3 border-b flex items-center justify-between transition-colors ${
+              posTheme === 'dark' ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200'
+            }`}>
               <div className="flex items-center gap-2">
-                <Receipt className="w-4 h-4 text-emerald-400" />
-                <span className="text-sm font-bold text-white">
+                <Receipt className="w-4 h-4 text-emerald-500" />
+                <span className={`text-sm font-bold ${posTheme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
                   L'Addition ({orderCalculations.itemsCount} plat{orderCalculations.itemsCount > 1 ? 's' : ''})
                 </span>
               </div>
@@ -1186,20 +1259,26 @@ export const PosView: React.FC<PosViewProps> = ({
           {/* ================================================================ */}
           {/* RIGHT PANEL: PLAN DE SALLE & CARTE DES PRODUITS AVEC PHOTOS */}
           {/* ================================================================ */}
-          <div className={`flex-1 flex-col bg-slate-950 overflow-hidden ${
+          <div className={`flex-1 flex-col overflow-hidden transition-colors ${
+            posTheme === 'dark' ? 'bg-slate-950' : 'bg-slate-100'
+          } ${
             ipadViewTab === 'CARTE' ? 'flex' : 'hidden md:flex'
           }`}>
             
             {/* Right Sub-Header Navigation */}
-            <div className="p-3 bg-slate-900 border-b border-slate-800 flex items-center justify-between gap-3">
-              <div className="flex items-center gap-1.5 bg-slate-950 p-1 rounded-xl border border-slate-800">
+            <div className={`p-3 border-b flex items-center justify-between gap-3 transition-colors ${
+              posTheme === 'dark' ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200 shadow-xs'
+            }`}>
+              <div className={`flex items-center gap-1.5 p-1 rounded-xl border ${
+                posTheme === 'dark' ? 'bg-slate-950 border-slate-800' : 'bg-slate-100 border-slate-200'
+              }`}>
                 <button
                   type="button"
                   onClick={() => setRightPanelTab('CARTE')}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition ${
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition cursor-pointer ${
                     rightPanelTab === 'CARTE'
                       ? 'bg-emerald-600 text-white shadow-md'
-                      : 'text-slate-400 hover:text-white'
+                      : posTheme === 'dark' ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
                   <Tag className="w-3.5 h-3.5" />
@@ -1208,10 +1287,10 @@ export const PosView: React.FC<PosViewProps> = ({
                 <button
                   type="button"
                   onClick={() => setRightPanelTab('TABLES')}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition ${
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition cursor-pointer ${
                     rightPanelTab === 'TABLES'
                       ? 'bg-blue-600 text-white shadow-md'
-                      : 'text-slate-400 hover:text-white'
+                      : posTheme === 'dark' ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
                   <Utensils className="w-3.5 h-3.5" />
