@@ -68,6 +68,85 @@ function escapeHtml(value: unknown): string {
 }
 
 /**
+ * Builds Epson ePOS-Print XML for direct HTTP communication over local network (port 80 / 8008)
+ */
+function buildEposXml(
+  sale: PosSale,
+  company: CompanyInfo | null,
+  receiptType: 'ADDITION' | 'TICKET_FINAL' | 'DUPLICATA' = 'TICKET_FINAL'
+): string {
+  const docTitle = receiptType === 'ADDITION' ? "NOTE D'ADDITION" : (receiptType === 'DUPLICATA' ? 'DUPLICATA' : 'TICKET DE CAISSE');
+  const createdDate = formatTicketDateTime(sale.date_vente);
+  const colWidth = 42;
+  const divider = '-'.repeat(colWidth);
+
+  const format3Col = (c1: string, c2: string, c3: string) => {
+    const qteStr = c1.padEnd(5, ' ');
+    const nameStr = c2.length > 25 ? c2.substring(0, 25) : c2.padEnd(25, ' ');
+    const priceStr = c3.padStart(12, ' ');
+    return `${qteStr}${nameStr}${priceStr}`;
+  };
+
+  const format2Col = (left: string, right: string) => {
+    const spaces = Math.max(1, colWidth - left.length - right.length);
+    return `${left}${' '.repeat(spaces)}${right}`;
+  };
+
+  let totalItemsCount = 0;
+  const rowsXml = (sale.lignes || []).map((l) => {
+    const qty = Number(l.quantite || 1);
+    totalItemsCount += qty;
+    const name = escapeHtml(l.produit_nom || 'Article');
+    const price = Number(l.total_ttc || 0).toFixed(2);
+    return `<text align="left">${format3Col(String(qty), name, price)}&#10;</text>`;
+  }).join('');
+
+  const ht = Number(sale.total_ht || 0).toFixed(2);
+  const tva = Number(sale.total_tva || 0).toFixed(2);
+  const ttc = Number(sale.total_ttc || 0).toFixed(2);
+  const taxRate = sale.tva_10 && sale.tva_10 > 0 ? '10 %' : (sale.tva_7 && sale.tva_7 > 0 ? '7 %' : '20 %');
+
+  const formatTaxRow = (t1: string, t2: string, t3: string) => {
+    return `${t1.padEnd(10, ' ')}${t2.padStart(18, ' ')}${t3.padStart(14, ' ')}`;
+  };
+
+  const boutiqueLine = format2Col('Boutique : VerdeOrto 1', `Ticket: ${sale.numero_ticket || '1'}`);
+
+  return `<?xml version="1.0" encoding="utf-8"?>
+<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/">
+  <s:Body>
+    <epos-print xmlns="http://www.epson-pos.com/schemas/2011/03/epos-print">
+      <text align="center" width="2" height="2">VERDEORTO Snack Italy&#10;</text>
+      <text align="center">Av al moukawama Quartier Merrodi Residence Davin&#10;</text>
+      <text align="center">c1 Bloc F Mag N 20 Marrakech&#10;</text>
+      <text align="center">08 08 55 11 56 / 06 62 12 34 49&#10;</text>
+      <text align="center">www.verdeorto.weebly.com&#10;</text>
+      <text align="center" font="font_a">${escapeHtml(docTitle)}&#10;</text>
+      <text align="center">${divider}&#10;</text>
+      <text align="left">Date creation : ${escapeHtml(createdDate)}&#10;</text>
+      <text align="left">${escapeHtml(boutiqueLine)}&#10;</text>
+      <text align="left">Caissier : ${escapeHtml(sale.caissier || 'Admin')}&#10;</text>
+      <text align="center">${divider}&#10;</text>
+      <text align="left">${format3Col('QTE', '* ARTICLE *', 'PRIX')}&#10;</text>
+      ${rowsXml}
+      <text align="center">${divider}&#10;</text>
+      <text align="left">${format2Col("Nombre d'articles", `(${totalItemsCount})`)}&#10;</text>
+      <text align="left">${format2Col('Sous-total', `${ht} MAD`)}&#10;</text>
+      <text align="center">${divider}&#10;</text>
+      <text align="left" width="2" height="2">${format2Col('Total', `${ttc} MAD`)}&#10;</text>
+      <text align="center">${divider}&#10;</text>
+      <text align="left">${formatTaxRow('Taux TVA', 'Montant H.T.', 'T.V.A')}&#10;</text>
+      <text align="left">${formatTaxRow(taxRate, ht, tva)}&#10;</text>
+      <text align="center">${divider}&#10;</text>
+      <text align="center">NOTE&#10;</text>
+      <feed line="3"/>
+      <cut type="feed"/>
+    </epos-print>
+  </s:Body>
+</s:Envelope>`;
+}
+
+/**
  * Builds 80mm ESC/POS binary ticket matching the requested design:
  * - Header: VERDEORTO Snack Italy (Bold/Double Height), address, phones, website, DUPLICATA
  * - Metadata: Date creation, Boutique, Ticket, Caissier
@@ -227,7 +306,7 @@ export function buildEscPosBytes(
 }
 
 /**
- * Direct network print to thermal printer using backend TCP socket
+ * Direct network print to thermal printer using backend TCP socket and direct ePOS HTTP
  */
 export async function sendNetworkPrint(
   sale: PosSale,
@@ -235,9 +314,8 @@ export async function sendNetworkPrint(
   receiptType: 'ADDITION' | 'TICKET_FINAL' | 'DUPLICATA' = 'TICKET_FINAL'
 ): Promise<{ success: boolean; message?: string }> {
   const settings = getTicketPrinterSettings();
-  const rawEscPos = buildEscPosBytes(sale, company, receiptType, settings.paperWidth);
 
-  // 1. Try server socket route (/api/printer/print - works when running on LAN)
+  // 1. Try local server socket route (/api/printer/print - RAW TCP port 9100)
   try {
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), 1200);
@@ -253,12 +331,45 @@ export async function sendNetworkPrint(
       return { success: true, message: data.message || `Ticket imprimé sur ${settings.ipAddress}` };
     }
   } catch {
-    // Vercel cloud cannot reach private LAN IP 192.168.1.87
+    // API route unreachable or running on Vercel cloud
   }
 
-  // 2. On Android: Try direct RawBT ESC/POS intent
+  // 2. Direct Epson ePOS XML over HTTP to local printer IP (port 80 & port 8008)
+  if (settings.ipAddress) {
+    const xml = buildEposXml(sale, company, receiptType);
+    const endpoints = [
+      `http://${settings.ipAddress}/cgi-bin/epos/service.cgi?devid=local_printer&timeout=10000`,
+      `http://${settings.ipAddress}:8008/cgi-bin/epos/service.cgi?devid=local_printer&timeout=10000`,
+      `http://${settings.ipAddress}/cgi-bin/epos/service.cgi`,
+      `http://${settings.ipAddress}:8008/cgi-bin/epos/service.cgi`,
+    ];
+
+    for (const url of endpoints) {
+      try {
+        const ctrl = new AbortController();
+        const timeout = setTimeout(() => ctrl.abort(), 2500);
+        await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'text/xml; charset=utf-8',
+            'SOAPAction': '""',
+          },
+          body: xml,
+          signal: ctrl.signal,
+          mode: 'no-cors',
+        });
+        clearTimeout(timeout);
+        return { success: true, message: `Ticket envoyé à l'imprimante (${settings.ipAddress})` };
+      } catch {
+        // continue to next endpoint
+      }
+    }
+  }
+
+  // 3. On Android: Try direct RawBT ESC/POS intent
   if (typeof window !== 'undefined' && /android/i.test(navigator.userAgent)) {
     try {
+      const rawEscPos = buildEscPosBytes(sale, company, receiptType, settings.paperWidth);
       let binary = '';
       for (let i = 0; i < rawEscPos.byteLength; i++) {
         binary += String.fromCharCode(rawEscPos[i]);
@@ -271,9 +382,7 @@ export async function sendNetworkPrint(
     }
   }
 
-  // 3. Fallback: Browser 80mm Print Spooler (CUPS / Android Print Service / AirPrint)
-  printPosTicketBrowser(sale, company, receiptType);
-  return { success: true, message: `Impression ticket lancée` };
+  return { success: false, message: `Impossible de joindre l'imprimante (${settings.ipAddress})` };
 }
 
 /**
