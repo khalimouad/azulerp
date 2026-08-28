@@ -1,9 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Client, Produit, FactureLigne } from '@/lib/types';
 import { formatCurrency } from '@/lib/utils';
 import { Plus, Trash2, FileText, X } from 'lucide-react';
+import { ProductSearchSelect } from '@/components/ProductSearchSelect';
+import { DecimalInput } from '@/components/DecimalInput';
 
 interface CreateFactureModalProps {
   isOpen: boolean;
@@ -45,6 +47,7 @@ export const CreateFactureModal: React.FC<CreateFactureModalProps> = ({
   const [modeReglement, setModeReglement] = useState('Virement');
   const [notes, setNotes] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const quantityInputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   const [lignes, setLignes] = useState<
     Array<{
@@ -86,32 +89,32 @@ export const CreateFactureModal: React.FC<CreateFactureModalProps> = ({
 
   const handleQuantityChange = (index: number, qte: number) => {
     const newLignes = [...lignes];
-    newLignes[index].quantite = qte;
+    newLignes[index] = { ...newLignes[index], quantite: qte };
     setLignes(newLignes);
   };
 
-  const handlePriceChange = (index: number, price: number) => {
+  const handlePriceChange = (index: number, prix: number) => {
     const newLignes = [...lignes];
-    newLignes[index].prix_ht = price;
+    newLignes[index] = { ...newLignes[index], prix_ht: prix };
     setLignes(newLignes);
   };
 
   const handleTvaChange = (index: number, tva: number) => {
     const newLignes = [...lignes];
-    newLignes[index].taux_tva = tva;
+    newLignes[index] = { ...newLignes[index], taux_tva: tva };
     setLignes(newLignes);
   };
 
   const addLine = () => {
-    const firstProd = produits[0];
+    const defaultProd = sortedProduits[0];
     setLignes([
       ...lignes,
       {
-        produit_id: firstProd?.id,
-        designation: firstProd?.libelle || '',
+        produit_id: defaultProd?.id,
+        designation: defaultProd?.libelle || '',
         quantite: 1,
-        prix_ht: firstProd?.prix_ht || 0,
-        taux_tva: firstProd?.taux_tva || 20,
+        prix_ht: defaultProd?.prix_ht || 0,
+        taux_tva: defaultProd?.taux_tva || 20,
         remise_pct: 0,
       },
     ]);
@@ -136,8 +139,8 @@ export const CreateFactureModal: React.FC<CreateFactureModalProps> = ({
   const totalTva = calculated.reduce((sum, l) => sum + l.total_tva, 0);
   const totalTtc = totalHt + totalTva;
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: React.FormEvent) => {
+    e?.preventDefault?.();
     if (!selectedClient) {
       alert('Veuillez sélectionner un client.');
       return;
@@ -266,36 +269,45 @@ export const CreateFactureModal: React.FC<CreateFactureModalProps> = ({
                   {lignes.map((line, idx) => (
                     <tr key={idx} className="divide-x divide-slate-100 bg-white">
                       <td className="p-1.5">
-                        <select
+                        <ProductSearchSelect
+                          products={sortedProduits}
                           value={line.produit_id}
-                          onChange={(e) => handleProductChange(idx, Number(e.target.value))}
-                          className="w-full p-1 text-xs bg-slate-50 rounded border border-slate-300 focus:outline-none"
-                        >
-                          {sortedProduits.map((p) => (
-                            <option key={p.id} value={p.id}>
-                              {p.libelle}
-                            </option>
-                          ))}
-                        </select>
-                      </td>
-                      <td className="p-1.5">
-                        <input
-                          type="number"
-                          step="any"
-                          min="0.01"
-                          value={line.quantite}
-                          onChange={(e) => handleQuantityChange(idx, parseFloat(e.target.value) || 0)}
-                          className="w-full p-1 text-xs text-right bg-slate-50 rounded border border-slate-300 font-bold"
+                          onChange={(prodId) => handleProductChange(idx, prodId)}
+                          onSelected={() => {
+                            const input = quantityInputRefs.current[idx];
+                            if (input) {
+                              input.focus();
+                              input.select();
+                            }
+                          }}
+                          accent="blue"
                         />
                       </td>
                       <td className="p-1.5">
-                        <input
-                          type="number"
-                          step="any"
-                          min="0"
+                        <DecimalInput
+                          ref={(el) => {
+                            quantityInputRefs.current[idx] = el;
+                          }}
+                          required
+                          value={line.quantite}
+                          min={0.01}
+                          selectOnFocus
+                          onEnter={() => handleSubmit()}
+                          onValueChange={(val) => handleQuantityChange(idx, val)}
+                          ariaLabel={`Quantité ligne ${idx + 1}`}
+                          className="w-full p-1.5 text-xs text-right bg-slate-50 rounded border border-slate-300 font-bold tabular-nums"
+                        />
+                      </td>
+                      <td className="p-1.5">
+                        <DecimalInput
+                          required
                           value={line.prix_ht}
-                          onChange={(e) => handlePriceChange(idx, parseFloat(e.target.value) || 0)}
-                          className="w-full p-1 text-xs text-right bg-slate-50 rounded border border-slate-300 font-mono"
+                          min={0}
+                          selectOnFocus
+                          onEnter={() => handleSubmit()}
+                          onValueChange={(val) => handlePriceChange(idx, val)}
+                          ariaLabel={`Prix HT ligne ${idx + 1}`}
+                          className="w-full p-1.5 text-xs text-right bg-slate-50 rounded border border-slate-300 tabular-nums"
                         />
                       </td>
                       <td className="p-1.5">

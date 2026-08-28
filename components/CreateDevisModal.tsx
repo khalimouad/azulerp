@@ -1,9 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Client, Produit, DevisLigne } from '@/lib/types';
 import { formatCurrency } from '@/lib/utils';
 import { Plus, Trash2, FileSpreadsheet, X } from 'lucide-react';
+import { ProductSearchSelect } from '@/components/ProductSearchSelect';
+import { DecimalInput } from '@/components/DecimalInput';
 
 interface CreateDevisModalProps {
   isOpen: boolean;
@@ -27,7 +29,15 @@ export const CreateDevisModal: React.FC<CreateDevisModalProps> = ({
   produits,
   onSave,
 }) => {
-  const [clientId, setClientId] = useState<number>(clients[0]?.id ?? 0);
+  const sortedClients = React.useMemo(() => {
+    return [...clients].sort((a, b) => (a.nom || '').localeCompare(b.nom || '', 'fr', { sensitivity: 'base' }));
+  }, [clients]);
+
+  const sortedProduits = React.useMemo(() => {
+    return [...produits].sort((a, b) => (a.libelle || '').localeCompare(b.libelle || '', 'fr', { sensitivity: 'base' }));
+  }, [produits]);
+
+  const [clientId, setClientId] = useState<number>(sortedClients[0]?.id ?? 0);
   const [date, setDate] = useState<string>(() => new Date().toISOString().split('T')[0]);
   const [dateValidite, setDateValidite] = useState<string>(() => {
     const d = new Date();
@@ -36,6 +46,7 @@ export const CreateDevisModal: React.FC<CreateDevisModalProps> = ({
   });
   const [notes, setNotes] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const quantityInputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   const [lignes, setLignes] = useState<
     Array<{
@@ -47,17 +58,17 @@ export const CreateDevisModal: React.FC<CreateDevisModalProps> = ({
     }>
   >([
     {
-      produit_id: produits[0]?.id,
-      designation: produits[0]?.libelle || '',
+      produit_id: sortedProduits[0]?.id,
+      designation: sortedProduits[0]?.libelle || '',
       quantite: 1,
-      prix_ht: produits[0]?.prix_ht || 0,
-      taux_tva: produits[0]?.taux_tva || 20,
+      prix_ht: sortedProduits[0]?.prix_ht || 0,
+      taux_tva: sortedProduits[0]?.taux_tva || 20,
     },
   ]);
 
   if (!isOpen) return null;
 
-  const selectedClient = clients.find((c) => c.id === clientId) || clients[0];
+  const selectedClient = sortedClients.find((c) => c.id === clientId) || sortedClients[0];
 
   const handleProductChange = (index: number, prodId: number) => {
     const prod = produits.find((p) => p.id === prodId);
@@ -115,8 +126,8 @@ export const CreateDevisModal: React.FC<CreateDevisModalProps> = ({
   const totalTva = calculated.reduce((sum, l) => sum + l.total_tva, 0);
   const totalTtc = totalHt + totalTva;
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: React.FormEvent) => {
+    e?.preventDefault?.();
     if (!selectedClient) {
       alert('Veuillez sélectionner un client.');
       return;
@@ -162,9 +173,9 @@ export const CreateDevisModal: React.FC<CreateDevisModalProps> = ({
                 onChange={(e) => setClientId(Number(e.target.value))}
                 className="w-full px-3 py-2 text-xs bg-white rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium"
               >
-                {clients.map((c) => (
+                {sortedClients.map((c) => (
                   <option key={c.id} value={c.id}>
-                    {c.nom} {c.ville ? `(${c.ville})` : ''}
+                    {c.nom} {c.ville ? `(${c.ville})` : ''} {c.ice ? `- ICE: ${c.ice}` : ''}
                   </option>
                 ))}
               </select>
@@ -177,7 +188,7 @@ export const CreateDevisModal: React.FC<CreateDevisModalProps> = ({
                 required
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                className="w-full px-3 py-2 text-xs bg-white rounded-lg border border-slate-300"
+                className="w-full px-3 py-2 text-xs bg-white rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
             </div>
 
@@ -187,18 +198,18 @@ export const CreateDevisModal: React.FC<CreateDevisModalProps> = ({
                 type="date"
                 value={dateValidite}
                 onChange={(e) => setDateValidite(e.target.value)}
-                className="w-full px-3 py-1.5 text-xs bg-white rounded-lg border border-slate-300"
+                className="w-full px-3 py-1.5 text-xs bg-white rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
             </div>
 
             <div className="sm:col-span-2">
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Notes / Conditions particulières</label>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">Notes / Conditions</label>
               <input
                 type="text"
-                placeholder="Ex: Validité offre 30 jours, livraison sous 48h..."
+                placeholder="Conditions de paiement, livraison..."
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                className="w-full px-3 py-1.5 text-xs bg-white rounded-lg border border-slate-300"
+                className="w-full px-3 py-1.5 text-xs bg-white rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
             </div>
           </div>
@@ -207,7 +218,7 @@ export const CreateDevisModal: React.FC<CreateDevisModalProps> = ({
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700">
-                Articles en Proposition
+                Lignes du Devis
               </h4>
               <button
                 type="button"
@@ -218,7 +229,7 @@ export const CreateDevisModal: React.FC<CreateDevisModalProps> = ({
               </button>
             </div>
 
-            <div className="border border-slate-200 rounded-xl overflow-hidden">
+            <div className="border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
                   <tr className="bg-slate-800 text-white font-semibold divide-x divide-slate-700">
@@ -234,36 +245,45 @@ export const CreateDevisModal: React.FC<CreateDevisModalProps> = ({
                   {lignes.map((line, idx) => (
                     <tr key={idx} className="divide-x divide-slate-100 bg-white">
                       <td className="p-1.5">
-                        <select
+                        <ProductSearchSelect
+                          products={sortedProduits}
                           value={line.produit_id}
-                          onChange={(e) => handleProductChange(idx, Number(e.target.value))}
-                          className="w-full p-1 text-xs bg-slate-50 rounded border border-slate-300"
-                        >
-                          {produits.map((p) => (
-                            <option key={p.id} value={p.id}>
-                              {p.libelle}
-                            </option>
-                          ))}
-                        </select>
-                      </td>
-                      <td className="p-1.5">
-                        <input
-                          type="number"
-                          step="any"
-                          min="0.01"
-                          value={line.quantite}
-                          onChange={(e) => handleQuantityChange(idx, parseFloat(e.target.value) || 0)}
-                          className="w-full p-1 text-xs text-right bg-slate-50 rounded border border-slate-300 font-bold"
+                          onChange={(prodId) => handleProductChange(idx, prodId)}
+                          onSelected={() => {
+                            const input = quantityInputRefs.current[idx];
+                            if (input) {
+                              input.focus();
+                              input.select();
+                            }
+                          }}
+                          accent="blue"
                         />
                       </td>
                       <td className="p-1.5">
-                        <input
-                          type="number"
-                          step="any"
-                          min="0"
+                        <DecimalInput
+                          ref={(el) => {
+                            quantityInputRefs.current[idx] = el;
+                          }}
+                          required
+                          value={line.quantite}
+                          min={0.01}
+                          selectOnFocus
+                          onEnter={() => handleSubmit()}
+                          onValueChange={(val) => handleQuantityChange(idx, val)}
+                          ariaLabel={`Quantité ligne ${idx + 1}`}
+                          className="w-full p-1.5 text-xs text-right bg-slate-50 rounded border border-slate-300 font-bold tabular-nums"
+                        />
+                      </td>
+                      <td className="p-1.5">
+                        <DecimalInput
+                          required
                           value={line.prix_ht}
-                          onChange={(e) => handlePriceChange(idx, parseFloat(e.target.value) || 0)}
-                          className="w-full p-1 text-xs text-right bg-slate-50 rounded border border-slate-300 font-mono"
+                          min={0}
+                          selectOnFocus
+                          onEnter={() => handleSubmit()}
+                          onValueChange={(val) => handlePriceChange(idx, val)}
+                          ariaLabel={`Prix HT ligne ${idx + 1}`}
+                          className="w-full p-1.5 text-xs text-right bg-slate-50 rounded border border-slate-300 tabular-nums"
                         />
                       </td>
                       <td className="p-1.5 text-center font-semibold text-slate-700">
