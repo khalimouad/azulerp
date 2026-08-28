@@ -103,6 +103,7 @@ function buildEposXml(sale: PosSale, company: CompanyInfo | null, receiptType: s
 
 /**
  * Attempts direct network print to thermal printer (via API route socket & direct ePOS HTTP)
+ * Completely silent, without triggering iOS/Android system printer popups.
  */
 export async function sendNetworkPrint(
   sale: PosSale,
@@ -111,7 +112,7 @@ export async function sendNetworkPrint(
 ): Promise<{ success: boolean; message?: string }> {
   const settings = getTicketPrinterSettings();
 
-  // 1. Try local server socket route (/api/printer/print)
+  // 1. Try local server socket route (/api/printer/print - RAW TCP port 9100)
   try {
     const res = await fetch('/api/printer/print', {
       method: 'POST',
@@ -120,7 +121,7 @@ export async function sendNetworkPrint(
     });
     const data = await res.json();
     if (data && data.success) {
-      return { success: true, message: data.message };
+      return { success: true, message: data.message || `Ticket envoyé à l'imprimante (${settings.ipAddress})` };
     }
   } catch {
     // API route unreachable or failed
@@ -138,7 +139,7 @@ export async function sendNetworkPrint(
       try {
         const ctrl = new AbortController();
         const timeout = setTimeout(() => ctrl.abort(), 2000);
-        const res = await fetch(url, {
+        await fetch(url, {
           method: 'POST',
           headers: { 'Content-Type': 'text/xml; charset=utf-8' },
           body: xml,
@@ -146,30 +147,37 @@ export async function sendNetworkPrint(
           mode: 'no-cors',
         });
         clearTimeout(timeout);
-        return { success: true, message: `Ticket envoyé à l'imprimante ${settings.ipAddress}` };
+        return { success: true, message: `Ticket envoyé à l'imprimante (${settings.ipAddress})` };
       } catch {
         // continue to next endpoint
       }
     }
   }
 
-  return { success: false, message: 'Impression réseau direct non disponible' };
+  return { success: false, message: `Impossible de joindre l'imprimante (${settings.ipAddress})` };
 }
 
 /**
- * Main print ticket function: sends to network printer and displays browser receipt dialog
+ * Direct thermal ticket printing: sends straight to physical printer over local network (no browser popup)
  */
-export function printPosTicket(
+export async function printPosTicketDirect(
+  sale: PosSale,
+  company: CompanyInfo | null,
+  receiptType: 'ADDITION' | 'TICKET_FINAL' = 'TICKET_FINAL'
+): Promise<{ success: boolean; message?: string }> {
+  return sendNetworkPrint(sale, company, receiptType);
+}
+
+/**
+ * System / Browser Print dialog (fallback for AirPrint / Android system print dialog)
+ */
+export function printPosTicketBrowser(
   sale: PosSale,
   company: CompanyInfo | null,
   receiptType: 'ADDITION' | 'TICKET_FINAL' = 'TICKET_FINAL'
 ): boolean {
   const settings = getTicketPrinterSettings();
 
-  // Fire asynchronous network print in background
-  sendNetworkPrint(sale, company, receiptType).catch(() => {});
-
-  // Open browser formatted thermal ticket popup
   const popup = window.open('', 'verdeorto-ticket', 'popup,width=460,height=720');
   if (!popup) return false;
 
@@ -209,4 +217,15 @@ export function printPosTicket(
   popup.document.close();
   popup.focus();
   return true;
+}
+
+/**
+ * Main print ticket function: sends directly to thermal printer
+ */
+export function printPosTicket(
+  sale: PosSale,
+  company: CompanyInfo | null,
+  receiptType: 'ADDITION' | 'TICKET_FINAL' = 'TICKET_FINAL'
+): Promise<{ success: boolean; message?: string }> {
+  return sendNetworkPrint(sale, company, receiptType);
 }

@@ -59,7 +59,7 @@ import {
   CompanyInfo,
   AppUser
 } from '@/lib/types';
-import { getTicketPrinterSettings, printPosTicket } from '@/lib/ticket-printer';
+import { getTicketPrinterSettings, printPosTicket, printPosTicketBrowser } from '@/lib/ticket-printer';
 import {
   fetchPosTables,
   fetchPosCategories,
@@ -193,6 +193,7 @@ export const PosView: React.FC<PosViewProps> = ({
   const [lastSale, setLastSale] = useState<PosSale | null>(null);
   const [showReceiptModal, setShowReceiptModal] = useState(false);
   const [receiptType, setReceiptType] = useState<'ADDITION' | 'TICKET_FINAL'>('TICKET_FINAL');
+  const [isPrintingTicket, setIsPrintingTicket] = useState(false);
 
   // Kitchen note modal for items
   const [noteItemIndex, setNoteItemIndex] = useState<number | null>(null);
@@ -793,7 +794,11 @@ export const PosView: React.FC<PosViewProps> = ({
 
       setLastSale(completedSale);
       if (getTicketPrinterSettings().autoPrint) {
-        printPosTicket(completedSale, companyInfo, 'TICKET_FINAL');
+        printPosTicket(completedSale, companyInfo, 'TICKET_FINAL').then((res) => {
+          if (res.success) {
+            showToast(res.message || `Ticket imprimé sur l'imprimante 192.168.1.87`);
+          }
+        });
       }
       setReceiptType('TICKET_FINAL');
       setShowReceiptModal(true);
@@ -1813,23 +1818,47 @@ export const PosView: React.FC<PosViewProps> = ({
                 Merci de votre visite et à très bientôt !
               </div>
 
-              <div className="flex items-center gap-2 pt-2">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 pt-2">
+                <button
+                  type="button"
+                  disabled={isPrintingTicket}
+                  onClick={async () => {
+                    if (!lastSale) return;
+                    setIsPrintingTicket(true);
+                    try {
+                      const res = await printPosTicket(lastSale, companyInfo, receiptType);
+                      if (res.success) {
+                        showToast(res.message || `Ticket imprimé sur 192.168.1.87`);
+                      } else {
+                        showToast(res.message || `Échec d'impression thermique direct`, 'error');
+                      }
+                    } catch (err: any) {
+                      showToast(`Erreur d'impression: ${err?.message || 'Inconnue'}`, 'error');
+                    } finally {
+                      setIsPrintingTicket(false);
+                    }
+                  }}
+                  className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white rounded-lg font-sans font-bold text-xs flex items-center justify-center gap-1.5 shadow-xs transition cursor-pointer"
+                >
+                  <Printer className="w-4 h-4" />
+                  <span>{isPrintingTicket ? 'Impression en cours...' : 'Imprimer sur Ticket (192.168.1.87)'}</span>
+                </button>
                 <button
                   type="button"
                   onClick={() => {
-                    if (!printPosTicket(lastSale, companyInfo, receiptType)) {
-                      showToast('Autorisez les fenêtres contextuelles pour imprimer le ticket.', 'error');
+                    if (lastSale) {
+                      printPosTicketBrowser(lastSale, companyInfo, receiptType);
                     }
                   }}
-                  className="flex-1 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-sans font-bold text-xs flex items-center justify-center gap-1.5"
+                  className="px-3 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-sans font-medium text-xs text-center border border-slate-200 cursor-pointer"
+                  title="Ouvrir la boîte d'impression système (AirPrint / PDF)"
                 >
-                  <Printer className="w-3.5 h-3.5" />
-                  <span>Impression directe</span>
+                  AirPrint / PDF
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowReceiptModal(false)}
-                  className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded-lg font-sans font-bold text-xs"
+                  className="px-4 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded-lg font-sans font-bold text-xs cursor-pointer"
                 >
                   Fermer
                 </button>
