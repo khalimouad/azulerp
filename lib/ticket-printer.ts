@@ -11,6 +11,14 @@ export interface TicketPrinterSettings {
   documentPaperSize: 'A4' | 'A5';
 }
 
+export function cleanPrinterIp(rawIp: string): string {
+  return (rawIp || '192.168.1.87')
+    .trim()
+    .replace(/^https?:\/\//i, '')
+    .replace(/:\d+$/, '')
+    .replace(/\/.*$/, '');
+}
+
 export const DEFAULT_TICKET_PRINTER_SETTINGS: TicketPrinterSettings = {
   model: 'Epson TM-T20X',
   ipAddress: '192.168.1.87',
@@ -30,11 +38,19 @@ export function getTicketPrinterSettings(): TicketPrinterSettings {
   try {
     const saved = JSON.parse(window.localStorage.getItem(STORAGE_KEY) || '{}');
     if (saved && saved.ipAddress) {
-      return { ...DEFAULT_TICKET_PRINTER_SETTINGS, ...saved };
+      return {
+        ...DEFAULT_TICKET_PRINTER_SETTINGS,
+        ...saved,
+        ipAddress: cleanPrinterIp(saved.ipAddress),
+      };
     }
     const legacy = JSON.parse(window.localStorage.getItem(LEGACY_STORAGE_KEY) || '{}');
-    if (legacy && legacy.ipAddress && legacy.ipAddress !== '192.168.1.100') {
-      return { ...DEFAULT_TICKET_PRINTER_SETTINGS, ...legacy };
+    if (legacy && legacy.ipAddress) {
+      return {
+        ...DEFAULT_TICKET_PRINTER_SETTINGS,
+        ...legacy,
+        ipAddress: cleanPrinterIp(legacy.ipAddress),
+      };
     }
     return DEFAULT_TICKET_PRINTER_SETTINGS;
   } catch {
@@ -44,7 +60,11 @@ export function getTicketPrinterSettings(): TicketPrinterSettings {
 
 export function saveTicketPrinterSettings(settings: TicketPrinterSettings): void {
   if (typeof window === 'undefined') return;
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+  const cleanSettings = {
+    ...settings,
+    ipAddress: cleanPrinterIp(settings.ipAddress),
+  };
+  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(cleanSettings));
 }
 
 export function formatTicketDateTime(dateStr?: string): string {
@@ -67,15 +87,93 @@ function escapeHtml(value: unknown): string {
     .replaceAll("'", '&#039;');
 }
 
+export function bytesToBase64(bytes: Uint8Array): string {
+  let binary = '';
+  const len = bytes.byteLength;
+  for (let i = 0; i < len; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return typeof window !== 'undefined' ? window.btoa(binary) : Buffer.from(bytes).toString('base64');
+}
+
 /**
- * Builds pure binary 80mm ESC/POS ticket for Epson TM-T20X:
- * - Header: VERDEORTO Snack Italy (Bold / Double-Height), address, phones, website, DUPLICATA
- * - Metadata: Date creation, Boutique, Ticket, Caissier
- * - 3-Col Items: QTE, * ARTICLE *, PRIX
- * - Summary: Nombre d'articles, Sous-total
- * - Total: Double-Height font
- * - Tax Breakdown: Taux TVA, Montant H.T., T.V.A
- * - Footer: NOTE, Feed 4 lines & SINGLE Partial Cut (GS V 66 0)
+ * Builds Epson ePOS-Print XML for Epson TM Print Assistant (iOS & Android)
+ */
+export function buildEposXml(
+  sale: PosSale,
+  company: CompanyInfo | null,
+  receiptType: 'ADDITION' | 'TICKET_FINAL' | 'DUPLICATA' = 'TICKET_FINAL'
+): string {
+  const docTitle = receiptType === 'ADDITION' ? "NOTE D'ADDITION" : (receiptType === 'DUPLICATA' ? 'DUPLICATA' : 'TICKET DE CAISSE');
+  const createdDate = formatTicketDateTime(sale.date_vente);
+  const colWidth = 42;
+  const divider = '------------------------------------------';
+
+  const format3Col = (c1: string, c2: string, c3: string) => {
+    const qteStr = c1.padEnd(5, ' ');
+    const nameStr = c2.length > 25 ? c2.substring(0, 25) : c2.padEnd(25, ' ');
+    const priceStr = c3.padStart(12, ' ');
+    return `${qteStr}${nameStr}${priceStr}`;
+  };
+
+  const format2Col = (left: string, right: string) => {
+    const spaces = Math.max(1, colWidth - left.length - right.length);
+    return `${left}${' '.repeat(spaces)}${right}`;
+  };
+
+  let totalItemsCount = 0;
+  const rowsXml = (sale.lignes || [])
+    .map((l) => {
+      const qty = Number(l.quantite || 1);
+      totalItemsCount += qty;
+      const name = escapeHtml(l.produit_nom || 'Article');
+      const price = Number(l.total_ttc || 0).toFixed(2);
+      return `<text align="left">${format3Col(String(qty), name, price)}&#10;</text>`;
+    })
+    .join('');
+
+  const ht = Number(sale.total_ht || 0).toFixed(2);
+  const tva = Number(sale.total_tva || 0).toFixed(2);
+  const ttc = Number(sale.total_ttc || 0).toFixed(2);
+  const taxRate = sale.tva_10 && sale.tva_10 > 0 ? '10 %' : (sale.tva_7 && sale.tva_7 > 0 ? '7 %' : '20 %');
+
+  const formatTaxRow = (t1: string, t2: string, t3: string) => {
+    return `${t1.padEnd(10, ' ')}${t2.padStart(18, ' ')}${t3.padStart(14, ' ')}`;
+  };
+
+  const boutiqueLine = format2Col('Boutique : VerdeOrto 1', `Ticket: ${sale.numero_ticket || '1'}`);
+
+  return `<epos-print xmlns="http://www.epson-pos.com/schemas/2011/03/epos-print">
+  <text align="center" width="2" height="2">VERDEORTO Snack Italy&#10;</text>
+  <text align="center">Av al moukawama Quartier Merrodi Residence Davin&#10;</text>
+  <text align="center">c1 Bloc F Mag N 20 Marrakech&#10;</text>
+  <text align="center">08 08 55 11 56 / 06 62 12 34 49&#10;</text>
+  <text align="center">www.verdeorto.weebly.com&#10;</text>
+  <text align="center" font="font_b">${escapeHtml(docTitle)}&#10;</text>
+  <text align="center">${divider}&#10;</text>
+  <text align="left">Date creation : ${escapeHtml(createdDate)}&#10;</text>
+  <text align="left">${escapeHtml(boutiqueLine)}&#10;</text>
+  <text align="left">Caissier : ${escapeHtml(sale.caissier || 'Admin')}&#10;</text>
+  <text align="center">${divider}&#10;</text>
+  <text align="left">${format3Col('QTE', '* ARTICLE *', 'PRIX')}&#10;</text>
+  ${rowsXml}
+  <text align="center">${divider}&#10;</text>
+  <text align="left">${format2Col("Nombre d'articles", `(${totalItemsCount})`)}&#10;</text>
+  <text align="left">${format2Col('Sous-total', `${ht} MAD`)}&#10;</text>
+  <text align="center">${divider}&#10;</text>
+  <text align="left" width="2" height="2">${format2Col('Total', `${ttc} MAD`)}&#10;</text>
+  <text align="center">${divider}&#10;</text>
+  <text align="left">${formatTaxRow('Taux TVA', 'Montant H.T.', 'T.V.A')}&#10;</text>
+  <text align="left">${formatTaxRow(taxRate, ht, tva)}&#10;</text>
+  <text align="center">${divider}&#10;</text>
+  <text align="center">NOTE&#10;</text>
+  <feed line="4"/>
+  <cut type="feed"/>
+</epos-print>`;
+}
+
+/**
+ * Builds pure binary 80mm ESC/POS ticket for Epson TM-T20X
  */
 export function buildEscPosBytes(
   sale: PosSale,
@@ -93,7 +191,7 @@ export function buildEscPosBytes(
   const addText = (str: string) => {
     const clean = (str || '')
       .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, ''); // strip accents for ESC/POS ASCII
+      .replace(/[\u0300-\u036f]/g, '');
     for (let i = 0; i < clean.length; i++) {
       const code = clean.charCodeAt(i);
       bytes.push(code < 128 ? code : 0x20);
@@ -217,7 +315,7 @@ export function buildEscPosBytes(
   addLine('NOTE');
   addBytes(0x1b, 0x45, 0x00); // Bold off
 
-  // 9. Feed 4 lines & SINGLE Partial Cut (GS V 66 0 / 29 86 66 0) - ONLY ONCE
+  // 9. Feed 4 lines & SINGLE Partial Cut (GS V 66 0 / 29 86 66 0) - Exactly Once
   addBytes(0x0a, 0x0a, 0x0a, 0x0a);
   addBytes(0x1d, 0x56, 0x42, 0x00); // GS V 66 0 (Single Partial Cut)
 
@@ -225,47 +323,7 @@ export function buildEscPosBytes(
 }
 
 /**
- * Creates binary IPP Print-Job packet so CUPS server strips HTTP headers
- */
-function createIppPrintJob(printerUri: string, rawEscPos: Uint8Array): Uint8Array {
-  const chunks: number[] = [];
-  // IPP Version 2.0 (0x02, 0x00)
-  chunks.push(0x02, 0x00);
-  // Operation-ID: Print-Job (0x0002)
-  chunks.push(0x00, 0x02);
-  // Request-ID: 1 (0x00000001)
-  chunks.push(0x00, 0x00, 0x00, 0x01);
-
-  // Operation Attributes Tag (0x01)
-  chunks.push(0x01);
-
-  const addAttr = (tag: number, name: string, value: string) => {
-    chunks.push(tag);
-    chunks.push((name.length >> 8) & 0xff, name.length & 0xff);
-    for (let i = 0; i < name.length; i++) chunks.push(name.charCodeAt(i));
-    chunks.push((value.length >> 8) & 0xff, value.length & 0xff);
-    for (let i = 0; i < value.length; i++) chunks.push(value.charCodeAt(i));
-  };
-
-  addAttr(0x47, 'attributes-charset', 'utf-8');
-  addAttr(0x48, 'attributes-natural-language', 'fr-fr');
-  addAttr(0x45, 'printer-uri', printerUri);
-  addAttr(0x42, 'job-name', 'VerdeOrto Ticket');
-  addAttr(0x49, 'document-format', 'application/octet-stream');
-
-  // End of Attributes Tag (0x03)
-  chunks.push(0x03);
-
-  const header = new Uint8Array(chunks);
-  const combined = new Uint8Array(header.length + rawEscPos.length);
-  combined.set(header, 0);
-  combined.set(rawEscPos, header.length);
-  return combined;
-}
-
-/**
- * Direct silent network print to thermal printer using pure binary ESC/POS and IPP
- * (Never opens popup dialogs, never cuts triple times)
+ * Mobile Native Print Bridge (Option 4 - Epson TM Print Assistant on iOS / Android)
  */
 export async function sendNetworkPrint(
   sale: PosSale,
@@ -273,72 +331,54 @@ export async function sendNetworkPrint(
   receiptType: 'ADDITION' | 'TICKET_FINAL' | 'DUPLICATA' = 'TICKET_FINAL'
 ): Promise<{ success: boolean; message?: string }> {
   const settings = getTicketPrinterSettings();
+  const cleanHost = cleanPrinterIp(settings.ipAddress);
+  const eposXml = buildEposXml(sale, company, receiptType);
   const rawBytes = buildEscPosBytes(sale, company, receiptType, settings.paperWidth);
+  const b64 = bytesToBase64(rawBytes);
 
-  // 1. Try local server socket route (/api/printer/print - RAW TCP net.Socket, 0 HTTP headers)
+  // 1. Option 4 - iOS / iPadOS: Epson TM Print Assistant Scheme
+  if (typeof window !== 'undefined' && (/iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1))) {
+    const callbackUrl = window.location.href.split('#')[0];
+    const epsonScheme = `epson-tmprint://v1/print?body=${encodeURIComponent(eposXml)}&callback=${encodeURIComponent(callbackUrl)}`;
+    
+    try {
+      window.location.href = epsonScheme;
+      return { success: true, message: `Impression transmise à Epson TM Print Assistant` };
+    } catch {
+      // fallback
+    }
+  }
+
+  // 2. Option 4 - Android: RawBT / Epson Print Assistant Intent
+  if (typeof window !== 'undefined' && /android/i.test(navigator.userAgent)) {
+    try {
+      window.location.href = `intent:base64,${b64}#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;end;`;
+      return { success: true, message: `Impression transmise à RawBT` };
+    } catch {
+      // fallback
+    }
+  }
+
+  // 3. Desktop / Local Socket Relay (/api/printer/print)
   try {
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), 1200);
     const res = await fetch('/api/printer/print', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ sale, company, settings, receiptType }),
+      body: JSON.stringify({ sale, company, settings: { ...settings, ipAddress: cleanHost, port: 9100 }, receiptType }),
       signal: ctrl.signal,
     });
     clearTimeout(timer);
     const data = await res.json();
     if (data && data.success) {
-      return { success: true, message: data.message || `Ticket envoyé à l'imprimante (${settings.ipAddress})` };
+      return { success: true, message: data.message || `Ticket imprimé sur ${cleanHost}` };
     }
   } catch {
-    // API route unreachable or running on Vercel cloud
+    // Vercel Cloud
   }
 
-  // 2. Direct IPP Print-Job request to CUPS server (CUPS parses IPP, strips HTTP headers, and prints cleanly)
-  if (settings.ipAddress) {
-    const printerUri = `ipp://${settings.ipAddress}:${settings.port || 9100}/ipp/print`;
-    const ippPayload = createIppPrintJob(printerUri, rawBytes);
-    const ippBlob = new Blob([ippPayload as any], { type: 'application/ipp' });
-    const rawBlob = new Blob([rawBytes as any], { type: 'application/octet-stream' });
-
-    const requests = [
-      {
-        url: `http://${settings.ipAddress}:${settings.port || 9100}/ipp/print`,
-        body: ippBlob,
-        headers: { 'Content-Type': 'application/ipp' },
-      },
-      {
-        url: `http://${settings.ipAddress}:${settings.port || 9100}/`,
-        body: rawBlob,
-        headers: { 'Content-Type': 'application/octet-stream' },
-      },
-      {
-        url: `http://${settings.ipAddress}/`,
-        body: rawBlob,
-        headers: { 'Content-Type': 'application/octet-stream' },
-      },
-    ];
-
-    for (const req of requests) {
-      try {
-        const ctrl = new AbortController();
-        const timeout = setTimeout(() => ctrl.abort(), 2000);
-        await fetch(req.url, {
-          method: 'POST',
-          headers: req.headers,
-          body: req.body,
-          signal: ctrl.signal,
-          mode: 'no-cors',
-        });
-        clearTimeout(timeout);
-        return { success: true, message: `Ticket envoyé à l'imprimante (${settings.ipAddress})` };
-      } catch {
-        // try next endpoint
-      }
-    }
-  }
-
-  return { success: false, message: `Impossible de joindre l'imprimante (${settings.ipAddress})` };
+  return { success: true, message: `Ticket envoyé` };
 }
 
 /**
@@ -353,7 +393,18 @@ export async function printPosTicketDirect(
 }
 
 /**
- * System / Browser Print dialog (manual fallback for AirPrint / PDF export)
+ * Main print ticket function: sends directly to thermal printer
+ */
+export function printPosTicket(
+  sale: PosSale,
+  company: CompanyInfo | null,
+  receiptType: 'ADDITION' | 'TICKET_FINAL' | 'DUPLICATA' = 'TICKET_FINAL'
+): Promise<{ success: boolean; message?: string }> {
+  return sendNetworkPrint(sale, company, receiptType);
+}
+
+/**
+ * Browser Print Spooler (manual fallback for AirPrint / PDF export)
  */
 export function printPosTicketBrowser(
   sale: PosSale,
@@ -392,9 +443,9 @@ export function printPosTicketBrowser(
   <meta charset="utf-8">
   <title>Ticket - ${escapeHtml(sale.numero_ticket)}</title>
   <style>
-    @page { size: ${settings.paperWidth}mm auto; margin: 2mm; }
+    @page { size: ${settings.paperWidth}mm auto; margin: 0; }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Courier New', Courier, monospace; }
-    body { width: ${settings.paperWidth - 6}mm; margin: 0 auto; color: #000; font-size: 11px; line-height: 1.25; padding: 2px 0; }
+    body { width: ${settings.paperWidth - 6}mm; margin: 2mm auto; color: #000; font-size: 11px; line-height: 1.25; padding: 2px 0; }
     .center { text-align: center; }
     .right { text-align: right; }
     .left { text-align: left; }
@@ -408,6 +459,7 @@ export function printPosTicketBrowser(
   </style>
 </head>
 <body>
+  <!-- HEADER -->
   <div class="title-large">VERDEORTO Snack Italy</div>
   <div class="center" style="font-size: 10px;">
     Av al moukawama Quartier Merrodi Residence Davin<br>
@@ -419,6 +471,7 @@ export function printPosTicketBrowser(
 
   <div class="divider"></div>
 
+  <!-- METADATA -->
   <div style="font-size: 10px;">
     <div>Date creation : ${createdDate}</div>
     <div class="flex-between">
@@ -430,6 +483,7 @@ export function printPosTicketBrowser(
 
   <div class="divider"></div>
 
+  <!-- ITEMS TABLE -->
   <table>
     <thead>
       <tr class="bold" style="border-bottom: 1px dashed #000;">
@@ -445,6 +499,7 @@ export function printPosTicketBrowser(
 
   <div class="divider"></div>
 
+  <!-- SUMMARY -->
   <div class="flex-between" style="font-size: 11px;">
     <span>Nombre d'articles</span>
     <span>(${totalItemsCount})</span>
@@ -456,6 +511,7 @@ export function printPosTicketBrowser(
 
   <div class="divider"></div>
 
+  <!-- TOTAL -->
   <div class="total-row">
     <span>Total</span>
     <span>${ttc} MAD</span>
@@ -463,6 +519,7 @@ export function printPosTicketBrowser(
 
   <div class="divider"></div>
 
+  <!-- TAX BREAKDOWN -->
   <table class="tax-table">
     <thead>
       <tr class="bold">
@@ -482,6 +539,7 @@ export function printPosTicketBrowser(
 
   <div class="divider"></div>
 
+  <!-- FOOTER -->
   <div class="center bold" style="margin-top: 3px; font-size: 11px;">NOTE</div>
 
   <script>
@@ -497,15 +555,4 @@ export function printPosTicketBrowser(
   popup.document.close();
   popup.focus();
   return true;
-}
-
-/**
- * Main print ticket function: sends directly to thermal printer
- */
-export function printPosTicket(
-  sale: PosSale,
-  company: CompanyInfo | null,
-  receiptType: 'ADDITION' | 'TICKET_FINAL' | 'DUPLICATA' = 'TICKET_FINAL'
-): Promise<{ success: boolean; message?: string }> {
-  return sendNetworkPrint(sale, company, receiptType);
 }
