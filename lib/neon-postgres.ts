@@ -1100,9 +1100,18 @@ export async function initNeonPostgresSchema(customUrl?: string) {
       montant_en_cours NUMERIC(15, 2) DEFAULT 0.00,
       serveur VARCHAR(100),
       heure_ouverture VARCHAR(50),
+      commande_json TEXT,
+      notes TEXT,
       created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
     );
   `;
+
+  // Auto-migrate missing pos_tables columns if created previously
+  await sql`ALTER TABLE pos_tables ADD COLUMN IF NOT EXISTS commande_json TEXT;`.catch(() => {});
+  await sql`ALTER TABLE pos_tables ADD COLUMN IF NOT EXISTS notes TEXT;`.catch(() => {});
+  await sql`ALTER TABLE pos_tables ADD COLUMN IF NOT EXISTS montant_en_cours NUMERIC(15, 2) DEFAULT 0.00;`.catch(() => {});
+  await sql`ALTER TABLE pos_tables ADD COLUMN IF NOT EXISTS heure_ouverture VARCHAR(50);`.catch(() => {});
+  await sql`ALTER TABLE pos_tables ADD COLUMN IF NOT EXISTS nb_couverts INT DEFAULT 0;`.catch(() => {});
 
   await sql`
     CREATE TABLE IF NOT EXISTS pos_categories (

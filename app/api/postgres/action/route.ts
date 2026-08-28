@@ -1547,7 +1547,15 @@ export async function POST(req: NextRequest) {
           }
 
           if (sale?.table_id) {
-            await sql`UPDATE pos_tables SET statut = 'LIBRE', nb_couverts = 0, montant_en_cours = 0, commande_json = NULL WHERE id = ${Number(sale.table_id)};`;
+            try {
+              await sql`UPDATE pos_tables SET statut = 'LIBRE', nb_couverts = 0, montant_en_cours = 0, commande_json = NULL WHERE id = ${Number(sale.table_id)};`;
+            } catch {
+              await sql`ALTER TABLE pos_tables ADD COLUMN IF NOT EXISTS commande_json TEXT;`.catch(() => {});
+              await sql`ALTER TABLE pos_tables ADD COLUMN IF NOT EXISTS montant_en_cours NUMERIC(15, 2) DEFAULT 0.00;`.catch(() => {});
+              await sql`ALTER TABLE pos_tables ADD COLUMN IF NOT EXISTS heure_ouverture VARCHAR(50);`.catch(() => {});
+              await sql`ALTER TABLE pos_tables ADD COLUMN IF NOT EXISTS notes TEXT;`.catch(() => {});
+              await sql`UPDATE pos_tables SET statut = 'LIBRE', nb_couverts = 0 WHERE id = ${Number(sale.table_id)};`.catch(() => {});
+            }
           }
 
           return NextResponse.json({
@@ -1571,17 +1579,25 @@ export async function POST(req: NextRequest) {
           const commandeJson = Array.isArray(items) && items.length > 0 ? JSON.stringify(items) : null;
           const nowTime = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
 
-          await sql`
-            UPDATE pos_tables SET
-              statut = ${statusToSet},
-              nb_couverts = ${num(nbCouverts, 0)},
-              montant_en_cours = ${num(totalTtc, 0)},
-              commande_json = ${commandeJson},
-              notes = ${notes || null},
-              serveur = ${serveur || 'Caisse'},
-              heure_ouverture = CASE WHEN heure_ouverture IS NULL OR heure_ouverture = '' THEN ${nowTime} ELSE heure_ouverture END
-            WHERE id = ${tId};
-          `;
+          try {
+            await sql`
+              UPDATE pos_tables SET
+                statut = ${statusToSet},
+                nb_couverts = ${num(nbCouverts, 0)},
+                montant_en_cours = ${num(totalTtc, 0)},
+                commande_json = ${commandeJson},
+                notes = ${notes || null},
+                serveur = ${serveur || 'Caisse'},
+                heure_ouverture = CASE WHEN heure_ouverture IS NULL OR heure_ouverture = '' THEN ${nowTime} ELSE heure_ouverture END
+              WHERE id = ${tId};
+            `;
+          } catch {
+            await sql`ALTER TABLE pos_tables ADD COLUMN IF NOT EXISTS commande_json TEXT;`.catch(() => {});
+            await sql`ALTER TABLE pos_tables ADD COLUMN IF NOT EXISTS montant_en_cours NUMERIC(15, 2) DEFAULT 0.00;`.catch(() => {});
+            await sql`ALTER TABLE pos_tables ADD COLUMN IF NOT EXISTS heure_ouverture VARCHAR(50);`.catch(() => {});
+            await sql`ALTER TABLE pos_tables ADD COLUMN IF NOT EXISTS notes TEXT;`.catch(() => {});
+            await sql`UPDATE pos_tables SET statut = ${statusToSet}, nb_couverts = ${num(nbCouverts, 0)} WHERE id = ${tId};`.catch(() => {});
+          }
           return NextResponse.json({ success: true, message: 'Table mise à jour' });
         }
 
@@ -1589,7 +1605,15 @@ export async function POST(req: NextRequest) {
           const { tableId } = payload;
           const tId = Number(tableId);
           if (tId) {
-            await sql`UPDATE pos_tables SET statut = 'LIBRE', nb_couverts = 0, montant_en_cours = 0, commande_json = NULL, heure_ouverture = NULL, notes = NULL WHERE id = ${tId};`;
+            try {
+              await sql`UPDATE pos_tables SET statut = 'LIBRE', nb_couverts = 0, montant_en_cours = 0, commande_json = NULL, heure_ouverture = NULL, notes = NULL WHERE id = ${tId};`;
+            } catch {
+              await sql`ALTER TABLE pos_tables ADD COLUMN IF NOT EXISTS commande_json TEXT;`.catch(() => {});
+              await sql`ALTER TABLE pos_tables ADD COLUMN IF NOT EXISTS montant_en_cours NUMERIC(15, 2) DEFAULT 0.00;`.catch(() => {});
+              await sql`ALTER TABLE pos_tables ADD COLUMN IF NOT EXISTS heure_ouverture VARCHAR(50);`.catch(() => {});
+              await sql`ALTER TABLE pos_tables ADD COLUMN IF NOT EXISTS notes TEXT;`.catch(() => {});
+              await sql`UPDATE pos_tables SET statut = 'LIBRE', nb_couverts = 0 WHERE id = ${tId};`.catch(() => {});
+            }
           }
           return NextResponse.json({ success: true, message: 'Table libérée' });
         }
