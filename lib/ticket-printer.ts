@@ -68,95 +68,14 @@ function escapeHtml(value: unknown): string {
 }
 
 /**
- * Builds ePOS-Print XML matching the EXACT 80mm template:
- * - Header: VERDEORTO Snack Italy (Bold/Double Height), address, phones, website, DUPLICATA
+ * Builds pure binary 80mm ESC/POS ticket (NO XML, NO HTML) with exact layout:
+ * - Header: VERDEORTO Snack Italy (Bold / Double-Height), address, phones, website, DUPLICATA
  * - Metadata: Date creation, Boutique, Ticket, Caissier
  * - 3-Col Items: QTE, * ARTICLE *, PRIX
  * - Summary: Nombre d'articles, Sous-total
  * - Total: Double-Height font
  * - Tax Breakdown: Taux TVA, Montant H.T., T.V.A
- * - Footer: NOTE, Feed & Cut
- */
-function buildEposXml(
-  sale: PosSale,
-  company: CompanyInfo | null,
-  receiptType: 'ADDITION' | 'TICKET_FINAL' | 'DUPLICATA' = 'TICKET_FINAL'
-): string {
-  const docTitle = receiptType === 'ADDITION' ? "NOTE D'ADDITION" : (receiptType === 'DUPLICATA' ? 'DUPLICATA' : 'TICKET DE CAISSE');
-  const createdDate = formatTicketDateTime(sale.date_vente);
-  const colWidth = 42;
-  const divider = '------------------------------------------';
-
-  const format3Col = (c1: string, c2: string, c3: string) => {
-    const qteStr = c1.padEnd(5, ' ');
-    const nameStr = c2.length > 25 ? c2.substring(0, 25) : c2.padEnd(25, ' ');
-    const priceStr = c3.padStart(12, ' ');
-    return `${qteStr}${nameStr}${priceStr}`;
-  };
-
-  const format2Col = (left: string, right: string) => {
-    const spaces = Math.max(1, colWidth - left.length - right.length);
-    return `${left}${' '.repeat(spaces)}${right}`;
-  };
-
-  let totalItemsCount = 0;
-  const rowsXml = (sale.lignes || [])
-    .map((l) => {
-      const qty = Number(l.quantite || 1);
-      totalItemsCount += qty;
-      const name = escapeHtml(l.produit_nom || 'Article');
-      const price = Number(l.total_ttc || 0).toFixed(2);
-      return `<text align="left">${format3Col(String(qty), name, price)}&#10;</text>`;
-    })
-    .join('');
-
-  const ht = Number(sale.total_ht || 0).toFixed(2);
-  const tva = Number(sale.total_tva || 0).toFixed(2);
-  const ttc = Number(sale.total_ttc || 0).toFixed(2);
-  const taxRate = sale.tva_10 && sale.tva_10 > 0 ? '10 %' : (sale.tva_7 && sale.tva_7 > 0 ? '7 %' : '20 %');
-
-  const formatTaxRow = (t1: string, t2: string, t3: string) => {
-    return `${t1.padEnd(10, ' ')}${t2.padStart(18, ' ')}${t3.padStart(14, ' ')}`;
-  };
-
-  const boutiqueLine = format2Col('Boutique : VerdeOrto 1', `Ticket: ${sale.numero_ticket || '1'}`);
-
-  return `<?xml version="1.0" encoding="utf-8"?>
-<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/">
-  <s:Body>
-    <epos-print xmlns="http://www.epson-pos.com/schemas/2011/03/epos-print">
-      <text align="center" width="2" height="2">VERDEORTO Snack Italy&#10;</text>
-      <text align="center">Av al moukawama Quartier Merrodi Residence Davin&#10;</text>
-      <text align="center">c1 Bloc F Mag N 20 Marrakech&#10;</text>
-      <text align="center">08 08 55 11 56 / 06 62 12 34 49&#10;</text>
-      <text align="center">www.verdeorto.weebly.com&#10;</text>
-      <text align="center" font="font_b">${escapeHtml(docTitle)}&#10;</text>
-      <text align="center">${divider}&#10;</text>
-      <text align="left">Date creation : ${escapeHtml(createdDate)}&#10;</text>
-      <text align="left">${escapeHtml(boutiqueLine)}&#10;</text>
-      <text align="left">Caissier : ${escapeHtml(sale.caissier || 'Admin')}&#10;</text>
-      <text align="center">${divider}&#10;</text>
-      <text align="left">${format3Col('QTE', '* ARTICLE *', 'PRIX')}&#10;</text>
-      ${rowsXml}
-      <text align="center">${divider}&#10;</text>
-      <text align="left">${format2Col("Nombre d'articles", `(${totalItemsCount})`)}&#10;</text>
-      <text align="left">${format2Col('Sous-total', `${ht} MAD`)}&#10;</text>
-      <text align="center">${divider}&#10;</text>
-      <text align="left" width="2" height="2">${format2Col('Total', `${ttc} MAD`)}&#10;</text>
-      <text align="center">${divider}&#10;</text>
-      <text align="left">${formatTaxRow('Taux TVA', 'Montant H.T.', 'T.V.A')}&#10;</text>
-      <text align="left">${formatTaxRow(taxRate, ht, tva)}&#10;</text>
-      <text align="center">${divider}&#10;</text>
-      <text align="center">NOTE&#10;</text>
-      <feed line="4"/>
-      <cut type="feed"/>
-    </epos-print>
-  </s:Body>
-</s:Envelope>`;
-}
-
-/**
- * Builds 80mm ESC/POS binary ticket
+ * - Footer: NOTE, blank line feeds & Universal Cut commands
  */
 export function buildEscPosBytes(
   sale: PosSale,
@@ -174,7 +93,7 @@ export function buildEscPosBytes(
   const addText = (str: string) => {
     const clean = (str || '')
       .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '');
+      .replace(/[\u0300-\u036f]/g, ''); // strip accents for ESC/POS ASCII
     for (let i = 0; i < clean.length; i++) {
       const code = clean.charCodeAt(i);
       bytes.push(code < 128 ? code : 0x20);
@@ -183,16 +102,18 @@ export function buildEscPosBytes(
 
   const addLine = (str: string = '') => {
     addText(str);
-    bytes.push(0x0a);
+    bytes.push(0x0a); // LF
   };
 
-  addBytes(0x1b, 0x40);
-  addBytes(0x1b, 0x74, 0x00);
+  // 1. Initialize printer
+  addBytes(0x1b, 0x40); // ESC @
+  addBytes(0x1b, 0x74, 0x00); // ESC t 0 (PC437)
 
-  addBytes(0x1b, 0x61, 0x01);
-  addBytes(0x1d, 0x21, 0x11);
+  // 2. HEADER - Center Aligned
+  addBytes(0x1b, 0x61, 0x01); // Center
+  addBytes(0x1d, 0x21, 0x11); // GS ! 0x11 (Double Width & Height Bold)
   addLine('VERDEORTO Snack Italy');
-  addBytes(0x1d, 0x21, 0x00);
+  addBytes(0x1d, 0x21, 0x00); // Normal font
 
   addLine('Av al moukawama Quartier Merrodi Residence Davin');
   addLine('c1 Bloc F Mag N 20 Marrakech');
@@ -200,13 +121,14 @@ export function buildEscPosBytes(
   addLine('www.verdeorto.weebly.com');
   
   const docTitle = receiptType === 'ADDITION' ? "NOTE D'ADDITION" : (receiptType === 'DUPLICATA' ? 'DUPLICATA' : 'TICKET DE CAISSE');
-  addBytes(0x1b, 0x45, 0x01);
+  addBytes(0x1b, 0x45, 0x01); // Bold
   addLine(docTitle);
-  addBytes(0x1b, 0x45, 0x00);
+  addBytes(0x1b, 0x45, 0x00); // Bold off
 
   addLine(divider);
 
-  addBytes(0x1b, 0x61, 0x00);
+  // 3. METADATA - Left Aligned
+  addBytes(0x1b, 0x61, 0x00); // Left
   const createdDate = formatTicketDateTime(sale.date_vente);
   addLine(`Date creation : ${createdDate}`);
   const boutiqueInfo = `Boutique : VerdeOrto 1`;
@@ -217,6 +139,7 @@ export function buildEscPosBytes(
 
   addLine(divider);
 
+  // 4. ITEMS TABLE - 3 Columns: QTE (Left), * ARTICLE * (Center), PRIX (Right)
   const qteCol = is58mm ? 4 : 6;
   const priceCol = is58mm ? 10 : 14;
   const nameCol = colWidth - qteCol - priceCol;
@@ -228,9 +151,9 @@ export function buildEscPosBytes(
     return `${qteStr}${nameStr}${priceStr}`;
   };
 
-  addBytes(0x1b, 0x45, 0x01);
+  addBytes(0x1b, 0x45, 0x01); // Bold table header
   addLine(format3Col('QTE', '* ARTICLE *', 'PRIX'));
-  addBytes(0x1b, 0x45, 0x00);
+  addBytes(0x1b, 0x45, 0x00); // Bold off
 
   let totalItemsCount = 0;
   const lignes = sale.lignes || [];
@@ -244,6 +167,7 @@ export function buildEscPosBytes(
 
   addLine(divider);
 
+  // 5. SUMMARY - Left & Right Aligned
   const format2Col = (left: string, right: string) => {
     const spaces = Math.max(1, colWidth - left.length - right.length);
     return `${left}${' '.repeat(spaces)}${right}`;
@@ -254,18 +178,20 @@ export function buildEscPosBytes(
 
   addLine(divider);
 
-  addBytes(0x1d, 0x21, 0x11);
-  addBytes(0x1b, 0x45, 0x01);
+  // 6. TOTAL - Large / Double-Height Font
+  addBytes(0x1d, 0x21, 0x11); // Double Height & Width
+  addBytes(0x1b, 0x45, 0x01); // Bold
   const totalLeft = 'Total';
   const totalRight = `${Number(sale.total_ttc || 0).toFixed(2)} MAD`;
   const halfCol = Math.floor(colWidth / 2);
   const totalSpaces = Math.max(1, halfCol - totalLeft.length - totalRight.length);
   addLine(`${totalLeft}${' '.repeat(totalSpaces)}${totalRight}`);
-  addBytes(0x1d, 0x21, 0x00);
-  addBytes(0x1b, 0x45, 0x00);
+  addBytes(0x1d, 0x21, 0x00); // Normal
+  addBytes(0x1b, 0x45, 0x00); // Bold off
 
   addLine(divider);
 
+  // 7. TAX BREAKDOWN - 3 Columns
   const taxCol1 = is58mm ? 8 : 12;
   const taxCol3 = is58mm ? 10 : 16;
   const taxCol2 = colWidth - taxCol1 - taxCol3;
@@ -274,9 +200,9 @@ export function buildEscPosBytes(
     return `${t1.padEnd(taxCol1, ' ')}${t2.padStart(taxCol2, ' ')}${t3.padStart(taxCol3, ' ')}`;
   };
 
-  addBytes(0x1b, 0x45, 0x01);
+  addBytes(0x1b, 0x45, 0x01); // Bold
   addLine(formatTaxRow('Taux TVA', 'Montant H.T.', 'T.V.A'));
-  addBytes(0x1b, 0x45, 0x00);
+  addBytes(0x1b, 0x45, 0x00); // Bold off
 
   const ht = Number(sale.total_ht || 0).toFixed(2);
   const tva = Number(sale.total_tva || 0).toFixed(2);
@@ -285,20 +211,26 @@ export function buildEscPosBytes(
 
   addLine(divider);
 
-  addBytes(0x1b, 0x61, 0x01);
-  addBytes(0x1b, 0x45, 0x01);
+  // 8. FOOTER - Center Aligned & Condensed
+  addBytes(0x1b, 0x61, 0x01); // Center
+  addBytes(0x1b, 0x45, 0x01); // Bold
   addLine('NOTE');
-  addBytes(0x1b, 0x45, 0x00);
+  addBytes(0x1b, 0x45, 0x00); // Bold off
 
-  addBytes(0x1b, 0x64, 0x03);
-  addBytes(0x1d, 0x56, 0x41, 0x03);
+  // 9. Feed lines past printhead & Universal Cut commands
+  addBytes(0x0a, 0x0a, 0x0a, 0x0a); // 4 blank lines
+  addBytes(0x1b, 0x64, 0x04);       // ESC d 4
+  addBytes(0x1d, 0x56, 0x41, 0x00); // GS V 65 0 (Full Cut)
+  addBytes(0x1d, 0x56, 0x00);       // GS V 0 (Standard Full Cut)
+  addBytes(0x1b, 0x69);             // ESC i (Full Cut)
+  addBytes(0x1b, 0x6d);             // ESC m (Partial Cut)
 
   return new Uint8Array(bytes);
 }
 
 /**
- * Attempts direct network print to thermal printer (via API route socket & direct ePOS HTTP)
- * Completely silent, without triggering iOS/Android system printer popups or double print.
+ * Direct silent network print to thermal printer using pure ESC/POS binary data
+ * (Never sends XML tags, HTML tags, or creates popup dialogs)
  */
 export async function sendNetworkPrint(
   sale: PosSale,
@@ -306,46 +238,50 @@ export async function sendNetworkPrint(
   receiptType: 'ADDITION' | 'TICKET_FINAL' | 'DUPLICATA' = 'TICKET_FINAL'
 ): Promise<{ success: boolean; message?: string }> {
   const settings = getTicketPrinterSettings();
+  const rawBytes = buildEscPosBytes(sale, company, receiptType, settings.paperWidth);
 
   // 1. Try local server socket route (/api/printer/print - RAW TCP port 9100)
   try {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 1200);
     const res = await fetch('/api/printer/print', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ sale, company, settings, receiptType }),
+      signal: ctrl.signal,
     });
+    clearTimeout(timer);
     const data = await res.json();
     if (data && data.success) {
       return { success: true, message: data.message || `Ticket envoyé à l'imprimante (${settings.ipAddress})` };
     }
   } catch {
-    // API route unreachable or failed
+    // API route unreachable or running on Vercel cloud
   }
 
-  // 2. Try direct Epson ePOS XML over HTTP to printer IP
+  // 2. Direct pure binary stream to local printer IP / port 9100 (NO XML, NO HTML)
   if (settings.ipAddress) {
-    const xml = buildEposXml(sale, company, receiptType);
-    const endpoints = [
-      `http://${settings.ipAddress}/cgi-bin/epos/service.cgi`,
-      `http://${settings.ipAddress}:8008/cgi-bin/epos/service.cgi`,
-      `http://${settings.ipAddress}:${settings.port || 9100}/cgi-bin/epos/service.cgi`,
+    const blob = new Blob([rawBytes], { type: 'application/octet-stream' });
+    const targetUrls = [
+      `http://${settings.ipAddress}:${settings.port || 9100}/`,
+      `http://${settings.ipAddress}:${settings.port || 9100}/ipp/print`,
+      `http://${settings.ipAddress}/`,
     ];
 
-    for (const url of endpoints) {
+    for (const url of targetUrls) {
       try {
         const ctrl = new AbortController();
         const timeout = setTimeout(() => ctrl.abort(), 2000);
         await fetch(url, {
           method: 'POST',
-          headers: { 'Content-Type': 'text/xml; charset=utf-8' },
-          body: xml,
+          body: blob,
           signal: ctrl.signal,
           mode: 'no-cors',
         });
         clearTimeout(timeout);
         return { success: true, message: `Ticket envoyé à l'imprimante (${settings.ipAddress})` };
       } catch {
-        // continue to next endpoint
+        // try next target
       }
     }
   }
@@ -354,7 +290,7 @@ export async function sendNetworkPrint(
 }
 
 /**
- * Direct thermal ticket printing: sends straight to physical printer over local network (no browser popup)
+ * Direct thermal ticket printing
  */
 export async function printPosTicketDirect(
   sale: PosSale,

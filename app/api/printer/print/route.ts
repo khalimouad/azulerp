@@ -20,7 +20,7 @@ function formatTicketDate(dateStr?: string): string {
  * - Summary: Nombre d'articles, Sous-total
  * - Total: Double-Height font
  * - Tax Breakdown: Taux TVA, Montant H.T., T.V.A
- * - Footer: NOTE, Feed & Cut
+ * - Footer: NOTE, Feed & Universal Cut
  */
 function buildEscPosBuffer(
   sale: any,
@@ -52,7 +52,7 @@ function buildEscPosBuffer(
 
   // 1. Initialize printer
   addCmd([0x1b, 0x40]); // ESC @
-  addCmd([0x1b, 0x74, 0]); // ESC t 0
+  addCmd([0x1b, 0x74, 0]); // ESC t 0 (PC437)
 
   // 2. HEADER - Center Aligned
   addCmd([0x1b, 0x61, 0x01]); // Center
@@ -161,9 +161,13 @@ function buildEscPosBuffer(
   addLine('NOTE');
   addCmd([0x1b, 0x45, 0x00]); // Bold off
 
-  // Cut command (feed 3 lines and cut)
-  addCmd([0x1b, 0x64, 0x03]);
-  addCmd([0x1d, 0x56, 0x41, 0x03]);
+  // 9. Feed lines past printhead & Universal Cut commands
+  addCmd([0x0a, 0x0a, 0x0a, 0x0a]); // 4 blank line feeds
+  addCmd([0x1b, 0x64, 0x04]);       // ESC d 4
+  addCmd([0x1d, 0x56, 0x41, 0x00]); // GS V 65 0 (Full Cut)
+  addCmd([0x1d, 0x56, 0x00]);       // GS V 0 (Standard Cut)
+  addCmd([0x1b, 0x69]);             // ESC i (Full Cut)
+  addCmd([0x1b, 0x6d]);             // ESC m (Partial Cut)
 
   return Buffer.concat(chunks);
 }
