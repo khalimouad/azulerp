@@ -1130,10 +1130,12 @@ export const PosView: React.FC<PosViewProps> = ({
             {/* Cart Items List */}
             <div className="flex-1 p-3 overflow-y-auto space-y-2">
               {cart.length === 0 ? (
-                <div className="h-full flex flex-col items-center justify-center text-center text-slate-500 p-6">
-                  <Utensils className="w-12 h-12 mb-3 text-slate-700" />
-                  <p className="text-sm font-bold text-slate-400">Aucun plat sélectionné</p>
-                  <p className="text-xs text-slate-500 mt-1 max-w-[240px]">
+                <div className={`h-full flex flex-col items-center justify-center text-center p-6 ${
+                  posTheme === 'dark' ? 'text-slate-500' : 'text-slate-400'
+                }`}>
+                  <Utensils className={`w-12 h-12 mb-3 ${posTheme === 'dark' ? 'text-slate-700' : 'text-slate-300'}`} />
+                  <p className={`text-sm font-bold ${posTheme === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}>Aucun plat sélectionné</p>
+                  <p className={`text-xs mt-1 max-w-[240px] ${posTheme === 'dark' ? 'text-slate-500' : 'text-slate-400'}`}>
                     Sélectionnez une catégorie à droite puis touchez les plats pour composer l'addition.
                   </p>
                 </div>
@@ -1141,39 +1143,55 @@ export const PosView: React.FC<PosViewProps> = ({
                 cart.map((item, idx) => (
                   <div
                     key={`${item.produit_id}-${idx}`}
-                    className="p-2.5 rounded-xl border text-xs transition bg-slate-950/60 border-slate-800 hover:border-slate-700"
+                    className={`p-2.5 rounded-xl border text-xs transition ${
+                      posTheme === 'dark'
+                        ? 'bg-slate-950/60 border-slate-800 hover:border-slate-700'
+                        : 'bg-white border-slate-200 shadow-xs hover:border-emerald-400'
+                    }`}
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1">
                         <div className="flex items-center gap-1.5">
-                          <span className="font-bold text-white">{item.produit_nom}</span>
+                          <span className={`font-bold ${posTheme === 'dark' ? 'text-white' : 'text-slate-900'}`}>{item.produit_nom}</span>
                         </div>
-                        <div className="text-[11px] text-slate-400 mt-0.5">
+                        <div className={`text-[11px] mt-0.5 ${posTheme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
                           {item.prix_unitaire_ttc.toFixed(2)} DH / u
                         </div>
                       </div>
-                      <div className="text-right font-black text-sm text-emerald-400">
+                      <div className="text-right font-black text-sm text-emerald-600 dark:text-emerald-400">
                         {item.total_ttc.toFixed(2)} DH
                       </div>
                     </div>
 
                     {/* Quantity Controls & Modifier Prix */}
-                    <div className="mt-2 pt-2 border-t border-slate-800/80 flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-1 bg-slate-900 rounded-lg p-0.5 border border-slate-800">
+                    <div className={`mt-2 pt-2 border-t flex items-center justify-between gap-2 ${
+                      posTheme === 'dark' ? 'border-slate-800/80' : 'border-slate-150'
+                    }`}>
+                      <div className={`flex items-center gap-1 rounded-lg p-0.5 border ${
+                        posTheme === 'dark' ? 'bg-slate-900 border-slate-800' : 'bg-slate-100 border-slate-250'
+                      }`}>
                         <button
                           type="button"
                           onClick={() => handleUpdateItemQty(idx, -1)}
-                          className="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 active:bg-emerald-600 text-white flex items-center justify-center font-bold text-sm transition active:scale-95"
+                          className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm transition active:scale-95 cursor-pointer ${
+                            posTheme === 'dark'
+                              ? 'bg-slate-800 hover:bg-slate-700 active:bg-emerald-600 text-white'
+                              : 'bg-white hover:bg-slate-50 active:bg-emerald-600 text-slate-800 shadow-xs'
+                          }`}
                         >
                           <Minus className="w-3.5 h-3.5" />
                         </button>
-                        <span className="w-8 text-center font-black text-sm text-white">
+                        <span className={`w-8 text-center font-black text-sm ${posTheme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
                           {item.quantite}
                         </span>
                         <button
                           type="button"
                           onClick={() => handleUpdateItemQty(idx, 1)}
-                          className="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 active:bg-emerald-600 text-white flex items-center justify-center font-bold text-sm transition active:scale-95"
+                          className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm transition active:scale-95 cursor-pointer ${
+                            posTheme === 'dark'
+                              ? 'bg-slate-800 hover:bg-slate-700 active:bg-emerald-600 text-white'
+                              : 'bg-white hover:bg-slate-50 active:bg-emerald-600 text-slate-800 shadow-xs'
+                          }`}
                         >
                           <Plus className="w-3.5 h-3.5" />
                         </button>
@@ -1184,9 +1202,13 @@ export const PosView: React.FC<PosViewProps> = ({
                         <button
                           type="button"
                           onClick={() => handleOpenPriceModifier(idx)}
-                          className="px-2.5 py-1.5 rounded-lg text-xs font-bold border bg-slate-900 hover:bg-slate-800 text-amber-300 border-amber-500/40 hover:border-amber-400 flex items-center gap-1.5 transition active:scale-95"
+                          className={`px-2.5 py-1.5 rounded-lg text-xs font-bold border flex items-center gap-1.5 transition active:scale-95 cursor-pointer ${
+                            posTheme === 'dark'
+                              ? 'bg-slate-900 hover:bg-slate-800 text-amber-300 border-amber-500/40 hover:border-amber-400'
+                              : 'bg-amber-50 hover:bg-amber-100 text-amber-900 border-amber-300 shadow-xs'
+                          }`}
                         >
-                          <Edit2 className="w-3.5 h-3.5 text-amber-400" />
+                          <Edit2 className="w-3.5 h-3.5 text-amber-500" />
                           <span>Modifier Prix</span>
                         </button>
 
@@ -1194,7 +1216,7 @@ export const PosView: React.FC<PosViewProps> = ({
                         <button
                           type="button"
                           onClick={() => handleRemoveItem(idx)}
-                          className="p-1.5 text-slate-500 hover:text-rose-400 transition"
+                          className="p-1.5 text-slate-400 hover:text-rose-600 transition cursor-pointer"
                           title="Supprimer la ligne"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -1207,25 +1229,29 @@ export const PosView: React.FC<PosViewProps> = ({
             </div>
 
             {/* Addition Totals & Actions */}
-            <div className="p-3.5 bg-slate-950 border-t border-slate-800 space-y-3">
+            <div className={`p-3.5 border-t space-y-3 transition-colors ${
+              posTheme === 'dark' ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200'
+            }`}>
               <div className="space-y-1 text-xs">
-                <div className="flex justify-between text-slate-400">
+                <div className={`flex justify-between ${posTheme === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}>
                   <span>Total HT</span>
                   <span>{orderCalculations.subtotalHt.toFixed(2)} DH</span>
                 </div>
-                <div className="flex justify-between text-slate-400">
+                <div className={`flex justify-between ${posTheme === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}>
                   <span>TVA (20%)</span>
                   <span>{orderCalculations.subtotalTva.toFixed(2)} DH</span>
                 </div>
                 {orderCalculations.remiseMontant > 0 && (
-                  <div className="flex justify-between text-amber-400 font-bold">
+                  <div className="flex justify-between text-amber-600 dark:text-amber-400 font-bold">
                     <span>Remise</span>
                     <span>-{orderCalculations.remiseMontant.toFixed(2)} DH</span>
                   </div>
                 )}
-                <div className="flex justify-between text-base font-black text-white pt-1 border-t border-slate-800">
+                <div className={`flex justify-between text-base font-black pt-1 border-t ${
+                  posTheme === 'dark' ? 'text-white border-slate-800' : 'text-slate-900 border-slate-200'
+                }`}>
                   <span>Net à Payer</span>
-                  <span className="text-emerald-400 text-lg">
+                  <span className="text-emerald-600 dark:text-emerald-400 text-lg">
                     {orderCalculations.netAPayer.toFixed(2)} DH
                   </span>
                 </div>
@@ -1238,7 +1264,7 @@ export const PosView: React.FC<PosViewProps> = ({
                   id="btn-pos-encaisser"
                   onClick={handleOpenPayment}
                   disabled={cart.length === 0}
-                  className="py-3.5 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-sm rounded-xl shadow-lg shadow-emerald-950 flex items-center justify-center gap-2 transition active:scale-98"
+                  className="py-3.5 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-sm rounded-xl shadow-lg shadow-emerald-950/30 flex items-center justify-center gap-2 transition active:scale-98 cursor-pointer"
                 >
                   <Banknote className="w-5 h-5" />
                   <span>ENCAISSER</span>
@@ -1247,7 +1273,16 @@ export const PosView: React.FC<PosViewProps> = ({
                 <button
                   type="button"
                   onClick={() => handleSaveDraftTable()}
-                  className="py-3.5 bg-slate-800 hover:bg-slate-700 active:bg-blue-600 text-slate-200 font-bold text-xs rounded-xl border border-slate-700 flex items-center justify-center gap-1.5 transition active:scale-98"
+                  className={`py-3.5 font-bold text-xs rounded-xl border flex items-center justify-center gap-1.5 transition active:scale-98 cursor-pointer ${
+                    posTheme === 'dark'
+                      ? 'bg-slate-800 hover:bg-slate-700 active:bg-blue-600 text-slate-200 border-slate-700'
+                      : 'bg-white hover:bg-slate-100 active:bg-blue-600 text-slate-700 border-slate-300 shadow-xs'
+                  }`}
+                >
+                  <Clock className="w-4 h-4 text-blue-500" />
+                  <span>Mettre en Attente</span>
+                </button>
+              </div>
                 >
                   <Clock className="w-4 h-4 text-blue-400" />
                   <span>Mettre en Attente</span>
@@ -1318,19 +1353,25 @@ export const PosView: React.FC<PosViewProps> = ({
                     {/* Search Bar */}
                     <div className="p-3 pb-2">
                       <div className="relative">
-                        <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-3" />
+                        <Search className={`w-4 h-4 absolute left-3.5 top-3 ${posTheme === 'dark' ? 'text-slate-500' : 'text-slate-400'}`} />
                         <input
                           type="text"
                           placeholder="Rechercher un plat, ingrédient ou boisson..."
                           value={productSearch}
                           onChange={(e) => setProductSearch(e.target.value)}
-                          className="w-full pl-10 pr-3 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-white text-xs placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                          className={`w-full pl-10 pr-3 py-2.5 rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500 transition ${
+                            posTheme === 'dark'
+                              ? 'bg-slate-900 border border-slate-800 text-white placeholder-slate-500'
+                              : 'bg-white border border-slate-200 text-slate-900 placeholder-slate-400 shadow-xs'
+                          }`}
                         />
                       </div>
                     </div>
 
                     {/* Category Selection Title */}
-                    <div className="px-3.5 py-1 text-xs font-bold text-slate-400 flex items-center justify-between">
+                    <div className={`px-3.5 py-1 text-xs font-bold flex items-center justify-between ${
+                      posTheme === 'dark' ? 'text-slate-400' : 'text-slate-600'
+                    }`}>
                       <span>Choisissez une Catégorie</span>
                       <span>{categories.length} catégories</span>
                     </div>
@@ -1339,7 +1380,7 @@ export const PosView: React.FC<PosViewProps> = ({
                     <div className="flex-1 p-3 overflow-y-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5">
                       {categories.map((cat, idx) => {
                         const count = categoryDishCounts[cat.id] || 0;
-                        const colorGradients = [
+                        const darkGradients = [
                           'from-emerald-950/80 to-slate-900 border-emerald-600/50 text-emerald-400 hover:border-emerald-400 hover:shadow-emerald-950/60',
                           'from-blue-950/80 to-slate-900 border-blue-600/50 text-blue-400 hover:border-blue-400 hover:shadow-blue-950/60',
                           'from-amber-950/80 to-slate-900 border-amber-600/50 text-amber-400 hover:border-amber-400 hover:shadow-amber-950/60',
@@ -1349,29 +1390,47 @@ export const PosView: React.FC<PosViewProps> = ({
                           'from-teal-950/80 to-slate-900 border-teal-600/50 text-teal-400 hover:border-teal-400 hover:shadow-teal-950/60',
                           'from-orange-950/80 to-slate-900 border-orange-600/50 text-orange-400 hover:border-orange-400 hover:shadow-orange-950/60',
                         ];
-                        const styleClass = colorGradients[idx % colorGradients.length];
+                        const lightGradients = [
+                          'from-emerald-50 via-white to-emerald-50/40 border-emerald-300 text-emerald-700 hover:border-emerald-500 shadow-sm hover:shadow-md',
+                          'from-blue-50 via-white to-blue-50/40 border-blue-300 text-blue-700 hover:border-blue-500 shadow-sm hover:shadow-md',
+                          'from-amber-50 via-white to-amber-50/40 border-amber-300 text-amber-800 hover:border-amber-500 shadow-sm hover:shadow-md',
+                          'from-purple-50 via-white to-purple-50/40 border-purple-300 text-purple-700 hover:border-purple-500 shadow-sm hover:shadow-md',
+                          'from-rose-50 via-white to-rose-50/40 border-rose-300 text-rose-700 hover:border-rose-500 shadow-sm hover:shadow-md',
+                          'from-cyan-50 via-white to-cyan-50/40 border-cyan-300 text-cyan-700 hover:border-cyan-500 shadow-sm hover:shadow-md',
+                          'from-teal-50 via-white to-teal-50/40 border-teal-300 text-teal-700 hover:border-teal-500 shadow-sm hover:shadow-md',
+                          'from-orange-50 via-white to-orange-50/40 border-orange-300 text-orange-800 hover:border-orange-500 shadow-sm hover:shadow-md',
+                        ];
+                        const styleClass = (posTheme === 'dark' ? darkGradients : lightGradients)[idx % 8];
 
                         return (
                           <button
                             key={cat.id}
                             type="button"
                             onClick={() => setSelectedCategory(cat.id)}
-                            className={`p-4 rounded-2xl border bg-gradient-to-br transition-all flex flex-col justify-between text-left shadow-lg active:scale-95 touch-manipulation min-h-[120px] ${styleClass}`}
+                            className={`p-4 rounded-2xl border bg-gradient-to-br transition-all flex flex-col justify-between text-left active:scale-95 touch-manipulation min-h-[120px] cursor-pointer ${styleClass}`}
                           >
                             <div className="flex items-center justify-between">
-                              <div className="w-10 h-10 rounded-xl bg-slate-950/80 border border-white/10 flex items-center justify-center font-bold text-lg">
+                              <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-lg border ${
+                                posTheme === 'dark' ? 'bg-slate-950/80 border-white/10' : 'bg-white border-slate-200 shadow-xs'
+                              }`}>
                                 <Utensils className="w-5 h-5" />
                               </div>
-                              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-slate-950/90 border border-white/10 text-white">
+                              <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-black border ${
+                                posTheme === 'dark' ? 'bg-slate-950/90 border-white/10 text-white' : 'bg-white border-slate-200 text-slate-800 shadow-xs'
+                              }`}>
                                 {count} plat{count > 1 ? 's' : ''}
                               </span>
                             </div>
 
                             <div className="mt-4">
-                              <h3 className="text-sm sm:text-base font-black text-white tracking-tight uppercase line-clamp-1">
+                              <h3 className={`text-sm sm:text-base font-black tracking-tight uppercase line-clamp-1 ${
+                                posTheme === 'dark' ? 'text-white' : 'text-slate-900'
+                              }`}>
                                 {cat.nom}
                               </h3>
-                              <p className="text-[11px] text-slate-400 mt-0.5 flex items-center gap-1 font-medium">
+                              <p className={`text-[11px] mt-0.5 flex items-center gap-1 font-medium ${
+                                posTheme === 'dark' ? 'text-slate-400' : 'text-slate-500'
+                              }`}>
                                 <span>Ouvrir les plats</span>
                                 <ChevronRight className="w-3 h-3" />
                               </p>
@@ -1385,37 +1444,51 @@ export const PosView: React.FC<PosViewProps> = ({
                   /* 2. PRODUCTS IN CATEGORY (Clicking dish adds to cart and returns back to categories) */
                   <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
                     {/* Top navigation bar */}
-                    <div className="p-3 bg-slate-900/90 border-b border-slate-800 flex items-center justify-between gap-2.5">
+                    <div className={`p-3 border-b flex items-center justify-between gap-2.5 transition-colors ${
+                      posTheme === 'dark' ? 'bg-slate-900/90 border-slate-800' : 'bg-white border-slate-200 shadow-xs'
+                    }`}>
                       <button
                         type="button"
                         onClick={() => {
                           setSelectedCategory(null);
                           setProductSearch('');
                         }}
-                        className="flex items-center gap-2 px-3.5 py-2 bg-slate-800 hover:bg-slate-700 active:bg-emerald-600 text-white rounded-xl text-xs font-black border border-slate-700 transition active:scale-95 shrink-0"
+                        className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-black border transition active:scale-95 shrink-0 cursor-pointer ${
+                          posTheme === 'dark'
+                            ? 'bg-slate-800 hover:bg-slate-700 active:bg-emerald-600 text-white border-slate-700'
+                            : 'bg-slate-100 hover:bg-slate-200 active:bg-emerald-600 text-slate-800 border-slate-300 shadow-xs'
+                        }`}
                       >
-                        <ArrowLeft className="w-4 h-4 text-emerald-400" />
+                        <ArrowLeft className="w-4 h-4 text-emerald-500" />
                         <span>Catégories</span>
                       </button>
 
                       <div className="flex items-center gap-2 flex-1 min-w-0">
-                        <span className="text-xs sm:text-sm font-black text-white truncate">
+                        <span className={`text-xs sm:text-sm font-black truncate ${
+                          posTheme === 'dark' ? 'text-white' : 'text-slate-900'
+                        }`}>
                           {selectedCategoryObj ? selectedCategoryObj.nom : 'Recherche'}
                         </span>
-                        <span className="text-[10px] text-slate-400 font-bold bg-slate-950 px-2 py-0.5 rounded-full border border-slate-800">
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                          posTheme === 'dark' ? 'text-slate-400 bg-slate-950 border-slate-800' : 'text-slate-700 bg-slate-100 border-slate-250'
+                        }`}>
                           {filteredProducts.length} plat{filteredProducts.length > 1 ? 's' : ''}
                         </span>
                       </div>
 
                       {/* Inline quick search */}
                       <div className="relative w-36 sm:w-56">
-                        <Search className="w-3.5 h-3.5 text-slate-500 absolute left-2.5 top-2.5" />
+                        <Search className={`w-3.5 h-3.5 absolute left-2.5 top-2.5 ${posTheme === 'dark' ? 'text-slate-500' : 'text-slate-400'}`} />
                         <input
                           type="text"
                           placeholder="Filtrer..."
                           value={productSearch}
                           onChange={(e) => setProductSearch(e.target.value)}
-                          className="w-full pl-8 pr-2 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-white text-xs placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                          className={`w-full pl-8 pr-2 py-1.5 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500 transition ${
+                            posTheme === 'dark'
+                              ? 'bg-slate-950 border border-slate-800 text-white placeholder-slate-500'
+                              : 'bg-white border border-slate-250 text-slate-900 placeholder-slate-400 shadow-xs'
+                          }`}
                         />
                       </div>
                     </div>
@@ -1441,14 +1514,20 @@ export const PosView: React.FC<PosViewProps> = ({
                               showToast(`"${prod.nom}" ajouté à l'addition`);
                             }}
                             disabled={!isAvailable}
-                            className={`group relative h-[220px] min-h-[220px] text-left rounded-2xl border overflow-hidden transition flex flex-col justify-between active:scale-95 touch-manipulation ${
+                            className={`group relative h-[220px] min-h-[220px] text-left rounded-2xl border overflow-hidden transition flex flex-col justify-between active:scale-95 touch-manipulation cursor-pointer ${
                               isAvailable
-                                ? 'bg-slate-900 border-slate-800 hover:border-emerald-500 hover:shadow-xl hover:shadow-emerald-950/40'
-                                : 'bg-slate-900/40 border-slate-800 opacity-50 cursor-not-allowed'
+                                ? posTheme === 'dark'
+                                  ? 'bg-slate-900 border-slate-800 hover:border-emerald-500 hover:shadow-xl hover:shadow-emerald-950/40'
+                                  : 'bg-white border-slate-200 shadow-sm hover:border-emerald-500 hover:shadow-md'
+                                : posTheme === 'dark'
+                                  ? 'bg-slate-900/40 border-slate-800 opacity-50 cursor-not-allowed'
+                                  : 'bg-slate-100 border-slate-200 opacity-50 cursor-not-allowed'
                             }`}
                           >
                             {/* Dish Photo */}
-                            <div className="relative h-28 w-full bg-slate-950 overflow-hidden">
+                            <div className={`relative h-28 w-full overflow-hidden ${
+                              posTheme === 'dark' ? 'bg-slate-950' : 'bg-slate-100'
+                            }`}>
                               {prod.image_url ? (
                                 <img
                                   src={prod.image_url}
@@ -1456,11 +1535,15 @@ export const PosView: React.FC<PosViewProps> = ({
                                   className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
                                 />
                               ) : (
-                                <div className="w-full h-full flex items-center justify-center bg-gradient-to-tr from-slate-900 to-slate-800 text-slate-600">
+                                <div className={`w-full h-full flex items-center justify-center ${
+                                  posTheme === 'dark' ? 'bg-gradient-to-tr from-slate-900 to-slate-800 text-slate-600' : 'bg-slate-100 text-slate-400'
+                                }`}>
                                   <Utensils className="w-8 h-8" />
                                 </div>
                               )}
-                              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-transparent to-transparent" />
+                              <div className={`absolute inset-0 ${
+                                posTheme === 'dark' ? 'bg-gradient-to-t from-slate-950/90 via-transparent to-transparent' : 'bg-gradient-to-t from-black/40 via-transparent to-transparent'
+                              }`} />
                               <span className="absolute bottom-2 right-2 px-2 py-0.5 rounded-md text-xs font-black bg-emerald-600 text-white shadow">
                                 {prod.prix_vente_ttc.toFixed(2)} DH
                               </span>
@@ -1474,16 +1557,22 @@ export const PosView: React.FC<PosViewProps> = ({
                             {/* Dish Info */}
                             <div className="p-2.5 flex-1 flex flex-col justify-between">
                               <div>
-                                <h4 className="text-xs font-bold text-white group-hover:text-emerald-400 line-clamp-1">
+                                <h4 className={`text-xs font-bold line-clamp-1 ${
+                                  posTheme === 'dark' ? 'text-white group-hover:text-emerald-400' : 'text-slate-900 group-hover:text-emerald-600'
+                                }`}>
                                   {prod.nom}
                                 </h4>
                                 {prod.description && (
-                                  <p className="text-[10px] text-slate-400 line-clamp-2 mt-0.5">
+                                  <p className={`text-[10px] line-clamp-2 mt-0.5 ${
+                                    posTheme === 'dark' ? 'text-slate-400' : 'text-slate-500'
+                                  }`}>
                                     {prod.description}
                                   </p>
                                 )}
                               </div>
-                              <div className="mt-2 pt-1.5 border-t border-slate-800/80 flex items-center justify-between text-[10px] text-slate-500">
+                              <div className={`mt-2 pt-1.5 border-t flex items-center justify-between text-[10px] ${
+                                posTheme === 'dark' ? 'border-slate-800/80 text-slate-500' : 'border-slate-150 text-slate-400'
+                              }`}>
                                 <span>{prod.categorie_nom}</span>
                                 <span>{prod.temps_preparation_min || 15} min</span>
                               </div>
@@ -1502,14 +1591,18 @@ export const PosView: React.FC<PosViewProps> = ({
               <div className="flex-1 flex flex-col p-4 overflow-y-auto pb-16 md:pb-4">
                 <div className="flex items-center justify-between mb-4">
                   <div>
-                    <h3 className="text-sm font-bold text-white">Plan de Salle du Restaurant</h3>
-                    <p className="text-xs text-slate-400">Touchez une table pour ouvrir ou modifier une addition.</p>
+                    <h3 className={`text-sm font-bold ${posTheme === 'dark' ? 'text-white' : 'text-slate-900'}`}>Plan de Salle du Restaurant</h3>
+                    <p className={`text-xs ${posTheme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>Touchez une table pour ouvrir ou modifier une addition.</p>
                   </div>
                   <div className="flex items-center gap-2">
                     <select
                       value={tableStatusFilter}
                       onChange={(e: any) => setTableStatusFilter(e.target.value)}
-                      className="bg-slate-900 border border-slate-800 rounded-lg text-xs px-2.5 py-2 text-slate-300"
+                      className={`rounded-lg text-xs px-2.5 py-2 border transition ${
+                        posTheme === 'dark'
+                          ? 'bg-slate-900 border-slate-800 text-slate-300'
+                          : 'bg-white border-slate-250 text-slate-800 shadow-xs'
+                      }`}
                     >
                       <option value="TOUS">Toutes les tables</option>
                       <option value="LIBRE">Libres uniquement</option>
@@ -1525,13 +1618,27 @@ export const PosView: React.FC<PosViewProps> = ({
                     const isOccupee = table.statut === 'OCCUPEE';
                     const isAddition = table.statut === 'ADDITION';
 
-                    let cardStyle = 'bg-slate-900 border-slate-800 hover:border-emerald-500';
-                    if (isLibre) {
-                      cardStyle = 'bg-slate-900 border-emerald-800/60 hover:border-emerald-400 hover:bg-emerald-950/20';
-                    } else if (isOccupee) {
-                      cardStyle = 'bg-blue-950/40 border-blue-600/70 hover:border-blue-400';
-                    } else if (isAddition) {
-                      cardStyle = 'bg-amber-950/40 border-amber-500 hover:border-amber-300 animate-pulse';
+                    let cardStyle = '';
+                    if (posTheme === 'dark') {
+                      if (isLibre) {
+                        cardStyle = 'bg-slate-900 border-emerald-800/60 hover:border-emerald-400 hover:bg-emerald-950/20 shadow-md';
+                      } else if (isOccupee) {
+                        cardStyle = 'bg-blue-950/40 border-blue-600/70 hover:border-blue-400 shadow-md';
+                      } else if (isAddition) {
+                        cardStyle = 'bg-amber-950/40 border-amber-500 hover:border-amber-300 animate-pulse shadow-md';
+                      } else {
+                        cardStyle = 'bg-slate-900 border-slate-800 hover:border-emerald-500';
+                      }
+                    } else {
+                      if (isLibre) {
+                        cardStyle = 'bg-white border-emerald-300 hover:border-emerald-500 hover:bg-emerald-50/40 shadow-xs hover:shadow-md';
+                      } else if (isOccupee) {
+                        cardStyle = 'bg-blue-50/50 border-blue-300 hover:border-blue-500 shadow-xs hover:shadow-md';
+                      } else if (isAddition) {
+                        cardStyle = 'bg-amber-50/60 border-amber-400 hover:border-amber-500 shadow-xs hover:shadow-md animate-pulse';
+                      } else {
+                        cardStyle = 'bg-white border-slate-200 hover:border-emerald-500 shadow-xs';
+                      }
                     }
 
                     return (
@@ -1541,27 +1648,29 @@ export const PosView: React.FC<PosViewProps> = ({
                         className={`p-3.5 rounded-2xl border cursor-pointer transition flex flex-col justify-between active:scale-95 touch-manipulation min-h-[110px] ${cardStyle}`}
                       >
                         <div className="flex items-center justify-between mb-2">
-                          <span className="text-base font-black text-white">{table.numero}</span>
+                          <span className={`text-base font-black ${posTheme === 'dark' ? 'text-white' : 'text-slate-900'}`}>{table.numero}</span>
                           {renderStatusBadge(table.statut)}
                         </div>
 
-                        <div className="text-xs text-slate-400 space-y-1">
+                        <div className={`text-xs space-y-1 ${posTheme === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}>
                           <p className="truncate font-medium">{table.nom}</p>
                           <p className="flex items-center gap-1 text-[11px]">
-                            <Users className="w-3 h-3 text-slate-500" />
+                            <Users className={`w-3 h-3 ${posTheme === 'dark' ? 'text-slate-500' : 'text-slate-400'}`} />
                             <span>{table.nb_couverts > 0 ? `${table.nb_couverts} / ${table.capacite}p` : `${table.capacite} places`}</span>
                           </p>
                         </div>
 
-                        <div className="mt-3 pt-2 border-t border-slate-800/80 flex items-center justify-between text-xs font-bold">
+                        <div className={`mt-3 pt-2 border-t flex items-center justify-between text-xs font-bold ${
+                          posTheme === 'dark' ? 'border-slate-800/80' : 'border-slate-200'
+                        }`}>
                           {isLibre ? (
-                            <span className="text-emerald-400 flex items-center gap-1 text-[11px]">
+                            <span className="text-emerald-600 dark:text-emerald-400 flex items-center gap-1 text-[11px]">
                               <Plus className="w-3 h-3" /> Ouvrir (1 couvert)
                             </span>
                           ) : (
                             <>
-                              <span className="text-slate-400 text-[11px]">En cours:</span>
-                              <span className="text-emerald-400">{table.montant_en_cours.toFixed(2)} DH</span>
+                              <span className={`text-[11px] ${posTheme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>En cours:</span>
+                              <span className="text-emerald-600 dark:text-emerald-400">{table.montant_en_cours.toFixed(2)} DH</span>
                             </>
                           )}
                         </div>
@@ -1574,24 +1683,26 @@ export const PosView: React.FC<PosViewProps> = ({
 
             {/* iPad Portrait Floating Bottom Summary Bar */}
             {cart.length > 0 && ipadViewTab === 'CARTE' && (
-              <div className="md:hidden fixed bottom-3 left-3 right-3 z-40 bg-slate-900/95 backdrop-blur-md border border-emerald-500/60 p-3 rounded-2xl shadow-2xl flex items-center justify-between gap-3 animate-in slide-in-from-bottom-2">
+              <div className={`md:hidden fixed bottom-3 left-3 right-3 z-40 backdrop-blur-md border p-3 rounded-2xl shadow-2xl flex items-center justify-between gap-3 animate-in slide-in-from-bottom-2 ${
+                posTheme === 'dark' ? 'bg-slate-900/95 border-emerald-500/60 text-white' : 'bg-white/95 border-emerald-500 text-slate-900'
+              }`}>
                 <button
                   type="button"
                   onClick={() => setIpadViewTab('ADDITION')}
-                  className="flex items-center gap-2.5 text-left flex-1"
+                  className="flex items-center gap-2.5 text-left flex-1 cursor-pointer"
                 >
                   <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-black text-sm shadow">
                     {orderCalculations.itemsCount}
                   </div>
                   <div>
-                    <p className="text-[11px] font-bold text-slate-300">Addition en cours</p>
-                    <p className="text-sm font-black text-emerald-400">{orderCalculations.netAPayer.toFixed(2)} DH</p>
+                    <p className={`text-[11px] font-bold ${posTheme === 'dark' ? 'text-slate-300' : 'text-slate-600'}`}>Addition en cours</p>
+                    <p className="text-sm font-black text-emerald-600 dark:text-emerald-400">{orderCalculations.netAPayer.toFixed(2)} DH</p>
                   </div>
                 </button>
                 <button
                   type="button"
                   onClick={handleOpenPayment}
-                  className="px-4 py-2.5 bg-emerald-500 hover:bg-emerald-400 active:bg-emerald-600 text-slate-950 font-black text-xs rounded-xl shadow flex items-center gap-1.5 active:scale-95 transition"
+                  className="px-4 py-2.5 bg-emerald-500 hover:bg-emerald-400 active:bg-emerald-600 text-slate-950 font-black text-xs rounded-xl shadow flex items-center gap-1.5 active:scale-95 transition cursor-pointer"
                 >
                   <Banknote className="w-4 h-4" />
                   <span>ENCAISSER</span>
@@ -1603,12 +1714,16 @@ export const PosView: React.FC<PosViewProps> = ({
 
         {/* MODIFIER PRIX NUMPAD MODAL */}
         {editingPriceIndex !== null && cart[editingPriceIndex] && (
-          <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
-            <div className="max-w-sm w-full bg-slate-900 border border-slate-800 rounded-3xl p-5 sm:p-6 shadow-2xl space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+          <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+            <div className={`max-w-sm w-full rounded-3xl p-5 sm:p-6 shadow-2xl space-y-4 border transition-colors ${
+              posTheme === 'dark' ? 'bg-slate-900 border-slate-800 text-white' : 'bg-white border-slate-200 text-slate-900'
+            }`}>
+              <div className={`flex items-center justify-between border-b pb-3 ${
+                posTheme === 'dark' ? 'border-slate-800' : 'border-slate-200'
+              }`}>
                 <div className="flex items-center gap-2">
-                  <Calculator className="w-5 h-5 text-amber-400" />
-                  <h3 className="text-sm font-black text-white">Modifier le Prix Unitaire</h3>
+                  <Calculator className="w-5 h-5 text-amber-500" />
+                  <h3 className={`text-sm font-black ${posTheme === 'dark' ? 'text-white' : 'text-slate-900'}`}>Modifier le Prix Unitaire</h3>
                 </div>
                 <button
                   type="button"
@@ -1616,27 +1731,33 @@ export const PosView: React.FC<PosViewProps> = ({
                     setEditingPriceIndex(null);
                     setPriceNumpadValue('');
                   }}
-                  className="p-1 text-slate-400 hover:text-white"
+                  className={`p-1 transition cursor-pointer ${
+                    posTheme === 'dark' ? 'text-slate-400 hover:text-white' : 'text-slate-500 hover:text-slate-900'
+                  }`}
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
-              <div className="space-y-1 bg-slate-950 p-3 rounded-2xl border border-slate-800">
-                <p className="text-xs font-black text-white truncate">
+              <div className={`space-y-1 p-3 rounded-2xl border ${
+                posTheme === 'dark' ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200'
+              }`}>
+                <p className={`text-xs font-black truncate ${posTheme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
                   {cart[editingPriceIndex].produit_nom}
                 </p>
-                <div className="flex justify-between text-[11px] text-slate-400">
+                <div className={`flex justify-between text-[11px] ${posTheme === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}>
                   <span>Prix initial : {cart[editingPriceIndex].prix_unitaire_ttc.toFixed(2)} DH</span>
                   <span>Qté : {cart[editingPriceIndex].quantite}</span>
                 </div>
               </div>
 
               {/* Typed Price Display */}
-              <div className="bg-slate-950 p-3.5 rounded-2xl border border-slate-800 text-center">
-                <p className="text-[10px] uppercase font-bold text-slate-400">Nouveau Prix TTC (par unité)</p>
-                <div className="text-3xl font-black text-amber-400 mt-1">
-                  {priceNumpadValue === '' ? '0.00' : priceNumpadValue} <span className="text-lg text-amber-500">DH</span>
+              <div className={`p-3.5 rounded-2xl border text-center ${
+                posTheme === 'dark' ? 'bg-slate-950 border-slate-800' : 'bg-amber-50/60 border-amber-200'
+              }`}>
+                <p className={`text-[10px] uppercase font-bold ${posTheme === 'dark' ? 'text-slate-400' : 'text-amber-800'}`}>Nouveau Prix TTC (par unité)</p>
+                <div className="text-3xl font-black text-amber-500 mt-1">
+                  {priceNumpadValue === '' ? '0.00' : priceNumpadValue} <span className="text-lg text-amber-600">DH</span>
                 </div>
               </div>
 
@@ -1659,7 +1780,11 @@ export const PosView: React.FC<PosViewProps> = ({
                         setPriceNumpadValue(Math.max(0, current + btn.add).toFixed(2));
                       }
                     }}
-                    className="py-1.5 bg-slate-950 hover:bg-slate-800 text-slate-300 text-[10px] font-bold rounded-lg border border-slate-800 active:scale-95 transition"
+                    className={`py-1.5 text-[10px] font-bold rounded-lg border transition active:scale-95 cursor-pointer ${
+                      posTheme === 'dark'
+                        ? 'bg-slate-950 hover:bg-slate-800 text-slate-300 border-slate-800'
+                        : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-250 shadow-xs'
+                    }`}
                   >
                     {btn.label}
                   </button>
@@ -1673,12 +1798,18 @@ export const PosView: React.FC<PosViewProps> = ({
                     key={btn}
                     type="button"
                     onClick={() => handlePriceNumpadKey(btn)}
-                    className={`h-11 rounded-xl text-base font-black transition active:scale-95 flex items-center justify-center border ${
+                    className={`h-11 rounded-xl text-base font-black transition active:scale-95 flex items-center justify-center border cursor-pointer ${
                       btn === 'C'
-                        ? 'bg-rose-950/60 border-rose-800 text-rose-300 hover:bg-rose-900'
+                        ? posTheme === 'dark'
+                          ? 'bg-rose-950/60 border-rose-800 text-rose-300 hover:bg-rose-900'
+                          : 'bg-rose-50 border-rose-200 text-rose-700 hover:bg-rose-100 shadow-xs'
                         : btn === '⌫'
-                        ? 'bg-amber-950/60 border-amber-800 text-amber-300 hover:bg-amber-900'
-                        : 'bg-slate-950 border-slate-800 text-slate-100 hover:bg-slate-800'
+                        ? posTheme === 'dark'
+                          ? 'bg-amber-950/60 border-amber-800 text-amber-300 hover:bg-amber-900'
+                          : 'bg-amber-50 border-amber-200 text-amber-800 hover:bg-amber-100 shadow-xs'
+                        : posTheme === 'dark'
+                        ? 'bg-slate-950 border-slate-800 text-slate-100 hover:bg-slate-800'
+                        : 'bg-white border-slate-200 text-slate-900 hover:bg-slate-50 shadow-xs'
                     }`}
                   >
                     {btn}
@@ -1694,14 +1825,18 @@ export const PosView: React.FC<PosViewProps> = ({
                     setEditingPriceIndex(null);
                     setPriceNumpadValue('');
                   }}
-                  className="py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs rounded-xl transition"
+                  className={`py-3 font-bold text-xs rounded-xl transition cursor-pointer ${
+                    posTheme === 'dark'
+                      ? 'bg-slate-800 hover:bg-slate-700 text-slate-300'
+                      : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-250'
+                  }`}
                 >
                   Annuler
                 </button>
                 <button
                   type="button"
                   onClick={handleSaveModifiedPrice}
-                  className="py-3 bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-slate-950 font-black text-xs rounded-xl shadow-lg transition active:scale-95 flex items-center justify-center gap-1.5"
+                  className="py-3 bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-slate-950 font-black text-xs rounded-xl shadow-lg transition active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <Check className="w-4 h-4" />
                   <span>Valider Prix</span>
@@ -1713,25 +1848,33 @@ export const PosView: React.FC<PosViewProps> = ({
 
         {/* PAYMENT MODAL WITH IPAD TACTILE KEYPAD & QUICK BILL PRESETS */}
         {showPaymentModal && (
-          <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-            <div className="max-w-lg w-full bg-slate-900 border border-slate-800 rounded-3xl p-5 sm:p-6 shadow-2xl space-y-4 my-auto">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+          <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+            <div className={`max-w-lg w-full rounded-3xl p-5 sm:p-6 shadow-2xl space-y-4 my-auto border transition-colors ${
+              posTheme === 'dark' ? 'bg-slate-900 border-slate-800 text-white' : 'bg-white border-slate-200 text-slate-900'
+            }`}>
+              <div className={`flex items-center justify-between border-b pb-3 ${
+                posTheme === 'dark' ? 'border-slate-800' : 'border-slate-200'
+              }`}>
                 <div className="flex items-center gap-2">
-                  <Banknote className="w-5 h-5 text-emerald-400" />
-                  <h3 className="text-base font-black text-white">Règlement de l'Addition</h3>
+                  <Banknote className="w-5 h-5 text-emerald-500" />
+                  <h3 className={`text-base font-black ${posTheme === 'dark' ? 'text-white' : 'text-slate-900'}`}>Règlement de l'Addition</h3>
                 </div>
                 <button
                   type="button"
                   onClick={() => setShowPaymentModal(false)}
-                  className="p-1 text-slate-400 hover:text-white"
+                  className={`p-1 transition cursor-pointer ${
+                    posTheme === 'dark' ? 'text-slate-400 hover:text-white' : 'text-slate-500 hover:text-slate-900'
+                  }`}
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
-              <div className="bg-slate-950 p-3.5 rounded-2xl border border-slate-800 text-center space-y-0.5">
-                <p className="text-xs text-slate-400">Total Net à Encaisser</p>
-                <p className="text-3xl font-black text-emerald-400">{orderCalculations.netAPayer.toFixed(2)} DH</p>
+              <div className={`p-3.5 rounded-2xl border text-center space-y-0.5 ${
+                posTheme === 'dark' ? 'bg-slate-950 border-slate-800' : 'bg-emerald-50/60 border-emerald-200'
+              }`}>
+                <p className={`text-xs ${posTheme === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}>Total Net à Encaisser</p>
+                <p className="text-3xl font-black text-emerald-600 dark:text-emerald-400">{orderCalculations.netAPayer.toFixed(2)} DH</p>
               </div>
 
               {/* Payment Mode Selector */}
@@ -1741,10 +1884,12 @@ export const PosView: React.FC<PosViewProps> = ({
                     key={mode}
                     type="button"
                     onClick={() => setModeReglement(mode)}
-                    className={`py-2.5 rounded-xl text-xs font-bold border transition ${
+                    className={`py-2.5 rounded-xl text-xs font-bold border transition cursor-pointer ${
                       modeReglement === mode
                         ? 'bg-emerald-600 text-white border-emerald-500 shadow-md'
-                        : 'bg-slate-950 text-slate-300 border-slate-800 hover:bg-slate-800'
+                        : posTheme === 'dark'
+                        ? 'bg-slate-950 text-slate-300 border-slate-800 hover:bg-slate-800'
+                        : 'bg-slate-100 text-slate-700 border-slate-250 hover:bg-slate-200 shadow-xs'
                     }`}
                   >
                     {mode}
@@ -1754,17 +1899,27 @@ export const PosView: React.FC<PosViewProps> = ({
 
               {/* Cash given & change calculation with iPad Tactile Keypad */}
               {modeReglement === 'Espèces' && (
-                <div className="space-y-3 bg-slate-950 p-3.5 rounded-2xl border border-slate-800">
+                <div className={`space-y-3 p-3.5 rounded-2xl border ${
+                  posTheme === 'dark' ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200'
+                }`}>
                   {/* Amount Received & Change Display */}
                   <div className="grid grid-cols-2 gap-2">
-                    <div className="bg-slate-900 p-2.5 rounded-xl border border-slate-800">
-                      <span className="text-[10px] uppercase font-bold text-slate-400 block">Reçu du client :</span>
-                      <span className="text-lg font-black text-white">{montantRecu.toFixed(2)} DH</span>
+                    <div className={`p-2.5 rounded-xl border ${
+                      posTheme === 'dark' ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200 shadow-xs'
+                    }`}>
+                      <span className={`text-[10px] uppercase font-bold block ${
+                        posTheme === 'dark' ? 'text-slate-400' : 'text-slate-500'
+                      }`}>Reçu du client :</span>
+                      <span className={`text-lg font-black ${posTheme === 'dark' ? 'text-white' : 'text-slate-900'}`}>{montantRecu.toFixed(2)} DH</span>
                     </div>
-                    <div className="bg-slate-900 p-2.5 rounded-xl border border-slate-800">
-                      <span className="text-[10px] uppercase font-bold text-slate-400 block">Monnaie à rendre :</span>
+                    <div className={`p-2.5 rounded-xl border ${
+                      posTheme === 'dark' ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200 shadow-xs'
+                    }`}>
+                      <span className={`text-[10px] uppercase font-bold block ${
+                        posTheme === 'dark' ? 'text-slate-400' : 'text-slate-500'
+                      }`}>Monnaie à rendre :</span>
                       <span className={`text-lg font-black ${
-                        montantRecu >= orderCalculations.netAPayer ? 'text-emerald-400' : 'text-rose-400'
+                        montantRecu >= orderCalculations.netAPayer ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
                       }`}>
                         {Math.max(0, montantRecu - orderCalculations.netAPayer).toFixed(2)} DH
                       </span>
@@ -1776,7 +1931,7 @@ export const PosView: React.FC<PosViewProps> = ({
                     <button
                       type="button"
                       onClick={() => handleNumpadDigit('EXACT')}
-                      className="py-2 bg-emerald-700/60 hover:bg-emerald-600 active:bg-emerald-500 text-emerald-100 rounded-xl text-xs font-black border border-emerald-500/40 transition active:scale-95"
+                      className="py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black shadow-sm transition active:scale-95 cursor-pointer"
                     >
                       Exact
                     </button>
@@ -1785,7 +1940,11 @@ export const PosView: React.FC<PosViewProps> = ({
                         key={amt}
                         type="button"
                         onClick={() => setMontantRecu(amt)}
-                        className="py-2 bg-slate-900 hover:bg-slate-800 active:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold border border-slate-800 transition active:scale-95"
+                        className={`py-2 rounded-xl text-xs font-bold border transition active:scale-95 cursor-pointer ${
+                          posTheme === 'dark'
+                            ? 'bg-slate-900 hover:bg-slate-800 active:bg-slate-700 text-slate-200 border-slate-800'
+                            : 'bg-white hover:bg-slate-100 text-slate-800 border-slate-250 shadow-xs'
+                        }`}
                       >
                         {amt} DH
                       </button>
@@ -1799,12 +1958,18 @@ export const PosView: React.FC<PosViewProps> = ({
                         key={btn}
                         type="button"
                         onClick={() => handleNumpadDigit(btn)}
-                        className={`h-11 sm:h-12 rounded-xl text-base font-black transition active:scale-95 flex items-center justify-center border ${
+                        className={`h-11 sm:h-12 rounded-xl text-base font-black transition active:scale-95 flex items-center justify-center border cursor-pointer ${
                           btn === 'C'
-                            ? 'bg-rose-950/60 border-rose-800 text-rose-300 hover:bg-rose-900'
+                            ? posTheme === 'dark'
+                              ? 'bg-rose-950/60 border-rose-800 text-rose-300 hover:bg-rose-900'
+                              : 'bg-rose-50 border-rose-200 text-rose-700 hover:bg-rose-100 shadow-xs'
                             : btn === '⌫'
-                            ? 'bg-amber-950/60 border-amber-800 text-amber-300 hover:bg-amber-900'
-                            : 'bg-slate-900 border-slate-800 text-slate-100 hover:bg-slate-800 hover:border-slate-700'
+                            ? posTheme === 'dark'
+                              ? 'bg-amber-950/60 border-amber-800 text-amber-300 hover:bg-amber-900'
+                              : 'bg-amber-50 border-amber-200 text-amber-800 hover:bg-amber-100 shadow-xs'
+                            : posTheme === 'dark'
+                            ? 'bg-slate-900 border-slate-800 text-slate-100 hover:bg-slate-800 hover:border-slate-700'
+                            : 'bg-white border-slate-200 text-slate-900 hover:bg-slate-50 shadow-xs'
                         }`}
                       >
                         {btn}
@@ -1818,7 +1983,7 @@ export const PosView: React.FC<PosViewProps> = ({
                 type="button"
                 onClick={handleConfirmPayment}
                 disabled={isProcessingPayment}
-                className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-sm rounded-xl shadow-lg shadow-emerald-950 flex items-center justify-center gap-2 transition active:scale-98"
+                className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-sm rounded-xl shadow-lg shadow-emerald-950/30 flex items-center justify-center gap-2 transition active:scale-98 cursor-pointer"
               >
                 {isProcessingPayment ? (
                   <RefreshCw className="w-4 h-4 animate-spin" />
