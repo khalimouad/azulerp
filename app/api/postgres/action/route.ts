@@ -1730,7 +1730,7 @@ export async function POST(req: NextRequest) {
             `.catch(() => []);
           }
           if (!rows || rows.length === 0) {
-            rows = store.factures_fournisseurs || OFFICIAL_FACTURES_FOURNISSEURS_2026;
+            rows = OFFICIAL_FACTURES_FOURNISSEURS_2026;
           }
           return NextResponse.json({ success: true, factures: rows });
         }
@@ -1743,7 +1743,7 @@ export async function POST(req: NextRequest) {
             `.catch(() => []);
           }
           if (!rows || rows.length === 0) {
-            rows = store.paiements_fournisseurs || OFFICIAL_PAIEMENTS_FOURNISSEURS_2026;
+            rows = OFFICIAL_PAIEMENTS_FOURNISSEURS_2026;
           }
           return NextResponse.json({ success: true, paiements: rows });
         }
@@ -1962,8 +1962,22 @@ export async function POST(req: NextRequest) {
               pos_produits: store.pos_produits,
               pos_sessions: store.pos_sessions,
               pos_ventes: store.pos_ventes,
-              users: store.app_users
+              users: store.app_users,
+              factures_fournisseurs: store.factures_fournisseurs || OFFICIAL_FACTURES_FOURNISSEURS_2026,
+              paiements_fournisseurs: store.paiements_fournisseurs || OFFICIAL_PAIEMENTS_FOURNISSEURS_2026
             }
+          });
+
+        case 'fetch_factures_fournisseurs':
+          return NextResponse.json({
+            success: true,
+            factures: store.factures_fournisseurs || OFFICIAL_FACTURES_FOURNISSEURS_2026
+          });
+
+        case 'fetch_paiements_fournisseurs':
+          return NextResponse.json({
+            success: true,
+            paiements: store.paiements_fournisseurs || OFFICIAL_PAIEMENTS_FOURNISSEURS_2026
           });
 
         case 'create_bon_livraison': {
