@@ -16,6 +16,11 @@ import {
   OFFICIAL_PRODUITS
 } from '@/lib/official-seed-data';
 import {
+  OFFICIAL_FOURNISSEURS_2026,
+  OFFICIAL_FACTURES_FOURNISSEURS_2026,
+  OFFICIAL_PAIEMENTS_FOURNISSEURS_2026
+} from '@/lib/seed-achats-2026';
+import {
   clearSessionCookie,
   readSession,
   setSessionCookie,
@@ -81,20 +86,22 @@ function getFallbackStore() {
       familles: OFFICIAL_FAMILLES.map((f) => ({ id: f.id, code: `FAM${f.id}`, libelle: f.libelle, categorie_id: f.categorie_id })),
       marques: OFFICIAL_MARQUES.map((m) => ({ id: m.id, code: `MARQ${m.id}`, libelle: m.libelle })),
       clients: [],
-      fournisseurs: OFFICIAL_FOURNISSEURS.map((f, i) => ({
-        id: i + 1,
+      fournisseurs: OFFICIAL_FOURNISSEURS_2026.map((f, i) => ({
+        id: f.id || i + 1,
         code: f.code || `FOURN${i + 1}`,
         nom: f.nom,
-        interlocuteur: f.interlocuteur || '',
-        adresse: f.adresse || '',
-        ville: f.ville || 'Marrakech',
-        telephone: f.tel || f.gsm || '',
-        mobile: f.gsm || '',
-        email: f.email || '',
-        ice: f.ice || '',
-        solde_du: 0,
-        total_achats: 0
+        interlocuteur: '',
+        adresse: '',
+        ville: 'Marrakech',
+        telephone: '',
+        mobile: '',
+        email: '',
+        ice: '',
+        solde_du: f.solde_du || 0,
+        total_achats: f.total_achats || 0
       })),
+      factures_fournisseurs: OFFICIAL_FACTURES_FOURNISSEURS_2026,
+      paiements_fournisseurs: OFFICIAL_PAIEMENTS_FOURNISSEURS_2026,
       produits: OFFICIAL_PRODUITS.slice(0, 150).map((p, i) => ({
         id: i + 1,
         code: p.code || `PRD${i + 1}`,
@@ -319,7 +326,7 @@ export async function POST(req: NextRequest) {
             data: {
               company: (companyRes as any[])[0] || null,
               clients: clientsRes,
-              fournisseurs: fournisseursRes,
+              fournisseurs: (fournisseursRes && (fournisseursRes as any[]).length > 0) ? fournisseursRes : OFFICIAL_FOURNISSEURS_2026,
               produits: produitsRes,
               categories: categoriesRes,
               familles: famillesRes,
@@ -336,8 +343,8 @@ export async function POST(req: NextRequest) {
               pos_sessions: posSessionsRes,
               pos_ventes: Object.values(posVentesMap),
               users: usersRes,
-              factures_fournisseurs: facturesFournisseursRes || [],
-              paiements_fournisseurs: paiementsFournisseursRes || []
+              factures_fournisseurs: (facturesFournisseursRes && (facturesFournisseursRes as any[]).length > 0) ? facturesFournisseursRes : OFFICIAL_FACTURES_FOURNISSEURS_2026,
+              paiements_fournisseurs: (paiementsFournisseursRes && (paiementsFournisseursRes as any[]).length > 0) ? paiementsFournisseursRes : OFFICIAL_PAIEMENTS_FOURNISSEURS_2026
             }
           };
           fetchAllCache = { body: responseBody, expiresAt: now + FETCH_ALL_CACHE_TTL_MS };
@@ -1710,22 +1717,34 @@ export async function POST(req: NextRequest) {
 
         // --- FACTURES FOURNISSEURS & PAIEMENTS ---
         case 'fetch_factures_fournisseurs': {
-          const rows: any = await sql`
-            SELECT ff.*,
-                   COALESCE(
-                     (SELECT json_agg(ffl.*) FROM factures_fournisseurs_lignes ffl WHERE ffl.facture_fournisseur_id = ff.id),
-                     '[]'::json
-                   ) as lignes
-            FROM factures_fournisseurs ff
-            ORDER BY ff.date_facture DESC, ff.id DESC;
-          `.catch(() => []);
+          let rows: any = [];
+          if (sql) {
+            rows = await sql`
+              SELECT ff.*,
+                     COALESCE(
+                       (SELECT json_agg(ffl.*) FROM factures_fournisseurs_lignes ffl WHERE ffl.facture_fournisseur_id = ff.id),
+                       '[]'::json
+                     ) as lignes
+              FROM factures_fournisseurs ff
+              ORDER BY ff.date_facture DESC, ff.id DESC;
+            `.catch(() => []);
+          }
+          if (!rows || rows.length === 0) {
+            rows = store.factures_fournisseurs || OFFICIAL_FACTURES_FOURNISSEURS_2026;
+          }
           return NextResponse.json({ success: true, factures: rows });
         }
 
         case 'fetch_paiements_fournisseurs': {
-          const rows: any = await sql`
-            SELECT * FROM paiements_fournisseurs ORDER BY date_paiement DESC, id DESC;
-          `.catch(() => []);
+          let rows: any = [];
+          if (sql) {
+            rows = await sql`
+              SELECT * FROM paiements_fournisseurs ORDER BY date_paiement DESC, id DESC;
+            `.catch(() => []);
+          }
+          if (!rows || rows.length === 0) {
+            rows = store.paiements_fournisseurs || OFFICIAL_PAIEMENTS_FOURNISSEURS_2026;
+          }
           return NextResponse.json({ success: true, paiements: rows });
         }
 
