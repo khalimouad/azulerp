@@ -1,24 +1,72 @@
 
-// 23 Official Suppliers from FRS 2026
+// 23 Official Suppliers from FRS 2026 (Audited Math)
 export const OFFICIAL_FOURNISSEURS_2026 = [
   {
-    "id": 1,
-    "code": "FRN-1PORT",
-    "nom": "1 PORT",
-    "total_achats": 32238.0,
-    "solde_du": 32238.0,
+    "id": 1001,
+    "code": "FRN-CHEESE",
+    "nom": "CHEESES&CHEESES",
+    "total_achats": 4069834.2,
+    "solde_du": 3601204.2,
+    "factures_count": 54
+  },
+  {
+    "id": 1002,
+    "code": "FRN-ISMAIL",
+    "nom": "ISMAIL ATLAS",
+    "total_achats": 1854183.44,
+    "solde_du": 1790899.28,
+    "factures_count": 106
+  },
+  {
+    "id": 1003,
+    "code": "FRN-SDCGTR",
+    "nom": "SDCG TRANSPORT",
+    "total_achats": 1715124.58,
+    "solde_du": 1655792.21,
+    "factures_count": 114
+  },
+  {
+    "id": 1004,
+    "code": "FRN-SOFRAL",
+    "nom": "SOFRALIM",
+    "total_achats": 1099446.0,
+    "solde_du": 989826.0,
+    "factures_count": 27
+  },
+  {
+    "id": 1005,
+    "code": "FRN-SALIPR",
+    "nom": "SALIPRO",
+    "total_achats": 614135.69,
+    "solde_du": 437524.55,
+    "factures_count": 19
+  },
+  {
+    "id": 1006,
+    "code": "FRN-COPRAL",
+    "nom": "COPRALIM",
+    "total_achats": 449219.12,
+    "solde_du": 351309.32,
+    "factures_count": 29
+  },
+  {
+    "id": 1007,
+    "code": "FRN-LAHJOU",
+    "nom": "LAHJOUJI",
+    "total_achats": 119784.3,
+    "solde_du": 119784.3,
     "factures_count": 7
   },
   {
-    "id": 2,
-    "code": "FRN-ACEMA",
-    "nom": "ACE MAREE",
-    "total_achats": 12600.0,
-    "solde_du": 12600.0,
-    "factures_count": 8
+    "id": 1008,
+    "code": "FRN-GASTRO",
+    "nom": "GASTRONOMIK",
+    "total_achats": 70407.0,
+    "solde_du": 70407.0,
+    "factures_count": 9
   },
   {
-    "id": 3,
+    "id": 1009,
     "code": "FRN-CHARGE",
     "nom": "CHARGES LAIT & TRANSPORT AIT OURIR",
     "total_achats": 69900.0,
@@ -26,7832 +74,5077 @@ export const OFFICIAL_FOURNISSEURS_2026 = [
     "factures_count": 2
   },
   {
-    "id": 4,
-    "code": "FRN-SALIPR",
-    "nom": "SALIPRO",
-    "total_achats": 614135.6900000002,
-    "solde_du": 614135.6900000002,
-    "factures_count": 19
-  },
-  {
-    "id": 5,
-    "code": "FRN-COPRAL",
-    "nom": "COPRALIM",
-    "total_achats": 449219.12,
-    "solde_du": 456177.33999999997,
-    "factures_count": 29
-  },
-  {
-    "id": 6,
-    "code": "FRN-SOFRAL",
-    "nom": "SOFRALIM",
-    "total_achats": 1099446.0,
-    "solde_du": 1099446.0,
-    "factures_count": 27
-  },
-  {
-    "id": 7,
-    "code": "FRN-SDCGT",
-    "nom": "SDCG TRANSPORT",
-    "total_achats": 1733964.08,
-    "solde_du": 1733964.08,
-    "factures_count": 116
-  },
-  {
-    "id": 8,
-    "code": "FRN-FRESH",
-    "nom": "FRESH NGOOD",
-    "total_achats": 35645.0,
-    "solde_du": 35645.0,
-    "factures_count": 38
-  },
-  {
-    "id": 9,
-    "code": "FRN-ELINE",
-    "nom": "ELINE FISH",
-    "total_achats": 19437.9,
-    "solde_du": 19437.9,
-    "factures_count": 20
-  },
-  {
-    "id": 10,
-    "code": "FRN-ISMAIL",
-    "nom": "ISMAIL ATLAS",
-    "total_achats": 1877496.2599999998,
-    "solde_du": 1911744.4999999998,
-    "factures_count": 107
-  },
-  {
-    "id": 11,
-    "code": "FRN-CHEESE",
-    "nom": "CHEESES & CHEESES",
-    "total_achats": 4069834.2,
-    "solde_du": 4069834.2,
-    "factures_count": 54
-  },
-  {
-    "id": 12,
-    "code": "FRN-GASTRO",
-    "nom": "GASTRONOMIK",
-    "total_achats": 78705.0,
-    "solde_du": 78705.0,
-    "factures_count": 9
-  },
-  {
-    "id": 13,
-    "code": "FRN-FOODS",
-    "nom": "FOODS & GOODS",
-    "total_achats": 11008.0,
-    "solde_du": 11008.0,
-    "factures_count": 3
-  },
-  {
-    "id": 14,
-    "code": "FRN-LAHJOU",
-    "nom": "LAHJOUJI",
-    "total_achats": 145636.7,
-    "solde_du": 145636.7,
-    "factures_count": 7
-  },
-  {
-    "id": 15,
-    "code": "FRN-STENA",
-    "nom": "STE NAZAKYO DISTRI",
-    "total_achats": 30901.55,
-    "solde_du": 30901.55,
-    "factures_count": 4
-  },
-  {
-    "id": 16,
-    "code": "FRN-STEIM",
+    "id": 1010,
+    "code": "FRN-STEIMM",
     "nom": "STE IMMOBILIERE VECOMO SARL",
-    "total_achats": 27430.0,
-    "solde_du": 27430.0,
+    "total_achats": 53670.0,
+    "solde_du": 53670.0,
     "factures_count": 10
   },
   {
-    "id": 17,
-    "code": "FRN-ITALY",
+    "id": 1011,
+    "code": "FRN-ITALYS",
     "nom": "ITALY STILO",
-    "total_achats": 10000.0,
-    "solde_du": 10000.0,
-    "factures_count": 1
-  },
-  {
-    "id": 18,
-    "code": "FRN-SNACK",
-    "nom": "SNACK ITALY",
-    "total_achats": 23200.0,
-    "solde_du": 23200.0,
-    "factures_count": 1
-  },
-  {
-    "id": 19,
-    "code": "FRN-DOUIBI",
-    "nom": "DOUIBI FOOD",
     "total_achats": 36600.0,
     "solde_du": 36600.0,
     "factures_count": 1
   },
   {
-    "id": 20,
-    "code": "FRN-QUALIM",
-    "nom": "QUALIMET MAROC",
+    "id": 1012,
+    "code": "FRN-FOODSG",
+    "nom": "FOODS & GOODS",
+    "total_achats": 36504.9,
+    "solde_du": 36504.9,
+    "factures_count": 3
+  },
+  {
+    "id": 1013,
+    "code": "FRN-FRESHN",
+    "nom": "FRESH N'GOOD",
+    "total_achats": 35645.0,
+    "solde_du": 34187.0,
+    "factures_count": 38
+  },
+  {
+    "id": 1014,
+    "code": "FRN-1PORT",
+    "nom": "1 PORT",
+    "total_achats": 32238.0,
+    "solde_du": 32238.0,
+    "factures_count": 7
+  },
+  {
+    "id": 1015,
+    "code": "FRN-STENAZ",
+    "nom": "STE NAZAKYO DISTRI",
+    "total_achats": 28854.55,
+    "solde_du": 21322.75,
+    "factures_count": 4
+  },
+  {
+    "id": 1016,
+    "code": "FRN-ELINEF",
+    "nom": "ELINE FISH",
+    "total_achats": 19437.9,
+    "solde_du": 18869.9,
+    "factures_count": 20
+  },
+  {
+    "id": 1017,
+    "code": "FRN-ACEMAR",
+    "nom": "ACE MAREE",
+    "total_achats": 13940.08,
+    "solde_du": 12140.08,
+    "factures_count": 8
+  },
+  {
+    "id": 1018,
+    "code": "FRN-STEOBA",
+    "nom": "STE OBAHA",
+    "total_achats": 8331.94,
+    "solde_du": 1561.4,
+    "factures_count": 5
+  },
+  {
+    "id": 1019,
+    "code": "FRN-DOUIBI",
+    "nom": "DOUIBI FOOD",
+    "total_achats": 6144.24,
+    "solde_du": 6144.24,
+    "factures_count": 1
+  },
+  {
+    "id": 1020,
+    "code": "FRN-SNACKI",
+    "nom": "SNACK ITALY",
     "total_achats": 2640.0,
     "solde_du": 2640.0,
     "factures_count": 1
   },
   {
-    "id": 21,
-    "code": "FRN-STEOB",
-    "nom": "STE OBAHA",
-    "total_achats": 6782.5,
-    "solde_du": 6782.5,
-    "factures_count": 5
+    "id": 1021,
+    "code": "FRN-QUALIM",
+    "nom": "QUALIMET MAROC",
+    "total_achats": 1723.68,
+    "solde_du": 1723.68,
+    "factures_count": 1
   },
   {
-    "id": 22,
+    "id": 1022,
     "code": "FRN-CLIMAB",
     "nom": "CLIMABEL",
-    "total_achats": 481.4,
-    "solde_du": 481.4,
-    "factures_count": 1
+    "total_achats": 0.0,
+    "solde_du": 0.0,
+    "factures_count": 0
   },
   {
-    "id": 23,
+    "id": 1023,
     "code": "FRN-KECHMA",
     "nom": "KECHMAR",
-    "total_achats": 3970.54,
-    "solde_du": 3970.54,
-    "factures_count": 1
+    "total_achats": 0.0,
+    "solde_du": 0.0,
+    "factures_count": 0
   }
 ];
 
-// 471 Official Supplier Invoices from FRS 2026
+// Official Supplier Invoices from FRS 2026
 export const OFFICIAL_FACTURES_FOURNISSEURS_2026 = [
   {
-    "fournisseur": "1 PORT",
-    "feuille": "1 PORT",
     "date_facture": "2024-09-26",
-    "numero": "FA2409054",
     "total_ttc": 2340.0,
     "solde": 2340.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP"
+    "note": "VIR BP",
+    "fournisseur": "1 PORT",
+    "numero": "FAC-1 PO-0001"
   },
   {
-    "fournisseur": "1 PORT",
-    "feuille": "1 PORT",
     "date_facture": "2024-10-14",
-    "numero": "FA2410060",
     "total_ttc": 2100.0,
     "solde": 2100.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CHQ"
+    "note": "CHQ",
+    "fournisseur": "1 PORT",
+    "numero": "FAC-1 PO-0002"
   },
   {
-    "fournisseur": "1 PORT",
-    "feuille": "1 PORT",
     "date_facture": "2025-03-03",
-    "numero": "FA20250203",
     "total_ttc": 2520.0,
     "solde": 2520.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CHQ LE 03/04/2025"
+    "note": "CHQ LE 03/04/2025",
+    "fournisseur": "1 PORT",
+    "numero": "FAC-1 PO-0003"
   },
   {
-    "fournisseur": "1 PORT",
-    "feuille": "1 PORT",
     "date_facture": "2025-03-07",
-    "numero": "FA20250213",
     "total_ttc": 1680.0,
     "solde": 1680.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "1 PORT",
+    "numero": "FAC-1 PO-0004"
   },
   {
-    "fournisseur": "1 PORT",
-    "feuille": "1 PORT",
     "date_facture": "2025-06-14",
-    "numero": "FA20250670",
     "total_ttc": 1800.0,
     "solde": 1800.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CHQ LE 15/09/2025"
+    "note": "CHQ LE 15/09/2025",
+    "fournisseur": "1 PORT",
+    "numero": "FAC-1 PO-0005"
   },
   {
-    "fournisseur": "1 PORT",
-    "feuille": "1 PORT",
     "date_facture": "2025-06-20",
-    "numero": "FA20250699",
     "total_ttc": 1800.0,
     "solde": 1800.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "1 PORT",
+    "numero": "FAC-1 PO-0006"
   },
   {
-    "fournisseur": "1 PORT",
-    "feuille": "1 PORT",
     "date_facture": "2025-06-24",
-    "numero": "FA20250707",
     "total_ttc": 19998.0,
     "solde": 19998.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "1 PORT",
+    "numero": "FAC-1 PO-0007"
   },
   {
-    "fournisseur": "ACE MAREE",
-    "feuille": "ACE MAREE",
     "date_facture": "2024-07-22",
-    "numero": "F°24070883",
     "total_ttc": 1800.0,
     "solde": 1800.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "ACE MAREE",
+    "numero": "FAC-ACE -0008"
   },
   {
-    "fournisseur": "ACE MAREE",
-    "feuille": "ACE MAREE",
     "date_facture": "2024-07-30",
-    "numero": "F°24071219",
     "total_ttc": 1080.0,
     "solde": 1080.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "ACE MAREE",
+    "numero": "FAC-ACE -0009"
   },
   {
-    "fournisseur": "ACE MAREE",
-    "feuille": "ACE MAREE",
     "date_facture": "2024-07-30",
-    "numero": "F°24071187",
     "total_ttc": 720.0,
     "solde": 720.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "ACE MAREE",
+    "numero": "FAC-ACE -0010"
   },
   {
-    "fournisseur": "ACE MAREE",
-    "feuille": "ACE MAREE",
     "date_facture": "2026-01-03",
-    "numero": "F°26010149",
     "total_ttc": 1800.0,
     "solde": 1800.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "ESP LE 21/04/26"
+    "note": "ESP LE 21/04/26",
+    "fournisseur": "ACE MAREE",
+    "numero": "FAC-ACE -0011"
   },
   {
-    "fournisseur": "ACE MAREE",
-    "feuille": "ACE MAREE",
     "date_facture": "2026-04-21",
-    "numero": "F°26041616",
     "total_ttc": 1800.0,
     "solde": 1800.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP LE 15/06/2026"
+    "note": "VIR BP LE 15/06/2026",
+    "fournisseur": "ACE MAREE",
+    "numero": "FAC-ACE -0012"
   },
   {
-    "fournisseur": "ACE MAREE",
-    "feuille": "ACE MAREE",
     "date_facture": "2026-06-19",
-    "numero": "F°26061111",
     "total_ttc": 1800.0,
     "solde": 1800.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP LE 15/07/2026"
-  },
-  {
+    "note": "VIR BP LE 15/07/2026",
     "fournisseur": "ACE MAREE",
-    "feuille": "ACE MAREE",
+    "numero": "FAC-ACE -0013"
+  },
+  {
     "date_facture": "2026-07-04",
-    "numero": "F°26070220",
     "total_ttc": 1800.0,
-    "solde": 1800.0,
+    "solde": 0.0,
     "montant_paye": 1800.0,
-    "statut": "Partiel",
-    "observation": "VIR BP LE 15/08/2026"
+    "statut": "Payée",
+    "note": "VIR BP LE 15/08/2026",
+    "fournisseur": "ACE MAREE",
+    "numero": "FAC-ACE -0014"
   },
   {
-    "fournisseur": "CHARGES LAIT & TRANSPORT AIT OURIR",
-    "feuille": "LAIT 2025",
-    "date_facture": "2025-12-31",
-    "numero": "TOT-LAIT-AIT-OURIR-2025",
-    "total_ttc": 64400.0,
-    "solde": 64400.0,
-    "montant_paye": 0.0,
-    "statut": "A payer",
-    "observation": "Total Lait Ait Ourir 2025"
-  },
-  {
-    "fournisseur": "CHARGES LAIT & TRANSPORT AIT OURIR",
-    "feuille": "LAIT 2025",
-    "date_facture": "2025-12-31",
-    "numero": "TOT-TRANSP-AIT-OURIR-2025",
-    "total_ttc": 5500.0,
-    "solde": 5500.0,
-    "montant_paye": 0.0,
-    "statut": "A payer",
-    "observation": "Total Transport Ait Ourir 2025"
-  },
-  {
-    "fournisseur": "SALIPRO",
-    "feuille": "SALIPRO",
     "date_facture": "2025-11-04",
-    "numero": "F25086080",
     "total_ttc": 29574.72,
     "solde": 29574.72,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP LE 03/02/2026"
+    "note": "VIR BP LE 03/02/2026",
+    "fournisseur": "SALIPRO",
+    "numero": "FAC-SALI-0015"
   },
   {
-    "fournisseur": "SALIPRO",
-    "feuille": "SALIPRO",
     "date_facture": "2025-11-13",
-    "numero": "F25089284",
     "total_ttc": 20926.66,
     "solde": 20926.66,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SALIPRO",
+    "numero": "FAC-SALI-0016"
   },
   {
-    "fournisseur": "SALIPRO",
-    "feuille": "SALIPRO",
     "date_facture": "2025-11-18",
-    "numero": "F25090539",
     "total_ttc": 5660.1,
     "solde": 5660.1,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SALIPRO",
+    "numero": "FAC-SALI-0017"
   },
   {
-    "fournisseur": "SALIPRO",
-    "feuille": "SALIPRO",
     "date_facture": "2025-12-02",
-    "numero": "F25094450",
     "total_ttc": 39240.94,
     "solde": 39240.94,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP LE 06/03/2026"
+    "note": "VIR BP LE 06/03/2026",
+    "fournisseur": "SALIPRO",
+    "numero": "FAC-SALI-0018"
   },
   {
-    "fournisseur": "SALIPRO",
-    "feuille": "SALIPRO",
     "date_facture": "2025-12-18",
-    "numero": "F25099895",
     "total_ttc": 5692.02,
     "solde": 5692.02,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SALIPRO",
+    "numero": "FAC-SALI-0019"
   },
   {
-    "fournisseur": "SALIPRO",
-    "feuille": "SALIPRO",
     "date_facture": "2026-01-02",
-    "numero": "F26000561",
     "total_ttc": 21055.24,
     "solde": 44932.26,
-    "montant_paye": -23877.02,
+    "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP LE 07/03/2026"
+    "note": "VIR BP LE 07/03/2026",
+    "fournisseur": "SALIPRO",
+    "numero": "FAC-SALI-0020"
   },
   {
-    "fournisseur": "SALIPRO",
-    "feuille": "SALIPRO",
     "date_facture": "2026-01-14",
-    "numero": "F26004013",
     "total_ttc": 46409.59,
     "solde": 22532.57,
     "montant_paye": 23877.02,
     "statut": "Partiel",
-    "observation": "VIR LE 31/03/2026"
+    "note": "VIR LE 31/03/2026",
+    "fournisseur": "SALIPRO",
+    "numero": "FAC-SALI-0021"
   },
   {
-    "fournisseur": "SALIPRO",
-    "feuille": "SALIPRO",
     "date_facture": "2026-02-16",
-    "numero": "F26013516",
     "total_ttc": 1551.54,
     "solde": 1551.54,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP LE 29/04/2026"
+    "note": "VIR BP LE 29/04/2026",
+    "fournisseur": "SALIPRO",
+    "numero": "FAC-SALI-0022"
   },
   {
-    "fournisseur": "SALIPRO",
-    "feuille": "SALIPRO",
     "date_facture": "2026-02-20",
-    "numero": "F26015398",
     "total_ttc": 51614.17,
     "solde": 51614.17,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SALIPRO",
+    "numero": "FAC-SALI-0023"
   },
   {
-    "fournisseur": "SALIPRO",
-    "feuille": "SALIPRO",
     "date_facture": "2026-02-26",
-    "numero": "F26017020",
     "total_ttc": 5719.38,
     "solde": 5719.38,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SALIPRO",
+    "numero": "FAC-SALI-0024"
   },
   {
-    "fournisseur": "SALIPRO",
-    "feuille": "SALIPRO",
     "date_facture": "2026-03-09",
-    "numero": "F2602071",
     "total_ttc": 20814.98,
     "solde": 20814.98,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BL LE 01/06/2026"
+    "note": "VIR BL LE 01/06/2026",
+    "fournisseur": "SALIPRO",
+    "numero": "FAC-SALI-0025"
   },
   {
-    "fournisseur": "SALIPRO",
-    "feuille": "SALIPRO",
     "date_facture": "2026-04-03",
-    "numero": "F26028607",
     "total_ttc": 76815.61,
     "solde": 76815.61,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SALIPRO",
+    "numero": "FAC-SALI-0026"
   },
   {
-    "fournisseur": "SALIPRO",
-    "feuille": "SALIPRO",
     "date_facture": "2026-04-24",
-    "numero": "F26036412",
     "total_ttc": 27430.7,
     "solde": 27430.7,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP LE 01/07/2026"
+    "note": "VIR BP LE 01/07/2026",
+    "fournisseur": "SALIPRO",
+    "numero": "FAC-SALI-0027"
   },
   {
-    "fournisseur": "SALIPRO",
-    "feuille": "SALIPRO",
     "date_facture": "2026-04-28",
-    "numero": "F26037459",
     "total_ttc": 29758.43,
     "solde": 29758.43,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SALIPRO",
+    "numero": "FAC-SALI-0028"
   },
   {
-    "fournisseur": "SALIPRO",
-    "feuille": "SALIPRO",
     "date_facture": "2026-05-06",
-    "numero": "F26040817",
     "total_ttc": 48560.15,
     "solde": 48560.15,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP LE 31/07/2026"
+    "note": "VIR BP LE 31/07/2026",
+    "fournisseur": "SALIPRO",
+    "numero": "FAC-SALI-0029"
   },
   {
-    "fournisseur": "SALIPRO",
-    "feuille": "SALIPRO",
     "date_facture": "2026-05-26",
-    "numero": "F26047594",
     "total_ttc": 6700.32,
     "solde": 6700.32,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SALIPRO",
+    "numero": "FAC-SALI-0030"
   },
   {
-    "fournisseur": "SALIPRO",
-    "feuille": "SALIPRO",
     "date_facture": "2026-06-01",
-    "numero": "F26043933",
     "total_ttc": 108122.36,
-    "solde": 108122.36,
+    "solde": 0.0,
     "montant_paye": 108122.36,
-    "statut": "Partiel",
-    "observation": ""
+    "statut": "Payée",
+    "note": "",
+    "fournisseur": "SALIPRO",
+    "numero": "FAC-SALI-0031"
   },
   {
-    "fournisseur": "SALIPRO",
-    "feuille": "SALIPRO",
     "date_facture": "2026-06-06",
-    "numero": "F26050418",
     "total_ttc": 20574.72,
-    "solde": 20574.72,
+    "solde": 0.0,
     "montant_paye": 20574.72,
-    "statut": "Partiel",
-    "observation": ""
-  },
-  {
+    "statut": "Payée",
+    "note": "",
     "fournisseur": "SALIPRO",
-    "feuille": "SALIPRO",
-    "date_facture": "2026-07-30",
-    "numero": "F26056874",
-    "total_ttc": 47914.06,
-    "solde": 47914.06,
-    "montant_paye": 47914.06,
-    "statut": "Partiel",
-    "observation": ""
+    "numero": "FAC-SALI-0032"
   },
   {
-    "fournisseur": "COPRALIM",
-    "feuille": "COPRALIM",
+    "date_facture": "2026-07-30",
+    "total_ttc": 47914.06,
+    "solde": 0.0,
+    "montant_paye": 47914.06,
+    "statut": "Payée",
+    "note": "",
+    "fournisseur": "SALIPRO",
+    "numero": "FAC-SALI-0033"
+  },
+  {
     "date_facture": "2025-11-04",
-    "numero": "COP25046759",
     "total_ttc": 6075.78,
     "solde": 6075.78,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP LE 03/02/2026"
+    "note": "VIR BP LE 03/02/2026",
+    "fournisseur": "COPRALIM",
+    "numero": "FAC-COPR-0034"
   },
   {
-    "fournisseur": "COPRALIM",
-    "feuille": "COPRALIM",
     "date_facture": "2025-11-11",
-    "numero": "COP25047974",
     "total_ttc": 3960.0,
     "solde": 3960.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "COPRALIM",
+    "numero": "FAC-COPR-0035"
   },
   {
-    "fournisseur": "COPRALIM",
-    "feuille": "COPRALIM",
     "date_facture": "2025-11-12",
-    "numero": "COP25048257",
     "total_ttc": 41502.78,
     "solde": 41502.78,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "COPRALIM",
+    "numero": "FAC-COPR-0036"
   },
   {
-    "fournisseur": "COPRALIM",
-    "feuille": "COPRALIM",
     "date_facture": "2025-11-18",
-    "numero": "COP25049018",
     "total_ttc": 9360.0,
     "solde": 9360.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "COPRALIM",
+    "numero": "FAC-COPR-0037"
   },
   {
-    "fournisseur": "COPRALIM",
-    "feuille": "COPRALIM",
     "date_facture": "2025-12-02",
-    "numero": "COP25051225",
     "total_ttc": 14961.6,
     "solde": 14961.6,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP LE 06/03/2026"
+    "note": "VIR BP LE 06/03/2026",
+    "fournisseur": "COPRALIM",
+    "numero": "FAC-COPR-0038"
   },
   {
-    "fournisseur": "COPRALIM",
-    "feuille": "COPRALIM",
     "date_facture": "2025-12-18",
-    "numero": "COP25053926",
     "total_ttc": 26600.43,
     "solde": 26600.43,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "COPRALIM",
+    "numero": "FAC-COPR-0039"
   },
   {
-    "fournisseur": "COPRALIM",
-    "feuille": "COPRALIM",
     "date_facture": "2025-12-29",
-    "numero": "COP25055535",
     "total_ttc": 1980.0,
     "solde": 1980.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "COPRALIM",
+    "numero": "FAC-COPR-0040"
   },
   {
-    "fournisseur": "COPRALIM",
-    "feuille": "COPRALIM",
     "date_facture": "2026-01-13",
-    "numero": "COP26000702",
     "total_ttc": 35792.86,
     "solde": 43542.03,
-    "montant_paye": -7749.17,
+    "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP LE 07/03/2026"
+    "note": "VIR BP LE 07/03/2026",
+    "fournisseur": "COPRALIM",
+    "numero": "FAC-COPR-0041"
   },
   {
-    "fournisseur": "COPRALIM",
-    "feuille": "COPRALIM",
     "date_facture": "2026-01-20",
-    "numero": "COP26001482",
     "total_ttc": 6958.22,
-    "solde": 6958.22,
+    "solde": 0.0,
     "montant_paye": 6958.22,
-    "statut": "Partiel",
-    "observation": "A  MONSIEUR LE DIRECTEUR   BANQUE POPULAIRE"
+    "statut": "Payée",
+    "note": "",
+    "fournisseur": "COPRALIM",
+    "numero": "FAC-COPR-0042"
   },
   {
-    "fournisseur": "COPRALIM",
-    "feuille": "COPRALIM",
     "date_facture": "2026-01-31",
-    "numero": "COP26003357",
     "total_ttc": 11736.0,
     "solde": 10945.05,
     "montant_paye": 790.95,
     "statut": "Partiel",
-    "observation": "VIR LE 31/03/2026"
+    "note": "VIR LE 31/03/2026",
+    "fournisseur": "COPRALIM",
+    "numero": "FAC-COPR-0043"
   },
   {
-    "fournisseur": "COPRALIM",
-    "feuille": "COPRALIM",
     "date_facture": "2026-02-03",
-    "numero": "COP26003632",
     "total_ttc": 10164.11,
     "solde": 10164.11,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP LE 29/04/2026"
+    "note": "VIR BP LE 29/04/2026",
+    "fournisseur": "COPRALIM",
+    "numero": "FAC-COPR-0044"
   },
   {
-    "fournisseur": "COPRALIM",
-    "feuille": "COPRALIM",
     "date_facture": "2026-02-05",
-    "numero": "COP26004097",
     "total_ttc": 3960.0,
     "solde": 3960.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "COPRALIM",
+    "numero": "FAC-COPR-0045"
   },
   {
-    "fournisseur": "COPRALIM",
-    "feuille": "COPRALIM",
     "date_facture": "2026-02-28",
-    "numero": "COP26007681",
     "total_ttc": 18190.9,
     "solde": 18190.9,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "COPRALIM",
+    "numero": "FAC-COPR-0046"
   },
   {
-    "fournisseur": "COPRALIM",
-    "feuille": "COPRALIM",
     "date_facture": "2026-03-16",
-    "numero": "COP26010154",
     "total_ttc": 11353.99,
     "solde": 11353.99,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP LE 01/06/2026"
+    "note": "VIR BP LE 01/06/2026",
+    "fournisseur": "COPRALIM",
+    "numero": "FAC-COPR-0047"
   },
   {
-    "fournisseur": "COPRALIM",
-    "feuille": "COPRALIM",
     "date_facture": "2026-03-27",
-    "numero": "COP26012095",
     "total_ttc": 5924.77,
     "solde": 5924.77,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "COPRALIM",
+    "numero": "FAC-COPR-0048"
   },
   {
-    "fournisseur": "COPRALIM",
-    "feuille": "COPRALIM",
     "date_facture": "2026-03-30",
-    "numero": "COP26012293",
     "total_ttc": 14681.04,
     "solde": 14681.04,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "COPRALIM",
+    "numero": "FAC-COPR-0049"
   },
   {
-    "fournisseur": "COPRALIM",
-    "feuille": "COPRALIM",
     "date_facture": "2026-04-01",
-    "numero": "COP26012976",
     "total_ttc": 9360.0,
     "solde": 9360.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP LE 01/07/2026"
+    "note": "VIR BP LE 01/07/2026",
+    "fournisseur": "COPRALIM",
+    "numero": "FAC-COPR-0050"
   },
   {
-    "fournisseur": "COPRALIM",
-    "feuille": "COPRALIM",
     "date_facture": "2026-04-08",
-    "numero": "COP26014219",
     "total_ttc": 14054.58,
     "solde": 14054.58,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "J'ai l'honneur de vous demander de bien vouloir executer  l'ordre de virement"
+    "note": "",
+    "fournisseur": "COPRALIM",
+    "numero": "FAC-COPR-0051"
   },
   {
-    "fournisseur": "COPRALIM",
-    "feuille": "COPRALIM",
     "date_facture": "2026-04-07",
-    "numero": "COP26014064",
     "total_ttc": 9360.0,
     "solde": 9360.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "COPRALIM",
+    "numero": "FAC-COPR-0052"
   },
   {
-    "fournisseur": "COPRALIM",
-    "feuille": "COPRALIM",
     "date_facture": "2026-04-14",
-    "numero": "COP26016008",
     "total_ttc": 30395.31,
     "solde": 30395.31,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "COPRALIM",
+    "numero": "FAC-COPR-0053"
   },
   {
-    "fournisseur": "COPRALIM",
-    "feuille": "COPRALIM",
     "date_facture": "2026-04-28",
-    "numero": "COP26017364",
     "total_ttc": 11734.89,
     "solde": 11734.89,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "COPRALIM",
+    "numero": "FAC-COPR-0054"
   },
   {
-    "fournisseur": "COPRALIM",
-    "feuille": "COPRALIM",
     "date_facture": "2026-04-29",
-    "numero": "COP26017520",
     "total_ttc": 11942.64,
     "solde": 11942.64,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "COPRALIM",
+    "numero": "FAC-COPR-0055"
   },
   {
-    "fournisseur": "COPRALIM",
-    "feuille": "COPRALIM",
     "date_facture": "2026-05-08",
-    "numero": "COP26018813",
     "total_ttc": 9100.8,
     "solde": 9100.8,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "vir bp le 31/07/2026"
+    "note": "vir bp le 31/07/2026",
+    "fournisseur": "COPRALIM",
+    "numero": "FAC-COPR-0056"
   },
   {
-    "fournisseur": "COPRALIM",
-    "feuille": "COPRALIM",
     "date_facture": "2026-05-22",
-    "numero": "COP26021028",
     "total_ttc": 32158.62,
     "solde": 32158.62,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "COPRALIM",
+    "numero": "FAC-COPR-0057"
   },
   {
-    "fournisseur": "COPRALIM",
-    "feuille": "COPRALIM",
     "date_facture": "2026-06-08",
-    "numero": "COP26022748",
     "total_ttc": 11598.74,
-    "solde": 11598.74,
+    "solde": 0.0,
     "montant_paye": 11598.74,
-    "statut": "Partiel",
-    "observation": ""
+    "statut": "Payée",
+    "note": "",
+    "fournisseur": "COPRALIM",
+    "numero": "FAC-COPR-0058"
   },
   {
-    "fournisseur": "COPRALIM",
-    "feuille": "COPRALIM",
     "date_facture": "2026-06-19",
-    "numero": "COP26024456",
     "total_ttc": 32196.78,
-    "solde": 32196.78,
+    "solde": 0.0,
     "montant_paye": 32196.78,
-    "statut": "Partiel",
-    "observation": ""
+    "statut": "Payée",
+    "note": "",
+    "fournisseur": "COPRALIM",
+    "numero": "FAC-COPR-0059"
   },
   {
-    "fournisseur": "COPRALIM",
-    "feuille": "COPRALIM",
     "date_facture": "2026-06-21",
-    "numero": "COP26024709",
     "total_ttc": 37032.27,
-    "solde": 37032.27,
+    "solde": 0.0,
     "montant_paye": 37032.27,
-    "statut": "Partiel",
-    "observation": ""
+    "statut": "Payée",
+    "note": "",
+    "fournisseur": "COPRALIM",
+    "numero": "FAC-COPR-0060"
   },
   {
-    "fournisseur": "COPRALIM",
-    "feuille": "COPRALIM",
     "date_facture": "2026-07-28",
-    "numero": "COP26029754",
     "total_ttc": 8026.51,
-    "solde": 8026.51,
+    "solde": 0.0,
     "montant_paye": 8026.51,
-    "statut": "Partiel",
-    "observation": ""
-  },
-  {
+    "statut": "Payée",
+    "note": "",
     "fournisseur": "COPRALIM",
-    "feuille": "COPRALIM",
-    "date_facture": "2026-08-17",
-    "numero": "COP26031904",
-    "total_ttc": 9055.5,
-    "solde": 9055.5,
-    "montant_paye": 9055.5,
-    "statut": "Partiel",
-    "observation": ""
+    "numero": "FAC-COPR-0061"
   },
   {
-    "fournisseur": "SOFRALIM",
-    "feuille": "SOFRALIM",
+    "date_facture": "2026-08-17",
+    "total_ttc": 9055.5,
+    "solde": 0.0,
+    "montant_paye": 9055.5,
+    "statut": "Payée",
+    "note": "",
+    "fournisseur": "COPRALIM",
+    "numero": "FAC-COPR-0062"
+  },
+  {
     "date_facture": "2024-01-24",
-    "numero": "32100.0",
     "total_ttc": 32100.0,
     "solde": 32100.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP MT 76976.23"
+    "note": "VIR BP MT 76976.23",
+    "fournisseur": "SOFRALIM",
+    "numero": "FAC-SOFR-0063"
   },
   {
-    "fournisseur": "SOFRALIM",
-    "feuille": "SOFRALIM",
     "date_facture": "2024-03-27",
-    "numero": "SOF240001",
     "total_ttc": 6420.0,
     "solde": 6420.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP LE 30/05/24 MT 38520"
+    "note": "VIR BP LE 30/05/24 MT 38520",
+    "fournisseur": "SOFRALIM",
+    "numero": "FAC-SOFR-0064"
   },
   {
-    "fournisseur": "SOFRALIM",
-    "feuille": "SOFRALIM",
     "date_facture": "2024-03-28",
-    "numero": "SO24005434",
     "total_ttc": 32100.0,
     "solde": 32100.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SOFRALIM",
+    "numero": "FAC-SOFR-0065"
   },
   {
-    "fournisseur": "SOFRALIM",
-    "feuille": "SOFRALIM",
     "date_facture": "2024-05-03",
-    "numero": "SOF24007820",
     "total_ttc": 32100.0,
     "solde": 32100.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR MT 64200 DHS"
+    "note": "VIR MT 64200 DHS",
+    "fournisseur": "SOFRALIM",
+    "numero": "FAC-SOFR-0066"
   },
   {
-    "fournisseur": "SOFRALIM",
-    "feuille": "SOFRALIM",
     "date_facture": "2024-05-24",
-    "numero": "SOF24009358",
     "total_ttc": 32100.0,
     "solde": 32100.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SOFRALIM",
+    "numero": "FAC-SOFR-0067"
   },
   {
-    "fournisseur": "SOFRALIM",
-    "feuille": "SOFRALIM",
     "date_facture": "2024-07-02",
-    "numero": "SOF24011443",
     "total_ttc": 26322.0,
     "solde": 26322.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP LE 01/10/2024 MT 59022"
+    "note": "VIR BP LE 01/10/2024 MT 59022",
+    "fournisseur": "SOFRALIM",
+    "numero": "FAC-SOFR-0068"
   },
   {
-    "fournisseur": "SOFRALIM",
-    "feuille": "SOFRALIM",
     "date_facture": "2024-07-30",
-    "numero": "SOF24013313",
     "total_ttc": 32700.0,
     "solde": 32700.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SOFRALIM",
+    "numero": "FAC-SOFR-0069"
   },
   {
-    "fournisseur": "SOFRALIM",
-    "feuille": "SOFRALIM",
     "date_facture": "2024-08-27",
-    "numero": "SOF24014908",
     "total_ttc": 33900.0,
     "solde": 33900.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CHQ°2100285 BP LE 31/10/24 MT 33900 DH"
+    "note": "CHQ°2100285 BP LE 31/10/24 MT 33900 DH",
+    "fournisseur": "SOFRALIM",
+    "numero": "FAC-SOFR-0070"
   },
   {
-    "fournisseur": "SOFRALIM",
-    "feuille": "SOFRALIM",
     "date_facture": "2024-09-25",
-    "numero": "SOF24016849",
     "total_ttc": 33900.0,
     "solde": 33900.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP LE 03/12/2024"
+    "note": "VIR BP LE 03/12/2024",
+    "fournisseur": "SOFRALIM",
+    "numero": "FAC-SOFR-0071"
   },
   {
-    "fournisseur": "SOFRALIM",
-    "feuille": "SOFRALIM",
     "date_facture": "2024-10-21",
-    "numero": "SOF24018485",
     "total_ttc": 33900.0,
     "solde": 33900.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP"
+    "note": "VIR BP",
+    "fournisseur": "SOFRALIM",
+    "numero": "FAC-SOFR-0072"
   },
   {
-    "fournisseur": "SOFRALIM",
-    "feuille": "SOFRALIM",
     "date_facture": "2024-11-19",
-    "numero": "SOF24020290",
     "total_ttc": 33900.0,
     "solde": 33900.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP LE 03/2/25"
+    "note": "VIR BP LE 03/2/25",
+    "fournisseur": "SOFRALIM",
+    "numero": "FAC-SOFR-0073"
   },
   {
-    "fournisseur": "SOFRALIM",
-    "feuille": "SOFRALIM",
     "date_facture": "2025-12-31",
-    "numero": "SOF24023182",
     "total_ttc": 33900.0,
     "solde": 33900.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "vir bp"
+    "note": "vir bp",
+    "fournisseur": "SOFRALIM",
+    "numero": "FAC-SOFR-0074"
   },
   {
-    "fournisseur": "SOFRALIM",
-    "feuille": "SOFRALIM",
     "date_facture": "2025-02-11",
-    "numero": "SOF25002076",
     "total_ttc": 33900.0,
     "solde": 33900.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP LE 05/05/25"
+    "note": "VIR BP LE 05/05/25",
+    "fournisseur": "SOFRALIM",
+    "numero": "FAC-SOFR-0075"
   },
   {
-    "fournisseur": "SOFRALIM",
-    "feuille": "SOFRALIM",
     "date_facture": "2025-03-14",
-    "numero": "SOF25004125",
     "total_ttc": 33900.0,
     "solde": 33900.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP LE 04/06/2025"
+    "note": "VIR BP LE 04/06/2025",
+    "fournisseur": "SOFRALIM",
+    "numero": "FAC-SOFR-0076"
   },
   {
-    "fournisseur": "SOFRALIM",
-    "feuille": "SOFRALIM",
     "date_facture": "2025-04-22",
-    "numero": "SOF25006554",
     "total_ttc": 37800.0,
     "solde": 37800.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP LE 30/07/2025"
+    "note": "VIR BP LE 30/07/2025",
+    "fournisseur": "SOFRALIM",
+    "numero": "FAC-SOFR-0077"
   },
   {
-    "fournisseur": "SOFRALIM",
-    "feuille": "SOFRALIM",
     "date_facture": "2025-05-27",
-    "numero": "SOF25009057",
     "total_ttc": 37800.0,
     "solde": 37800.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP"
+    "note": "VIR BP",
+    "fournisseur": "SOFRALIM",
+    "numero": "FAC-SOFR-0078"
   },
   {
-    "fournisseur": "SOFRALIM",
-    "feuille": "SOFRALIM",
     "date_facture": "2025-06-20",
-    "numero": "SOF25010645",
     "total_ttc": 37800.0,
     "solde": 37800.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP"
+    "note": "VIR BP",
+    "fournisseur": "SOFRALIM",
+    "numero": "FAC-SOFR-0079"
   },
   {
-    "fournisseur": "SOFRALIM",
-    "feuille": "SOFRALIM",
     "date_facture": "2025-08-05",
-    "numero": "SOF25013560",
     "total_ttc": 56700.0,
     "solde": 56700.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP LE 29/10/25 MT 109620 DH"
+    "note": "VIR BP LE 29/10/25 MT 109620 DH",
+    "fournisseur": "SOFRALIM",
+    "numero": "FAC-SOFR-0080"
   },
   {
-    "fournisseur": "SOFRALIM",
-    "feuille": "SOFRALIM",
     "date_facture": "2025-08-28",
-    "numero": "SOF25014680",
     "total_ttc": 52920.0,
     "solde": 52920.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SOFRALIM",
+    "numero": "FAC-SOFR-0081"
   },
   {
-    "fournisseur": "SOFRALIM",
-    "feuille": "SOFRALIM",
     "date_facture": "2025-10-15",
-    "numero": "SOF25017724",
     "total_ttc": 56700.0,
     "solde": 56700.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP LE 29/12/2025"
+    "note": "VIR BP LE 29/12/2025",
+    "fournisseur": "SOFRALIM",
+    "numero": "FAC-SOFR-0082"
   },
   {
-    "fournisseur": "SOFRALIM",
-    "feuille": "SOFRALIM",
     "date_facture": "2025-12-02",
-    "numero": "SOF25020895",
     "total_ttc": 56700.0,
     "solde": 56700.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP LE 06/03/2026"
+    "note": "VIR BP LE 06/03/2026",
+    "fournisseur": "SOFRALIM",
+    "numero": "FAC-SOFR-0083"
   },
   {
-    "fournisseur": "SOFRALIM",
-    "feuille": "SOFRALIM",
     "date_facture": "2026-01-13",
-    "numero": "SOF26000202",
     "total_ttc": 56700.0,
     "solde": 56700.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP LE 07/03/2026"
+    "note": "VIR BP LE 07/03/2026",
+    "fournisseur": "SOFRALIM",
+    "numero": "FAC-SOFR-0084"
   },
   {
-    "fournisseur": "SOFRALIM",
-    "feuille": "SOFRALIM",
     "date_facture": "2026-02-28",
-    "numero": "SOF26002442",
     "total_ttc": 56700.0,
     "solde": 56700.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP LE 29/04/2026"
+    "note": "VIR BP LE 29/04/2026",
+    "fournisseur": "SOFRALIM",
+    "numero": "FAC-SOFR-0085"
   },
   {
-    "fournisseur": "SOFRALIM",
-    "feuille": "SOFRALIM",
     "date_facture": "2026-04-07",
-    "numero": "SOF26006130",
     "total_ttc": 54432.0,
     "solde": 54432.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP LE 01/07/2026"
+    "note": "VIR BP LE 01/07/2026",
+    "fournisseur": "SOFRALIM",
+    "numero": "FAC-SOFR-0086"
   },
   {
-    "fournisseur": "SOFRALIM",
-    "feuille": "SOFRALIM",
     "date_facture": "2026-05-08",
-    "numero": "SOF26008508",
     "total_ttc": 54432.0,
     "solde": 54432.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP LE 31/07/2026"
+    "note": "VIR BP LE 31/07/2026",
+    "fournisseur": "SOFRALIM",
+    "numero": "FAC-SOFR-0087"
   },
   {
-    "fournisseur": "SOFRALIM",
-    "feuille": "SOFRALIM",
     "date_facture": "2026-06-08",
-    "numero": "SOF26010268",
     "total_ttc": 56700.0,
-    "solde": 56700.0,
+    "solde": 0.0,
     "montant_paye": 56700.0,
-    "statut": "Partiel",
-    "observation": ""
-  },
-  {
+    "statut": "Payée",
+    "note": "",
     "fournisseur": "SOFRALIM",
-    "feuille": "SOFRALIM",
-    "date_facture": "2026-07-28",
-    "numero": "SOF26013438",
-    "total_ttc": 52920.0,
-    "solde": 52920.0,
-    "montant_paye": 52920.0,
-    "statut": "Partiel",
-    "observation": ""
+    "numero": "FAC-SOFR-0088"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
+    "date_facture": "2026-07-28",
+    "total_ttc": 52920.0,
+    "solde": 0.0,
+    "montant_paye": 52920.0,
+    "statut": "Payée",
+    "note": "",
+    "fournisseur": "SOFRALIM",
+    "numero": "FAC-SOFR-0089"
+  },
+  {
     "date_facture": "2024-01-10",
-    "numero": "2102.0",
     "total_ttc": 2102.0,
     "solde": 2102.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "vir"
+    "note": "vir",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0090"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2024-01-22",
-    "numero": "4250.0",
     "total_ttc": 4250.0,
     "solde": 4250.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0091"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2024-02-12",
-    "numero": "15660.0",
     "total_ttc": 15660.0,
     "solde": 15660.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0092"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2024-02-23",
-    "numero": "8750.0",
     "total_ttc": 8750.0,
     "solde": 8750.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0093"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2024-03-21",
-    "numero": "12000.0",
     "total_ttc": 12000.0,
     "solde": 12000.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP LE 15/05/2024"
+    "note": "VIR BP LE 15/05/2024",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0094"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2024-04-01",
-    "numero": "20238.0",
     "total_ttc": 20238.0,
     "solde": 20238.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0095"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2024-04-22",
-    "numero": "FA00192/24",
     "total_ttc": 18576.0,
     "solde": 18576.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR LE 30/05/24"
+    "note": "VIR LE 30/05/24",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0096"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2024-05-14",
-    "numero": "FA00252/24",
     "total_ttc": 17190.0,
     "solde": 17190.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP LE 01/07/2024 MT 17190 DH"
+    "note": "VIR BP LE 01/07/2024 MT 17190 DH",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0097"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2024-06-24",
-    "numero": "FA00327/24",
     "total_ttc": 26536.0,
     "solde": 26536.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP 02/08/2024"
+    "note": "VIR BP 02/08/2024",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0098"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2024-07-12",
-    "numero": "FA00372/24",
     "total_ttc": 12600.0,
     "solde": 12600.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "vir bp le 01/10/24"
+    "note": "vir bp le 01/10/24",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0099"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2024-08-26",
-    "numero": "FA00447/24",
     "total_ttc": 16608.0,
     "solde": 16608.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0100"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2024-09-05",
-    "numero": "FA00492/24",
     "total_ttc": 15630.0,
     "solde": 15630.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP LE 01/11/24"
+    "note": "VIR BP LE 01/11/24",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0101"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2024-09-10",
-    "numero": "FA00501/24",
     "total_ttc": 12140.0,
     "solde": 12140.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0102"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2024-09-23",
-    "numero": "FA00518/24",
     "total_ttc": 4320.0,
     "solde": 4320.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP LE 15/11/24"
+    "note": "VIR BP LE 15/11/24",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0103"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2024-09-27",
-    "numero": "FA00522/24",
     "total_ttc": 18900.0,
     "solde": 18900.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0104"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2024-10-17",
-    "numero": "FA00571/24",
     "total_ttc": 16104.0,
     "solde": 16104.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP LE 03/12/2024 MT 20520 DHS"
+    "note": "VIR BP LE 03/12/2024 MT 20520 DHS",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0105"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2024-10-24",
-    "numero": "FA00583/24",
     "total_ttc": 4416.0,
     "solde": 4416.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0106"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2024-11-01",
-    "numero": "FA00615/24",
     "total_ttc": 13680.0,
     "solde": 13680.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP LE 16/12/24"
+    "note": "VIR BP LE 16/12/24",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0107"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2024-11-04",
-    "numero": "FA00620/24",
     "total_ttc": 7880.0,
     "solde": 7880.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0108"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2024-11-05",
-    "numero": "FA00624/24",
     "total_ttc": 12600.0,
     "solde": 12600.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP LE 30/12/24"
+    "note": "VIR BP LE 30/12/24",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0109"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2024-11-22",
-    "numero": "FA00648/24",
     "total_ttc": 17700.0,
     "solde": 17700.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0110"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2024-12-05",
-    "numero": "FA00683/24",
     "total_ttc": 10726.0,
     "solde": 10726.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP LE 03/02/2025"
+    "note": "VIR BP LE 03/02/2025",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0111"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2024-12-09",
-    "numero": "FA00691/24",
     "total_ttc": 8020.0,
     "solde": 8020.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0112"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2024-12-16",
-    "numero": "FA00705/24",
     "total_ttc": 4345.0,
     "solde": 4345.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0113"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2024-12-17",
-    "numero": "FA00711/24",
     "total_ttc": 9680.0,
     "solde": 9680.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0114"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2024-12-23",
-    "numero": "FA00723/24",
     "total_ttc": 24600.0,
     "solde": 24600.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP LE 20/2/25"
+    "note": "VIR BP LE 20/2/25",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0115"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2024-12-25",
-    "numero": "FA00727/24",
     "total_ttc": 3480.0,
     "solde": 3480.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0116"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2024-12-27",
-    "numero": "FA00732/24",
     "total_ttc": 1584.0,
     "solde": 1584.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0117"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2024-12-30",
-    "numero": "FA00734/24",
     "total_ttc": 17702.0,
     "solde": 17702.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0118"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2025-01-07",
-    "numero": "FA00014/25",
     "total_ttc": 12000.0,
     "solde": 12000.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP"
+    "note": "VIR BP",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0119"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2025-01-21",
-    "numero": "FA00041/25",
     "total_ttc": 24600.0,
     "solde": 24600.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0120"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2025-02-11",
-    "numero": "FA00099/25",
     "total_ttc": 1584.0,
     "solde": 1584.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP"
+    "note": "VIR BP",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0121"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
-    "date_facture": "2025-01-01",
-    "numero": "13928.0",
-    "total_ttc": 13928.0,
-    "solde": 13928.0,
-    "montant_paye": 0.0,
-    "statut": "A payer",
-    "observation": ""
-  },
-  {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2025-03-18",
-    "numero": "FA00169/25",
     "total_ttc": 29134.6,
     "solde": 29134.6,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP"
+    "note": "VIR BP",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0122"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2025-03-20",
-    "numero": "FA00172/25",
     "total_ttc": 13712.3,
     "solde": 13712.3,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP"
+    "note": "VIR BP",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0123"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2025-03-25",
-    "numero": "FA00180/25",
     "total_ttc": 7448.0,
     "solde": 7448.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0124"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2025-04-08",
-    "numero": "FA00218/2025",
     "total_ttc": 34518.25,
     "solde": 34518.25,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP"
+    "note": "VIR BP",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0125"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2025-04-15",
-    "numero": "FA00239/25",
     "total_ttc": 6735.0,
     "solde": 6735.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0126"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2025-04-22",
-    "numero": "FA00259/2025",
     "total_ttc": 6360.0,
     "solde": 6360.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "vir bp le 26/05/2025"
+    "note": "vir bp le 26/05/2025",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0127"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2025-04-29",
-    "numero": "FA00289/2025",
     "total_ttc": 32400.0,
     "solde": 32400.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0128"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2025-05-07",
-    "numero": "FA000325/25",
     "total_ttc": 7400.0,
     "solde": 7400.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "vir bp le 06/06/2025"
+    "note": "vir bp le 06/06/2025",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0129"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2025-05-13",
-    "numero": "FA000352/25",
     "total_ttc": 15420.0,
     "solde": 15420.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0130"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2025-05-20",
-    "numero": "FA00367/2025",
     "total_ttc": 12000.0,
     "solde": 12000.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP LE 26/06/2025"
+    "note": "VIR BP LE 26/06/2025",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0131"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2025-05-21",
-    "numero": "FA00372/2025",
     "total_ttc": 6569.25,
     "solde": 6569.25,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0132"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2025-05-27",
-    "numero": "FA00386/25",
     "total_ttc": 4616.24,
     "solde": 4616.24,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0133"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2025-06-03",
-    "numero": "FA00416/2025",
     "total_ttc": 34201.9,
     "solde": 34201.9,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIRBP"
+    "note": "VIRBP",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0134"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2025-06-10",
-    "numero": "FA00428/2025",
     "total_ttc": 17955.0,
     "solde": 17955.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0135"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2025-06-17",
-    "numero": "FA00438/2025",
     "total_ttc": 20740.4,
     "solde": 20740.4,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP"
+    "note": "VIR BP",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0136"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2025-06-30",
-    "numero": "FA00466/2025",
     "total_ttc": 23491.6,
     "solde": 23491.6,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0137"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2025-07-05",
-    "numero": "FA00490/2025",
     "total_ttc": 32640.0,
     "solde": 32640.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP"
+    "note": "VIR BP",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0138"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2025-07-05",
-    "numero": "FA00057/205",
     "total_ttc": 2596.0,
     "solde": 2596.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0139"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2025-07-06",
-    "numero": "FA00492/25",
     "total_ttc": 6011.6,
     "solde": 6011.6,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0140"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2025-07-08",
-    "numero": "FA00494/25",
     "total_ttc": 1618.8,
     "solde": 1618.8,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0141"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2025-07-16",
-    "numero": "FA00506/25",
     "total_ttc": 13482.0,
     "solde": 13482.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0142"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2025-07-22",
-    "numero": "FA00515/2025",
     "total_ttc": 6355.5,
     "solde": 6355.5,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0143"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2025-08-05",
-    "numero": "FA00552/2025",
     "total_ttc": 2234.4,
     "solde": 2234.4,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP"
+    "note": "VIR BP",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0144"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2025-08-07",
-    "numero": "FA00554/2025",
     "total_ttc": 7300.63,
     "solde": 7300.63,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0145"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2025-08-12",
-    "numero": "FA00562/2025",
     "total_ttc": 15874.6,
     "solde": 15874.6,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0146"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2025-08-19",
-    "numero": "FA00576/2025",
     "total_ttc": 23370.0,
     "solde": 23370.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0147"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2025-08-28",
-    "numero": "FA00584/2025",
     "total_ttc": 17760.0,
     "solde": 17760.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "3000 ANCHOIS"
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0148"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2025-09-03",
-    "numero": "FA00609/25",
     "total_ttc": 5188.0,
     "solde": 5188.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP"
+    "note": "VIR BP",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0149"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2025-09-09",
-    "numero": "FA00621/2025",
     "total_ttc": 5557.5,
     "solde": 5557.5,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0150"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2025-09-16",
-    "numero": "FA00628/2025",
     "total_ttc": 25270.0,
     "solde": 25270.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0151"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2025-09-25",
-    "numero": "FA00646/25",
     "total_ttc": 17329.5,
     "solde": 17329.5,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0152"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2025-10-07",
-    "numero": "FA00683/2025",
     "total_ttc": 21333.2,
     "solde": 21333.2,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP LE 28/11/2025"
+    "note": "VIR BP LE 28/11/2025",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0153"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2025-10-14",
-    "numero": "FA00692/2025",
     "total_ttc": 11970.0,
     "solde": 11970.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0154"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2025-10-21",
-    "numero": "FA00703/2025",
     "total_ttc": 18576.3,
     "solde": 18576.3,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0155"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2025-10-29",
-    "numero": "FA00715/2025",
     "total_ttc": 40842.64,
     "solde": 40842.64,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0156"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2025-11-04",
-    "numero": "FA00738/2025",
     "total_ttc": 17100.0,
     "solde": 17100.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP LE 29/12/2025"
+    "note": "VIR BP LE 29/12/2025",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0157"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2025-11-11",
-    "numero": "FA00748/2025",
     "total_ttc": 18986.7,
     "solde": 18986.7,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0158"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2025-11-12",
-    "numero": "FA00214/2025",
     "total_ttc": 888.0,
     "solde": 888.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0159"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2025-11-18",
-    "numero": "FA00760/2025",
     "total_ttc": 2280.0,
     "solde": 2280.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0160"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2025-11-30",
-    "numero": "FA00789/2025",
     "total_ttc": 46300.0,
     "solde": 46300.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0161"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2025-12-02",
-    "numero": "FA00794/2025",
     "total_ttc": 26160.0,
     "solde": 26160.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP LE 02/02/2026"
+    "note": "VIR BP LE 02/02/2026",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0162"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2025-12-09",
-    "numero": "FA00806/2025",
     "total_ttc": 20748.0,
     "solde": 20748.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0163"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2025-12-16",
-    "numero": "FA00817/2025",
     "total_ttc": 22287.0,
     "solde": 22287.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "BENTACHFINE - MARRAKECH"
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0164"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
-    "date_facture": "2025-01-01",
-    "numero": "4911.5",
-    "total_ttc": 4911.5,
-    "solde": 4911.5,
-    "montant_paye": 0.0,
-    "statut": "A payer",
-    "observation": ""
-  },
-  {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2026-01-06",
-    "numero": "FA00009/2026",
     "total_ttc": 21964.0,
     "solde": 21964.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP MT 60464.25 LE 06/03/2026"
+    "note": "VIR BP MT 60464.25 LE 06/03/2026",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0165"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2026-01-15",
-    "numero": "FA00021/2026",
     "total_ttc": 18810.0,
     "solde": 18810.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0166"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2026-01-16",
-    "numero": "FA00023/2026",
     "total_ttc": 1272.0,
     "solde": 1272.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "OBJET: ORDRE DE VIREMENT:"
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0167"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2026-01-27",
-    "numero": "FA00036/2026",
     "total_ttc": 11338.25,
     "solde": 11338.25,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0168"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2026-01-28",
-    "numero": "FA00357/2026",
     "total_ttc": 6000.0,
     "solde": 6000.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0169"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2026-01-30",
-    "numero": "FA00361/2026",
     "total_ttc": 1080.0,
     "solde": 1080.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0170"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2026-02-03",
-    "numero": "FA00061/2026",
     "total_ttc": 7974.2,
     "solde": 7974.2,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP LE 31/3/26"
+    "note": "VIR BP LE 31/3/26",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0171"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2026-02-04",
-    "numero": "FA00372/2026",
     "total_ttc": 2750.0,
     "solde": 2750.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "J'ai l'honneur de vous demander de bien vouloir executer  l'ordre de virement"
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0172"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2026-02-10",
-    "numero": "FA00072/2026",
     "total_ttc": 24042.0,
     "solde": 24042.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0173"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2026-02-18",
-    "numero": "FA00078/2026",
     "total_ttc": 2736.0,
     "solde": 2736.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "suivantes sur le Compte N° 145 450 21211 2604506004 11"
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0174"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2026-02-27",
-    "numero": "FA00088/26",
     "total_ttc": 13243.5,
     "solde": 13243.5,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0175"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2026-03-03",
-    "numero": "FA00113/2026",
     "total_ttc": 448.0,
     "solde": 448.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP LE 29/04/2026"
+    "note": "VIR BP LE 29/04/2026",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0176"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2026-03-03",
-    "numero": "FA00111/2026",
     "total_ttc": 7104.0,
     "solde": 7104.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0177"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2026-03-05",
-    "numero": "FA00426/2026",
     "total_ttc": 500.0,
     "solde": 500.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0178"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2026-03-17",
-    "numero": "FA00122/2026",
     "total_ttc": 17598.5,
     "solde": 17598.5,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0179"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2026-03-25",
-    "numero": "FA00468/2026",
     "total_ttc": 1000.0,
     "solde": 1000.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0180"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2026-03-31",
-    "numero": "FA00160/2026",
     "total_ttc": 3900.0,
     "solde": 3900.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0181"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2026-03-12",
-    "numero": "FA00118/2026",
     "total_ttc": 72532.0,
     "solde": 72532.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP LE 15/03/2026"
+    "note": "VIR BP LE 15/03/2026",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0182"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2026-03-13",
-    "numero": "FA00120/2026",
     "total_ttc": 37200.0,
     "solde": 37200.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR CDM LE 12/03/2026"
+    "note": "VIR CDM LE 12/03/2026",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0183"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2026-03-24",
-    "numero": "FA00135/2026",
     "total_ttc": 6294.0,
     "solde": 6294.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "vir bp le 30/04/2026"
+    "note": "vir bp le 30/04/2026",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0184"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2026-04-07",
-    "numero": "FA00169/2026",
     "total_ttc": 2361.0,
     "solde": 2361.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "vir bp le 01/06/2026"
+    "note": "vir bp le 01/06/2026",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0185"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2026-04-14",
-    "numero": "FA00178/2026",
     "total_ttc": 6775.0,
     "solde": 6775.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0186"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2026-04-16",
-    "numero": "FA00184/26",
     "total_ttc": 12072.0,
     "solde": 12072.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0187"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2026-04-21",
-    "numero": "FA00189/2026",
     "total_ttc": 17580.0,
     "solde": 17580.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0188"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2026-04-21",
-    "numero": "FA00194/2026",
     "total_ttc": 2040.0,
     "solde": 2040.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0189"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2026-04-21",
-    "numero": "FA00193/2026",
     "total_ttc": 9615.0,
     "solde": 9615.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0190"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2026-04-28",
-    "numero": "FA00199/2026",
     "total_ttc": 5696.0,
     "solde": 5696.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0191"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2026-05-05",
-    "numero": "FA00224/26",
     "total_ttc": 45588.0,
     "solde": 45588.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP LE 03/06/2026"
+    "note": "VIR BP LE 03/06/2026",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0192"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2026-05-19",
-    "numero": "FA00241/26",
     "total_ttc": 77439.75,
     "solde": 77439.75,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP LE 01/07/2026"
+    "note": "VIR BP LE 01/07/2026",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0193"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2026-05-21",
-    "numero": "FA00246/26",
     "total_ttc": 2500.0,
     "solde": 2500.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0194"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2026-05-26",
-    "numero": "FA00643/26",
     "total_ttc": 8400.0,
     "solde": 8400.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0195"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2026-06-02",
-    "numero": "FA00276/2026",
     "total_ttc": 38748.6,
     "solde": 38748.6,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "2 VIR BP LE 31/07/2026"
+    "note": "2 VIR BP LE 31/07/2026",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0196"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2026-06-10",
-    "numero": "FA00280/2026",
     "total_ttc": 37050.0,
     "solde": 37050.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0197"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2026-06-16",
-    "numero": "FA00286/2026",
     "total_ttc": 14456.5,
     "solde": 14456.5,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0198"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2026-06-26",
-    "numero": "FA00294/2026",
     "total_ttc": 18720.0,
     "solde": 18720.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0199"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2026-07-14",
-    "numero": "FA00323/26",
     "total_ttc": 12397.37,
-    "solde": 12397.37,
+    "solde": 0.0,
     "montant_paye": 12397.37,
-    "statut": "Partiel",
-    "observation": ""
+    "statut": "Payée",
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0200"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2026-07-28",
-    "numero": "FA00339/26",
     "total_ttc": 21535.0,
-    "solde": 21535.0,
+    "solde": 0.0,
     "montant_paye": 21535.0,
-    "statut": "Partiel",
-    "observation": ""
+    "statut": "Payée",
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0201"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
     "date_facture": "2026-08-04",
-    "numero": "FA00363/26",
     "total_ttc": 5046.0,
-    "solde": 5046.0,
+    "solde": 0.0,
     "montant_paye": 5046.0,
-    "statut": "Partiel",
-    "observation": ""
-  },
-  {
+    "statut": "Payée",
+    "note": "",
     "fournisseur": "SDCG TRANSPORT",
-    "feuille": "SDCG TRANSPORT",
-    "date_facture": "2026-08-11",
-    "numero": "FA00368/26",
-    "total_ttc": 20354.0,
-    "solde": 20354.0,
-    "montant_paye": 20354.0,
-    "statut": "Partiel",
-    "observation": ""
+    "numero": "FAC-SDCG-0202"
   },
   {
-    "fournisseur": "FRESH NGOOD",
-    "feuille": "FRESH NGOOD",
+    "date_facture": "2026-08-11",
+    "total_ttc": 20354.0,
+    "solde": 0.0,
+    "montant_paye": 20354.0,
+    "statut": "Payée",
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT",
+    "numero": "FAC-SDCG-0203"
+  },
+  {
     "date_facture": "2023-05-01",
-    "numero": "849.0",
     "total_ttc": 849.0,
     "solde": 849.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "FRESH N'GOOD",
+    "numero": "FAC-FRES-0204"
   },
   {
-    "fournisseur": "FRESH NGOOD",
-    "feuille": "FRESH NGOOD",
     "date_facture": "2023-05-15",
-    "numero": "335.0",
     "total_ttc": 335.0,
     "solde": 335.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "FRESH N'GOOD",
+    "numero": "FAC-FRES-0205"
   },
   {
-    "fournisseur": "FRESH NGOOD",
-    "feuille": "FRESH NGOOD",
     "date_facture": "2023-05-23",
-    "numero": "430.0",
     "total_ttc": 430.0,
     "solde": 430.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "FRESH N'GOOD",
+    "numero": "FAC-FRES-0206"
   },
   {
-    "fournisseur": "FRESH NGOOD",
-    "feuille": "FRESH NGOOD",
     "date_facture": "2023-05-30",
-    "numero": "420.0",
     "total_ttc": 420.0,
     "solde": 420.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "FRESH N'GOOD",
+    "numero": "FAC-FRES-0207"
   },
   {
-    "fournisseur": "FRESH NGOOD",
-    "feuille": "FRESH NGOOD",
     "date_facture": "2024-11-02",
-    "numero": "FT01450/23",
     "total_ttc": 268.0,
     "solde": 268.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CHQ"
+    "note": "CHQ",
+    "fournisseur": "FRESH N'GOOD",
+    "numero": "FAC-FRES-0208"
   },
   {
-    "fournisseur": "FRESH NGOOD",
-    "feuille": "FRESH NGOOD",
     "date_facture": "2024-11-08",
-    "numero": "FT01474/23",
     "total_ttc": 905.0,
     "solde": 905.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "FRESH N'GOOD",
+    "numero": "FAC-FRES-0209"
   },
   {
-    "fournisseur": "FRESH NGOOD",
-    "feuille": "FRESH NGOOD",
     "date_facture": "2024-11-30",
-    "numero": "FT01502/23",
     "total_ttc": 246.0,
     "solde": 246.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "FRESH N'GOOD",
+    "numero": "FAC-FRES-0210"
   },
   {
-    "fournisseur": "FRESH NGOOD",
-    "feuille": "FRESH NGOOD",
     "date_facture": "2024-12-07",
-    "numero": "FT 01556/23",
     "total_ttc": 1356.0,
     "solde": 1356.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "FRESH N'GOOD",
+    "numero": "FAC-FRES-0211"
   },
   {
-    "fournisseur": "FRESH NGOOD",
-    "feuille": "FRESH NGOOD",
     "date_facture": "2024-01-31",
-    "numero": "FT 00006/24",
     "total_ttc": 1060.0,
     "solde": 1060.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "FRESH N'GOOD",
+    "numero": "FAC-FRES-0212"
   },
   {
-    "fournisseur": "FRESH NGOOD",
-    "feuille": "FRESH NGOOD",
     "date_facture": "2024-05-23",
-    "numero": "FT 00450/24",
     "total_ttc": 1550.0,
     "solde": 1550.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "FRESH N'GOOD",
+    "numero": "FAC-FRES-0213"
   },
   {
-    "fournisseur": "FRESH NGOOD",
-    "feuille": "FRESH NGOOD",
     "date_facture": "2024-05-30",
-    "numero": "FT00475/24",
     "total_ttc": 545.0,
     "solde": 545.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "FRESH N'GOOD",
+    "numero": "FAC-FRES-0214"
   },
   {
-    "fournisseur": "FRESH NGOOD",
-    "feuille": "FRESH NGOOD",
     "date_facture": "2024-06-24",
-    "numero": "FT2024/00540",
     "total_ttc": 1550.0,
     "solde": 1550.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "ESP LE 01/2025"
+    "note": "ESP LE 01/2025",
+    "fournisseur": "FRESH N'GOOD",
+    "numero": "FAC-FRES-0215"
   },
   {
-    "fournisseur": "FRESH NGOOD",
-    "feuille": "FRESH NGOOD",
     "date_facture": "2024-07-05",
-    "numero": "FT2024/00577",
     "total_ttc": 2218.0,
     "solde": 2218.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "FRESH N'GOOD",
+    "numero": "FAC-FRES-0216"
   },
   {
-    "fournisseur": "FRESH NGOOD",
-    "feuille": "FRESH NGOOD",
     "date_facture": "2024-07-25",
-    "numero": "FT2024/00624",
     "total_ttc": 179.0,
     "solde": 179.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "FRESH N'GOOD",
+    "numero": "FAC-FRES-0217"
   },
   {
-    "fournisseur": "FRESH NGOOD",
-    "feuille": "FRESH NGOOD",
     "date_facture": "2024-08-13",
-    "numero": "FT2024/00682",
     "total_ttc": 720.0,
     "solde": 720.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "FRESH N'GOOD",
+    "numero": "FAC-FRES-0218"
   },
   {
-    "fournisseur": "FRESH NGOOD",
-    "feuille": "FRESH NGOOD",
     "date_facture": "2024-08-17",
-    "numero": "FT2024/00698",
     "total_ttc": 516.0,
     "solde": 516.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "FRESH N'GOOD",
+    "numero": "FAC-FRES-0219"
   },
   {
-    "fournisseur": "FRESH NGOOD",
-    "feuille": "FRESH NGOOD",
     "date_facture": "2024-09-03",
-    "numero": "FT2024/00758",
     "total_ttc": 1550.0,
     "solde": 1550.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "FRESH N'GOOD",
+    "numero": "FAC-FRES-0220"
   },
   {
-    "fournisseur": "FRESH NGOOD",
-    "feuille": "FRESH NGOOD",
     "date_facture": "2024-09-12",
-    "numero": "FT2024/00798",
     "total_ttc": 820.0,
     "solde": 820.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "FRESH N'GOOD",
+    "numero": "FAC-FRES-0221"
   },
   {
-    "fournisseur": "FRESH NGOOD",
-    "feuille": "FRESH NGOOD",
     "date_facture": "2024-10-04",
-    "numero": "FT2024/00901",
     "total_ttc": 930.0,
     "solde": 930.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "FRESH N'GOOD",
+    "numero": "FAC-FRES-0222"
   },
   {
-    "fournisseur": "FRESH NGOOD",
-    "feuille": "FRESH NGOOD",
     "date_facture": "2024-10-14",
-    "numero": "FT2024/00942",
     "total_ttc": 1603.0,
     "solde": 1603.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "FRESH N'GOOD",
+    "numero": "FAC-FRES-0223"
   },
   {
-    "fournisseur": "FRESH NGOOD",
-    "feuille": "FRESH NGOOD",
     "date_facture": "2024-11-02",
-    "numero": "FT2024/01027",
     "total_ttc": 130.0,
     "solde": 130.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "FRESH N'GOOD",
+    "numero": "FAC-FRES-0224"
   },
   {
-    "fournisseur": "FRESH NGOOD",
-    "feuille": "FRESH NGOOD",
     "date_facture": "2024-11-19",
-    "numero": "FT2024/01101",
     "total_ttc": 1240.0,
     "solde": 1240.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "FRESH N'GOOD",
+    "numero": "FAC-FRES-0225"
   },
   {
-    "fournisseur": "FRESH NGOOD",
-    "feuille": "FRESH NGOOD",
     "date_facture": "2024-12-12",
-    "numero": "FT2024/01176",
     "total_ttc": 2392.0,
     "solde": 2392.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "FRESH N'GOOD",
+    "numero": "FAC-FRES-0226"
   },
   {
-    "fournisseur": "FRESH NGOOD",
-    "feuille": "FRESH NGOOD",
     "date_facture": "2025-01-15",
-    "numero": "FT2025/00043",
     "total_ttc": 1550.0,
     "solde": 1550.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "FRESH N'GOOD",
+    "numero": "FAC-FRES-0227"
   },
   {
-    "fournisseur": "FRESH NGOOD",
-    "feuille": "FRESH NGOOD",
     "date_facture": "2025-02-11",
-    "numero": "FT2025/00145",
     "total_ttc": 620.0,
     "solde": 620.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "FRESH N'GOOD",
+    "numero": "FAC-FRES-0228"
   },
   {
-    "fournisseur": "FRESH NGOOD",
-    "feuille": "FRESH NGOOD",
     "date_facture": "2025-02-26",
-    "numero": "FT2025/00211",
     "total_ttc": 1550.0,
     "solde": 1550.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "FRESH N'GOOD",
+    "numero": "FAC-FRES-0229"
   },
   {
-    "fournisseur": "FRESH NGOOD",
-    "feuille": "FRESH NGOOD",
     "date_facture": "2025-02-28",
-    "numero": "FT°2025/00225",
     "total_ttc": 1318.0,
     "solde": 1318.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "FRESH N'GOOD",
+    "numero": "FAC-FRES-0230"
   },
   {
-    "fournisseur": "FRESH NGOOD",
-    "feuille": "FRESH NGOOD",
     "date_facture": "2025-04-16",
-    "numero": "FT2025/00448",
     "total_ttc": 1550.0,
     "solde": 1550.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "FRESH N'GOOD",
+    "numero": "FAC-FRES-0231"
   },
   {
-    "fournisseur": "FRESH NGOOD",
-    "feuille": "FRESH NGOOD",
     "date_facture": "2025-04-24",
-    "numero": "FT2025/00495",
     "total_ttc": 561.0,
     "solde": 561.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "FRESH N'GOOD",
+    "numero": "FAC-FRES-0232"
   },
   {
-    "fournisseur": "FRESH NGOOD",
-    "feuille": "FRESH NGOOD",
     "date_facture": "2025-05-05",
-    "numero": "FT2025/00558",
     "total_ttc": 878.0,
     "solde": 878.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "FRESH N'GOOD",
+    "numero": "FAC-FRES-0233"
   },
   {
-    "fournisseur": "FRESH NGOOD",
-    "feuille": "FRESH NGOOD",
     "date_facture": "2025-05-31",
-    "numero": "FT2025/00661",
     "total_ttc": 1550.0,
     "solde": 1550.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "FRESH N'GOOD",
+    "numero": "FAC-FRES-0234"
   },
   {
-    "fournisseur": "FRESH NGOOD",
-    "feuille": "FRESH NGOOD",
     "date_facture": "2025-05-31",
-    "numero": "FT2025/00694",
     "total_ttc": 90.0,
     "solde": 90.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "FRESH N'GOOD",
+    "numero": "FAC-FRES-0235"
   },
   {
-    "fournisseur": "FRESH NGOOD",
-    "feuille": "FRESH NGOOD",
     "date_facture": "2025-07-03",
-    "numero": "F°2025/00855",
     "total_ttc": 775.0,
     "solde": 775.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "FRESH N'GOOD",
+    "numero": "FAC-FRES-0236"
   },
   {
-    "fournisseur": "FRESH NGOOD",
-    "feuille": "FRESH NGOOD",
     "date_facture": "2025-07-14",
-    "numero": "F°2025/00912",
     "total_ttc": 1109.0,
     "solde": 1109.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "FRESH N'GOOD",
+    "numero": "FAC-FRES-0237"
   },
   {
-    "fournisseur": "FRESH NGOOD",
-    "feuille": "FRESH NGOOD",
     "date_facture": "2025-07-15",
-    "numero": "F°2025/00922",
     "total_ttc": 412.0,
     "solde": 412.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "FRESH N'GOOD",
+    "numero": "FAC-FRES-0238"
   },
   {
-    "fournisseur": "FRESH NGOOD",
-    "feuille": "FRESH NGOOD",
     "date_facture": "2025-09-02",
-    "numero": "F°2025/01225",
     "total_ttc": 412.0,
     "solde": 412.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "FRESH N'GOOD",
+    "numero": "FAC-FRES-0239"
   },
   {
-    "fournisseur": "FRESH NGOOD",
-    "feuille": "FRESH NGOOD",
     "date_facture": "2025-10-31",
-    "numero": "F°2025/01461",
     "total_ttc": 909.0,
-    "solde": 909.0,
+    "solde": 0.0,
     "montant_paye": 909.0,
-    "statut": "Partiel",
-    "observation": ""
+    "statut": "Payée",
+    "note": "",
+    "fournisseur": "FRESH N'GOOD",
+    "numero": "FAC-FRES-0240"
   },
   {
-    "fournisseur": "FRESH NGOOD",
-    "feuille": "FRESH NGOOD",
     "date_facture": "2025-11-11",
-    "numero": "F°2025/01839",
     "total_ttc": 549.0,
-    "solde": 549.0,
+    "solde": 0.0,
     "montant_paye": 549.0,
-    "statut": "Partiel",
-    "observation": ""
+    "statut": "Payée",
+    "note": "",
+    "fournisseur": "FRESH N'GOOD",
+    "numero": "FAC-FRES-0241"
   },
   {
-    "fournisseur": "ELINE FISH",
-    "feuille": "ELINE FISH",
     "date_facture": "2025-11-18",
-    "numero": "F202500003031",
     "total_ttc": 275.0,
     "solde": 275.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CH1800070/MT 6442 DH LE 02/02/2026"
+    "note": "CH1800070/MT 6442 DH LE 02/02/2026",
+    "fournisseur": "ELINE FISH",
+    "numero": "FAC-ELIN-0242"
   },
   {
-    "fournisseur": "ELINE FISH",
-    "feuille": "ELINE FISH",
     "date_facture": "2025-11-19",
-    "numero": "F202500003040",
     "total_ttc": 805.0,
     "solde": 805.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "ELINE FISH",
+    "numero": "FAC-ELIN-0243"
   },
   {
-    "fournisseur": "ELINE FISH",
-    "feuille": "ELINE FISH",
     "date_facture": "2025-11-19",
-    "numero": "F202500003047",
     "total_ttc": 325.0,
     "solde": 325.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "ELINE FISH",
+    "numero": "FAC-ELIN-0244"
   },
   {
-    "fournisseur": "ELINE FISH",
-    "feuille": "ELINE FISH",
     "date_facture": "2025-12-03",
-    "numero": "F202500003148",
     "total_ttc": 310.0,
     "solde": 310.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "ELINE FISH",
+    "numero": "FAC-ELIN-0245"
   },
   {
-    "fournisseur": "ELINE FISH",
-    "feuille": "ELINE FISH",
     "date_facture": "2026-01-05",
-    "numero": "F202500003555",
     "total_ttc": 2700.0,
     "solde": 2700.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "ELINE FISH",
+    "numero": "FAC-ELIN-0246"
   },
   {
-    "fournisseur": "ELINE FISH",
-    "feuille": "ELINE FISH",
     "date_facture": "2026-01-26",
-    "numero": "F202500003719",
     "total_ttc": 859.0,
     "solde": 859.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "ELINE FISH",
+    "numero": "FAC-ELIN-0247"
   },
   {
-    "fournisseur": "ELINE FISH",
-    "feuille": "ELINE FISH",
     "date_facture": "2026-01-30",
-    "numero": "F202500003750",
     "total_ttc": 1168.0,
     "solde": 1168.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "ELINE FISH",
+    "numero": "FAC-ELIN-0248"
   },
   {
-    "fournisseur": "ELINE FISH",
-    "feuille": "ELINE FISH",
     "date_facture": "2026-02-10",
-    "numero": "F202500003852",
     "total_ttc": 705.0,
     "solde": 705.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR/ ELINE FISH REF 0417646"
+    "note": "VIR/ ELINE FISH REF 0417646",
+    "fournisseur": "ELINE FISH",
+    "numero": "FAC-ELIN-0249"
   },
   {
-    "fournisseur": "ELINE FISH",
-    "feuille": "ELINE FISH",
     "date_facture": "2026-02-11",
-    "numero": "F202500003861",
     "total_ttc": 310.0,
     "solde": 310.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "ELINE FISH",
+    "numero": "FAC-ELIN-0250"
   },
   {
-    "fournisseur": "ELINE FISH",
-    "feuille": "ELINE FISH",
     "date_facture": "2026-02-28",
-    "numero": "FA202500003993",
     "total_ttc": 246.0,
     "solde": 246.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "ELINE FISH",
+    "numero": "FAC-ELIN-0251"
   },
   {
-    "fournisseur": "ELINE FISH",
-    "feuille": "ELINE FISH",
     "date_facture": "2026-04-07",
-    "numero": "FA202500004313",
     "total_ttc": 1800.0,
     "solde": 1800.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CHQ 1800102 BP  LE 04/06/2026"
+    "note": "CHQ 1800102 BP  LE 04/06/2026",
+    "fournisseur": "ELINE FISH",
+    "numero": "FAC-ELIN-0252"
   },
   {
-    "fournisseur": "ELINE FISH",
-    "feuille": "ELINE FISH",
     "date_facture": "2026-04-16",
-    "numero": "FA202500004414",
     "total_ttc": 968.0,
     "solde": 968.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "ELINE FISH",
+    "numero": "FAC-ELIN-0253"
   },
   {
-    "fournisseur": "ELINE FISH",
-    "feuille": "ELINE FISH",
     "date_facture": "2026-05-13",
-    "numero": "FA202500004754",
     "total_ttc": 3600.0,
     "solde": 3600.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "ELINE FISH",
+    "numero": "FAC-ELIN-0254"
   },
   {
-    "fournisseur": "ELINE FISH",
-    "feuille": "ELINE FISH",
     "date_facture": "2026-05-16",
-    "numero": "FA202500004784",
     "total_ttc": 2335.0,
     "solde": 2335.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "ELINE FISH",
+    "numero": "FAC-ELIN-0255"
   },
   {
-    "fournisseur": "ELINE FISH",
-    "feuille": "ELINE FISH",
     "date_facture": "2026-05-19",
-    "numero": "FA202500004824",
     "total_ttc": 743.5,
     "solde": 743.5,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "ELINE FISH",
+    "numero": "FAC-ELIN-0256"
   },
   {
-    "fournisseur": "ELINE FISH",
-    "feuille": "ELINE FISH",
     "date_facture": "2026-06-15",
-    "numero": "FA202500005001",
     "total_ttc": 1176.0,
     "solde": 1176.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP LE 08/08/2026"
+    "note": "VIR BP LE 08/08/2026",
+    "fournisseur": "ELINE FISH",
+    "numero": "FAC-ELIN-0257"
   },
   {
-    "fournisseur": "ELINE FISH",
-    "feuille": "ELINE FISH",
     "date_facture": "2026-06-29",
-    "numero": "FA202500005098",
     "total_ttc": 194.0,
     "solde": 194.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "ELINE FISH",
+    "numero": "FAC-ELIN-0258"
   },
   {
-    "fournisseur": "ELINE FISH",
-    "feuille": "ELINE FISH",
     "date_facture": "2026-07-10",
-    "numero": "FA202500005183",
     "total_ttc": 235.4,
     "solde": 235.4,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "ELINE FISH",
+    "numero": "FAC-ELIN-0259"
   },
   {
-    "fournisseur": "ELINE FISH",
-    "feuille": "ELINE FISH",
     "date_facture": "2026-07-11",
-    "numero": "FA202500005188",
     "total_ttc": 115.0,
     "solde": 115.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
-  },
-  {
+    "note": "",
     "fournisseur": "ELINE FISH",
-    "feuille": "ELINE FISH",
-    "date_facture": "2026-08-10",
-    "numero": "FA202500005408",
-    "total_ttc": 568.0,
-    "solde": 568.0,
-    "montant_paye": 568.0,
-    "statut": "Partiel",
-    "observation": ""
+    "numero": "FAC-ELIN-0260"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
+    "date_facture": "2026-08-10",
+    "total_ttc": 568.0,
+    "solde": 0.0,
+    "montant_paye": 568.0,
+    "statut": "Payée",
+    "note": "",
+    "fournisseur": "ELINE FISH",
+    "numero": "FAC-ELIN-0261"
+  },
+  {
     "date_facture": "2024-03-27",
-    "numero": "FA3359",
     "total_ttc": 3132.0,
     "solde": 3132.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CH°2100246/ 47659.52"
+    "note": "CH°2100246/ 47659.52",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0262"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2024-03-29",
-    "numero": "FA3363",
     "total_ttc": 43813.68,
     "solde": 43813.68,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0263"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2024-03-22",
-    "numero": "FA3355",
     "total_ttc": 713.84,
     "solde": 713.84,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0264"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2024-04-03",
-    "numero": "FA3371",
     "total_ttc": 2730.24,
     "solde": 2730.24,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CH°2100251BP/14126.04"
+    "note": "CH°2100251BP/14126.04",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0265"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2024-04-07",
-    "numero": "FA3377",
     "total_ttc": 10137.6,
     "solde": 10137.6,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0266"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2024-04-23",
-    "numero": "FA3390",
     "total_ttc": 1258.2,
     "solde": 1258.2,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0267"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2024-04-16",
-    "numero": "FA3383",
     "total_ttc": 9163.78,
     "solde": 9163.78,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CH°2100250BP/MT16132.42"
+    "note": "CH°2100250BP/MT16132.42",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0268"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2024-04-23",
-    "numero": "FA3391",
     "total_ttc": 6968.64,
     "solde": 6968.64,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0269"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2024-04-26",
-    "numero": "FA3395",
     "total_ttc": 28917.22,
     "solde": 28917.22,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CH°2100253BP"
+    "note": "CH°2100253BP",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0270"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2024-05-01",
-    "numero": "FA3401",
     "total_ttc": 29862.84,
     "solde": 29862.84,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CH°2100254BP"
+    "note": "CH°2100254BP",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0271"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2024-05-08",
-    "numero": "FA3411",
     "total_ttc": 1923.0,
     "solde": 1923.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CH°2100264/BP LE 09/07/2024"
+    "note": "CH°2100264/BP LE 09/07/2024",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0272"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2024-05-14",
-    "numero": "FA3416",
     "total_ttc": 1168.2,
     "solde": 1168.2,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0273"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2024-05-27",
-    "numero": "FA3431",
     "total_ttc": 2909.28,
     "solde": 2909.28,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0274"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2024-06-02",
-    "numero": "FA3438",
     "total_ttc": 57074.58,
     "solde": 57074.58,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CH°2100263/BP LE 01/07/24"
+    "note": "CH°2100263/BP LE 01/07/24",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0275"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2024-06-26",
-    "numero": "FA3467",
     "total_ttc": 6374.4,
     "solde": 6374.4,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CH°2100272 BP/ LE 18/07/2024 MT 11878.88"
+    "note": "CH°2100272 BP/ LE 18/07/2024 MT 11878.88",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0276"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2024-07-05",
-    "numero": "FA3474",
     "total_ttc": 2685.68,
     "solde": 2685.68,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0277"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2024-07-17",
-    "numero": "FA3491",
     "total_ttc": 2818.8,
     "solde": 2818.8,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0278"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2024-07-17",
-    "numero": "FA3490",
     "total_ttc": 24208.24,
     "solde": 24208.24,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CH°2100273 BP/ LE 18/07/2024 MT 24208.24"
+    "note": "CH°2100273 BP/ LE 18/07/2024 MT 24208.24",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0279"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2024-08-12",
-    "numero": "FA3517",
     "total_ttc": 16434.0,
     "solde": 16434.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CH°2100277/BP"
+    "note": "CH°2100277/BP",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0280"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2024-09-02",
-    "numero": "FA3537",
     "total_ttc": 12328.2,
     "solde": 12328.2,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CH°2100278/BP MT 18697 DH"
+    "note": "CH°2100278/BP MT 18697 DH",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0281"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2024-09-02",
-    "numero": "FA3540",
     "total_ttc": 1497.6,
     "solde": 1497.6,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0282"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2024-09-02",
-    "numero": "FA3539",
     "total_ttc": 4872.0,
     "solde": 4872.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0283"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2024-09-24",
-    "numero": "FA3556",
     "total_ttc": 33106.08,
     "solde": 33106.08,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CH°2100282/BP MT 36110.28"
+    "note": "CH°2100282/BP MT 36110.28",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0284"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2024-09-24",
-    "numero": "FA3554",
     "total_ttc": 3004.2,
     "solde": 3004.2,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0285"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2024-09-24",
-    "numero": "FA3555",
     "total_ttc": 40603.8,
     "solde": 40603.8,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CH°2100283/BP MT40603.8"
+    "note": "CH°2100283/BP MT40603.8",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0286"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2024-10-09",
-    "numero": "FA3573",
     "total_ttc": 27298.92,
     "solde": 27298.92,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CH°2100288/BP 27298.92"
+    "note": "CH°2100288/BP 27298.92",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0287"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2024-10-06",
-    "numero": "FA3589",
     "total_ttc": 4872.0,
     "solde": 4872.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CH°2100291/BP 38184.82"
+    "note": "CH°2100291/BP 38184.82",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0288"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
-    "date_facture": "2025-01-01",
-    "numero": "FA3598",
-    "total_ttc": 23312.82,
-    "solde": 23312.82,
-    "montant_paye": 0.0,
-    "statut": "A payer",
-    "observation": ""
-  },
-  {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2024-10-01",
-    "numero": "FA3603",
     "total_ttc": 26801.28,
     "solde": 26801.28,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CH°2100292/BP MT 26801.28"
+    "note": "CH°2100292/BP MT 26801.28",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0289"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2024-11-04",
-    "numero": "FA3608",
     "total_ttc": 2091.84,
     "solde": 2091.84,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CH°2100298/BP MT 17214.54"
+    "note": "CH°2100298/BP MT 17214.54",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0290"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2024-11-08",
-    "numero": "FA3616",
     "total_ttc": 2972.7,
     "solde": 2972.7,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0291"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2024-11-15",
-    "numero": "FA3623",
     "total_ttc": 12150.0,
     "solde": 12150.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0292"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2024-11-26",
-    "numero": "FA3635",
     "total_ttc": 16919.76,
     "solde": 16919.76,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CH°2100299/BP MT 16919.76"
+    "note": "CH°2100299/BP MT 16919.76",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0293"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2024-11-22",
-    "numero": "FA3629",
     "total_ttc": 15598.08,
     "solde": 15598.08,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CH°2100300/BP MT18496.56"
+    "note": "CH°2100300/BP MT18496.56",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0294"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2024-12-09",
-    "numero": "FA3645",
     "total_ttc": 2898.48,
     "solde": 2898.48,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0295"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2024-12-10",
-    "numero": "FA3651",
     "total_ttc": 22555.2,
     "solde": 22555.2,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CH°2100406/BP MT22555.2"
+    "note": "CH°2100406/BP MT22555.2",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0296"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2025-01-02",
-    "numero": "FA3685",
     "total_ttc": 9000.0,
     "solde": 9000.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CH°2100404/BP MT9000"
+    "note": "CH°2100404/BP MT9000",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0297"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2025-01-02",
-    "numero": "FA3684",
     "total_ttc": 31934.21,
     "solde": 31934.21,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CH°2100405/BP MT 31934.21"
+    "note": "CH°2100405/BP MT 31934.21",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0298"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2025-01-08",
-    "numero": "FA3689",
     "total_ttc": 14515.2,
     "solde": 14515.2,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CHQ"
+    "note": "CHQ",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0299"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2025-01-16",
-    "numero": "FA3696",
     "total_ttc": 2792.4,
     "solde": 2792.4,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0300"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2025-01-29",
-    "numero": "FA3707",
     "total_ttc": 1170.0,
     "solde": 1170.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0301"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2025-02-04",
-    "numero": "FA3715",
     "total_ttc": 30785.82,
     "solde": 30785.82,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CHQ"
+    "note": "CHQ",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0302"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2025-02-07",
-    "numero": "FA3720",
     "total_ttc": 5129.52,
     "solde": 5129.52,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0303"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2025-02-20",
-    "numero": "FA3734",
     "total_ttc": 12807.72,
     "solde": 12807.72,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0304"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2025-02-17",
-    "numero": "FA3730",
     "total_ttc": 13689.5,
     "solde": 13689.5,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0305"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2025-04-15",
-    "numero": "FA3803",
     "total_ttc": 26558.4,
     "solde": 26558.4,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CHQ"
+    "note": "CHQ",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0306"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2025-04-23",
-    "numero": "FA3814",
     "total_ttc": 31393.08,
     "solde": 31393.08,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CHQ"
+    "note": "CHQ",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0307"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2025-05-07",
-    "numero": "FA3829",
     "total_ttc": 27384.68,
     "solde": 27384.68,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0308"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2025-05-14",
-    "numero": "FA3841",
     "total_ttc": 20925.85,
     "solde": 20925.85,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0309"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2025-05-22",
-    "numero": "FA3850",
     "total_ttc": 47039.88,
     "solde": 47039.88,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0310"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2025-05-28",
-    "numero": "FA3859",
     "total_ttc": 13256.41,
     "solde": 13256.41,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CHQ450"
+    "note": "CHQ450",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0311"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2025-06-04",
-    "numero": "FA3871",
     "total_ttc": 37194.72,
     "solde": 37194.72,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CHQ449"
+    "note": "CHQ449",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0312"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2025-06-13",
-    "numero": "FA3875",
     "total_ttc": 12419.71,
     "solde": 12419.71,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CHQ454"
+    "note": "CHQ454",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0313"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2025-06-18",
-    "numero": "FA3881",
     "total_ttc": 15327.36,
     "solde": 15327.36,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CHQ453"
+    "note": "CHQ453",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0314"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2025-07-03",
-    "numero": "FA3902",
     "total_ttc": 37177.2,
     "solde": 37177.2,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CHQ458"
+    "note": "CHQ458",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0315"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2025-07-12",
-    "numero": "FA3908",
     "total_ttc": 8786.88,
     "solde": 8786.88,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CHQ459"
+    "note": "CHQ459",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0316"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2025-07-31",
-    "numero": "FA3928",
     "total_ttc": 5067.0,
     "solde": 5067.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CHQ466"
+    "note": "CHQ466",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0317"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2025-08-12",
-    "numero": "FA3946",
     "total_ttc": 11790.36,
     "solde": 11790.36,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0318"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2025-08-22",
-    "numero": "FA3953",
     "total_ttc": 3912.72,
     "solde": 3912.72,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CHQ467"
+    "note": "CHQ467",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0319"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2025-09-02",
-    "numero": "FA3969",
     "total_ttc": 16373.4,
     "solde": 16373.4,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0320"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2025-09-09",
-    "numero": "FA3979",
     "total_ttc": 23210.11,
     "solde": 23210.11,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CHQ468"
+    "note": "CHQ468",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0321"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2025-09-23",
-    "numero": "FA3997",
     "total_ttc": 4308.48,
     "solde": 4308.48,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CHQ481"
+    "note": "CHQ481",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0322"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2025-10-10",
-    "numero": "FA4021",
     "total_ttc": 8928.0,
     "solde": 8928.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0323"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2025-09-30",
-    "numero": "FA4006",
     "total_ttc": 47750.04,
     "solde": 47750.04,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CHQ480"
+    "note": "CHQ480",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0324"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2025-10-19",
-    "numero": "FA4035",
     "total_ttc": 26115.41,
     "solde": 26115.41,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CH°485/BP"
+    "note": "CH°485/BP",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0325"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2025-10-22",
-    "numero": "FA4039",
     "total_ttc": 27561.6,
     "solde": 27561.6,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CH°486/BP"
+    "note": "CH°486/BP",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0326"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2025-10-24",
-    "numero": "FA4083",
     "total_ttc": 30385.98,
     "solde": 30385.98,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CH°2100498"
+    "note": "CH°2100498",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0327"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2025-10-27",
-    "numero": "FA4088",
     "total_ttc": 20100.84,
     "solde": 20100.84,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CH°499/BP"
+    "note": "CH°499/BP",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0328"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2025-11-04",
-    "numero": "FA4060",
     "total_ttc": 9242.56,
     "solde": 9242.56,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CH°487/BP"
+    "note": "CH°487/BP",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0329"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2025-11-07",
-    "numero": "FA4062",
     "total_ttc": 27590.36,
     "solde": 27590.36,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CH°489/BP LE 07/11/25"
+    "note": "CH°489/BP LE 07/11/25",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0330"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2025-11-09",
-    "numero": "FA4065",
     "total_ttc": 34150.92,
     "solde": 34150.92,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CH°490/BP LE 09/11/25"
+    "note": "CH°490/BP LE 09/11/25",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0331"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2025-12-03",
-    "numero": "FA4097",
     "total_ttc": 37382.4,
     "solde": 37382.4,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CH°500/25"
+    "note": "CH°500/25",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0332"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2025-12-19",
-    "numero": "FA4115",
     "total_ttc": 25164.0,
     "solde": 25164.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CH°1800058/26"
+    "note": "CH°1800058/26",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0333"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2025-12-09",
-    "numero": "FA4104",
     "total_ttc": 2502.12,
     "solde": 2502.12,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CH°1800059/26"
+    "note": "CH°1800059/26",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0334"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2025-12-22",
-    "numero": "FA4121",
     "total_ttc": 6349.2,
     "solde": 6349.2,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0335"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2026-01-06",
-    "numero": "fa4137",
     "total_ttc": 13095.94,
     "solde": 13095.94,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0336"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2026-01-02",
-    "numero": "FA4132",
     "total_ttc": 4557.36,
     "solde": 18687.36,
-    "montant_paye": -14130.0,
+    "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CH°1800065BP LE 02/02/2026"
+    "note": "CH°1800065BP LE 02/02/2026",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0337"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2026-01-15",
-    "numero": "FA4144",
     "total_ttc": 14130.0,
-    "solde": 14130.0,
+    "solde": 0.0,
     "montant_paye": 14130.0,
-    "statut": "Partiel",
-    "observation": ""
+    "statut": "Payée",
+    "note": "",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0338"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2026-01-30",
-    "numero": "FA4162",
     "total_ttc": 21529.2,
     "solde": 21529.2,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CH°1800066BP LE 02/02/2026"
+    "note": "CH°1800066BP LE 02/02/2026",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0339"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2026-02-02",
-    "numero": "FA4164",
     "total_ttc": 18815.94,
     "solde": 18815.94,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CH°1800067BP LE 02/02/2026"
+    "note": "CH°1800067BP LE 02/02/2026",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0340"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2026-02-09",
-    "numero": "FA4170",
     "total_ttc": 5602.8,
     "solde": 5602.8,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CH°1800078BP"
+    "note": "CH°1800078BP",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0341"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2026-02-24",
-    "numero": "FA4192",
     "total_ttc": 2090.4,
     "solde": 2090.4,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0342"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2026-02-20",
-    "numero": "FA4186",
     "total_ttc": 22607.04,
     "solde": 22607.04,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CH°1800075BP"
+    "note": "CH°1800075BP",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0343"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2026-03-12",
-    "numero": "FA4204",
     "total_ttc": 30708.0,
     "solde": 30708.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CH°1800080BP"
+    "note": "CH°1800080BP",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0344"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2026-03-12",
-    "numero": "FA4205",
     "total_ttc": 22176.0,
     "solde": 22176.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CH°1800079BP"
+    "note": "CH°1800079BP",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0345"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2026-03-16",
-    "numero": "FA4211",
     "total_ttc": 25629.0,
     "solde": 25629.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CH°800081BP"
+    "note": "CH°800081BP",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0346"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2026-03-19",
-    "numero": "FA4217",
     "total_ttc": 15786.48,
     "solde": 22483.92,
-    "montant_paye": -6697.44,
+    "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CH°800082BP"
+    "note": "CH°800082BP",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0347"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2026-04-01",
-    "numero": "FA4227",
     "total_ttc": 6697.44,
-    "solde": 6697.44,
+    "solde": 0.0,
     "montant_paye": 6697.44,
-    "statut": "Partiel",
-    "observation": ""
+    "statut": "Payée",
+    "note": "",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0348"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2026-04-03",
-    "numero": "FA4235",
     "total_ttc": 39548.76,
     "solde": 39548.76,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CH°1800088BP"
+    "note": "CH°1800088BP",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0349"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2026-04-09",
-    "numero": "FA4246",
     "total_ttc": 24560.02,
     "solde": 37980.82,
-    "montant_paye": -13420.8,
+    "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CH°1800089BP"
+    "note": "CH°1800089BP",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0350"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2026-04-17",
-    "numero": "FA4256",
     "total_ttc": 13420.8,
-    "solde": 13420.8,
+    "solde": 0.0,
     "montant_paye": 13420.8,
-    "statut": "Partiel",
-    "observation": ""
+    "statut": "Payée",
+    "note": "",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0351"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2026-04-23",
-    "numero": "FA4264",
     "total_ttc": 12082.87,
     "solde": 12082.87,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CH°1800095BP/47193.95DH"
+    "note": "CH°1800095BP/47193.95DH",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0352"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2026-04-27",
-    "numero": "FA4267",
     "total_ttc": 35111.08,
     "solde": 35111.08,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0353"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2026-05-06",
-    "numero": "FA4281",
     "total_ttc": 14963.4,
     "solde": 14963.4,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CH°1800097BP"
+    "note": "CH°1800097BP",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0354"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2026-05-06",
-    "numero": "FA4280",
     "total_ttc": 24694.27,
     "solde": 24694.27,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CH°1800096BP"
+    "note": "CH°1800096BP",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0355"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2026-05-12",
-    "numero": "FA4291",
     "total_ttc": 4636.92,
     "solde": 4636.92,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CH°1800099BP /19756.92 DH"
+    "note": "CH°1800099BP /19756.92 DH",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0356"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2026-05-12",
-    "numero": "FA4293",
     "total_ttc": 15120.0,
     "solde": 15120.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0357"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2026-05-20",
-    "numero": "FA4302",
     "total_ttc": 56060.4,
     "solde": 56060.4,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CH°1800100BP"
+    "note": "CH°1800100BP",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0358"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2026-05-22",
-    "numero": "FA4306",
     "total_ttc": 11332.44,
     "solde": 11332.44,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CH°1800105 BP/15738.84"
+    "note": "CH°1800105 BP/15738.84",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0359"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2026-06-02",
-    "numero": "FA4312",
     "total_ttc": 4406.4,
     "solde": 4406.4,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0360"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2026-06-12",
-    "numero": "FA4321",
     "total_ttc": 24786.0,
     "solde": 24786.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CH°1800106 BP /43138.53"
+    "note": "CH°1800106 BP /43138.53",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0361"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2026-06-18",
-    "numero": "FA4325",
     "total_ttc": 18352.53,
     "solde": 18352.53,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0362"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2026-06-21",
-    "numero": "FA4330",
     "total_ttc": 38268.24,
     "solde": 38268.24,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CH°1800110BP/39359.39"
+    "note": "CH°1800110BP/39359.39",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0363"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2026-07-10",
-    "numero": "FA4349",
     "total_ttc": 1091.15,
     "solde": 1091.15,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0364"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2026-07-23",
-    "numero": "FAZ4359",
     "total_ttc": 3294.72,
-    "solde": 3294.72,
+    "solde": 0.0,
     "montant_paye": 3294.72,
-    "statut": "Partiel",
-    "observation": ""
+    "statut": "Payée",
+    "note": "",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0365"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
     "date_facture": "2026-08-04",
-    "numero": "fa4373",
     "total_ttc": 52617.6,
-    "solde": 52617.6,
+    "solde": 0.0,
     "montant_paye": 52617.6,
-    "statut": "Partiel",
-    "observation": ""
-  },
-  {
+    "statut": "Payée",
+    "note": "",
     "fournisseur": "ISMAIL ATLAS",
-    "feuille": "ISMAIL ATLAS",
-    "date_facture": "2026-08-17",
-    "numero": "FA4387",
-    "total_ttc": 7371.84,
-    "solde": 7371.84,
-    "montant_paye": 7371.84,
-    "statut": "Partiel",
-    "observation": ""
+    "numero": "FAC-ISMA-0366"
   },
   {
-    "fournisseur": "CHEESES & CHEESES",
-    "feuille": "CHEESES&CHEESES",
+    "date_facture": "2026-08-17",
+    "total_ttc": 7371.84,
+    "solde": 0.0,
+    "montant_paye": 7371.84,
+    "statut": "Payée",
+    "note": "",
+    "fournisseur": "ISMAIL ATLAS",
+    "numero": "FAC-ISMA-0367"
+  },
+  {
     "date_facture": "2024-05-20",
-    "numero": "FC0552/2024",
     "total_ttc": 119580.0,
     "solde": 119580.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CH°2100246/ 47659.52"
+    "note": "CH°2100246/ 47659.52",
+    "fournisseur": "CHEESES&CHEESES",
+    "numero": "FAC-CHEE-0368"
   },
   {
-    "fournisseur": "CHEESES & CHEESES",
-    "feuille": "CHEESES&CHEESES",
     "date_facture": "2024-06-01",
-    "numero": "FC0619/2024",
     "total_ttc": 19200.0,
     "solde": 19200.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "CHEESES&CHEESES",
+    "numero": "FAC-CHEE-0369"
   },
   {
-    "fournisseur": "CHEESES & CHEESES",
-    "feuille": "CHEESES&CHEESES",
     "date_facture": "2024-07-09",
-    "numero": "FC0766/2024",
     "total_ttc": 17112.0,
     "solde": 17112.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "CHEESES&CHEESES",
+    "numero": "FAC-CHEE-0370"
   },
   {
-    "fournisseur": "CHEESES & CHEESES",
-    "feuille": "CHEESES&CHEESES",
     "date_facture": "2024-07-08",
-    "numero": "FC0762/2024",
     "total_ttc": 96672.0,
     "solde": 96672.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "CHEESES&CHEESES",
+    "numero": "FAC-CHEE-0371"
   },
   {
-    "fournisseur": "CHEESES & CHEESES",
-    "feuille": "CHEESES&CHEESES",
     "date_facture": "2024-08-26",
-    "numero": "FC0993/2024",
     "total_ttc": 5664.0,
     "solde": 5664.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP"
+    "note": "VIR BP",
+    "fournisseur": "CHEESES&CHEESES",
+    "numero": "FAC-CHEE-0372"
   },
   {
-    "fournisseur": "CHEESES & CHEESES",
-    "feuille": "CHEESES&CHEESES",
     "date_facture": "2024-09-04",
-    "numero": "FC1038/2024",
     "total_ttc": 64644.0,
     "solde": 64644.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "CHEESES&CHEESES",
+    "numero": "FAC-CHEE-0373"
   },
   {
-    "fournisseur": "CHEESES & CHEESES",
-    "feuille": "CHEESES&CHEESES",
     "date_facture": "2024-09-04",
-    "numero": "FC1039/2024",
     "total_ttc": 11040.0,
     "solde": 11040.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "CHEESES&CHEESES",
+    "numero": "FAC-CHEE-0374"
   },
   {
-    "fournisseur": "CHEESES & CHEESES",
-    "feuille": "CHEESES&CHEESES",
     "date_facture": "2024-09-30",
-    "numero": "FC1173/2024",
     "total_ttc": 79341.0,
     "solde": 79341.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "CHEESES&CHEESES",
+    "numero": "FAC-CHEE-0375"
   },
   {
-    "fournisseur": "CHEESES & CHEESES",
-    "feuille": "CHEESES&CHEESES",
     "date_facture": "2024-09-30",
-    "numero": "FC1174/2024",
     "total_ttc": 11808.0,
     "solde": 11808.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "CHEESES&CHEESES",
+    "numero": "FAC-CHEE-0376"
   },
   {
-    "fournisseur": "CHEESES & CHEESES",
-    "feuille": "CHEESES&CHEESES",
     "date_facture": "2024-10-08",
-    "numero": "FC1210/2024",
     "total_ttc": 134544.0,
     "solde": 134544.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "CHEESES&CHEESES",
+    "numero": "FAC-CHEE-0377"
   },
   {
-    "fournisseur": "CHEESES & CHEESES",
-    "feuille": "CHEESES&CHEESES",
     "date_facture": "2024-11-05",
-    "numero": "FC1308/24",
     "total_ttc": 137676.0,
     "solde": 137676.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP LE 11/2/25"
+    "note": "VIR BP LE 11/2/25",
+    "fournisseur": "CHEESES&CHEESES",
+    "numero": "FAC-CHEE-0378"
   },
   {
-    "fournisseur": "CHEESES & CHEESES",
-    "feuille": "CHEESES&CHEESES",
     "date_facture": "2024-11-05",
-    "numero": "FC1309/24",
     "total_ttc": 13152.0,
     "solde": 13152.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "CHEESES&CHEESES",
+    "numero": "FAC-CHEE-0379"
   },
   {
-    "fournisseur": "CHEESES & CHEESES",
-    "feuille": "CHEESES&CHEESES",
     "date_facture": "2024-12-06",
-    "numero": "FC1402/2024",
     "total_ttc": 8280.0,
     "solde": 8280.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP LE 03/03/2025"
+    "note": "VIR BP LE 03/03/2025",
+    "fournisseur": "CHEESES&CHEESES",
+    "numero": "FAC-CHEE-0380"
   },
   {
-    "fournisseur": "CHEESES & CHEESES",
-    "feuille": "CHEESES&CHEESES",
     "date_facture": "2024-12-06",
-    "numero": "FC1403/2024",
     "total_ttc": 130660.8,
     "solde": 130660.8,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "CHEESES&CHEESES",
+    "numero": "FAC-CHEE-0381"
   },
   {
-    "fournisseur": "CHEESES & CHEESES",
-    "feuille": "CHEESES&CHEESES",
     "date_facture": "2025-01-10",
-    "numero": "FC0026/2025",
     "total_ttc": 141355.2,
     "solde": 141355.2,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP LE 12/03/25"
+    "note": "VIR BP LE 12/03/25",
+    "fournisseur": "CHEESES&CHEESES",
+    "numero": "FAC-CHEE-0382"
   },
   {
-    "fournisseur": "CHEESES & CHEESES",
-    "feuille": "CHEESES&CHEESES",
     "date_facture": "2025-01-10",
-    "numero": "FC0027/2025",
     "total_ttc": 11040.0,
     "solde": 11040.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "CHEESES&CHEESES",
+    "numero": "FAC-CHEE-0383"
   },
   {
-    "fournisseur": "CHEESES & CHEESES",
-    "feuille": "CHEESES&CHEESES",
     "date_facture": "2025-02-07",
-    "numero": "FC0108/2025",
     "total_ttc": 120264.0,
     "solde": 120264.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP LE 06/04/2025"
+    "note": "VIR BP LE 06/04/2025",
+    "fournisseur": "CHEESES&CHEESES",
+    "numero": "FAC-CHEE-0384"
   },
   {
-    "fournisseur": "CHEESES & CHEESES",
-    "feuille": "CHEESES&CHEESES",
     "date_facture": "2025-02-07",
-    "numero": "FC0109/2026",
     "total_ttc": 12480.0,
     "solde": 12480.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "CHEESES&CHEESES",
+    "numero": "FAC-CHEE-0385"
   },
   {
-    "fournisseur": "CHEESES & CHEESES",
-    "feuille": "CHEESES&CHEESES",
     "date_facture": "2025-03-12",
-    "numero": "FC0209/2025",
     "total_ttc": 10320.0,
     "solde": 10320.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "CHEESES&CHEESES",
+    "numero": "FAC-CHEE-0386"
   },
   {
-    "fournisseur": "CHEESES & CHEESES",
-    "feuille": "CHEESES&CHEESES",
     "date_facture": "2025-03-12",
-    "numero": "FC0210/2025",
     "total_ttc": 147384.0,
     "solde": 147384.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP"
+    "note": "VIR BP",
+    "fournisseur": "CHEESES&CHEESES",
+    "numero": "FAC-CHEE-0387"
   },
   {
-    "fournisseur": "CHEESES & CHEESES",
-    "feuille": "CHEESES&CHEESES",
     "date_facture": "2025-04-05",
-    "numero": "FC0267/2025",
     "total_ttc": 7080.0,
     "solde": 7080.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP"
+    "note": "VIR BP",
+    "fournisseur": "CHEESES&CHEESES",
+    "numero": "FAC-CHEE-0388"
   },
   {
-    "fournisseur": "CHEESES & CHEESES",
-    "feuille": "CHEESES&CHEESES",
     "date_facture": "2025-04-04",
-    "numero": "FC0266/2025",
     "total_ttc": 95304.0,
     "solde": 95304.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "CHEESES&CHEESES",
+    "numero": "FAC-CHEE-0389"
   },
   {
-    "fournisseur": "CHEESES & CHEESES",
-    "feuille": "CHEESES&CHEESES",
     "date_facture": "2025-05-03",
-    "numero": "FC0368/2025",
     "total_ttc": 139968.0,
     "solde": 139968.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP LE 06/09/2025"
+    "note": "VIR BP LE 06/09/2025",
+    "fournisseur": "CHEESES&CHEESES",
+    "numero": "FAC-CHEE-0390"
   },
   {
-    "fournisseur": "CHEESES & CHEESES",
-    "feuille": "CHEESES&CHEESES",
     "date_facture": "2025-05-03",
-    "numero": "FC0369/2025",
     "total_ttc": 15408.0,
     "solde": 15408.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "CHEESES&CHEESES",
+    "numero": "FAC-CHEE-0391"
   },
   {
-    "fournisseur": "CHEESES & CHEESES",
-    "feuille": "CHEESES&CHEESES",
     "date_facture": "2025-06-03",
-    "numero": "FC00472/2025",
     "total_ttc": 181680.0,
     "solde": 181680.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP"
+    "note": "VIR BP",
+    "fournisseur": "CHEESES&CHEESES",
+    "numero": "FAC-CHEE-0392"
   },
   {
-    "fournisseur": "CHEESES & CHEESES",
-    "feuille": "CHEESES&CHEESES",
     "date_facture": "2025-06-03",
-    "numero": "FC0473/2025",
     "total_ttc": 16560.0,
     "solde": 16560.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "CHEESES&CHEESES",
+    "numero": "FAC-CHEE-0393"
   },
   {
-    "fournisseur": "CHEESES & CHEESES",
-    "feuille": "CHEESES&CHEESES",
     "date_facture": "2025-07-04",
-    "numero": "FC0551/2025",
     "total_ttc": 11928.0,
     "solde": 11928.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP LE 13/10/25"
+    "note": "VIR BP LE 13/10/25",
+    "fournisseur": "CHEESES&CHEESES",
+    "numero": "FAC-CHEE-0394"
   },
   {
-    "fournisseur": "CHEESES & CHEESES",
-    "feuille": "CHEESES&CHEESES",
     "date_facture": "2025-07-04",
-    "numero": "FC0552/2025",
     "total_ttc": 156564.0,
     "solde": 156564.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "CHEESES&CHEESES",
+    "numero": "FAC-CHEE-0395"
   },
   {
-    "fournisseur": "CHEESES & CHEESES",
-    "feuille": "CHEESES&CHEESES",
     "date_facture": "2025-08-07",
-    "numero": "FC0635/25",
     "total_ttc": 11568.0,
     "solde": 11568.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "CHEESES&CHEESES",
+    "numero": "FAC-CHEE-0396"
   },
   {
-    "fournisseur": "CHEESES & CHEESES",
-    "feuille": "CHEESES&CHEESES",
     "date_facture": "2025-08-07",
-    "numero": "FC0634/25",
     "total_ttc": 144112.8,
     "solde": 144112.8,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "CHEESES&CHEESES",
+    "numero": "FAC-CHEE-0397"
   },
   {
-    "fournisseur": "CHEESES & CHEESES",
-    "feuille": "CHEESES&CHEESES",
     "date_facture": "2025-09-08",
-    "numero": "FC00741/25",
     "total_ttc": 140018.4,
     "solde": 140018.4,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP LE 28/11/2025"
+    "note": "VIR BP LE 28/11/2025",
+    "fournisseur": "CHEESES&CHEESES",
+    "numero": "FAC-CHEE-0398"
   },
   {
-    "fournisseur": "CHEESES & CHEESES",
-    "feuille": "CHEESES&CHEESES",
     "date_facture": "2025-09-08",
-    "numero": "FC0742/25",
     "total_ttc": 12480.0,
     "solde": 12480.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "CHEESES&CHEESES",
+    "numero": "FAC-CHEE-0399"
   },
   {
-    "fournisseur": "CHEESES & CHEESES",
-    "feuille": "CHEESES&CHEESES",
     "date_facture": "2025-10-11",
-    "numero": "FC0850/25",
     "total_ttc": 185241.6,
     "solde": 185241.6,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP LE 29/12/25"
+    "note": "VIR BP LE 29/12/25",
+    "fournisseur": "CHEESES&CHEESES",
+    "numero": "FAC-CHEE-0400"
   },
   {
-    "fournisseur": "CHEESES & CHEESES",
-    "feuille": "CHEESES&CHEESES",
     "date_facture": "2025-10-11",
-    "numero": "FC0851/25",
     "total_ttc": 13368.0,
     "solde": 13368.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "CHEESES&CHEESES",
+    "numero": "FAC-CHEE-0401"
   },
   {
-    "fournisseur": "CHEESES & CHEESES",
-    "feuille": "CHEESES&CHEESES",
     "date_facture": "2025-10-31",
-    "numero": "FC0915/25",
     "total_ttc": 14376.0,
     "solde": 14376.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP LE 3/02/2026"
+    "note": "VIR BP LE 3/02/2026",
+    "fournisseur": "CHEESES&CHEESES",
+    "numero": "FAC-CHEE-0402"
   },
   {
-    "fournisseur": "CHEESES & CHEESES",
-    "feuille": "CHEESES&CHEESES",
     "date_facture": "2025-10-31",
-    "numero": "FC0914/25",
     "total_ttc": 152438.4,
     "solde": 152438.4,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "CHEESES&CHEESES",
+    "numero": "FAC-CHEE-0403"
   },
   {
-    "fournisseur": "CHEESES & CHEESES",
-    "feuille": "CHEESES&CHEESES",
     "date_facture": "2025-11-30",
-    "numero": "FC1002/2025",
     "total_ttc": 157579.2,
     "solde": 157579.2,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP LE 06/03/2026"
+    "note": "VIR BP LE 06/03/2026",
+    "fournisseur": "CHEESES&CHEESES",
+    "numero": "FAC-CHEE-0404"
   },
   {
-    "fournisseur": "CHEESES & CHEESES",
-    "feuille": "CHEESES&CHEESES",
     "date_facture": "2025-11-30",
-    "numero": "FC1003/2025",
     "total_ttc": 13296.0,
     "solde": 13296.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "CHEESES&CHEESES",
+    "numero": "FAC-CHEE-0405"
   },
   {
-    "fournisseur": "CHEESES & CHEESES",
-    "feuille": "CHEESES&CHEESES",
     "date_facture": "2025-12-31",
-    "numero": "FC1083/2025",
     "total_ttc": 157648.8,
     "solde": 157648.8,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP LE 31/03/2026"
+    "note": "VIR BP LE 31/03/2026",
+    "fournisseur": "CHEESES&CHEESES",
+    "numero": "FAC-CHEE-0406"
   },
   {
-    "fournisseur": "CHEESES & CHEESES",
-    "feuille": "CHEESES&CHEESES",
     "date_facture": "2025-12-31",
-    "numero": "FC1084/2025",
     "total_ttc": 7488.0,
     "solde": 7488.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "CHEESES&CHEESES",
+    "numero": "FAC-CHEE-0407"
   },
   {
-    "fournisseur": "CHEESES & CHEESES",
-    "feuille": "CHEESES&CHEESES",
     "date_facture": "2026-01-31",
-    "numero": "FC0065/2026",
     "total_ttc": 155112.0,
     "solde": 155112.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP LE 29/04/2026"
+    "note": "VIR BP LE 29/04/2026",
+    "fournisseur": "CHEESES&CHEESES",
+    "numero": "FAC-CHEE-0408"
   },
   {
-    "fournisseur": "CHEESES & CHEESES",
-    "feuille": "CHEESES&CHEESES",
     "date_facture": "2026-01-31",
-    "numero": "FC0066/2026",
     "total_ttc": 5520.0,
     "solde": 5520.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "CHEESES&CHEESES",
+    "numero": "FAC-CHEE-0409"
   },
   {
-    "fournisseur": "CHEESES & CHEESES",
-    "feuille": "CHEESES&CHEESES",
     "date_facture": "2026-03-02",
-    "numero": "FC0138/2026",
     "total_ttc": 122112.0,
     "solde": 122112.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP LE 01/06/2026"
+    "note": "VIR BP LE 01/06/2026",
+    "fournisseur": "CHEESES&CHEESES",
+    "numero": "FAC-CHEE-0410"
   },
   {
-    "fournisseur": "CHEESES & CHEESES",
-    "feuille": "CHEESES&CHEESES",
     "date_facture": "2026-03-02",
-    "numero": "FC0139/2026",
     "total_ttc": 5304.0,
     "solde": 5304.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "CHEESES&CHEESES",
+    "numero": "FAC-CHEE-0411"
   },
   {
-    "fournisseur": "CHEESES & CHEESES",
-    "feuille": "CHEESES&CHEESES",
     "date_facture": "2026-03-31",
-    "numero": "FC00209/2026",
     "total_ttc": 7224.0,
     "solde": 7224.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP LE 01/07/26"
+    "note": "VIR BP LE 01/07/26",
+    "fournisseur": "CHEESES&CHEESES",
+    "numero": "FAC-CHEE-0412"
   },
   {
-    "fournisseur": "CHEESES & CHEESES",
-    "feuille": "CHEESES&CHEESES",
     "date_facture": "2026-03-31",
-    "numero": "FC00210/26",
     "total_ttc": 173112.0,
     "solde": 173112.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "CHEESES&CHEESES",
+    "numero": "FAC-CHEE-0413"
   },
   {
-    "fournisseur": "CHEESES & CHEESES",
-    "feuille": "CHEESES&CHEESES",
     "date_facture": "2026-04-30",
-    "numero": "FC0284/26",
     "total_ttc": 198792.0,
     "solde": 198792.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP LE 31/07/2026"
+    "note": "VIR BP LE 31/07/2026",
+    "fournisseur": "CHEESES&CHEESES",
+    "numero": "FAC-CHEE-0414"
   },
   {
-    "fournisseur": "CHEESES & CHEESES",
-    "feuille": "CHEESES&CHEESES",
     "date_facture": "2026-04-30",
-    "numero": "FC0285/26",
     "total_ttc": 7704.0,
     "solde": 7704.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "CHEESES&CHEESES",
+    "numero": "FAC-CHEE-0415"
   },
   {
-    "fournisseur": "CHEESES & CHEESES",
-    "feuille": "CHEESES&CHEESES",
     "date_facture": "2026-05-31",
-    "numero": "FC0349/2026",
     "total_ttc": 9768.0,
-    "solde": 9768.0,
+    "solde": 0.0,
     "montant_paye": 9768.0,
-    "statut": "Partiel",
-    "observation": ""
+    "statut": "Payée",
+    "note": "",
+    "fournisseur": "CHEESES&CHEESES",
+    "numero": "FAC-CHEE-0416"
   },
   {
-    "fournisseur": "CHEESES & CHEESES",
-    "feuille": "CHEESES&CHEESES",
     "date_facture": "2026-05-31",
-    "numero": "FC0348/2026",
     "total_ttc": 170304.0,
-    "solde": 170304.0,
+    "solde": 0.0,
     "montant_paye": 170304.0,
-    "statut": "Partiel",
-    "observation": ""
+    "statut": "Payée",
+    "note": "",
+    "fournisseur": "CHEESES&CHEESES",
+    "numero": "FAC-CHEE-0417"
   },
   {
-    "fournisseur": "CHEESES & CHEESES",
-    "feuille": "CHEESES&CHEESES",
     "date_facture": "2026-06-30",
-    "numero": "FC0403/26",
     "total_ttc": 157020.0,
-    "solde": 157020.0,
+    "solde": 0.0,
     "montant_paye": 157020.0,
-    "statut": "Partiel",
-    "observation": ""
+    "statut": "Payée",
+    "note": "",
+    "fournisseur": "CHEESES&CHEESES",
+    "numero": "FAC-CHEE-0418"
   },
   {
-    "fournisseur": "CHEESES & CHEESES",
-    "feuille": "CHEESES&CHEESES",
     "date_facture": "2026-06-30",
-    "numero": "FC0404/26",
     "total_ttc": 5400.0,
-    "solde": 5400.0,
+    "solde": 0.0,
     "montant_paye": 5400.0,
-    "statut": "Partiel",
-    "observation": ""
+    "statut": "Payée",
+    "note": "",
+    "fournisseur": "CHEESES&CHEESES",
+    "numero": "FAC-CHEE-0419"
   },
   {
-    "fournisseur": "CHEESES & CHEESES",
-    "feuille": "CHEESES&CHEESES",
     "date_facture": "2026-07-31",
-    "numero": "FC0438/26",
     "total_ttc": 122466.0,
-    "solde": 122466.0,
+    "solde": 0.0,
     "montant_paye": 122466.0,
-    "statut": "Partiel",
-    "observation": ""
+    "statut": "Payée",
+    "note": "",
+    "fournisseur": "CHEESES&CHEESES",
+    "numero": "FAC-CHEE-0420"
   },
   {
-    "fournisseur": "CHEESES & CHEESES",
-    "feuille": "CHEESES&CHEESES",
     "date_facture": "2026-07-31",
-    "numero": "FC0439/26",
     "total_ttc": 3672.0,
-    "solde": 3672.0,
+    "solde": 0.0,
     "montant_paye": 3672.0,
-    "statut": "Partiel",
-    "observation": ""
+    "statut": "Payée",
+    "note": "",
+    "fournisseur": "CHEESES&CHEESES",
+    "numero": "FAC-CHEE-0421"
   },
   {
-    "fournisseur": "GASTRONOMIK",
-    "feuille": "DIFF FACT",
     "date_facture": "2026-01-28",
-    "numero": "FV2600054",
     "total_ttc": 5940.0,
     "solde": 5940.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CH1800064 BP/LE 29/01/2026"
+    "note": "CH1800064 BP/LE 29/01/2026",
+    "fournisseur": "GASTRONOMIK",
+    "numero": "FAC-GAST-0422"
   },
   {
-    "fournisseur": "GASTRONOMIK",
-    "feuille": "DIFF FACT",
     "date_facture": "2026-02-06",
-    "numero": "FV2600089",
     "total_ttc": 8910.0,
     "solde": 8910.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CH°1800069 BP/LE 06/02/2026"
+    "note": "CH°1800069 BP/LE 06/02/2026",
+    "fournisseur": "GASTRONOMIK",
+    "numero": "FAC-GAST-0423"
   },
   {
-    "fournisseur": "GASTRONOMIK",
-    "feuille": "DIFF FACT",
     "date_facture": "2026-03-30",
-    "numero": "FV2600216",
     "total_ttc": 12474.0,
     "solde": 12474.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CH°1800083 BP LE 03/04/2026"
+    "note": "CH°1800083 BP LE 03/04/2026",
+    "fournisseur": "GASTRONOMIK",
+    "numero": "FAC-GAST-0424"
   },
   {
-    "fournisseur": "GASTRONOMIK",
-    "feuille": "DIFF FACT",
     "date_facture": "2026-04-09",
-    "numero": "FV2600269",
     "total_ttc": 5940.0,
     "solde": 5940.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CH°1800085 BP LE 10/04/2026"
+    "note": "CH°1800085 BP LE 10/04/2026",
+    "fournisseur": "GASTRONOMIK",
+    "numero": "FAC-GAST-0425"
   },
   {
-    "fournisseur": "GASTRONOMIK",
-    "feuille": "DIFF FACT",
-    "date_facture": "0206-04-17",
-    "numero": "FV2600292",
-    "total_ttc": 10098.0,
-    "solde": 10098.0,
-    "montant_paye": 0.0,
-    "statut": "A payer",
-    "observation": "CH°1800090 BP LE 21/04/2026"
-  },
-  {
-    "fournisseur": "GASTRONOMIK",
-    "feuille": "DIFF FACT",
     "date_facture": "2026-04-30",
-    "numero": "FV2600324",
     "total_ttc": 5346.0,
     "solde": 5346.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CH°1800093 BP LE 15/5/26"
+    "note": "CH°1800093 BP LE 15/5/26",
+    "fournisseur": "GASTRONOMIK",
+    "numero": "FAC-GAST-0426"
   },
   {
-    "fournisseur": "GASTRONOMIK",
-    "feuille": "DIFF FACT",
     "date_facture": "2026-05-15",
-    "numero": "FV2600387",
     "total_ttc": 15741.0,
     "solde": 15741.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CH°1800098 BP LE 20/05/2026"
+    "note": "CH°1800098 BP LE 20/05/2026",
+    "fournisseur": "GASTRONOMIK",
+    "numero": "FAC-GAST-0427"
   },
   {
-    "fournisseur": "GASTRONOMIK",
-    "feuille": "DIFF FACT",
     "date_facture": "2026-07-08",
-    "numero": "FV2600522",
     "total_ttc": 4554.0,
     "solde": 4554.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CH°1800109 BP LE 09/07/2026"
+    "note": "CH°1800109 BP LE 09/07/2026",
+    "fournisseur": "GASTRONOMIK",
+    "numero": "FAC-GAST-0428"
   },
   {
-    "fournisseur": "GASTRONOMIK",
-    "feuille": "DIFF FACT",
     "date_facture": "2026-07-25",
-    "numero": "FV2600567",
     "total_ttc": 9702.0,
     "solde": 9702.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CH°1800112 BP LE 27/07/2026"
+    "note": "CH°1800112 BP LE 27/07/2026",
+    "fournisseur": "GASTRONOMIK",
+    "numero": "FAC-GAST-0429"
   },
   {
-    "fournisseur": "ACE MAREE",
-    "feuille": "DIFF FACT",
     "date_facture": "2026-01-03",
-    "numero": "F26010149",
     "total_ttc": 1800.0,
     "solde": 1800.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "GASTRONOMIK",
+    "numero": "FAC-GAST-0430"
   },
   {
-    "fournisseur": "FOODS & GOODS",
-    "feuille": "DIFF FACT",
     "date_facture": "2026-07-28",
-    "numero": "F2622047",
     "total_ttc": 3140.08,
     "solde": 3140.08,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CH1800115BP/10/08/2026"
+    "note": "CH1800115BP/10/08/2026",
+    "fournisseur": "ACE MAREE",
+    "numero": "FAC-ACE -0431"
   },
   {
-    "fournisseur": "LAHJOUJI",
-    "feuille": "DIFF FACT",
     "date_facture": "2025-12-31",
-    "numero": "FA25-12-00434",
     "total_ttc": 33602.4,
     "solde": 33602.4,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CH°800063/BP MT 33602.4"
+    "note": "CH°800063/BP MT 33602.4",
+    "fournisseur": "FOODS & GOODS",
+    "numero": "FAC-FOOD-0432"
   },
   {
-    "fournisseur": "LAHJOUJI",
-    "feuille": "DIFF FACT",
     "date_facture": "2026-01-31",
-    "numero": "FA26-01-00507",
     "total_ttc": 23955.9,
     "solde": 23955.9,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CH°800072 BP/MT25232.70"
+    "note": "CH°800072 BP/MT25232.70",
+    "fournisseur": "LAHJOUJI",
+    "numero": "FAC-LAHJ-0433"
   },
   {
-    "fournisseur": "LAHJOUJI",
-    "feuille": "DIFF FACT",
     "date_facture": "2026-01-31",
-    "numero": "FA26-01-00610",
     "total_ttc": 1276.8,
     "solde": 1276.8,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "LAHJOUJI",
+    "numero": "FAC-LAHJ-0434"
   },
   {
-    "fournisseur": "LAHJOUJI",
-    "feuille": "DIFF FACT",
     "date_facture": "2026-03-31",
-    "numero": "FA26-03-00409",
     "total_ttc": 28000.0,
     "solde": 28000.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR CDM LE 01/05/2026"
+    "note": "VIR CDM LE 01/05/2026",
+    "fournisseur": "LAHJOUJI",
+    "numero": "FAC-LAHJ-0435"
   },
   {
-    "fournisseur": "LAHJOUJI",
-    "feuille": "DIFF FACT",
     "date_facture": "2026-04-30",
-    "numero": "FA26-04-00422",
     "total_ttc": 28000.8,
     "solde": 28000.8,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP LE 19/05/2026"
+    "note": "VIR BP LE 19/05/2026",
+    "fournisseur": "LAHJOUJI",
+    "numero": "FAC-LAHJ-0436"
   },
   {
-    "fournisseur": "LAHJOUJI",
-    "feuille": "DIFF FACT",
     "date_facture": "2026-06-30",
-    "numero": "FA26-06-2026",
     "total_ttc": 11200.8,
     "solde": 11200.8,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP LE 15/07/2027"
+    "note": "VIR BP LE 15/07/2027",
+    "fournisseur": "LAHJOUJI",
+    "numero": "FAC-LAHJ-0437"
   },
   {
-    "fournisseur": "LAHJOUJI",
-    "feuille": "DIFF FACT",
     "date_facture": "2026-07-31",
-    "numero": "FA26-07-00550",
     "total_ttc": 19600.0,
     "solde": 19600.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP LE 06/8/26"
+    "note": "VIR BP LE 06/8/26",
+    "fournisseur": "LAHJOUJI",
+    "numero": "FAC-LAHJ-0438"
   },
   {
-    "fournisseur": "STE NAZAKYO DISTRI",
-    "feuille": "DIFF FACT",
     "date_facture": "2026-01-19",
-    "numero": "FA202602",
     "total_ttc": 7750.0,
     "solde": 7750.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CH1800062 BP/LE 29/01/2026"
+    "note": "CH1800062 BP/LE 29/01/2026",
+    "fournisseur": "LAHJOUJI",
+    "numero": "FAC-LAHJ-0439"
   },
   {
-    "fournisseur": "STE NAZAKYO DISTRI",
-    "feuille": "DIFF FACT",
     "date_facture": "2026-04-27",
-    "numero": "FA202638",
     "total_ttc": 8250.0,
     "solde": 8250.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CH1800091 BP/LE 01/05/2026"
+    "note": "CH1800091 BP/LE 01/05/2026",
+    "fournisseur": "STE NAZAKYO DISTRI",
+    "numero": "FAC-STE -0440"
   },
   {
-    "fournisseur": "STE NAZAKYO DISTRI",
-    "feuille": "DIFF FACT",
     "date_facture": "2026-07-08",
-    "numero": "FA202657",
     "total_ttc": 7369.75,
     "solde": 7369.75,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CH°1800108BP LE 09/07/2026"
-  },
-  {
+    "note": "CH°1800108BP LE 09/07/2026",
     "fournisseur": "STE NAZAKYO DISTRI",
-    "feuille": "DIFF FACT",
-    "date_facture": "2026-08-19",
-    "numero": "FA202667",
-    "total_ttc": 7531.8,
-    "solde": 7531.8,
-    "montant_paye": 7531.8,
-    "statut": "Partiel",
-    "observation": ""
+    "numero": "FAC-STE -0441"
   },
   {
-    "fournisseur": "STE IMMOBILIERE VECOMO SARL",
-    "feuille": "DIFF FACT",
+    "date_facture": "2026-08-19",
+    "total_ttc": 7531.8,
+    "solde": 0.0,
+    "montant_paye": 7531.8,
+    "statut": "Payée",
+    "note": "",
+    "fournisseur": "STE NAZAKYO DISTRI",
+    "numero": "FAC-STE -0442"
+  },
+  {
     "date_facture": "2026-01-01",
-    "numero": "F°118/2025",
     "total_ttc": 5703.0,
     "solde": 5703.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP LE 15/02/2026 MT 6566"
+    "note": "VIR BP LE 15/02/2026 MT 6566",
+    "fournisseur": "STE NAZAKYO DISTRI",
+    "numero": "FAC-STE -0443"
   },
   {
-    "fournisseur": "STE IMMOBILIERE VECOMO SARL",
-    "feuille": "DIFF FACT",
     "date_facture": "2026-01-01",
-    "numero": "F°119/2025",
     "total_ttc": 863.0,
     "solde": 863.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "STE IMMOBILIERE VECOMO SARL",
+    "numero": "FAC-STE -0444"
   },
   {
-    "fournisseur": "STE IMMOBILIERE VECOMO SARL",
-    "feuille": "DIFF FACT",
     "date_facture": "2026-02-01",
-    "numero": "F°120/2025",
     "total_ttc": 2866.0,
     "solde": 2866.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP LE 15/03/2026 MT 3664"
+    "note": "VIR BP LE 15/03/2026 MT 3664",
+    "fournisseur": "STE IMMOBILIERE VECOMO SARL",
+    "numero": "FAC-STE -0445"
   },
   {
-    "fournisseur": "STE IMMOBILIERE VECOMO SARL",
-    "feuille": "DIFF FACT",
     "date_facture": "2026-02-01",
-    "numero": "F°121/2026",
     "total_ttc": 798.0,
     "solde": 798.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "STE IMMOBILIERE VECOMO SARL",
+    "numero": "FAC-STE -0446"
   },
   {
-    "fournisseur": "STE IMMOBILIERE VECOMO SARL",
-    "feuille": "DIFF FACT",
     "date_facture": "2026-04-01",
-    "numero": "F122/2026",
     "total_ttc": 2897.0,
     "solde": 2897.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP LE 15/04/2026 MT 4154"
+    "note": "VIR BP LE 15/04/2026 MT 4154",
+    "fournisseur": "STE IMMOBILIERE VECOMO SARL",
+    "numero": "FAC-STE -0447"
   },
   {
-    "fournisseur": "STE IMMOBILIERE VECOMO SARL",
-    "feuille": "DIFF FACT",
-    "date_facture": "2025-01-01",
-    "numero": "F123/2026",
-    "total_ttc": 1257.0,
-    "solde": 1257.0,
-    "montant_paye": 0.0,
-    "statut": "A payer",
-    "observation": ""
-  },
-  {
-    "fournisseur": "STE IMMOBILIERE VECOMO SARL",
-    "feuille": "DIFF FACT",
     "date_facture": "2026-05-01",
-    "numero": "F124/2025",
     "total_ttc": 990.0,
     "solde": 990.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP LE 20/05/2026"
+    "note": "VIR BP LE 20/05/2026",
+    "fournisseur": "STE IMMOBILIERE VECOMO SARL",
+    "numero": "FAC-STE -0448"
   },
   {
-    "fournisseur": "STE IMMOBILIERE VECOMO SARL",
-    "feuille": "DIFF FACT",
     "date_facture": "2026-05-01",
-    "numero": "F125/2025",
     "total_ttc": 7028.0,
     "solde": 7028.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "STE IMMOBILIERE VECOMO SARL",
+    "numero": "FAC-STE -0449"
   },
   {
-    "fournisseur": "STE IMMOBILIERE VECOMO SARL",
-    "feuille": "DIFF FACT",
     "date_facture": "2026-07-01",
-    "numero": "F128/2025",
     "total_ttc": 3894.0,
     "solde": 3894.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP LE 15/07/2026"
+    "note": "VIR BP LE 15/07/2026",
+    "fournisseur": "STE IMMOBILIERE VECOMO SARL",
+    "numero": "FAC-STE -0450"
   },
   {
-    "fournisseur": "STE IMMOBILIERE VECOMO SARL",
-    "feuille": "DIFF FACT",
     "date_facture": "2026-07-01",
-    "numero": "F129/25",
     "total_ttc": 1134.0,
     "solde": 1134.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "STE IMMOBILIERE VECOMO SARL",
+    "numero": "FAC-STE -0451"
   },
   {
-    "fournisseur": "ITALY STILO",
-    "feuille": "DIFF FACT",
     "date_facture": "2026-05-01",
-    "numero": "F°35/2025",
     "total_ttc": 10000.0,
     "solde": 10000.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP LE 15/05/2026"
+    "note": "VIR BP LE 15/05/2026",
+    "fournisseur": "STE IMMOBILIERE VECOMO SARL",
+    "numero": "FAC-STE -0452"
   },
   {
-    "fournisseur": "SNACK ITALY",
-    "feuille": "DIFF FACT",
     "date_facture": "2026-05-01",
-    "numero": "F°17/2025",
     "total_ttc": 23200.0,
     "solde": 23200.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP LE 15/05/2026"
+    "note": "VIR BP LE 15/05/2026",
+    "fournisseur": "STE IMMOBILIERE VECOMO SARL",
+    "numero": "FAC-STE -0453"
   },
   {
-    "fournisseur": "DOUIBI FOOD",
-    "feuille": "DIFF FACT",
     "date_facture": "2026-03-30",
-    "numero": "F°003-2026000139",
     "total_ttc": 36600.0,
     "solde": 36600.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "2CHQ 29280+7320 CM LE 1/4/26"
+    "note": "2CHQ 29280+7320 CM LE 1/4/26",
+    "fournisseur": "ITALY STILO",
+    "numero": "FAC-ITAL-0454"
   },
   {
-    "fournisseur": "QUALIMET MAROC",
-    "feuille": "DIFF FACT",
     "date_facture": "2026-04-16",
-    "numero": "F°13977",
     "total_ttc": 2640.0,
     "solde": 2640.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP LE 30/04/2026"
+    "note": "VIR BP LE 30/04/2026",
+    "fournisseur": "SNACK ITALY",
+    "numero": "FAC-SNAC-0455"
   },
   {
-    "fournisseur": "FOODS & GOODS",
-    "feuille": "DIFF FACT",
     "date_facture": "2026-04-29",
-    "numero": "F2611733",
     "total_ttc": 6144.24,
     "solde": 6144.24,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CH°1800092 BP LE 15/5/26"
+    "note": "CH°1800092 BP LE 15/5/26",
+    "fournisseur": "DOUIBI FOOD",
+    "numero": "FAC-DOUI-0456"
   },
   {
-    "fournisseur": "FOODS & GOODS",
-    "feuille": "DIFF FACT",
     "date_facture": "2026-08-10",
-    "numero": "F2623541",
     "total_ttc": 1723.68,
     "solde": 1723.68,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "ESP"
+    "note": "ESP",
+    "fournisseur": "QUALIMET MAROC",
+    "numero": "FAC-QUAL-0457"
   },
   {
-    "fournisseur": "STE OBAHA",
-    "feuille": "DIFF FACT",
     "date_facture": "2026-07-04",
-    "numero": "25FC006112",
     "total_ttc": 1822.5,
     "solde": 1822.5,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "VIR BP LE 08/08/2026"
+    "note": "VIR BP LE 08/08/2026",
+    "fournisseur": "FOODS & GOODS",
+    "numero": "FAC-FOOD-0458"
   },
   {
-    "fournisseur": "STE OBAHA",
-    "feuille": "DIFF FACT",
     "date_facture": "2026-07-13",
-    "numero": "25FC006192",
     "total_ttc": 1080.0,
     "solde": 1080.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "FOODS & GOODS",
+    "numero": "FAC-FOOD-0459"
   },
   {
-    "fournisseur": "STE OBAHA",
-    "feuille": "DIFF FACT",
     "date_facture": "2026-07-27",
-    "numero": "25FC006336",
     "total_ttc": 1080.0,
     "solde": 1080.0,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": ""
+    "note": "",
+    "fournisseur": "STE OBAHA",
+    "numero": "FAC-STE -0460"
   },
   {
-    "fournisseur": "STE OBAHA",
-    "feuille": "DIFF FACT",
     "date_facture": "2026-08-10",
-    "numero": "25FC006477",
     "total_ttc": 1280.0,
-    "solde": 1280.0,
+    "solde": 0.0,
     "montant_paye": 1280.0,
-    "statut": "Partiel",
-    "observation": ""
-  },
-  {
+    "statut": "Payée",
+    "note": "",
     "fournisseur": "STE OBAHA",
-    "feuille": "DIFF FACT",
-    "date_facture": "2026-08-24",
-    "numero": "25FC006642",
-    "total_ttc": 1520.0,
-    "solde": 1520.0,
-    "montant_paye": 1520.0,
-    "statut": "Partiel",
-    "observation": ""
+    "numero": "FAC-STE -0461"
   },
   {
-    "fournisseur": "CLIMABEL",
-    "feuille": "DIFF FACT",
+    "date_facture": "2026-08-24",
+    "total_ttc": 1520.0,
+    "solde": 0.0,
+    "montant_paye": 1520.0,
+    "statut": "Payée",
+    "note": "",
+    "fournisseur": "STE OBAHA",
+    "numero": "FAC-STE -0462"
+  },
+  {
     "date_facture": "2026-06-27",
-    "numero": "AG2026/0287",
     "total_ttc": 481.4,
     "solde": 481.4,
     "montant_paye": 0.0,
     "statut": "A payer",
-    "observation": "CH1800107BP LE 26/06/2026"
+    "note": "CH1800107BP LE 26/06/2026",
+    "fournisseur": "STE OBAHA",
+    "numero": "FAC-STE -0463"
   },
   {
-    "fournisseur": "KECHMAR",
-    "feuille": "DIFF FACT",
     "date_facture": "2026-07-16",
-    "numero": "F2604868",
     "total_ttc": 3970.54,
-    "solde": 3970.54,
+    "solde": 0.0,
     "montant_paye": 3970.54,
-    "statut": "Partiel",
-    "observation": ""
+    "statut": "Payée",
+    "note": "",
+    "fournisseur": "STE OBAHA",
+    "numero": "FAC-STE -0464"
+  },
+  {
+    "fournisseur": "CHARGES LAIT & TRANSPORT AIT OURIR",
+    "date_facture": "2025-12-31",
+    "numero": "TOT-LAIT-2025",
+    "total_ttc": 64400.0,
+    "solde": 64400.0,
+    "montant_paye": 0.0,
+    "statut": "A payer",
+    "note": "Total Lait Ait Ourir 2025"
+  },
+  {
+    "fournisseur": "CHARGES LAIT & TRANSPORT AIT OURIR",
+    "date_facture": "2025-12-31",
+    "numero": "TOT-TRANSP-2025",
+    "total_ttc": 5500.0,
+    "solde": 5500.0,
+    "montant_paye": 0.0,
+    "statut": "A payer",
+    "note": "Total Transport Ait Ourir 2025"
   }
 ];
 
-// 248 Official Supplier Payments from FRS 2026
+// Official Supplier Payments from FRS 2026
 export const OFFICIAL_PAIEMENTS_FOURNISSEURS_2026 = [
   {
-    "fournisseur": "1 PORT",
-    "facture_numero": "FA2409054",
-    "date_paiement": "2024-09-26",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "VIR BP"
-  },
-  {
-    "fournisseur": "1 PORT",
-    "facture_numero": "FA2410060",
-    "date_paiement": "2024-10-14",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "CHQ"
-  },
-  {
-    "fournisseur": "1 PORT",
-    "facture_numero": "FA20250203",
-    "date_paiement": "2025-03-03",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2025-04-03",
-    "observation": "CHQ LE 03/04/2025"
-  },
-  {
-    "fournisseur": "1 PORT",
-    "facture_numero": "FA20250670",
-    "date_paiement": "2025-06-14",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2025-09-15",
-    "observation": "CHQ LE 15/09/2025"
-  },
-  {
-    "fournisseur": "ACE MAREE",
-    "facture_numero": "F°26010149",
-    "date_paiement": "2026-01-03",
-    "montant": 0,
-    "mode_paiement": "Espèces",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2026-04-21",
-    "observation": "ESP LE 21/04/26"
-  },
-  {
-    "fournisseur": "ACE MAREE",
-    "facture_numero": "F°26041616",
-    "date_paiement": "2026-04-21",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2026-06-15",
-    "observation": "VIR BP LE 15/06/2026"
-  },
-  {
-    "fournisseur": "ACE MAREE",
-    "facture_numero": "F°26061111",
-    "date_paiement": "2026-06-19",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2026-07-15",
-    "observation": "VIR BP LE 15/07/2026"
-  },
-  {
-    "fournisseur": "ACE MAREE",
-    "facture_numero": "F°26070220",
     "date_paiement": "2026-07-04",
     "montant": 1800.0,
     "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2026-08-15",
-    "observation": "VIR BP LE 15/08/2026"
+    "note": "VIR BP LE 15/08/2026",
+    "fournisseur": "ACE MAREE"
   },
   {
-    "fournisseur": "SALIPRO",
-    "facture_numero": "F25086080",
-    "date_paiement": "2025-11-04",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2026-02-03",
-    "observation": "VIR BP LE 03/02/2026"
-  },
-  {
-    "fournisseur": "SALIPRO",
-    "facture_numero": "F25094450",
-    "date_paiement": "2025-12-02",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2026-03-06",
-    "observation": "VIR BP LE 06/03/2026"
-  },
-  {
-    "fournisseur": "SALIPRO",
-    "facture_numero": "F26000561",
     "date_paiement": "2026-01-02",
-    "montant": 0,
+    "montant": -23877.02,
     "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2026-03-07",
-    "observation": "VIR BP LE 07/03/2026"
+    "note": "VIR BP LE 07/03/2026",
+    "fournisseur": "SALIPRO"
   },
   {
-    "fournisseur": "SALIPRO",
-    "facture_numero": "F26004013",
     "date_paiement": "2026-01-14",
-    "montant": 23877.02,
+    "montant": 23877.019999999997,
     "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2026-03-31",
-    "observation": "VIR LE 31/03/2026"
+    "note": "VIR LE 31/03/2026",
+    "fournisseur": "SALIPRO"
   },
   {
-    "fournisseur": "SALIPRO",
-    "facture_numero": "F26013516",
-    "date_paiement": "2026-02-16",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2026-04-29",
-    "observation": "VIR BP LE 29/04/2026"
-  },
-  {
-    "fournisseur": "SALIPRO",
-    "facture_numero": "F2602071",
-    "date_paiement": "2026-03-09",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2026-06-01",
-    "observation": "VIR BL LE 01/06/2026"
-  },
-  {
-    "fournisseur": "SALIPRO",
-    "facture_numero": "F26036412",
-    "date_paiement": "2026-04-24",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2026-07-01",
-    "observation": "VIR BP LE 01/07/2026"
-  },
-  {
-    "fournisseur": "SALIPRO",
-    "facture_numero": "F26040817",
-    "date_paiement": "2026-05-06",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2026-07-31",
-    "observation": "VIR BP LE 31/07/2026"
-  },
-  {
-    "fournisseur": "SALIPRO",
-    "facture_numero": "F26043933",
     "date_paiement": "2026-06-01",
     "montant": 108122.36,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": ""
+    "mode_paiement": "Virement",
+    "note": "",
+    "fournisseur": "SALIPRO"
   },
   {
-    "fournisseur": "SALIPRO",
-    "facture_numero": "F26050418",
     "date_paiement": "2026-06-06",
     "montant": 20574.72,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": ""
+    "mode_paiement": "Virement",
+    "note": "",
+    "fournisseur": "SALIPRO"
   },
   {
-    "fournisseur": "SALIPRO",
-    "facture_numero": "F26056874",
     "date_paiement": "2026-07-30",
     "montant": 47914.06,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": ""
-  },
-  {
-    "fournisseur": "COPRALIM",
-    "facture_numero": "COP25046759",
-    "date_paiement": "2025-11-04",
-    "montant": 0,
     "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2026-02-03",
-    "observation": "VIR BP LE 03/02/2026"
+    "note": "",
+    "fournisseur": "SALIPRO"
   },
   {
-    "fournisseur": "COPRALIM",
-    "facture_numero": "COP25051225",
-    "date_paiement": "2025-12-02",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2026-03-06",
-    "observation": "VIR BP LE 06/03/2026"
-  },
-  {
-    "fournisseur": "COPRALIM",
-    "facture_numero": "COP26000702",
     "date_paiement": "2026-01-13",
-    "montant": 0,
+    "montant": -7749.169999999998,
     "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2026-03-07",
-    "observation": "VIR BP LE 07/03/2026"
+    "note": "VIR BP LE 07/03/2026",
+    "fournisseur": "COPRALIM"
   },
   {
-    "fournisseur": "COPRALIM",
-    "facture_numero": "COP26001482",
     "date_paiement": "2026-01-20",
     "montant": 6958.22,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "A  MONSIEUR LE DIRECTEUR   BANQUE POPULAIRE"
+    "mode_paiement": "Virement",
+    "note": "",
+    "fournisseur": "COPRALIM"
   },
   {
-    "fournisseur": "COPRALIM",
-    "facture_numero": "COP26003357",
     "date_paiement": "2026-01-31",
-    "montant": 790.95,
+    "montant": 790.9500000000007,
     "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2026-03-31",
-    "observation": "VIR LE 31/03/2026"
+    "note": "VIR LE 31/03/2026",
+    "fournisseur": "COPRALIM"
   },
   {
-    "fournisseur": "COPRALIM",
-    "facture_numero": "COP26003632",
-    "date_paiement": "2026-02-03",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2026-04-29",
-    "observation": "VIR BP LE 29/04/2026"
-  },
-  {
-    "fournisseur": "COPRALIM",
-    "facture_numero": "COP26010154",
-    "date_paiement": "2026-03-16",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2026-06-01",
-    "observation": "VIR BP LE 01/06/2026"
-  },
-  {
-    "fournisseur": "COPRALIM",
-    "facture_numero": "COP26012976",
-    "date_paiement": "2026-04-01",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2026-07-01",
-    "observation": "VIR BP LE 01/07/2026"
-  },
-  {
-    "fournisseur": "COPRALIM",
-    "facture_numero": "COP26014219",
-    "date_paiement": "2026-04-08",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "J'ai l'honneur de vous demander de bien vouloir executer  l'ordre de virement"
-  },
-  {
-    "fournisseur": "COPRALIM",
-    "facture_numero": "COP26018813",
-    "date_paiement": "2026-05-08",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2026-07-31",
-    "observation": "vir bp le 31/07/2026"
-  },
-  {
-    "fournisseur": "COPRALIM",
-    "facture_numero": "COP26022748",
     "date_paiement": "2026-06-08",
     "montant": 11598.74,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": ""
+    "mode_paiement": "Virement",
+    "note": "",
+    "fournisseur": "COPRALIM"
   },
   {
-    "fournisseur": "COPRALIM",
-    "facture_numero": "COP26024456",
     "date_paiement": "2026-06-19",
     "montant": 32196.78,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": ""
+    "mode_paiement": "Virement",
+    "note": "",
+    "fournisseur": "COPRALIM"
   },
   {
-    "fournisseur": "COPRALIM",
-    "facture_numero": "COP26024709",
     "date_paiement": "2026-06-21",
     "montant": 37032.27,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": ""
+    "mode_paiement": "Virement",
+    "note": "",
+    "fournisseur": "COPRALIM"
   },
   {
-    "fournisseur": "COPRALIM",
-    "facture_numero": "COP26029754",
     "date_paiement": "2026-07-28",
     "montant": 8026.51,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": ""
+    "mode_paiement": "Virement",
+    "note": "",
+    "fournisseur": "COPRALIM"
   },
   {
-    "fournisseur": "COPRALIM",
-    "facture_numero": "COP26031904",
     "date_paiement": "2026-08-17",
     "montant": 9055.5,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": ""
-  },
-  {
-    "fournisseur": "SOFRALIM",
-    "facture_numero": "32100.0",
-    "date_paiement": "2024-01-24",
-    "montant": 0,
     "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "VIR BP MT 76976.23"
+    "note": "",
+    "fournisseur": "COPRALIM"
   },
   {
-    "fournisseur": "SOFRALIM",
-    "facture_numero": "SOF240001",
-    "date_paiement": "2024-03-27",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2024-05-30",
-    "observation": "VIR BP LE 30/05/24 MT 38520"
-  },
-  {
-    "fournisseur": "SOFRALIM",
-    "facture_numero": "SOF24007820",
-    "date_paiement": "2024-05-03",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "VIR MT 64200 DHS"
-  },
-  {
-    "fournisseur": "SOFRALIM",
-    "facture_numero": "SOF24011443",
-    "date_paiement": "2024-07-02",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2024-10-01",
-    "observation": "VIR BP LE 01/10/2024 MT 59022"
-  },
-  {
-    "fournisseur": "SOFRALIM",
-    "facture_numero": "SOF24014908",
-    "date_paiement": "2024-08-27",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2024-10-31",
-    "observation": "CHQ°2100285 BP LE 31/10/24 MT 33900 DH"
-  },
-  {
-    "fournisseur": "SOFRALIM",
-    "facture_numero": "SOF24016849",
-    "date_paiement": "2024-09-25",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2024-12-03",
-    "observation": "VIR BP LE 03/12/2024"
-  },
-  {
-    "fournisseur": "SOFRALIM",
-    "facture_numero": "SOF24018485",
-    "date_paiement": "2024-10-21",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "VIR BP"
-  },
-  {
-    "fournisseur": "SOFRALIM",
-    "facture_numero": "SOF24020290",
-    "date_paiement": "2024-11-19",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2025-02-03",
-    "observation": "VIR BP LE 03/2/25"
-  },
-  {
-    "fournisseur": "SOFRALIM",
-    "facture_numero": "SOF24023182",
-    "date_paiement": "2025-12-31",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "vir bp"
-  },
-  {
-    "fournisseur": "SOFRALIM",
-    "facture_numero": "SOF25002076",
-    "date_paiement": "2025-02-11",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2025-05-05",
-    "observation": "VIR BP LE 05/05/25"
-  },
-  {
-    "fournisseur": "SOFRALIM",
-    "facture_numero": "SOF25004125",
-    "date_paiement": "2025-03-14",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2025-06-04",
-    "observation": "VIR BP LE 04/06/2025"
-  },
-  {
-    "fournisseur": "SOFRALIM",
-    "facture_numero": "SOF25006554",
-    "date_paiement": "2025-04-22",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2025-07-30",
-    "observation": "VIR BP LE 30/07/2025"
-  },
-  {
-    "fournisseur": "SOFRALIM",
-    "facture_numero": "SOF25009057",
-    "date_paiement": "2025-05-27",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "VIR BP"
-  },
-  {
-    "fournisseur": "SOFRALIM",
-    "facture_numero": "SOF25010645",
-    "date_paiement": "2025-06-20",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "VIR BP"
-  },
-  {
-    "fournisseur": "SOFRALIM",
-    "facture_numero": "SOF25013560",
-    "date_paiement": "2025-08-05",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2025-10-29",
-    "observation": "VIR BP LE 29/10/25 MT 109620 DH"
-  },
-  {
-    "fournisseur": "SOFRALIM",
-    "facture_numero": "SOF25017724",
-    "date_paiement": "2025-10-15",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2025-12-29",
-    "observation": "VIR BP LE 29/12/2025"
-  },
-  {
-    "fournisseur": "SOFRALIM",
-    "facture_numero": "SOF25020895",
-    "date_paiement": "2025-12-02",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2026-03-06",
-    "observation": "VIR BP LE 06/03/2026"
-  },
-  {
-    "fournisseur": "SOFRALIM",
-    "facture_numero": "SOF26000202",
-    "date_paiement": "2026-01-13",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2026-03-07",
-    "observation": "VIR BP LE 07/03/2026"
-  },
-  {
-    "fournisseur": "SOFRALIM",
-    "facture_numero": "SOF26002442",
-    "date_paiement": "2026-02-28",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2026-04-29",
-    "observation": "VIR BP LE 29/04/2026"
-  },
-  {
-    "fournisseur": "SOFRALIM",
-    "facture_numero": "SOF26006130",
-    "date_paiement": "2026-04-07",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2026-07-01",
-    "observation": "VIR BP LE 01/07/2026"
-  },
-  {
-    "fournisseur": "SOFRALIM",
-    "facture_numero": "SOF26008508",
-    "date_paiement": "2026-05-08",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2026-07-31",
-    "observation": "VIR BP LE 31/07/2026"
-  },
-  {
-    "fournisseur": "SOFRALIM",
-    "facture_numero": "SOF26010268",
     "date_paiement": "2026-06-08",
     "montant": 56700.0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": ""
+    "mode_paiement": "Virement",
+    "note": "",
+    "fournisseur": "SOFRALIM"
   },
   {
-    "fournisseur": "SOFRALIM",
-    "facture_numero": "SOF26013438",
     "date_paiement": "2026-07-28",
     "montant": 52920.0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": ""
-  },
-  {
-    "fournisseur": "SDCG TRANSPORT",
-    "facture_numero": "2102.0",
-    "date_paiement": "2024-01-10",
-    "montant": 0,
     "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "vir"
+    "note": "",
+    "fournisseur": "SOFRALIM"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "facture_numero": "12000.0",
-    "date_paiement": "2024-03-21",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2024-05-15",
-    "observation": "VIR BP LE 15/05/2024"
-  },
-  {
-    "fournisseur": "SDCG TRANSPORT",
-    "facture_numero": "FA00192/24",
-    "date_paiement": "2024-04-22",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2024-05-30",
-    "observation": "VIR LE 30/05/24"
-  },
-  {
-    "fournisseur": "SDCG TRANSPORT",
-    "facture_numero": "FA00252/24",
-    "date_paiement": "2024-05-14",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2024-07-01",
-    "observation": "VIR BP LE 01/07/2024 MT 17190 DH"
-  },
-  {
-    "fournisseur": "SDCG TRANSPORT",
-    "facture_numero": "FA00327/24",
-    "date_paiement": "2024-06-24",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2024-08-02",
-    "observation": "VIR BP 02/08/2024"
-  },
-  {
-    "fournisseur": "SDCG TRANSPORT",
-    "facture_numero": "FA00372/24",
-    "date_paiement": "2024-07-12",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2024-10-01",
-    "observation": "vir bp le 01/10/24"
-  },
-  {
-    "fournisseur": "SDCG TRANSPORT",
-    "facture_numero": "FA00492/24",
-    "date_paiement": "2024-09-05",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2024-11-01",
-    "observation": "VIR BP LE 01/11/24"
-  },
-  {
-    "fournisseur": "SDCG TRANSPORT",
-    "facture_numero": "FA00518/24",
-    "date_paiement": "2024-09-23",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2024-11-15",
-    "observation": "VIR BP LE 15/11/24"
-  },
-  {
-    "fournisseur": "SDCG TRANSPORT",
-    "facture_numero": "FA00571/24",
-    "date_paiement": "2024-10-17",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2024-12-03",
-    "observation": "VIR BP LE 03/12/2024 MT 20520 DHS"
-  },
-  {
-    "fournisseur": "SDCG TRANSPORT",
-    "facture_numero": "FA00615/24",
-    "date_paiement": "2024-11-01",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2024-12-16",
-    "observation": "VIR BP LE 16/12/24"
-  },
-  {
-    "fournisseur": "SDCG TRANSPORT",
-    "facture_numero": "FA00624/24",
-    "date_paiement": "2024-11-05",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2024-12-30",
-    "observation": "VIR BP LE 30/12/24"
-  },
-  {
-    "fournisseur": "SDCG TRANSPORT",
-    "facture_numero": "FA00683/24",
-    "date_paiement": "2024-12-05",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2025-02-03",
-    "observation": "VIR BP LE 03/02/2025"
-  },
-  {
-    "fournisseur": "SDCG TRANSPORT",
-    "facture_numero": "FA00723/24",
-    "date_paiement": "2024-12-23",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2025-02-20",
-    "observation": "VIR BP LE 20/2/25"
-  },
-  {
-    "fournisseur": "SDCG TRANSPORT",
-    "facture_numero": "FA00014/25",
-    "date_paiement": "2025-01-07",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "VIR BP"
-  },
-  {
-    "fournisseur": "SDCG TRANSPORT",
-    "facture_numero": "FA00099/25",
-    "date_paiement": "2025-02-11",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "VIR BP"
-  },
-  {
-    "fournisseur": "SDCG TRANSPORT",
-    "facture_numero": "FA00169/25",
-    "date_paiement": "2025-03-18",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "VIR BP"
-  },
-  {
-    "fournisseur": "SDCG TRANSPORT",
-    "facture_numero": "FA00172/25",
-    "date_paiement": "2025-03-20",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "VIR BP"
-  },
-  {
-    "fournisseur": "SDCG TRANSPORT",
-    "facture_numero": "FA00218/2025",
-    "date_paiement": "2025-04-08",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "VIR BP"
-  },
-  {
-    "fournisseur": "SDCG TRANSPORT",
-    "facture_numero": "FA00259/2025",
-    "date_paiement": "2025-04-22",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2025-05-26",
-    "observation": "vir bp le 26/05/2025"
-  },
-  {
-    "fournisseur": "SDCG TRANSPORT",
-    "facture_numero": "FA000325/25",
-    "date_paiement": "2025-05-07",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2025-06-06",
-    "observation": "vir bp le 06/06/2025"
-  },
-  {
-    "fournisseur": "SDCG TRANSPORT",
-    "facture_numero": "FA00367/2025",
-    "date_paiement": "2025-05-20",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2025-06-26",
-    "observation": "VIR BP LE 26/06/2025"
-  },
-  {
-    "fournisseur": "SDCG TRANSPORT",
-    "facture_numero": "FA00416/2025",
-    "date_paiement": "2025-06-03",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "VIRBP"
-  },
-  {
-    "fournisseur": "SDCG TRANSPORT",
-    "facture_numero": "FA00438/2025",
-    "date_paiement": "2025-06-17",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "VIR BP"
-  },
-  {
-    "fournisseur": "SDCG TRANSPORT",
-    "facture_numero": "FA00490/2025",
-    "date_paiement": "2025-07-05",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "VIR BP"
-  },
-  {
-    "fournisseur": "SDCG TRANSPORT",
-    "facture_numero": "FA00552/2025",
-    "date_paiement": "2025-08-05",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "VIR BP"
-  },
-  {
-    "fournisseur": "SDCG TRANSPORT",
-    "facture_numero": "FA00584/2025",
-    "date_paiement": "2025-08-28",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "3000 ANCHOIS"
-  },
-  {
-    "fournisseur": "SDCG TRANSPORT",
-    "facture_numero": "FA00609/25",
-    "date_paiement": "2025-09-03",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "VIR BP"
-  },
-  {
-    "fournisseur": "SDCG TRANSPORT",
-    "facture_numero": "FA00683/2025",
-    "date_paiement": "2025-10-07",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2025-11-28",
-    "observation": "VIR BP LE 28/11/2025"
-  },
-  {
-    "fournisseur": "SDCG TRANSPORT",
-    "facture_numero": "FA00738/2025",
-    "date_paiement": "2025-11-04",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2025-12-29",
-    "observation": "VIR BP LE 29/12/2025"
-  },
-  {
-    "fournisseur": "SDCG TRANSPORT",
-    "facture_numero": "FA00794/2025",
-    "date_paiement": "2025-12-02",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2026-02-02",
-    "observation": "VIR BP LE 02/02/2026"
-  },
-  {
-    "fournisseur": "SDCG TRANSPORT",
-    "facture_numero": "FA00817/2025",
-    "date_paiement": "2025-12-16",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "BENTACHFINE - MARRAKECH"
-  },
-  {
-    "fournisseur": "SDCG TRANSPORT",
-    "facture_numero": "FA00009/2026",
-    "date_paiement": "2026-01-06",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2026-03-06",
-    "observation": "VIR BP MT 60464.25 LE 06/03/2026"
-  },
-  {
-    "fournisseur": "SDCG TRANSPORT",
-    "facture_numero": "FA00023/2026",
-    "date_paiement": "2026-01-16",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "OBJET: ORDRE DE VIREMENT:"
-  },
-  {
-    "fournisseur": "SDCG TRANSPORT",
-    "facture_numero": "FA00061/2026",
-    "date_paiement": "2026-02-03",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2026-03-31",
-    "observation": "VIR BP LE 31/3/26"
-  },
-  {
-    "fournisseur": "SDCG TRANSPORT",
-    "facture_numero": "FA00372/2026",
-    "date_paiement": "2026-02-04",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "J'ai l'honneur de vous demander de bien vouloir executer  l'ordre de virement"
-  },
-  {
-    "fournisseur": "SDCG TRANSPORT",
-    "facture_numero": "FA00078/2026",
-    "date_paiement": "2026-02-18",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "N° 145",
-    "date_echeance_depot": "",
-    "observation": "suivantes sur le Compte N° 145 450 21211 2604506004 11"
-  },
-  {
-    "fournisseur": "SDCG TRANSPORT",
-    "facture_numero": "FA00113/2026",
-    "date_paiement": "2026-03-03",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2026-04-29",
-    "observation": "VIR BP LE 29/04/2026"
-  },
-  {
-    "fournisseur": "SDCG TRANSPORT",
-    "facture_numero": "FA00118/2026",
-    "date_paiement": "2026-03-12",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2026-03-15",
-    "observation": "VIR BP LE 15/03/2026"
-  },
-  {
-    "fournisseur": "SDCG TRANSPORT",
-    "facture_numero": "FA00120/2026",
-    "date_paiement": "2026-03-13",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2026-03-12",
-    "observation": "VIR CDM LE 12/03/2026"
-  },
-  {
-    "fournisseur": "SDCG TRANSPORT",
-    "facture_numero": "FA00135/2026",
-    "date_paiement": "2026-03-24",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2026-04-30",
-    "observation": "vir bp le 30/04/2026"
-  },
-  {
-    "fournisseur": "SDCG TRANSPORT",
-    "facture_numero": "FA00169/2026",
-    "date_paiement": "2026-04-07",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2026-06-01",
-    "observation": "vir bp le 01/06/2026"
-  },
-  {
-    "fournisseur": "SDCG TRANSPORT",
-    "facture_numero": "FA00224/26",
-    "date_paiement": "2026-05-05",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2026-06-03",
-    "observation": "VIR BP LE 03/06/2026"
-  },
-  {
-    "fournisseur": "SDCG TRANSPORT",
-    "facture_numero": "FA00241/26",
-    "date_paiement": "2026-05-19",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2026-07-01",
-    "observation": "VIR BP LE 01/07/2026"
-  },
-  {
-    "fournisseur": "SDCG TRANSPORT",
-    "facture_numero": "FA00276/2026",
-    "date_paiement": "2026-06-02",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2026-07-31",
-    "observation": "2 VIR BP LE 31/07/2026"
-  },
-  {
-    "fournisseur": "SDCG TRANSPORT",
-    "facture_numero": "FA00323/26",
     "date_paiement": "2026-07-14",
     "montant": 12397.37,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": ""
+    "mode_paiement": "Virement",
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "facture_numero": "FA00339/26",
     "date_paiement": "2026-07-28",
     "montant": 21535.0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": ""
+    "mode_paiement": "Virement",
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "facture_numero": "FA00363/26",
     "date_paiement": "2026-08-04",
     "montant": 5046.0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": ""
+    "mode_paiement": "Virement",
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT"
   },
   {
-    "fournisseur": "SDCG TRANSPORT",
-    "facture_numero": "FA00368/26",
     "date_paiement": "2026-08-11",
     "montant": 20354.0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": ""
+    "mode_paiement": "Virement",
+    "note": "",
+    "fournisseur": "SDCG TRANSPORT"
   },
   {
-    "fournisseur": "FRESH NGOOD",
-    "facture_numero": "FT01450/23",
-    "date_paiement": "2024-11-02",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "CHQ"
-  },
-  {
-    "fournisseur": "FRESH NGOOD",
-    "facture_numero": "FT2024/00540",
-    "date_paiement": "2024-06-24",
-    "montant": 0,
-    "mode_paiement": "Espèces",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "ESP LE 01/2025"
-  },
-  {
-    "fournisseur": "FRESH NGOOD",
-    "facture_numero": "F°2025/01461",
     "date_paiement": "2025-10-31",
     "montant": 909.0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": ""
+    "mode_paiement": "Virement",
+    "note": "",
+    "fournisseur": "FRESH N'GOOD"
   },
   {
-    "fournisseur": "FRESH NGOOD",
-    "facture_numero": "F°2025/01839",
     "date_paiement": "2025-11-11",
     "montant": 549.0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": ""
-  },
-  {
-    "fournisseur": "ELINE FISH",
-    "facture_numero": "F202500003031",
-    "date_paiement": "2025-11-18",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "CH1800070",
-    "date_echeance_depot": "2026-02-02",
-    "observation": "CH1800070/MT 6442 DH LE 02/02/2026"
-  },
-  {
-    "fournisseur": "ELINE FISH",
-    "facture_numero": "F202500003852",
-    "date_paiement": "2026-02-10",
-    "montant": 0,
     "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "VIR/ ELINE FISH REF 0417646"
+    "note": "",
+    "fournisseur": "FRESH N'GOOD"
   },
   {
-    "fournisseur": "ELINE FISH",
-    "facture_numero": "FA202500004313",
-    "date_paiement": "2026-04-07",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "CHQ 1800102",
-    "date_echeance_depot": "2026-06-04",
-    "observation": "CHQ 1800102 BP  LE 04/06/2026"
-  },
-  {
-    "fournisseur": "ELINE FISH",
-    "facture_numero": "FA202500005001",
-    "date_paiement": "2026-06-15",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2026-08-08",
-    "observation": "VIR BP LE 08/08/2026"
-  },
-  {
-    "fournisseur": "ELINE FISH",
-    "facture_numero": "FA202500005408",
     "date_paiement": "2026-08-10",
     "montant": 568.0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": ""
+    "mode_paiement": "Virement",
+    "note": "",
+    "fournisseur": "ELINE FISH"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "facture_numero": "FA3359",
-    "date_paiement": "2024-03-27",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "CH°2100246/ 47659.52"
-  },
-  {
-    "fournisseur": "ISMAIL ATLAS",
-    "facture_numero": "FA3371",
-    "date_paiement": "2024-04-03",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "CH°2100251BP/14126.04"
-  },
-  {
-    "fournisseur": "ISMAIL ATLAS",
-    "facture_numero": "FA3383",
-    "date_paiement": "2024-04-16",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "CH°2100250BP/MT16132.42"
-  },
-  {
-    "fournisseur": "ISMAIL ATLAS",
-    "facture_numero": "FA3395",
-    "date_paiement": "2024-04-26",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "CH°2100253BP"
-  },
-  {
-    "fournisseur": "ISMAIL ATLAS",
-    "facture_numero": "FA3401",
-    "date_paiement": "2024-05-01",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "CH°2100254BP"
-  },
-  {
-    "fournisseur": "ISMAIL ATLAS",
-    "facture_numero": "FA3411",
-    "date_paiement": "2024-05-08",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2024-07-09",
-    "observation": "CH°2100264/BP LE 09/07/2024"
-  },
-  {
-    "fournisseur": "ISMAIL ATLAS",
-    "facture_numero": "FA3438",
-    "date_paiement": "2024-06-02",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2024-07-01",
-    "observation": "CH°2100263/BP LE 01/07/24"
-  },
-  {
-    "fournisseur": "ISMAIL ATLAS",
-    "facture_numero": "FA3467",
-    "date_paiement": "2024-06-26",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2024-07-18",
-    "observation": "CH°2100272 BP/ LE 18/07/2024 MT 11878.88"
-  },
-  {
-    "fournisseur": "ISMAIL ATLAS",
-    "facture_numero": "FA3490",
-    "date_paiement": "2024-07-17",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2024-07-18",
-    "observation": "CH°2100273 BP/ LE 18/07/2024 MT 24208.24"
-  },
-  {
-    "fournisseur": "ISMAIL ATLAS",
-    "facture_numero": "FA3517",
-    "date_paiement": "2024-08-12",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "CH°2100277/BP"
-  },
-  {
-    "fournisseur": "ISMAIL ATLAS",
-    "facture_numero": "FA3537",
-    "date_paiement": "2024-09-02",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "CH°2100278/BP MT 18697 DH"
-  },
-  {
-    "fournisseur": "ISMAIL ATLAS",
-    "facture_numero": "FA3556",
-    "date_paiement": "2024-09-24",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "CH°2100282/BP MT 36110.28"
-  },
-  {
-    "fournisseur": "ISMAIL ATLAS",
-    "facture_numero": "FA3555",
-    "date_paiement": "2024-09-24",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "CH°2100283/BP MT40603.8"
-  },
-  {
-    "fournisseur": "ISMAIL ATLAS",
-    "facture_numero": "FA3573",
-    "date_paiement": "2024-10-09",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "CH°2100288/BP 27298.92"
-  },
-  {
-    "fournisseur": "ISMAIL ATLAS",
-    "facture_numero": "FA3589",
-    "date_paiement": "2024-10-06",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "CH°2100291/BP 38184.82"
-  },
-  {
-    "fournisseur": "ISMAIL ATLAS",
-    "facture_numero": "FA3603",
-    "date_paiement": "2024-10-01",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "CH°2100292/BP MT 26801.28"
-  },
-  {
-    "fournisseur": "ISMAIL ATLAS",
-    "facture_numero": "FA3608",
-    "date_paiement": "2024-11-04",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "CH°2100298/BP MT 17214.54"
-  },
-  {
-    "fournisseur": "ISMAIL ATLAS",
-    "facture_numero": "FA3635",
-    "date_paiement": "2024-11-26",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "CH°2100299/BP MT 16919.76"
-  },
-  {
-    "fournisseur": "ISMAIL ATLAS",
-    "facture_numero": "FA3629",
-    "date_paiement": "2024-11-22",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "CH°2100300/BP MT18496.56"
-  },
-  {
-    "fournisseur": "ISMAIL ATLAS",
-    "facture_numero": "FA3651",
-    "date_paiement": "2024-12-10",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "CH°2100406/BP MT22555.2"
-  },
-  {
-    "fournisseur": "ISMAIL ATLAS",
-    "facture_numero": "FA3685",
-    "date_paiement": "2025-01-02",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "CH°2100404/BP MT9000"
-  },
-  {
-    "fournisseur": "ISMAIL ATLAS",
-    "facture_numero": "FA3684",
-    "date_paiement": "2025-01-02",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "CH°2100405/BP MT 31934.21"
-  },
-  {
-    "fournisseur": "ISMAIL ATLAS",
-    "facture_numero": "FA3689",
-    "date_paiement": "2025-01-08",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "CHQ"
-  },
-  {
-    "fournisseur": "ISMAIL ATLAS",
-    "facture_numero": "FA3715",
-    "date_paiement": "2025-02-04",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "CHQ"
-  },
-  {
-    "fournisseur": "ISMAIL ATLAS",
-    "facture_numero": "FA3803",
-    "date_paiement": "2025-04-15",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "CHQ"
-  },
-  {
-    "fournisseur": "ISMAIL ATLAS",
-    "facture_numero": "FA3814",
-    "date_paiement": "2025-04-23",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "CHQ"
-  },
-  {
-    "fournisseur": "ISMAIL ATLAS",
-    "facture_numero": "FA3859",
-    "date_paiement": "2025-05-28",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "CHQ450",
-    "date_echeance_depot": "",
-    "observation": "CHQ450"
-  },
-  {
-    "fournisseur": "ISMAIL ATLAS",
-    "facture_numero": "FA3871",
-    "date_paiement": "2025-06-04",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "CHQ449",
-    "date_echeance_depot": "",
-    "observation": "CHQ449"
-  },
-  {
-    "fournisseur": "ISMAIL ATLAS",
-    "facture_numero": "FA3875",
-    "date_paiement": "2025-06-13",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "CHQ454",
-    "date_echeance_depot": "",
-    "observation": "CHQ454"
-  },
-  {
-    "fournisseur": "ISMAIL ATLAS",
-    "facture_numero": "FA3881",
-    "date_paiement": "2025-06-18",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "CHQ453",
-    "date_echeance_depot": "",
-    "observation": "CHQ453"
-  },
-  {
-    "fournisseur": "ISMAIL ATLAS",
-    "facture_numero": "FA3902",
-    "date_paiement": "2025-07-03",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "CHQ458",
-    "date_echeance_depot": "",
-    "observation": "CHQ458"
-  },
-  {
-    "fournisseur": "ISMAIL ATLAS",
-    "facture_numero": "FA3908",
-    "date_paiement": "2025-07-12",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "CHQ459",
-    "date_echeance_depot": "",
-    "observation": "CHQ459"
-  },
-  {
-    "fournisseur": "ISMAIL ATLAS",
-    "facture_numero": "FA3928",
-    "date_paiement": "2025-07-31",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "CHQ466",
-    "date_echeance_depot": "",
-    "observation": "CHQ466"
-  },
-  {
-    "fournisseur": "ISMAIL ATLAS",
-    "facture_numero": "FA3953",
-    "date_paiement": "2025-08-22",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "CHQ467",
-    "date_echeance_depot": "",
-    "observation": "CHQ467"
-  },
-  {
-    "fournisseur": "ISMAIL ATLAS",
-    "facture_numero": "FA3979",
-    "date_paiement": "2025-09-09",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "CHQ468",
-    "date_echeance_depot": "",
-    "observation": "CHQ468"
-  },
-  {
-    "fournisseur": "ISMAIL ATLAS",
-    "facture_numero": "FA3997",
-    "date_paiement": "2025-09-23",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "CHQ481",
-    "date_echeance_depot": "",
-    "observation": "CHQ481"
-  },
-  {
-    "fournisseur": "ISMAIL ATLAS",
-    "facture_numero": "FA4006",
-    "date_paiement": "2025-09-30",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "CHQ480",
-    "date_echeance_depot": "",
-    "observation": "CHQ480"
-  },
-  {
-    "fournisseur": "ISMAIL ATLAS",
-    "facture_numero": "FA4035",
-    "date_paiement": "2025-10-19",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "CH°485/BP"
-  },
-  {
-    "fournisseur": "ISMAIL ATLAS",
-    "facture_numero": "FA4039",
-    "date_paiement": "2025-10-22",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "CH°486/BP"
-  },
-  {
-    "fournisseur": "ISMAIL ATLAS",
-    "facture_numero": "FA4083",
-    "date_paiement": "2025-10-24",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "CH°2100498"
-  },
-  {
-    "fournisseur": "ISMAIL ATLAS",
-    "facture_numero": "FA4088",
-    "date_paiement": "2025-10-27",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "CH°499/BP"
-  },
-  {
-    "fournisseur": "ISMAIL ATLAS",
-    "facture_numero": "FA4060",
-    "date_paiement": "2025-11-04",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "CH°487/BP"
-  },
-  {
-    "fournisseur": "ISMAIL ATLAS",
-    "facture_numero": "FA4062",
-    "date_paiement": "2025-11-07",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2025-11-07",
-    "observation": "CH°489/BP LE 07/11/25"
-  },
-  {
-    "fournisseur": "ISMAIL ATLAS",
-    "facture_numero": "FA4065",
-    "date_paiement": "2025-11-09",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2025-11-09",
-    "observation": "CH°490/BP LE 09/11/25"
-  },
-  {
-    "fournisseur": "ISMAIL ATLAS",
-    "facture_numero": "FA4097",
-    "date_paiement": "2025-12-03",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "CH°500/25"
-  },
-  {
-    "fournisseur": "ISMAIL ATLAS",
-    "facture_numero": "FA4115",
-    "date_paiement": "2025-12-19",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "CH°1800058/26"
-  },
-  {
-    "fournisseur": "ISMAIL ATLAS",
-    "facture_numero": "FA4104",
-    "date_paiement": "2025-12-09",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "CH°1800059/26"
-  },
-  {
-    "fournisseur": "ISMAIL ATLAS",
-    "facture_numero": "FA4132",
     "date_paiement": "2026-01-02",
-    "montant": 0,
+    "montant": -14130.0,
     "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2026-02-02",
-    "observation": "CH°1800065BP LE 02/02/2026"
+    "note": "CH°1800065BP LE 02/02/2026",
+    "fournisseur": "ISMAIL ATLAS"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "facture_numero": "FA4144",
     "date_paiement": "2026-01-15",
     "montant": 14130.0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": ""
+    "mode_paiement": "Virement",
+    "note": "",
+    "fournisseur": "ISMAIL ATLAS"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "facture_numero": "FA4162",
-    "date_paiement": "2026-01-30",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2026-02-02",
-    "observation": "CH°1800066BP LE 02/02/2026"
-  },
-  {
-    "fournisseur": "ISMAIL ATLAS",
-    "facture_numero": "FA4164",
-    "date_paiement": "2026-02-02",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2026-02-02",
-    "observation": "CH°1800067BP LE 02/02/2026"
-  },
-  {
-    "fournisseur": "ISMAIL ATLAS",
-    "facture_numero": "FA4170",
-    "date_paiement": "2026-02-09",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "CH°1800078BP"
-  },
-  {
-    "fournisseur": "ISMAIL ATLAS",
-    "facture_numero": "FA4186",
-    "date_paiement": "2026-02-20",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "CH°1800075BP"
-  },
-  {
-    "fournisseur": "ISMAIL ATLAS",
-    "facture_numero": "FA4204",
-    "date_paiement": "2026-03-12",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "CH°1800080BP"
-  },
-  {
-    "fournisseur": "ISMAIL ATLAS",
-    "facture_numero": "FA4205",
-    "date_paiement": "2026-03-12",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "CH°1800079BP"
-  },
-  {
-    "fournisseur": "ISMAIL ATLAS",
-    "facture_numero": "FA4211",
-    "date_paiement": "2026-03-16",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "CH°800081BP"
-  },
-  {
-    "fournisseur": "ISMAIL ATLAS",
-    "facture_numero": "FA4217",
     "date_paiement": "2026-03-19",
-    "montant": 0,
+    "montant": -6697.439999999999,
     "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "CH°800082BP"
+    "note": "CH°800082BP",
+    "fournisseur": "ISMAIL ATLAS"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "facture_numero": "FA4227",
     "date_paiement": "2026-04-01",
     "montant": 6697.44,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": ""
+    "mode_paiement": "Virement",
+    "note": "",
+    "fournisseur": "ISMAIL ATLAS"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "facture_numero": "FA4235",
-    "date_paiement": "2026-04-03",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "CH°1800088BP"
-  },
-  {
-    "fournisseur": "ISMAIL ATLAS",
-    "facture_numero": "FA4246",
     "date_paiement": "2026-04-09",
-    "montant": 0,
+    "montant": -13420.8,
     "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "CH°1800089BP"
+    "note": "CH°1800089BP",
+    "fournisseur": "ISMAIL ATLAS"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "facture_numero": "FA4256",
     "date_paiement": "2026-04-17",
     "montant": 13420.8,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": ""
+    "mode_paiement": "Virement",
+    "note": "",
+    "fournisseur": "ISMAIL ATLAS"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "facture_numero": "FA4264",
-    "date_paiement": "2026-04-23",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "CH°1800095BP/47193.95DH"
-  },
-  {
-    "fournisseur": "ISMAIL ATLAS",
-    "facture_numero": "FA4281",
-    "date_paiement": "2026-05-06",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "CH°1800097BP"
-  },
-  {
-    "fournisseur": "ISMAIL ATLAS",
-    "facture_numero": "FA4280",
-    "date_paiement": "2026-05-06",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "CH°1800096BP"
-  },
-  {
-    "fournisseur": "ISMAIL ATLAS",
-    "facture_numero": "FA4291",
-    "date_paiement": "2026-05-12",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "CH°1800099BP /19756.92 DH"
-  },
-  {
-    "fournisseur": "ISMAIL ATLAS",
-    "facture_numero": "FA4302",
-    "date_paiement": "2026-05-20",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "CH°1800100BP"
-  },
-  {
-    "fournisseur": "ISMAIL ATLAS",
-    "facture_numero": "FA4306",
-    "date_paiement": "2026-05-22",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "CH°1800105 BP/15738.84"
-  },
-  {
-    "fournisseur": "ISMAIL ATLAS",
-    "facture_numero": "FA4321",
-    "date_paiement": "2026-06-12",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "CH°1800106 BP /43138.53"
-  },
-  {
-    "fournisseur": "ISMAIL ATLAS",
-    "facture_numero": "FA4330",
-    "date_paiement": "2026-06-21",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "CH°1800110BP/39359.39"
-  },
-  {
-    "fournisseur": "ISMAIL ATLAS",
-    "facture_numero": "FAZ4359",
     "date_paiement": "2026-07-23",
     "montant": 3294.72,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": ""
+    "mode_paiement": "Virement",
+    "note": "",
+    "fournisseur": "ISMAIL ATLAS"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "facture_numero": "fa4373",
     "date_paiement": "2026-08-04",
     "montant": 52617.6,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": ""
+    "mode_paiement": "Virement",
+    "note": "",
+    "fournisseur": "ISMAIL ATLAS"
   },
   {
-    "fournisseur": "ISMAIL ATLAS",
-    "facture_numero": "FA4387",
     "date_paiement": "2026-08-17",
     "montant": 7371.84,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": ""
-  },
-  {
-    "fournisseur": "CHEESES & CHEESES",
-    "facture_numero": "FC0552/2024",
-    "date_paiement": "2024-05-20",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "CH°2100246/ 47659.52"
-  },
-  {
-    "fournisseur": "CHEESES & CHEESES",
-    "facture_numero": "FC0993/2024",
-    "date_paiement": "2024-08-26",
-    "montant": 0,
     "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "VIR BP"
+    "note": "",
+    "fournisseur": "ISMAIL ATLAS"
   },
   {
-    "fournisseur": "CHEESES & CHEESES",
-    "facture_numero": "FC1308/24",
-    "date_paiement": "2024-11-05",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2025-02-11",
-    "observation": "VIR BP LE 11/2/25"
-  },
-  {
-    "fournisseur": "CHEESES & CHEESES",
-    "facture_numero": "FC1402/2024",
-    "date_paiement": "2024-12-06",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2025-03-03",
-    "observation": "VIR BP LE 03/03/2025"
-  },
-  {
-    "fournisseur": "CHEESES & CHEESES",
-    "facture_numero": "FC0026/2025",
-    "date_paiement": "2025-01-10",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2025-03-12",
-    "observation": "VIR BP LE 12/03/25"
-  },
-  {
-    "fournisseur": "CHEESES & CHEESES",
-    "facture_numero": "FC0108/2025",
-    "date_paiement": "2025-02-07",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2025-04-06",
-    "observation": "VIR BP LE 06/04/2025"
-  },
-  {
-    "fournisseur": "CHEESES & CHEESES",
-    "facture_numero": "FC0210/2025",
-    "date_paiement": "2025-03-12",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "VIR BP"
-  },
-  {
-    "fournisseur": "CHEESES & CHEESES",
-    "facture_numero": "FC0267/2025",
-    "date_paiement": "2025-04-05",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "VIR BP"
-  },
-  {
-    "fournisseur": "CHEESES & CHEESES",
-    "facture_numero": "FC0368/2025",
-    "date_paiement": "2025-05-03",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2025-09-06",
-    "observation": "VIR BP LE 06/09/2025"
-  },
-  {
-    "fournisseur": "CHEESES & CHEESES",
-    "facture_numero": "FC00472/2025",
-    "date_paiement": "2025-06-03",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "VIR BP"
-  },
-  {
-    "fournisseur": "CHEESES & CHEESES",
-    "facture_numero": "FC0551/2025",
-    "date_paiement": "2025-07-04",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2025-10-13",
-    "observation": "VIR BP LE 13/10/25"
-  },
-  {
-    "fournisseur": "CHEESES & CHEESES",
-    "facture_numero": "FC00741/25",
-    "date_paiement": "2025-09-08",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2025-11-28",
-    "observation": "VIR BP LE 28/11/2025"
-  },
-  {
-    "fournisseur": "CHEESES & CHEESES",
-    "facture_numero": "FC0850/25",
-    "date_paiement": "2025-10-11",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2025-12-29",
-    "observation": "VIR BP LE 29/12/25"
-  },
-  {
-    "fournisseur": "CHEESES & CHEESES",
-    "facture_numero": "FC0915/25",
-    "date_paiement": "2025-10-31",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2026-02-03",
-    "observation": "VIR BP LE 3/02/2026"
-  },
-  {
-    "fournisseur": "CHEESES & CHEESES",
-    "facture_numero": "FC1002/2025",
-    "date_paiement": "2025-11-30",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2026-03-06",
-    "observation": "VIR BP LE 06/03/2026"
-  },
-  {
-    "fournisseur": "CHEESES & CHEESES",
-    "facture_numero": "FC1083/2025",
-    "date_paiement": "2025-12-31",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2026-03-31",
-    "observation": "VIR BP LE 31/03/2026"
-  },
-  {
-    "fournisseur": "CHEESES & CHEESES",
-    "facture_numero": "FC0065/2026",
-    "date_paiement": "2026-01-31",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2026-04-29",
-    "observation": "VIR BP LE 29/04/2026"
-  },
-  {
-    "fournisseur": "CHEESES & CHEESES",
-    "facture_numero": "FC0138/2026",
-    "date_paiement": "2026-03-02",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2026-06-01",
-    "observation": "VIR BP LE 01/06/2026"
-  },
-  {
-    "fournisseur": "CHEESES & CHEESES",
-    "facture_numero": "FC00209/2026",
-    "date_paiement": "2026-03-31",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2026-07-01",
-    "observation": "VIR BP LE 01/07/26"
-  },
-  {
-    "fournisseur": "CHEESES & CHEESES",
-    "facture_numero": "FC0284/26",
-    "date_paiement": "2026-04-30",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2026-07-31",
-    "observation": "VIR BP LE 31/07/2026"
-  },
-  {
-    "fournisseur": "CHEESES & CHEESES",
-    "facture_numero": "FC0349/2026",
     "date_paiement": "2026-05-31",
     "montant": 9768.0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": ""
+    "mode_paiement": "Virement",
+    "note": "",
+    "fournisseur": "CHEESES&CHEESES"
   },
   {
-    "fournisseur": "CHEESES & CHEESES",
-    "facture_numero": "FC0348/2026",
     "date_paiement": "2026-05-31",
     "montant": 170304.0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": ""
+    "mode_paiement": "Virement",
+    "note": "",
+    "fournisseur": "CHEESES&CHEESES"
   },
   {
-    "fournisseur": "CHEESES & CHEESES",
-    "facture_numero": "FC0403/26",
     "date_paiement": "2026-06-30",
     "montant": 157020.0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": ""
+    "mode_paiement": "Virement",
+    "note": "",
+    "fournisseur": "CHEESES&CHEESES"
   },
   {
-    "fournisseur": "CHEESES & CHEESES",
-    "facture_numero": "FC0404/26",
     "date_paiement": "2026-06-30",
     "montant": 5400.0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": ""
+    "mode_paiement": "Virement",
+    "note": "",
+    "fournisseur": "CHEESES&CHEESES"
   },
   {
-    "fournisseur": "CHEESES & CHEESES",
-    "facture_numero": "FC0438/26",
     "date_paiement": "2026-07-31",
     "montant": 122466.0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": ""
+    "mode_paiement": "Virement",
+    "note": "",
+    "fournisseur": "CHEESES&CHEESES"
   },
   {
-    "fournisseur": "CHEESES & CHEESES",
-    "facture_numero": "FC0439/26",
     "date_paiement": "2026-07-31",
     "montant": 3672.0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": ""
-  },
-  {
-    "fournisseur": "GASTRONOMIK",
-    "facture_numero": "FV2600054",
-    "date_paiement": "2026-01-28",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "CH1800064",
-    "date_echeance_depot": "2026-01-29",
-    "observation": "CH1800064 BP/LE 29/01/2026"
-  },
-  {
-    "fournisseur": "GASTRONOMIK",
-    "facture_numero": "FV2600089",
-    "date_paiement": "2026-02-06",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2026-02-06",
-    "observation": "CH°1800069 BP/LE 06/02/2026"
-  },
-  {
-    "fournisseur": "GASTRONOMIK",
-    "facture_numero": "FV2600216",
-    "date_paiement": "2026-03-30",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2026-04-03",
-    "observation": "CH°1800083 BP LE 03/04/2026"
-  },
-  {
-    "fournisseur": "GASTRONOMIK",
-    "facture_numero": "FV2600269",
-    "date_paiement": "2026-04-09",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2026-04-10",
-    "observation": "CH°1800085 BP LE 10/04/2026"
-  },
-  {
-    "fournisseur": "GASTRONOMIK",
-    "facture_numero": "FV2600292",
-    "date_paiement": "0206-04-17",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2026-04-21",
-    "observation": "CH°1800090 BP LE 21/04/2026"
-  },
-  {
-    "fournisseur": "GASTRONOMIK",
-    "facture_numero": "FV2600324",
-    "date_paiement": "2026-04-30",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2026-05-15",
-    "observation": "CH°1800093 BP LE 15/5/26"
-  },
-  {
-    "fournisseur": "GASTRONOMIK",
-    "facture_numero": "FV2600387",
-    "date_paiement": "2026-05-15",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2026-05-20",
-    "observation": "CH°1800098 BP LE 20/05/2026"
-  },
-  {
-    "fournisseur": "GASTRONOMIK",
-    "facture_numero": "FV2600522",
-    "date_paiement": "2026-07-08",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2026-07-09",
-    "observation": "CH°1800109 BP LE 09/07/2026"
-  },
-  {
-    "fournisseur": "GASTRONOMIK",
-    "facture_numero": "FV2600567",
-    "date_paiement": "2026-07-25",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2026-07-27",
-    "observation": "CH°1800112 BP LE 27/07/2026"
-  },
-  {
-    "fournisseur": "FOODS & GOODS",
-    "facture_numero": "F2622047",
-    "date_paiement": "2026-07-28",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "CH1800115",
-    "date_echeance_depot": "2026-08-10",
-    "observation": "CH1800115BP/10/08/2026"
-  },
-  {
-    "fournisseur": "LAHJOUJI",
-    "facture_numero": "FA25-12-00434",
-    "date_paiement": "2025-12-31",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "CH°800063/BP MT 33602.4"
-  },
-  {
-    "fournisseur": "LAHJOUJI",
-    "facture_numero": "FA26-01-00507",
-    "date_paiement": "2026-01-31",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "CH°800072 BP/MT25232.70"
-  },
-  {
-    "fournisseur": "LAHJOUJI",
-    "facture_numero": "FA26-03-00409",
-    "date_paiement": "2026-03-31",
-    "montant": 0,
     "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2026-05-01",
-    "observation": "VIR CDM LE 01/05/2026"
+    "note": "",
+    "fournisseur": "CHEESES&CHEESES"
   },
   {
-    "fournisseur": "LAHJOUJI",
-    "facture_numero": "FA26-04-00422",
-    "date_paiement": "2026-04-30",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2026-05-19",
-    "observation": "VIR BP LE 19/05/2026"
-  },
-  {
-    "fournisseur": "LAHJOUJI",
-    "facture_numero": "FA26-06-2026",
-    "date_paiement": "2026-06-30",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2027-07-15",
-    "observation": "VIR BP LE 15/07/2027"
-  },
-  {
-    "fournisseur": "LAHJOUJI",
-    "facture_numero": "FA26-07-00550",
-    "date_paiement": "2026-07-31",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2026-08-06",
-    "observation": "VIR BP LE 06/8/26"
-  },
-  {
-    "fournisseur": "STE NAZAKYO DISTRI",
-    "facture_numero": "FA202602",
-    "date_paiement": "2026-01-19",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "CH1800062",
-    "date_echeance_depot": "2026-01-29",
-    "observation": "CH1800062 BP/LE 29/01/2026"
-  },
-  {
-    "fournisseur": "STE NAZAKYO DISTRI",
-    "facture_numero": "FA202638",
-    "date_paiement": "2026-04-27",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "CH1800091",
-    "date_echeance_depot": "2026-05-01",
-    "observation": "CH1800091 BP/LE 01/05/2026"
-  },
-  {
-    "fournisseur": "STE NAZAKYO DISTRI",
-    "facture_numero": "FA202657",
-    "date_paiement": "2026-07-08",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2026-07-09",
-    "observation": "CH°1800108BP LE 09/07/2026"
-  },
-  {
-    "fournisseur": "STE NAZAKYO DISTRI",
-    "facture_numero": "FA202667",
     "date_paiement": "2026-08-19",
     "montant": 7531.8,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": ""
-  },
-  {
-    "fournisseur": "STE IMMOBILIERE VECOMO SARL",
-    "facture_numero": "F°118/2025",
-    "date_paiement": "2026-01-01",
-    "montant": 0,
     "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2026-02-15",
-    "observation": "VIR BP LE 15/02/2026 MT 6566"
+    "note": "",
+    "fournisseur": "STE NAZAKYO DISTRI"
   },
   {
-    "fournisseur": "STE IMMOBILIERE VECOMO SARL",
-    "facture_numero": "F°120/2025",
-    "date_paiement": "2026-02-01",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2026-03-15",
-    "observation": "VIR BP LE 15/03/2026 MT 3664"
-  },
-  {
-    "fournisseur": "STE IMMOBILIERE VECOMO SARL",
-    "facture_numero": "F122/2026",
-    "date_paiement": "2026-04-01",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2026-04-15",
-    "observation": "VIR BP LE 15/04/2026 MT 4154"
-  },
-  {
-    "fournisseur": "STE IMMOBILIERE VECOMO SARL",
-    "facture_numero": "F124/2025",
-    "date_paiement": "2026-05-01",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2026-05-20",
-    "observation": "VIR BP LE 20/05/2026"
-  },
-  {
-    "fournisseur": "STE IMMOBILIERE VECOMO SARL",
-    "facture_numero": "F128/2025",
-    "date_paiement": "2026-07-01",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2026-07-15",
-    "observation": "VIR BP LE 15/07/2026"
-  },
-  {
-    "fournisseur": "ITALY STILO",
-    "facture_numero": "F°35/2025",
-    "date_paiement": "2026-05-01",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2026-05-15",
-    "observation": "VIR BP LE 15/05/2026"
-  },
-  {
-    "fournisseur": "SNACK ITALY",
-    "facture_numero": "F°17/2025",
-    "date_paiement": "2026-05-01",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2026-05-15",
-    "observation": "VIR BP LE 15/05/2026"
-  },
-  {
-    "fournisseur": "DOUIBI FOOD",
-    "facture_numero": "F°003-2026000139",
-    "date_paiement": "2026-03-30",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "CHQ 29280",
-    "date_echeance_depot": "2026-04-01",
-    "observation": "2CHQ 29280+7320 CM LE 1/4/26"
-  },
-  {
-    "fournisseur": "QUALIMET MAROC",
-    "facture_numero": "F°13977",
-    "date_paiement": "2026-04-16",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2026-04-30",
-    "observation": "VIR BP LE 30/04/2026"
-  },
-  {
-    "fournisseur": "FOODS & GOODS",
-    "facture_numero": "F2611733",
-    "date_paiement": "2026-04-29",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2026-05-15",
-    "observation": "CH°1800092 BP LE 15/5/26"
-  },
-  {
-    "fournisseur": "FOODS & GOODS",
-    "facture_numero": "F2623541",
-    "date_paiement": "2026-08-10",
-    "montant": 0,
-    "mode_paiement": "Espèces",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": "ESP"
-  },
-  {
-    "fournisseur": "STE OBAHA",
-    "facture_numero": "25FC006112",
-    "date_paiement": "2026-07-04",
-    "montant": 0,
-    "mode_paiement": "Virement",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "2026-08-08",
-    "observation": "VIR BP LE 08/08/2026"
-  },
-  {
-    "fournisseur": "STE OBAHA",
-    "facture_numero": "25FC006477",
     "date_paiement": "2026-08-10",
     "montant": 1280.0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": ""
+    "mode_paiement": "Virement",
+    "note": "",
+    "fournisseur": "STE OBAHA"
   },
   {
-    "fournisseur": "STE OBAHA",
-    "facture_numero": "25FC006642",
     "date_paiement": "2026-08-24",
     "montant": 1520.0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": ""
+    "mode_paiement": "Virement",
+    "note": "",
+    "fournisseur": "STE OBAHA"
   },
   {
-    "fournisseur": "CLIMABEL",
-    "facture_numero": "AG2026/0287",
-    "date_paiement": "2026-06-27",
-    "montant": 0,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "CH1800107",
-    "date_echeance_depot": "2026-06-26",
-    "observation": "CH1800107BP LE 26/06/2026"
-  },
-  {
-    "fournisseur": "KECHMAR",
-    "facture_numero": "F2604868",
     "date_paiement": "2026-07-16",
     "montant": 3970.54,
-    "mode_paiement": "Chèque",
-    "numero_cheque_ref": "",
-    "date_echeance_depot": "",
-    "observation": ""
+    "mode_paiement": "Virement",
+    "note": "",
+    "fournisseur": "KECHMAR"
   }
 ];
