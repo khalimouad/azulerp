@@ -1264,10 +1264,6 @@ export async function fetchSupplierReconciliation(): Promise<any[]> {
   return [];
 }
 
-export async function fetchImpendingSupplierCheques(): Promise<any[]> {
-  return [];
-}
-
 export async function createFactureFournisseur(facture: any, lignes?: any[]): Promise<number> {
   const res = await apiCall('create_facture_fournisseur', { facture, lignes });
   return res?.id || 1;
