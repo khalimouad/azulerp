@@ -758,7 +758,7 @@ export async function POST(req: NextRequest) {
 
         // --- FACTURES ---
         case 'create_facture': {
-          const { facture, lignes, blIds } = payload;
+          const { facture, lignes, blIds, brIds } = payload;
           const editingFactureId = Number(facture?.id || 0);
 
           // Editing a facture must update the existing row. Keeping this branch
@@ -861,6 +861,12 @@ export async function POST(req: NextRequest) {
               WHERE facture_id = ${editingFactureId};
             `;
 
+            await sql`
+              UPDATE bons_retour
+              SET facture_numero = ${nextNumero}
+              WHERE facture_id = ${editingFactureId};
+            `;
+
             const affectedClients = Array.from(new Set([Number(existingRows[0].client_id), nextClientId])).filter(Boolean);
             for (const affectedClientId of affectedClients) {
               await sql`
@@ -897,11 +903,46 @@ export async function POST(req: NextRequest) {
               }
             }
           }
+
+          let targetClientId = Number(facture?.client_id || 0);
+          let targetClientNom = String(facture?.client_nom || '').trim();
+          let targetClientIce = String(facture?.client_ice || '').trim();
+          let targetClientAdresse = String(facture?.client_adresse || '').trim();
+          let targetClientVille = String(facture?.client_ville || '').trim();
+
+          if (!targetClientId && Array.isArray(blIds) && blIds.length > 0) {
+            const blClientRes: any = await sql`
+              SELECT client_id, client_nom, client_ice, client_adresse, client_ville
+              FROM bons_livraison WHERE id = ${blIds[0]} LIMIT 1;
+            `;
+            if (blClientRes.length) {
+              targetClientId = Number(blClientRes[0].client_id);
+              targetClientNom = targetClientNom || blClientRes[0].client_nom || '';
+              targetClientIce = targetClientIce || blClientRes[0].client_ice || '';
+              targetClientAdresse = targetClientAdresse || blClientRes[0].client_adresse || '';
+              targetClientVille = targetClientVille || blClientRes[0].client_ville || '';
+            }
+          }
+
+          if (!targetClientId && Array.isArray(brIds) && brIds.length > 0) {
+            const brClientRes: any = await sql`
+              SELECT client_id, client_nom, client_ice, client_adresse, client_ville
+              FROM bons_retour WHERE id = ${brIds[0]} LIMIT 1;
+            `;
+            if (brClientRes.length) {
+              targetClientId = Number(brClientRes[0].client_id);
+              targetClientNom = targetClientNom || brClientRes[0].client_nom || '';
+              targetClientIce = targetClientIce || brClientRes[0].client_ice || '';
+              targetClientAdresse = targetClientAdresse || brClientRes[0].client_adresse || '';
+              targetClientVille = targetClientVille || brClientRes[0].client_ville || '';
+            }
+          }
+
           const maxIdRes: any = await sql`SELECT COALESCE(MAX(id), 0) + 1 as next_id FROM factures;`;
           const factId = maxIdRes[0]?.next_id || 1;
-          const documentDate = String(facture.date || new Date().toISOString().slice(0, 10));
+          const documentDate = String(facture?.date || new Date().toISOString().slice(0, 10));
           const yearSuffix = documentDate.slice(2, 4);
-          const requestedNumero = String(facture.numero || '').trim();
+          const requestedNumero = String(facture?.numero || '').trim();
           if (requestedNumero) {
             const duplicateNumero: any = await sql`
               SELECT id FROM factures WHERE numero = ${requestedNumero} LIMIT 1;
@@ -921,18 +962,25 @@ export async function POST(req: NextRequest) {
           `;
           const factureNumero = requestedNumero || `FA${String(nextNumeroRes[0]?.next_numero || 1).padStart(6, '0')}/${yearSuffix}`;
 
+          const blAssociesJson = JSON.stringify(
+            Array.isArray(facture?.bl_associes) ? facture.bl_associes : (blIds || [])
+          );
+          const brAssociesJson = JSON.stringify(
+            Array.isArray(facture?.br_associes) ? facture.br_associes : (brIds || [])
+          );
+
           await sql`
             INSERT INTO factures (
               id, numero, date, client_id, client_nom, client_ice, client_adresse, client_ville,
               total_ht, tva_20, tva_10, total_tva, total_ttc, montant_regle, reste_a_payer,
-              statut_paiement, etat, mode_reglement, notes, bl_associes
+              statut_paiement, etat, mode_reglement, notes, bl_associes, br_associes
             ) VALUES (
-              ${factId}, ${factureNumero}, ${documentDate}, ${facture.client_id}, ${facture.client_nom},
-              ${facture.client_ice || ''}, ${facture.client_adresse || ''}, ${facture.client_ville || ''},
-              ${num(facture.total_ht)}, ${num(facture.tva_20)}, ${num(facture.tva_10)}, ${num(facture.total_tva)},
-              ${num(facture.total_ttc)}, ${num(facture.montant_regle, 0)}, ${num(facture.reste_a_payer || facture.total_ttc)},
-              ${facture.statut_paiement || 'Impayé'}, ${facture.etat || 'Validé'}, ${facture.mode_reglement || 'Virement'},
-              ${facture.notes || ''}, ${JSON.stringify(blIds || [])}
+              ${factId}, ${factureNumero}, ${documentDate}, ${targetClientId}, ${targetClientNom},
+              ${targetClientIce || ''}, ${targetClientAdresse || ''}, ${targetClientVille || ''},
+              ${num(facture?.total_ht)}, ${num(facture?.tva_20)}, ${num(facture?.tva_10)}, ${num(facture?.total_tva)},
+              ${num(facture?.total_ttc)}, ${num(facture?.montant_regle, 0)}, ${num(facture?.reste_a_payer || facture?.total_ttc)},
+              ${facture?.statut_paiement || 'Impayé'}, ${facture?.etat || 'Validé'}, ${facture?.mode_reglement || 'Virement'},
+              ${facture?.notes || ''}, ${blAssociesJson}, ${brAssociesJson}
             );
           `;
 
@@ -959,22 +1007,35 @@ export async function POST(req: NextRequest) {
             for (const blId of blIds) {
               await sql`
                 UPDATE bons_livraison 
-                SET statut = 'Facturé', facture_id = ${factId}, facture_numero = ${facture.numero}
+                SET statut = 'Facturé', facture_id = ${factId}, facture_numero = ${factureNumero}
                 WHERE id = ${blId} AND cloture_sans_facture = FALSE;
               `;
             }
           }
 
-          await sql`
-            UPDATE clients c
-            SET solde = COALESCE((
-              SELECT ROUND(SUM(GREATEST(COALESCE(f.reste_a_payer, COALESCE(f.total_ttc, 0) - COALESCE(f.montant_regle, 0)), 0))::numeric, 2)
-              FROM factures f
-              WHERE f.client_id = c.id
-                AND GREATEST(COALESCE(f.reste_a_payer, COALESCE(f.total_ttc, 0) - COALESCE(f.montant_regle, 0)), 0) > 0.009
-            ), 0)
-            WHERE c.id = ${facture.client_id};
-          `;
+          // If generated with BRs, mark BRs as Facturé
+          if (Array.isArray(brIds) && brIds.length > 0) {
+            for (const brId of brIds) {
+              await sql`
+                UPDATE bons_retour 
+                SET statut = 'Facturé', facture_id = ${factId}, facture_numero = ${factureNumero}
+                WHERE id = ${brId};
+              `;
+            }
+          }
+
+          if (targetClientId) {
+            await sql`
+              UPDATE clients c
+              SET solde = COALESCE((
+                SELECT ROUND(SUM(GREATEST(COALESCE(f.reste_a_payer, COALESCE(f.total_ttc, 0) - COALESCE(f.montant_regle, 0)), 0))::numeric, 2)
+                FROM factures f
+                WHERE f.client_id = c.id
+                  AND GREATEST(COALESCE(f.reste_a_payer, COALESCE(f.total_ttc, 0) - COALESCE(f.montant_regle, 0)), 0) > 0.009
+              ), 0)
+              WHERE c.id = ${targetClientId};
+            `;
+          }
 
           return NextResponse.json({ success: true, id: factId, numero: factureNumero, message: 'Facture créée avec succès' });
         }
@@ -984,6 +1045,7 @@ export async function POST(req: NextRequest) {
           const factClientRes: any = await sql`SELECT client_id FROM factures WHERE id = ${id} LIMIT 1;`;
           const factClientId = factClientRes[0]?.client_id;
           await sql`UPDATE bons_livraison SET statut = 'En attente', facture_id = NULL, facture_numero = NULL WHERE facture_id = ${id};`;
+          await sql`UPDATE bons_retour SET statut = 'En attente', facture_id = NULL, facture_numero = NULL WHERE facture_id = ${id};`;
           await sql`DELETE FROM factures_lignes WHERE facture_id = ${id};`;
           await sql`DELETE FROM reglements WHERE facture_id = ${id};`;
           await sql`DELETE FROM factures WHERE id = ${id};`;

@@ -124,17 +124,19 @@ export const WorkflowBlFactureView: React.FC<WorkflowBlFactureViewProps> = ({
     };
 
     for (const bl of uninvoicedBls) {
-      if (!bl.client_id) continue;
-      const entry = getOrCreateEntry(bl.client_id, bl.client_nom, bl.client_ice);
+      const cid = Number(bl.client_id) || clients.find((c) => c.nom.toLowerCase() === (bl.client_nom || '').toLowerCase())?.id;
+      if (!cid) continue;
+      const entry = getOrCreateEntry(cid, bl.client_nom, bl.client_ice);
       entry.bls.push(bl);
-      entry.totalBlTtc += bl.total_ttc;
+      entry.totalBlTtc += Number(bl.total_ttc) || 0;
     }
 
     for (const br of uninvoicedBrs) {
-      if (!br.client_id) continue;
-      const entry = getOrCreateEntry(br.client_id, br.client_nom, br.client_ice);
+      const cid = Number(br.client_id) || clients.find((c) => c.nom.toLowerCase() === (br.client_nom || '').toLowerCase())?.id;
+      if (!cid) continue;
+      const entry = getOrCreateEntry(cid, br.client_nom, br.client_ice);
       entry.brs.push(br);
-      entry.totalBrTtc += br.total_ttc;
+      entry.totalBrTtc += Number(br.total_ttc) || 0;
     }
 
     // Calculate net for each
@@ -174,6 +176,27 @@ export const WorkflowBlFactureView: React.FC<WorkflowBlFactureViewProps> = ({
     const found = clientsWithPendingDocuments.find((b) => b.client.id === initialClient);
     return found ? found.brs.map((r) => r.id) : [];
   });
+
+  // Keep selection in sync if documents load asynchronously
+  useEffect(() => {
+    if (!selectedClientId && clientsWithPendingDocuments.length > 0) {
+      const targetId = initialClient || clientsWithPendingDocuments[0].client.id;
+      setSelectedClientId(targetId);
+      const bundle = clientsWithPendingDocuments.find((b) => b.client.id === targetId);
+      if (bundle) {
+        if (initialSelectedBlIds.length > 0) {
+          setSelectedBlIds(initialSelectedBlIds);
+        } else {
+          setSelectedBlIds(bundle.bls.map((b) => b.id));
+        }
+        if (initialSelectedBrIds.length > 0) {
+          setSelectedBrIds(initialSelectedBrIds);
+        } else {
+          setSelectedBrIds(bundle.brs.map((r) => r.id));
+        }
+      }
+    }
+  }, [clientsWithPendingDocuments, initialClient, selectedClientId, initialSelectedBlIds, initialSelectedBrIds]);
 
   const [invoiceDate, setInvoiceDate] = useState(new Date().toISOString().split('T')[0]);
   const [modeReglement, setModeReglement] = useState('Virement');
@@ -306,9 +329,9 @@ export const WorkflowBlFactureView: React.FC<WorkflowBlFactureViewProps> = ({
     let blLinesCount = 0;
 
     for (const b of chosenBls) {
-      blHt += b.total_ht;
-      blTva += b.total_tva;
-      blTtc += b.total_ttc;
+      blHt += Number(b.total_ht) || 0;
+      blTva += Number(b.total_tva) || 0;
+      blTtc += Number(b.total_ttc) || 0;
       blLinesCount += b.lignes?.length || 1;
     }
 
@@ -318,9 +341,9 @@ export const WorkflowBlFactureView: React.FC<WorkflowBlFactureViewProps> = ({
     let brLinesCount = 0;
 
     for (const r of chosenBrs) {
-      brHt += r.total_ht;
-      brTva += r.total_tva;
-      brTtc += r.total_ttc;
+      brHt += Number(r.total_ht) || 0;
+      brTva += Number(r.total_tva) || 0;
+      brTtc += Number(r.total_ttc) || 0;
       brLinesCount += r.lignes?.length || 1;
     }
 
@@ -815,7 +838,7 @@ export const WorkflowBlFactureView: React.FC<WorkflowBlFactureViewProps> = ({
                         ) : (
                           <>
                             <Sparkles className="w-4 h-4" />
-                            Générer la Facture Consolidée
+                            Générer la Facture Consolidée • {formatCurrency(previewTotals.netTtc)}
                             <ArrowRight className="w-4 h-4" />
                           </>
                         )}

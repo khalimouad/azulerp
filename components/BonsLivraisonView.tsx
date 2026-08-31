@@ -121,6 +121,18 @@ export const BonsLivraisonView: React.FC<BonsLivraisonViewProps> = ({
     return bonsLivraison.filter((b) => selectedBlIds.includes(b.id));
   }, [bonsLivraison, selectedBlIds]);
 
+  const selectedBlsTotals = useMemo(() => {
+    return selectedBlsObjects.reduce(
+      (acc, b) => {
+        acc.totalHt += toNumeric(b.total_ht);
+        acc.totalTva += toNumeric(b.total_tva);
+        acc.totalTtc += toNumeric(b.total_ttc);
+        return acc;
+      },
+      { totalHt: 0, totalTva: 0, totalTtc: 0 }
+    );
+  }, [selectedBlsObjects]);
+
   const isSingleClientSelected = useMemo(() => {
     if (selectedBlsObjects.length === 0) return true;
     const firstClient = selectedBlsObjects[0].client_id;
@@ -197,7 +209,7 @@ export const BonsLivraisonView: React.FC<BonsLivraisonViewProps> = ({
               className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <FileText className="w-4 h-4" />
-              Facturer les {selectedBlIds.length} BL sélectionnés
+              Facturer les {selectedBlIds.length} BL sélectionnés • {formatCurrency(selectedBlsTotals.totalTtc)}
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           )}
@@ -211,6 +223,54 @@ export const BonsLivraisonView: React.FC<BonsLivraisonViewProps> = ({
           </button>
         </div>
       </div>
+
+      {/* Floating Selection & Addition Banner */}
+      {selectedBlIds.length > 0 && (
+        <div className="bg-indigo-950 text-white p-3 sm:p-4 rounded-xl shadow-md border border-indigo-800 flex flex-wrap items-center justify-between gap-3 animate-in fade-in slide-in-from-top-2">
+          <div className="flex items-center gap-3">
+            <span className="p-2 rounded-lg bg-indigo-800 text-indigo-200">
+              <CheckSquare className="w-5 h-5" />
+            </span>
+            <div>
+              <div className="text-xs font-bold flex items-center gap-2">
+                <span>{selectedBlIds.length} bon(s) de livraison sélectionné(s)</span>
+                {selectedBlsObjects[0] && (
+                  <span className="px-2 py-0.5 rounded bg-indigo-800/80 text-indigo-200 font-medium">
+                    Client : {selectedBlsObjects[0].client_nom}
+                  </span>
+                )}
+              </div>
+              <div className="text-xs text-indigo-300 font-mono mt-0.5">
+                Total HT : <span className="font-semibold text-slate-200">{formatCurrency(selectedBlsTotals.totalHt, false)}</span> + TVA : <span className="font-semibold text-slate-200">{formatCurrency(selectedBlsTotals.totalTva, false)}</span> = <span className="font-extrabold text-emerald-400 text-sm">TTC : {formatCurrency(selectedBlsTotals.totalTtc)}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setSelectedBlIds([])}
+              className="px-3 py-1.5 text-xs text-indigo-200 hover:text-white hover:bg-indigo-900 rounded-lg transition"
+            >
+              Désélectionner tout
+            </button>
+            <button
+              onClick={() => {
+                if (!isSingleClientSelected) {
+                  alert('Veuillez sélectionner des BLs appartenant au même client pour générer une facture consolidée.');
+                  return;
+                }
+                onBatchInvoiceSelected(selectedBlIds);
+              }}
+              disabled={!isSingleClientSelected}
+              className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white shadow transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <FileText className="w-4 h-4" />
+              <span>Générer Facture ({formatCurrency(selectedBlsTotals.totalTtc)})</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Filter Tabs, Date Range & Search Bar */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 bg-white p-3 rounded-xl border border-slate-200 shadow-xs">

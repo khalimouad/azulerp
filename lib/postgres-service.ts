@@ -494,6 +494,7 @@ export async function createFactureFromBLs(
   factureInfo?: Partial<Facture>
 ): Promise<number> {
   const blIds = Array.isArray(blIdsOrParams) ? blIdsOrParams : blIdsOrParams.bl_ids || [];
+  const brIds = Array.isArray(blIdsOrParams) ? [] : blIdsOrParams.br_ids || [];
   const info = Array.isArray(blIdsOrParams) ? (factureInfo || {}) : {
     date: blIdsOrParams.date,
     mode_reglement: blIdsOrParams.mode_reglement,
@@ -505,12 +506,76 @@ export async function createFactureFromBLs(
   const selectedBls = allBls.filter((b) => blIds.includes(b.id) && !b.cloture_sans_facture);
   const invoiceableBlIds = selectedBls.map((bl) => bl.id);
 
+  const allBrs = await fetchBonsRetour();
+  const selectedBrs = allBrs.filter((r) => brIds.includes(r.id));
+  const invoiceableBrIds = selectedBrs.map((br) => br.id);
+
+  const firstDoc = selectedBls[0] || selectedBrs[0];
+  if (!firstDoc) {
+    throw new Error('Veuillez sélectionner au moins un bon de livraison ou bon de retour.');
+  }
+
+  const clientId = info.client_id || firstDoc.client_id;
+  const clientNom = info.client_nom || firstDoc.client_nom || '';
+  const clientIce = info.client_ice || firstDoc.client_ice || '';
+  const clientAdresse = info.client_adresse || firstDoc.client_adresse || '';
+  const clientVille = info.client_ville || firstDoc.client_ville || '';
+
   const lignes: LineItem[] = [];
   selectedBls.forEach((bl) => {
-    (bl.lignes || []).forEach((l) => lignes.push(l));
+    (bl.lignes || []).forEach((l) => lignes.push({ ...l }));
   });
 
-  const res = await apiCall('create_facture', { facture: info, lignes, blIds: invoiceableBlIds });
+  selectedBrs.forEach((br) => {
+    (br.lignes || []).forEach((l) => {
+      const qte = -Math.abs(l.quantite);
+      const totalHt = -Math.abs(l.total_ht || (l.quantite * l.prix_ht));
+      const tvaRate = l.taux_tva ?? 20;
+      const totalTva = -Math.abs(l.total_tva || (Math.abs(totalHt) * (tvaRate / 100)));
+      const totalTtc = totalHt + totalTva;
+      lignes.push({
+        ...l,
+        quantite: qte,
+        total_ht: totalHt,
+        total_tva: totalTva,
+        total_ttc: totalTtc,
+        designation: l.designation.includes('(Retour') ? l.designation : `${l.designation} (Retour ${br.numero})`,
+      });
+    });
+  });
+
+  const totalHt = lignes.reduce((s, l) => s + (Number(l.total_ht) || 0), 0);
+  const tva20 = lignes.filter((l) => (l.taux_tva ?? 20) === 20).reduce((s, l) => s + (Number(l.total_tva) || 0), 0);
+  const tva10 = lignes.filter((l) => (l.taux_tva ?? 20) === 10).reduce((s, l) => s + (Number(l.total_tva) || 0), 0);
+  const totalTva = tva20 + tva10;
+  const totalTtc = totalHt + totalTva;
+
+  const fullFacturePayload: Partial<Facture> = {
+    ...info,
+    client_id: clientId,
+    client_nom: clientNom,
+    client_ice: clientIce,
+    client_adresse: clientAdresse,
+    client_ville: clientVille,
+    total_ht: totalHt,
+    tva_20: tva20,
+    tva_10: tva10,
+    total_tva: totalTva,
+    total_ttc: totalTtc,
+    reste_a_payer: totalTtc,
+    montant_regle: 0,
+    statut_paiement: 'Impayé',
+    etat: 'Validé',
+    bl_associes: selectedBls.map((b) => b.numero),
+    br_associes: selectedBrs.map((r) => r.numero),
+  };
+
+  const res = await apiCall('create_facture', {
+    facture: fullFacturePayload,
+    lignes,
+    blIds: invoiceableBlIds,
+    brIds: invoiceableBrIds,
+  });
   await fetchAllData(true);
   return res.id;
 }
