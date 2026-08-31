@@ -216,24 +216,39 @@ export const CreateBlView: React.FC<CreateBlViewProps> = ({
     setLignes(lignes.filter((_, i) => i !== index));
   };
 
-  // Calculations
+  // Exact Calculations
   const calculated = lignes.map((l) => {
-    const total_ht = l.quantite * l.prix_ht * (1 - (l.remise_pct || 0) / 100);
-    const total_tva = total_ht * (l.taux_tva / 100);
-    const total_ttc = total_ht + total_tva;
-    return { ...l, total_ht, total_tva, total_ttc };
+    const qte = Number(l.quantite) || 0;
+    const prix = Number(l.prix_ht) || 0;
+    const remise = Number(l.remise_pct) || 0;
+    const tvaRate = Number(l.taux_tva !== undefined && l.taux_tva !== null ? l.taux_tva : 20);
+    const base_ht = qte * prix;
+    const montant_remise = base_ht * (remise / 100);
+    const total_ht = Math.round((base_ht - montant_remise) * 100) / 100;
+    const total_tva = Math.round((total_ht * (tvaRate / 100)) * 100) / 100;
+    const total_ttc = Math.round((total_ht + total_tva) * 100) / 100;
+    return { ...l, quantite: qte, prix_ht: prix, taux_tva: tvaRate, remise_pct: remise, total_ht, total_tva, total_ttc };
   });
 
-  const totalHt = calculated.reduce((acc, curr) => acc + curr.total_ht, 0);
-  const totalTva = calculated.reduce((acc, curr) => acc + curr.total_tva, 0);
-  const totalTtc = totalHt + totalTva;
-  const tva10 = calculated
-    .filter((line) => Number(line.taux_tva) === 10)
-    .reduce((sum, line) => sum + line.total_tva, 0);
-  const tva20 = calculated
-    .filter((line) => Number(line.taux_tva) === 20)
-    .reduce((sum, line) => sum + line.total_tva, 0);
-  const montantBrut = lignes.reduce((sum, line) => sum + line.quantite * line.prix_ht, 0);
+  const totalHt = Math.round(calculated.reduce((acc, curr) => acc + curr.total_ht, 0) * 100) / 100;
+  const tva20 = Math.round(
+    calculated
+      .filter((line) => Number(line.taux_tva) === 20)
+      .reduce((sum, line) => sum + line.total_tva, 0) * 100
+  ) / 100;
+  const tva10 = Math.round(
+    calculated
+      .filter((line) => Number(line.taux_tva) === 10)
+      .reduce((sum, line) => sum + line.total_tva, 0) * 100
+  ) / 100;
+  const tva7 = Math.round(
+    calculated
+      .filter((line) => Number(line.taux_tva) === 7)
+      .reduce((sum, line) => sum + line.total_tva, 0) * 100
+  ) / 100;
+  const totalTva = Math.round((tva20 + tva10 + tva7) * 100) / 100;
+  const totalTtc = Math.round((totalHt + totalTva) * 100) / 100;
+  const montantBrut = Math.round(lignes.reduce((sum, line) => sum + (Number(line.quantite) || 0) * (Number(line.prix_ht) || 0), 0) * 100) / 100;
 
   const handleValidateAndSave = () => handleSaveWithState('Validé');
 

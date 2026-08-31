@@ -124,27 +124,37 @@ export const DocumentPreviewView: React.FC<DocumentPreviewViewProps> = ({
     ? 'Retour aux Bons de Retour'
     : 'Retour aux Devis';
 
-  const totalHt = Number(doc.total_ht || 0);
-  const totalTtc = Number(doc.total_ttc || 0);
-  const totalTva = isFacture
-    ? Number((doc as Facture).total_tva || 0)
-    : isBl
-    ? Number((doc as BonLivraison).total_tva || 0)
-    : isBr
-    ? Number((doc as BonRetour).total_tva || 0)
-    : Number((doc as Devis).total_tva || 0);
+  // Compute exact totals & taxes dynamically from document lines
+  const computedLines = (doc.lignes || []).map((l: any) => {
+    const qte = Number(l.quantite) || 0;
+    const prix = Number(l.prix_ht) || 0;
+    const remise = Number(l.remise_pct) || 0;
+    const tvaRate = Number(l.taux_tva !== undefined && l.taux_tva !== null ? l.taux_tva : 20);
+    const lineHt = l.total_ht !== undefined && l.total_ht !== null
+      ? Number(l.total_ht)
+      : Math.round(qte * prix * (1 - remise / 100) * 100) / 100;
+    const lineTva = l.total_tva !== undefined && l.total_tva !== null
+      ? Number(l.total_tva)
+      : Math.round(lineHt * (tvaRate / 100) * 100) / 100;
+    const lineTtc = l.total_ttc !== undefined && l.total_ttc !== null
+      ? Number(l.total_ttc)
+      : Math.round((lineHt + lineTva) * 100) / 100;
+    return { ...l, qte, prix, remise, tvaRate, lineHt, lineTva, lineTtc };
+  });
 
-  const tva10 = isFacture
-    ? Number((doc as Facture).tva_10 || 0)
-    : isBl
-    ? Number((doc as BonLivraison).tva_10 || 0)
-    : 0;
+  const linesTotalHt = Math.round(computedLines.reduce((s: number, l: any) => s + l.lineHt, 0) * 100) / 100;
+  const linesTva20 = Math.round(computedLines.filter((l: any) => l.tvaRate === 20).reduce((s: number, l: any) => s + l.lineTva, 0) * 100) / 100;
+  const linesTva10 = Math.round(computedLines.filter((l: any) => l.tvaRate === 10).reduce((s: number, l: any) => s + l.lineTva, 0) * 100) / 100;
+  const linesTva7 = Math.round(computedLines.filter((l: any) => l.tvaRate === 7).reduce((s: number, l: any) => s + l.lineTva, 0) * 100) / 100;
+  const linesTotalTva = Math.round((linesTva20 + linesTva10 + linesTva7) * 100) / 100;
+  const linesTotalTtc = Math.round((linesTotalHt + linesTotalTva) * 100) / 100;
 
-  const tva20 = isFacture
-    ? Number((doc as Facture).tva_20 || (totalTva - tva10))
-    : isBl
-    ? Number((doc as BonLivraison).tva_20 || (totalTva - tva10))
-    : totalTva;
+  const totalHt = computedLines.length > 0 ? linesTotalHt : Number(doc.total_ht || 0);
+  const totalTva = computedLines.length > 0 ? linesTotalTva : Number((doc as any).total_tva || 0);
+  const totalTtc = computedLines.length > 0 ? linesTotalTtc : Number(doc.total_ttc || 0);
+  const tva10 = computedLines.length > 0 ? linesTva10 : Number((doc as any).tva_10 || 0);
+  const tva20 = computedLines.length > 0 ? linesTva20 : Number((doc as any).tva_20 || (totalTva - tva10));
+  const tva7 = computedLines.length > 0 ? linesTva7 : Number((doc as any).tva_7 || 0);
 
   // Address lines dynamically from company settings
   let addrLines: string[] = [];
@@ -515,16 +525,30 @@ export const DocumentPreviewView: React.FC<DocumentPreviewViewProps> = ({
               <span>Total HT :</span>
               <span className="tabular-nums font-semibold">{formatCurrency(totalHt, false)} DH</span>
             </div>
+            {tva7 > 0 && (
+              <div className="flex justify-between text-slate-600">
+                <span>Total TVA 7 % :</span>
+                <span className="tabular-nums">{formatCurrency(tva7, false)} DH</span>
+              </div>
+            )}
             {tva10 > 0 && (
               <div className="flex justify-between text-slate-600">
                 <span>Total TVA 10 % :</span>
                 <span className="tabular-nums">{formatCurrency(tva10, false)} DH</span>
               </div>
             )}
-            <div className="flex justify-between text-slate-600">
-              <span>Total TVA 20 % :</span>
-              <span className="tabular-nums">{formatCurrency(tva20, false)} DH</span>
-            </div>
+            {tva20 > 0 && (
+              <div className="flex justify-between text-slate-600">
+                <span>Total TVA 20 % :</span>
+                <span className="tabular-nums">{formatCurrency(tva20, false)} DH</span>
+              </div>
+            )}
+            {tva7 === 0 && tva10 === 0 && tva20 === 0 && totalTva > 0 && (
+              <div className="flex justify-between text-slate-600">
+                <span>Total TVA :</span>
+                <span className="tabular-nums">{formatCurrency(totalTva, false)} DH</span>
+              </div>
+            )}
 
             {/* Net à payer box */}
             <div className="border border-slate-500 bg-slate-200/80 rounded-lg p-2 flex justify-between items-center text-xs font-black text-slate-950 mt-1">

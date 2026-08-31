@@ -398,24 +398,66 @@ function generateFacturePdfLegacy(facture: Facture, company: CompanyInfo) {
   const labelX = 85;
   let totY = finalY + 3;
 
+  const factLines = (facture.lignes || []).map((l: any) => {
+    const qte = Number(l.quantite) || 0;
+    const prix = Number(l.prix_ht) || 0;
+    const remise = Number(l.remise_pct) || 0;
+    const tvaRate = Number(l.taux_tva !== undefined && l.taux_tva !== null ? l.taux_tva : 20);
+    const lineHt = l.total_ht !== undefined && l.total_ht !== null
+      ? Number(l.total_ht)
+      : Math.round(qte * prix * (1 - remise / 100) * 100) / 100;
+    const lineTva = l.total_tva !== undefined && l.total_tva !== null
+      ? Number(l.total_tva)
+      : Math.round(lineHt * (tvaRate / 100) * 100) / 100;
+    return { lineHt, lineTva, tvaRate };
+  });
+
+  const totHt = factLines.length > 0
+    ? Math.round(factLines.reduce((s, l) => s + l.lineHt, 0) * 100) / 100
+    : Number(facture.total_ht || 0);
+  const t20 = factLines.length > 0
+    ? Math.round(factLines.filter((l) => l.tvaRate === 20).reduce((s, l) => s + l.lineTva, 0) * 100) / 100
+    : Number(facture.tva_20 || ((facture.total_tva || 0) - (facture.tva_10 || 0)));
+  const t10 = factLines.length > 0
+    ? Math.round(factLines.filter((l) => l.tvaRate === 10).reduce((s, l) => s + l.lineTva, 0) * 100) / 100
+    : Number(facture.tva_10 || 0);
+  const t7 = factLines.length > 0
+    ? Math.round(factLines.filter((l) => l.tvaRate === 7).reduce((s, l) => s + l.lineTva, 0) * 100) / 100
+    : Number((facture as any).tva_7 || 0);
+  const totTva = Math.round((t20 + t10 + t7) * 100) / 100;
+  const totTtc = Math.round((totHt + totTva) * 100) / 100;
+
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(6.5);
   doc.setTextColor(71, 85, 105);
 
   doc.text('Total HT :', labelX, totY);
-  doc.text(`${formatCurrency(facture.total_ht || 0, false)} DH`, rightX, totY, { align: 'right' });
-  totY += 3.5;
+  doc.text(`${formatCurrency(totHt, false)} DH`, rightX, totY, { align: 'right' });
+  totY += 3.2;
 
-  if (facture.tva_10 && facture.tva_10 > 0) {
-    doc.text('Total TVA 10 % :', labelX, totY);
-    doc.text(`${formatCurrency(facture.tva_10, false)} DH`, rightX, totY, { align: 'right' });
-    totY += 3.5;
+  if (t7 > 0) {
+    doc.text('Total TVA 7 % :', labelX, totY);
+    doc.text(`${formatCurrency(t7, false)} DH`, rightX, totY, { align: 'right' });
+    totY += 3.2;
   }
 
-  const tva20 = facture.tva_20 || ((facture.total_tva || 0) - (facture.tva_10 || 0));
-  doc.text('Total TVA 20 % :', labelX, totY);
-  doc.text(`${formatCurrency(tva20, false)} DH`, rightX, totY, { align: 'right' });
-  totY += 4.5;
+  if (t10 > 0) {
+    doc.text('Total TVA 10 % :', labelX, totY);
+    doc.text(`${formatCurrency(t10, false)} DH`, rightX, totY, { align: 'right' });
+    totY += 3.2;
+  }
+
+  if (t20 > 0) {
+    doc.text('Total TVA 20 % :', labelX, totY);
+    doc.text(`${formatCurrency(t20, false)} DH`, rightX, totY, { align: 'right' });
+    totY += 4.0;
+  } else if (totTva > 0 && t10 === 0 && t7 === 0) {
+    doc.text('Total TVA :', labelX, totY);
+    doc.text(`${formatCurrency(totTva, false)} DH`, rightX, totY, { align: 'right' });
+    totY += 4.0;
+  } else {
+    totY += 1.0;
+  }
 
   // Net to pay boxed
   doc.setDrawColor(59, 130, 246);
@@ -428,7 +470,7 @@ function generateFacturePdfLegacy(facture: Facture, company: CompanyInfo) {
   doc.setTextColor(15, 23, 42);
   doc.text('Net à payer TTC :', labelX, totY + 1.2);
   doc.setTextColor(30, 58, 138);
-  doc.text(`${formatCurrency(facture.total_ttc || 0, false)} DH`, rightX, totY + 1.2, { align: 'right' });
+  doc.text(`${formatCurrency(totTtc, false)} DH`, rightX, totY + 1.2, { align: 'right' });
 
   drawVerdeOrtoFooter(doc, company);
   doc.save(`Facture_${facture.numero.replace(/[\/\\]/g, '_')}.pdf`);

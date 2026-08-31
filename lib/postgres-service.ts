@@ -521,34 +521,97 @@ export async function createFactureFromBLs(
   const clientAdresse = info.client_adresse || firstDoc.client_adresse || '';
   const clientVille = info.client_ville || firstDoc.client_ville || '';
 
-  const lignes: LineItem[] = [];
+  const rawLines: LineItem[] = [];
   selectedBls.forEach((bl) => {
-    (bl.lignes || []).forEach((l) => lignes.push({ ...l }));
+    (bl.lignes || []).forEach((l) => rawLines.push({ ...l }));
   });
 
   selectedBrs.forEach((br) => {
     (br.lignes || []).forEach((l) => {
-      const qte = -Math.abs(l.quantite);
-      const totalHt = -Math.abs(l.total_ht || (l.quantite * l.prix_ht));
-      const tvaRate = l.taux_tva ?? 20;
-      const totalTva = -Math.abs(l.total_tva || (Math.abs(totalHt) * (tvaRate / 100)));
-      const totalTtc = totalHt + totalTva;
-      lignes.push({
+      const qte = -Math.abs(Number(l.quantite) || 0);
+      rawLines.push({
         ...l,
         quantite: qte,
-        total_ht: totalHt,
-        total_tva: totalTva,
-        total_ttc: totalTtc,
-        designation: l.designation.includes('(Retour') ? l.designation : `${l.designation} (Retour ${br.numero})`,
       });
     });
   });
 
-  const totalHt = lignes.reduce((s, l) => s + (Number(l.total_ht) || 0), 0);
-  const tva20 = lignes.filter((l) => (l.taux_tva ?? 20) === 20).reduce((s, l) => s + (Number(l.total_tva) || 0), 0);
-  const tva10 = lignes.filter((l) => (l.taux_tva ?? 20) === 10).reduce((s, l) => s + (Number(l.total_tva) || 0), 0);
-  const totalTva = tva20 + tva10;
-  const totalTtc = totalHt + totalTva;
+  // Consolidation of similar products with same unit price, TVA rate, discount, and unit
+  const consolidatedMap = new Map<string, {
+    produit_id?: number;
+    designation: string;
+    groupe?: string;
+    unite?: string;
+    prix_ht: number;
+    taux_tva: number;
+    remise_pct: number;
+    quantite: number;
+  }>();
+
+  for (const l of rawLines) {
+    const prix_ht = Math.round((Number(l.prix_ht) || 0) * 10000) / 10000;
+    const taux_tva = Number(l.taux_tva !== undefined && l.taux_tva !== null ? l.taux_tva : 20);
+    const remise_pct = Number(l.remise_pct || 0);
+    const unite = (l.unite || 'KG').trim().toUpperCase();
+    const rawDesig = (l.designation || '').trim();
+    const cleanDesig = rawDesig.toLowerCase().replace(/\s*\(retour[^\)]*\)/gi, '').replace(/\s*\(déduction[^\)]*\)/gi, '').trim();
+    const produit_id = l.produit_id ? Number(l.produit_id) : undefined;
+
+    // Consolidation key
+    const key = `${produit_id || 'p'}_${cleanDesig}_${prix_ht.toFixed(4)}_${taux_tva}_${remise_pct}_${unite}`;
+    const qte = Number(l.quantite) || 0;
+
+    if (!consolidatedMap.has(key)) {
+      consolidatedMap.set(key, {
+        produit_id,
+        designation: rawDesig.replace(/\s*\(retour[^\)]*\)/gi, '').replace(/\s*\(déduction[^\)]*\)/gi, '').trim(),
+        groupe: l.groupe || '',
+        unite: l.unite || 'KG',
+        prix_ht,
+        taux_tva,
+        remise_pct,
+        quantite: qte,
+      });
+    } else {
+      const existing = consolidatedMap.get(key)!;
+      existing.quantite += qte;
+    }
+  }
+
+  const lignes: LineItem[] = [];
+  let lineIdx = 1;
+  for (const item of consolidatedMap.values()) {
+    if (Math.abs(item.quantite) < 0.0001) continue; // Net zero lines omitted
+
+    const base_ht = item.quantite * item.prix_ht;
+    const remise = base_ht * (item.remise_pct / 100);
+    const total_ht = Math.round((base_ht - remise) * 100) / 100;
+    const total_tva = Math.round((total_ht * (item.taux_tva / 100)) * 100) / 100;
+    const total_ttc = Math.round((total_ht + total_tva) * 100) / 100;
+
+    lignes.push({
+      id: lineIdx++,
+      produit_id: item.produit_id,
+      designation: item.quantite < 0 ? `${item.designation} (Déduction Retour -)` : item.designation,
+      groupe: item.groupe,
+      unite: item.unite,
+      quantite: Math.round(item.quantite * 1000) / 1000,
+      prix_ht: item.prix_ht,
+      taux_tva: item.taux_tva,
+      remise_pct: item.remise_pct,
+      total_ht,
+      total_tva,
+      total_ttc,
+    });
+  }
+
+  // Exact Tax & Totals calculation
+  const totalHt = Math.round(lignes.reduce((s, l) => s + (Number(l.total_ht) || 0), 0) * 100) / 100;
+  const tva20 = Math.round(lignes.filter((l) => Number(l.taux_tva ?? 20) === 20).reduce((s, l) => s + (Number(l.total_tva) || 0), 0) * 100) / 100;
+  const tva10 = Math.round(lignes.filter((l) => Number(l.taux_tva ?? 20) === 10).reduce((s, l) => s + (Number(l.total_tva) || 0), 0) * 100) / 100;
+  const tva7 = Math.round(lignes.filter((l) => Number(l.taux_tva ?? 20) === 7).reduce((s, l) => s + (Number(l.total_tva) || 0), 0) * 100) / 100;
+  const totalTva = Math.round((tva20 + tva10 + tva7) * 100) / 100;
+  const totalTtc = Math.round((totalHt + totalTva) * 100) / 100;
 
   const fullFacturePayload: Partial<Facture> = {
     ...info,
