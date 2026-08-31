@@ -314,12 +314,14 @@ export const DocumentPreviewView: React.FC<DocumentPreviewViewProps> = ({
                 </div>
               )
             )}
-            <div className="w-full -mt-3.5 sm:-mt-4 text-center p-0 m-0">
-              {partnerLines.map((line, idx) => (
-                <div key={idx} className="text-[8px] sm:text-[8.5px] font-black text-slate-950 leading-tight uppercase p-0 m-0">
-                  {line}
-                </div>
-              ))}
+            <div className="w-full -mt-3.5 sm:-mt-4 flex justify-end">
+              <div className="w-[65%] text-center p-0 m-0">
+                {partnerLines.map((line, idx) => (
+                  <div key={idx} className="text-[8px] sm:text-[8.5px] font-black text-slate-950 leading-tight uppercase p-0 m-0">
+                    {line}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
 

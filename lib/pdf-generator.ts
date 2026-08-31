@@ -143,13 +143,14 @@ function drawVerdeOrtoHeader(
     }
   }
 
-  // Partner / Cooperative / Inspection mentions below Logo (centered, close to logo, no padding)
+  // Partner / Cooperative / Inspection mentions below Logo (shifted right under right half of logo, text centered)
   if (company.partenaire_coop && company.partenaire_coop.trim()) {
     const coopLines = company.partenaire_coop
       .split('\n')
       .map((l) => l.trim())
       .filter(Boolean);
     let coopY = isLogoCenter ? 21.0 : 18.0;
+    const partnerCenterX = centerX + 15;
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(5.0);
     doc.setTextColor(15, 23, 42);
@@ -157,7 +158,7 @@ function drawVerdeOrtoHeader(
       if (i === coopLines.length - 1 && coopLines.length > 2) {
         doc.setFont('helvetica', 'normal');
       }
-      doc.text(coopLines[i], centerX, coopY, { align: 'center' });
+      doc.text(coopLines[i], partnerCenterX, coopY, { align: 'center' });
       coopY += 2.6;
     }
   }
