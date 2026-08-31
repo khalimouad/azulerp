@@ -100,11 +100,11 @@ function drawVerdeOrtoHeader(
 
   for (const line of addrLines) {
     doc.text(line, 8, currentY);
-    currentY += 3.2;
+    currentY += 2.8;
   }
   if (company.telephone) {
     doc.text(`Tel : ${company.telephone}`, 8, currentY);
-    currentY += 3.2;
+    currentY += 2.8;
   }
   if (company.email) {
     doc.text(`E-Mail : ${company.email}`, 8, currentY);
@@ -120,7 +120,7 @@ function drawVerdeOrtoHeader(
       let format = 'PNG';
       if (company.logo_image.includes('image/jpeg') || company.logo_image.includes('image/jpg')) format = 'JPEG';
       else if (company.logo_image.includes('image/webp')) format = 'WEBP';
-      doc.addImage(company.logo_image, format, centerX - 25, 4, 50, 21);
+      doc.addImage(company.logo_image, format, centerX - 25, 4, 50, 19);
     } catch (e) {
       console.warn('PDF center image rendering error:', e);
     }
@@ -128,43 +128,43 @@ function drawVerdeOrtoHeader(
     // Vector Oval Logo Badge
     doc.setDrawColor(34, 139, 34); // Forest Green
     doc.setLineWidth(0.4);
-    doc.ellipse(centerX, 13.5, 15, 6.5, 'D');
+    doc.ellipse(centerX, 12.5, 14, 5.8, 'D');
 
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(7.5);
+    doc.setFontSize(7.2);
     doc.setTextColor(22, 101, 52); // green-800
-    doc.text(logoTitle, centerX, 13.5, { align: 'center' });
+    doc.text(logoTitle, centerX, 12.5, { align: 'center' });
 
     if (logoSub) {
       doc.setFont('helvetica', 'italic');
-      doc.setFontSize(4.2);
+      doc.setFontSize(4.0);
       doc.setTextColor(21, 128, 61); // green-700
-      doc.text(logoSub, centerX, 16.5, { align: 'center' });
+      doc.text(logoSub, centerX, 15.2, { align: 'center' });
     }
   }
 
-  // Partner / Cooperative / Inspection mentions below Logo
+  // Partner / Cooperative / Inspection mentions below Logo (top right, close to logo, no padding)
   if (company.partenaire_coop && company.partenaire_coop.trim()) {
     const coopLines = company.partenaire_coop
       .split('\n')
       .map((l) => l.trim())
       .filter(Boolean);
-    let coopY = 23;
+    let coopY = isLogoCenter ? 21.0 : 18.0;
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(5.2);
+    doc.setFontSize(5.0);
     doc.setTextColor(15, 23, 42);
     for (let i = 0; i < coopLines.length; i++) {
       if (i === coopLines.length - 1 && coopLines.length > 2) {
         doc.setFont('helvetica', 'normal');
       }
-      doc.text(coopLines[i], centerX, coopY, { align: 'center' });
-      coopY += 3;
+      doc.text(coopLines[i], 98, coopY, { align: 'right' });
+      coopY += 2.6;
     }
   }
 
-  // 3. TOP RIGHT: Fiscal & Legal Identifiers (purely from company settings)
+  // 3. TOP RIGHT: Fiscal & Legal Identifiers (with smaller interligne)
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(6.2);
+  doc.setFontSize(6.0);
   doc.setTextColor(51, 65, 85);
   const rightLabelX = 104;
   const rightValX = 140;
@@ -176,69 +176,69 @@ function drawVerdeOrtoHeader(
   if (company.cnss) fiscalItems.push({ label: 'CNSS', val: company.cnss });
   if (company.ice) fiscalItems.push({ label: 'ICE', val: company.ice });
 
-  let fiscY = 12;
+  let fiscY = 11.5;
   for (const item of fiscalItems) {
     doc.setFont('helvetica', 'bold');
     doc.text(`${item.label}   :`, rightLabelX, fiscY);
     doc.setFont('helvetica', 'normal');
     doc.text(item.val, rightValX, fiscY, { align: 'right' });
-    fiscY += 3.4;
+    fiscY += 2.8;
   }
 
-  // 4. MIDDLE SECTION: 2 Rounded Boxes (Client on Left, Document Details on Right)
-  const boxY = 34.5;
-  const boxH = 19;
+  // 4. MIDDLE SECTION: 2 Rounded Boxes (Client on Left, Document Details on Right - smaller padding & moved to top)
+  const boxY = 30.5;
+  const boxH = 16.5;
   const leftBoxW = 68;
   const rightBoxW = 60;
   const rightBoxX = 80;
 
-  // Left Box: Client info
+  // Left Box: Client info (smaller padding)
   doc.setDrawColor(203, 213, 225); // slate-300
   doc.setFillColor(255, 255, 255);
   doc.setLineWidth(0.3);
-  doc.roundedRect(8, boxY, leftBoxW, boxH, 1.8, 1.8, 'FD');
+  doc.roundedRect(8, boxY, leftBoxW, boxH, 1.5, 1.5, 'FD');
 
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(7.2);
+  doc.setFontSize(7.0);
   doc.setTextColor(15, 23, 42);
-  doc.text(`Client : ${clientNom}`, 11, boxY + 4.5, { maxWidth: 62 });
+  doc.text(`Client : ${clientNom}`, 10.5, boxY + 4.2, { maxWidth: 62 });
 
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(6.3);
+  doc.setFontSize(6.0);
   doc.setTextColor(71, 85, 105);
 
-  let cY = boxY + 8.5;
+  let cY = boxY + 7.6;
   if (clientAdresse) {
-    doc.text(clientAdresse, 11, cY, { maxWidth: 62 });
-    cY += 3.3;
+    doc.text(clientAdresse, 10.5, cY, { maxWidth: 62 });
+    cY += 2.8;
   }
   if (clientVille) {
-    doc.text(clientVille.toUpperCase(), 11, cY);
-    cY += 3.3;
+    doc.text(clientVille.toUpperCase(), 10.5, cY);
+    cY += 2.8;
   }
   if (clientIce) {
     doc.setFont('helvetica', 'bold');
-    doc.text(`ICE : ${clientIce}`, 11, cY);
+    doc.text(`ICE : ${clientIce}`, 10.5, cY);
   }
 
-  // Right Box: Document Reference
-  doc.roundedRect(rightBoxX, boxY, rightBoxW, boxH, 1.8, 1.8, 'FD');
+  // Right Box: Document Reference (Aligned to Right)
+  doc.roundedRect(rightBoxX, boxY, rightBoxW, boxH, 1.5, 1.5, 'FD');
 
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(7.2);
+  doc.setFontSize(7.0);
   doc.setTextColor(15, 23, 42);
-  doc.text(`N° de ${docTypeTitle} :`, rightBoxX + 3, boxY + 5);
+  doc.text(`N° de ${docTypeTitle} :`, rightBoxX + rightBoxW - 30, boxY + 4.5, { align: 'right' });
   doc.setFont('helvetica', 'bold');
-  doc.text(docNumber, rightBoxX + rightBoxW - 3, boxY + 5, { align: 'right' });
+  doc.text(docNumber, rightBoxX + rightBoxW - 3, boxY + 4.5, { align: 'right' });
 
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(6.8);
+  doc.setFontSize(6.5);
   doc.setTextColor(51, 65, 85);
-  doc.text('Date :', rightBoxX + 3, boxY + 9.5);
-  doc.text(docDate, rightBoxX + rightBoxW - 3, boxY + 9.5, { align: 'right' });
+  doc.text('Date :', rightBoxX + rightBoxW - 30, boxY + 8.5, { align: 'right' });
+  doc.text(docDate, rightBoxX + rightBoxW - 3, boxY + 8.5, { align: 'right' });
 
   if (extraDetails && extraDetails.length > 0) {
-    let eY = boxY + 13.5;
+    let eY = boxY + 12.0;
     for (const extra of extraDetails) {
       if (extra.isRose) {
         doc.setTextColor(225, 29, 72); // rose-600
@@ -247,18 +247,18 @@ function drawVerdeOrtoHeader(
         doc.setTextColor(71, 85, 105);
         doc.setFont('helvetica', 'normal');
       }
-      doc.setFontSize(5.8);
-      doc.text(`${extra.label} :`, rightBoxX + 3, eY);
-      doc.text(extra.value, rightBoxX + rightBoxW - 3, eY, { align: 'right', maxWidth: 35 });
-      eY += 3.2;
+      doc.setFontSize(5.5);
+      doc.text(`${extra.label} :`, rightBoxX + rightBoxW - 30, eY, { align: 'right' });
+      doc.text(extra.value, rightBoxX + rightBoxW - 3, eY, { align: 'right', maxWidth: 28 });
+      eY += 2.8;
     }
   }
 
   // 5. DOCUMENT TITLE: Centered bold text
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(12.5);
+  doc.setFontSize(12.0);
   doc.setTextColor(15, 23, 42);
-  doc.text(docTypeTitle, centerX, 58.5, { align: 'center' });
+  doc.text(docTypeTitle, centerX, 52.0, { align: 'center' });
 }
 
 /**
@@ -344,14 +344,14 @@ function generateFacturePdfLegacy(facture: Facture, company: CompanyInfo) {
   });
 
   autoTable(doc, {
-    startY: 63,
+    startY: 56,
     margin: { left: 8, right: 8 },
     theme: 'plain',
     head: [['Désignation', 'Qté.', 'P.U. HT', 'TVA', 'Remise', 'Total HT']],
     body: tableBody,
     styles: {
       fontSize: 6.5,
-      cellPadding: 1.2,
+      cellPadding: { top: 0.8, bottom: 0.8, left: 1.0, right: 1.0 },
       textColor: [15, 23, 42],
       lineWidth: 0.15,
       lineColor: [203, 213, 225],
@@ -470,14 +470,14 @@ function generateBlPdfLegacy(bl: BonLivraison, company: CompanyInfo) {
   });
 
   autoTable(doc, {
-    startY: 63,
+    startY: 56,
     margin: { left: 8, right: 8 },
     theme: 'plain',
     head: [['Désignation', 'Qté.', 'P.U. HT', 'TVA', 'Remise', 'Total HT']],
     body: tableBody,
     styles: {
       fontSize: 6.5,
-      cellPadding: 1.2,
+      cellPadding: { top: 0.8, bottom: 0.8, left: 1.0, right: 1.0 },
       textColor: [15, 23, 42],
       lineWidth: 0.15,
       lineColor: [203, 213, 225],
@@ -596,14 +596,14 @@ function generateBrPdfLegacy(br: BonRetour, company: CompanyInfo) {
   });
 
   autoTable(doc, {
-    startY: 63,
+    startY: 56,
     margin: { left: 8, right: 8 },
     theme: 'plain',
     head: [['Désignation', 'Qté. Retournée', 'P.U. HT', 'TVA', 'Remise', 'Total HT (-)', ]],
     body: tableBody,
     styles: {
       fontSize: 6.5,
-      cellPadding: 1.2,
+      cellPadding: { top: 0.8, bottom: 0.8, left: 1.0, right: 1.0 },
       textColor: [190, 18, 60], // rose-700
       lineWidth: 0.15,
       lineColor: [254, 205, 211],
@@ -879,14 +879,14 @@ export function generateDevisPdf(devis: Devis, company: CompanyInfo) {
   });
 
   autoTable(doc, {
-    startY: 63,
+    startY: 56,
     margin: { left: 8, right: 8 },
     theme: 'plain',
     head: [['Désignation', 'Qté.', 'P.U. HT', 'TVA', 'Remise', 'Total HT']],
     body: tableBody,
     styles: {
       fontSize: 6.5,
-      cellPadding: 1.2,
+      cellPadding: { top: 0.8, bottom: 0.8, left: 1.0, right: 1.0 },
       textColor: [15, 23, 42],
       lineWidth: 0.15,
       lineColor: [203, 213, 225],

@@ -168,103 +168,105 @@ export const DocumentPreviewModal: React.FC<DocumentPreviewModalProps> = ({
         </div>
 
         {/* Document Sheet */}
-        <div className="p-6 text-slate-900 font-sans max-h-[82vh] overflow-y-auto print:max-h-none print:overflow-visible space-y-4">
+        <div className="p-5 sm:p-6 text-slate-900 font-sans max-h-[82vh] overflow-y-auto print:max-h-none print:overflow-visible space-y-3">
           {/* Header 3-columns */}
-          <div className="grid grid-cols-3 gap-2 items-start pb-2">
+          <div className="grid grid-cols-[34%_36%_30%] gap-1.5 items-start pb-0.5">
             {/* Left */}
-            <div className="text-[10.5px] leading-tight space-y-0.5 text-slate-700">
+            <div className="text-[9.5px] sm:text-[10px] leading-[1.15] space-y-[1px] text-slate-700">
               {company.logo_image && company.logo_placement !== 'center' ? (
-                <div className="mb-1.5">
+                <div className="mb-1">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={company.logo_image}
                     alt="Logo Entreprise"
-                    className="max-h-12 max-w-[130px] object-contain"
+                    className="max-h-11 max-w-[125px] object-contain"
                   />
                   {company.logo_mode === 'both' && company.nom && (
-                    <h1 className="text-xs font-extrabold text-slate-950 uppercase tracking-tight mt-1">
+                    <h1 className="text-xs font-extrabold text-slate-950 uppercase tracking-tight mt-0.5">
                       {company.nom}
                     </h1>
                   )}
                 </div>
               ) : (
-                <h1 className="text-xs font-extrabold text-slate-950 uppercase tracking-tight">
+                <h1 className="text-xs font-extrabold text-slate-950 uppercase tracking-tight mb-0.5">
                   {company.nom}
                 </h1>
               )}
               {addrLines.map((line, idx) => (
-                <p key={idx} className="text-[10px]">
+                <p key={idx} className="text-[9.5px] sm:text-[10px] leading-[1.15]">
                   {line}
                 </p>
               ))}
               {company.telephone && (
-                <p className="text-[10px] pt-0.5">Tel : {company.telephone}</p>
+                <p className="text-[9.5px] sm:text-[10px] pt-0.5 leading-[1.15]">Tel : {company.telephone}</p>
               )}
               {company.email && (
-                <p className="text-[10px]">E-Mail : {company.email}</p>
+                <p className="text-[9.5px] sm:text-[10px] leading-[1.15]">E-Mail : {company.email}</p>
               )}
             </div>
 
-            {/* Center */}
-            <div className="flex flex-col items-center justify-center text-center">
+            {/* Center (Partner coop top-right, close to logo, no padding) */}
+            <div className="flex flex-col items-center justify-center text-center -mt-1.5">
               {company.logo_image && company.logo_placement === 'center' ? (
-                <div className="mb-1.5 flex justify-center">
+                <div className="mb-1 flex justify-center">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={company.logo_image}
                     alt="Logo Entreprise"
-                    className="h-20 w-[230px] object-contain"
+                    className="h-20 sm:h-22 w-[230px] object-contain"
                   />
                 </div>
               ) : (
                 logoTitle && (
-                  <div className="border-2 border-emerald-700 rounded-full px-4 py-1.5 bg-emerald-50/40 shadow-xs mb-1.5 inline-flex flex-col items-center">
+                  <div className="border-2 border-emerald-700 rounded-full px-3 py-1 bg-emerald-50/40 shadow-xs mb-1 inline-flex flex-col items-center">
                     <div className="text-xs font-extrabold text-emerald-800 tracking-wide">
                       {logoTitle}
                     </div>
                     {logoSub && (
-                      <div className="text-[7.5px] italic text-emerald-700 font-medium -mt-0.5">
+                      <div className="text-[7px] italic text-emerald-700 font-medium -mt-0.5">
                         {logoSub}
                       </div>
                     )}
                   </div>
                 )
               )}
-              {partnerLines.map((line, idx) => (
-                <div key={idx} className="text-[8.5px] font-bold text-slate-900 leading-tight">
-                  {line}
-                </div>
-              ))}
+              <div className="w-full -mt-3 sm:-mt-3.5 text-right p-0 pr-0 m-0">
+                {partnerLines.map((line, idx) => (
+                  <div key={idx} className="text-[8px] sm:text-[8.5px] font-bold text-slate-900 leading-tight uppercase p-0 m-0">
+                    {line}
+                  </div>
+                ))}
+              </div>
             </div>
 
             {/* Right */}
-            <div className="text-[10px] leading-relaxed text-right space-y-0.5">
+            <div className="text-[9.5px] sm:text-[10px] leading-[1.15] text-right space-y-[1px]">
               {company.rc && (
-                <div className="flex justify-end gap-2">
+                <div className="flex justify-end gap-1.5">
                   <span className="font-bold text-slate-800">RC :</span>
                   <span>{company.rc}</span>
                 </div>
               )}
               {company.if_fiscal && (
-                <div className="flex justify-end gap-2">
+                <div className="flex justify-end gap-1.5">
                   <span className="font-bold text-slate-800">IF :</span>
                   <span>{company.if_fiscal}</span>
                 </div>
               )}
               {company.patente && (
-                <div className="flex justify-end gap-2">
+                <div className="flex justify-end gap-1.5">
                   <span className="font-bold text-slate-800">PAT :</span>
                   <span>{company.patente}</span>
                 </div>
               )}
               {company.cnss && (
-                <div className="flex justify-end gap-2">
+                <div className="flex justify-end gap-1.5">
                   <span className="font-bold text-slate-800">CNSS :</span>
                   <span>{company.cnss}</span>
                 </div>
               )}
               {company.ice && (
-                <div className="flex justify-end gap-2">
+                <div className="flex justify-end gap-1.5">
                   <span className="font-bold text-slate-800">ICE :</span>
                   <span className="font-bold text-slate-950">{company.ice}</span>
                 </div>
@@ -272,50 +274,50 @@ export const DocumentPreviewModal: React.FC<DocumentPreviewModalProps> = ({
             </div>
           </div>
 
-          {/* Boxes */}
-          <div className="grid grid-cols-2 gap-3 text-xs">
-            <div className="border border-slate-300 rounded-lg p-2.5 bg-white space-y-0.5">
-              <div className="font-bold text-slate-900 text-[11px]">
+          {/* Boxes (Smaller padding & moved to top, right aligned doc details) */}
+          <div className="grid grid-cols-2 gap-2.5 text-xs -mt-1">
+            <div className="border border-slate-300 rounded-lg p-2 sm:p-2.5 bg-white space-y-0.5 min-h-[68px]">
+              <div className="font-bold text-slate-900 text-[10.5px] sm:text-[11px] leading-tight">
                 Client : {doc.client_nom}
               </div>
               {doc.client_adresse && (
-                <div className="text-slate-600 text-[10px]">{doc.client_adresse}</div>
+                <div className="text-slate-600 text-[9.5px] leading-tight">{doc.client_adresse}</div>
               )}
               {doc.client_ville && (
-                <div className="text-slate-600 text-[10px] uppercase">{doc.client_ville}</div>
+                <div className="text-slate-600 text-[9.5px] uppercase leading-tight">{doc.client_ville}</div>
               )}
               {doc.client_ice && (
-                <div className="text-slate-800 text-[10px] font-semibold pt-0.5">
+                <div className="text-slate-800 text-[9.5px] font-semibold pt-0.5 leading-tight">
                   ICE : {doc.client_ice}
                 </div>
               )}
             </div>
 
-            <div className="border border-slate-300 rounded-lg p-2.5 bg-white space-y-0.5">
-              <div className="flex justify-between items-center text-[11px]">
-                <span className="font-bold text-slate-900">N° de {docTitle} :</span>
-                <span className="font-bold tabular-nums text-slate-950">{doc.numero}</span>
+            <div className="border border-slate-300 rounded-lg p-2 sm:p-2.5 bg-white space-y-0.5 min-h-[68px] text-right">
+              <div className="flex justify-end items-center gap-2 text-[10.5px] sm:text-[11px]">
+                <span className="font-bold text-slate-800">N° de {docTitle} :</span>
+                <span className="font-extrabold tabular-nums text-slate-950">{doc.numero}</span>
               </div>
-              <div className="flex justify-between items-center text-[10px] text-slate-700">
-                <span>Date :</span>
-                <span>{formatDate(doc.date)}</span>
+              <div className="flex justify-end items-center gap-2 text-[9.5px] sm:text-[10px] text-slate-700">
+                <span className="font-semibold text-slate-700">Date :</span>
+                <span className="font-bold text-slate-950">{formatDate(doc.date)}</span>
               </div>
               {isFacture && (doc as Facture).bl_associes && (doc as Facture).bl_associes!.length > 0 && (
-                <div className="flex justify-between items-center text-[9.5px] text-slate-600">
-                  <span>BLs liés :</span>
-                  <span className="tabular-nums">{(doc as Facture).bl_associes!.join(', ')}</span>
+                <div className="flex justify-end items-center gap-2 text-[9px] text-slate-600">
+                  <span className="font-medium">BLs liés :</span>
+                  <span className="tabular-nums font-semibold">{(doc as Facture).bl_associes!.join(', ')}</span>
                 </div>
               )}
               {isFacture && (doc as Facture).br_associes && (doc as Facture).br_associes!.length > 0 && (
-                <div className="flex justify-between items-center text-[9.5px] text-rose-700 font-medium">
+                <div className="flex justify-end items-center gap-2 text-[9px] text-rose-700 font-medium">
                   <span>Retours (-) :</span>
                   <span className="tabular-nums font-bold">{(doc as Facture).br_associes!.join(', ')}</span>
                 </div>
               )}
               {isBr && (doc as BonRetour).motif && (
-                <div className="flex justify-between items-center text-[9.5px] text-rose-700">
+                <div className="flex justify-end items-center gap-2 text-[9px] text-rose-700">
                   <span>Motif :</span>
-                  <span className="truncate max-w-[120px]">{(doc as BonRetour).motif}</span>
+                  <span className="truncate max-w-[120px] font-medium">{(doc as BonRetour).motif}</span>
                 </div>
               )}
             </div>
@@ -328,17 +330,17 @@ export const DocumentPreviewModal: React.FC<DocumentPreviewModalProps> = ({
             </h2>
           </div>
 
-          {/* Line items Table */}
+          {/* Line items Table (Smaller padding inside tables) */}
           <div className="border border-slate-300 rounded-md overflow-hidden">
-            <table className="w-full text-left text-[10.5px] border-collapse">
+            <table className="w-full text-left text-[10px] border-collapse">
               <thead>
                 <tr className="bg-slate-100 text-slate-900 font-bold divide-x divide-slate-300 border-b border-slate-300">
-                  <th className="p-1.5 text-left">Désignation</th>
-                  <th className="p-1.5 w-16 text-right">Qté.</th>
-                  <th className="p-1.5 w-20 text-right">P.U. HT</th>
-                  <th className="p-1.5 w-12 text-center">TVA</th>
-                  <th className="p-1.5 w-14 text-center">Remise</th>
-                  <th className="p-1.5 w-24 text-right">Total HT</th>
+                  <th className="px-1.5 py-0.5 sm:py-1 text-left">Désignation</th>
+                  <th className="px-1.5 py-0.5 sm:py-1 w-16 text-right">Qté.</th>
+                  <th className="px-1.5 py-0.5 sm:py-1 w-20 text-right">P.U. HT</th>
+                  <th className="px-1.5 py-0.5 sm:py-1 w-12 text-center">TVA</th>
+                  <th className="px-1.5 py-0.5 sm:py-1 w-14 text-center">Remise</th>
+                  <th className="px-1.5 py-0.5 sm:py-1 w-24 text-right">Total HT</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
@@ -352,28 +354,28 @@ export const DocumentPreviewModal: React.FC<DocumentPreviewModalProps> = ({
                           isNegativeLine ? 'bg-rose-50/70 text-rose-950' : 'hover:bg-slate-50/50'
                         }`}
                       >
-                        <td className="p-1.5 font-normal">
+                        <td className="px-1.5 py-0.5 text-left font-normal leading-tight">
                           {l.designation}
                           {isNegativeLine && (
-                            <span className="ml-1.5 px-1 py-0.2 rounded text-[9px] font-bold bg-rose-100 text-rose-700">
+                            <span className="ml-1 px-1 py-0.2 rounded text-[8.5px] font-bold bg-rose-100 text-rose-700">
                               (Déduction retour -)
                             </span>
                           )}
                         </td>
-                        <td className="p-1.5 text-right tabular-nums font-medium">
+                        <td className="px-1.5 py-0.5 text-right tabular-nums font-medium leading-tight">
                           {formatDisplayQuantity(
                             isBr ? -Math.abs(l.quantite) : l.quantite,
                             l.designation,
                             l.unite
                           )}
                         </td>
-                        <td className="p-1.5 text-right tabular-nums">{formatCurrency(l.prix_ht, false)}</td>
-                        <td className="p-1.5 text-center tabular-nums">{l.taux_tva ?? 20}</td>
-                        <td className="p-1.5 text-center tabular-nums">
+                        <td className="px-1.5 py-0.5 text-right tabular-nums leading-tight">{formatCurrency(l.prix_ht, false)}</td>
+                        <td className="px-1.5 py-0.5 text-center tabular-nums leading-tight">{l.taux_tva ?? 20}</td>
+                        <td className="px-1.5 py-0.5 text-center tabular-nums leading-tight">
                           {l.remise_pct ? `${l.remise_pct}%` : ''}
                         </td>
                         <td
-                          className={`p-1.5 text-right tabular-nums font-bold ${
+                          className={`px-1.5 py-0.5 text-right tabular-nums font-bold leading-tight ${
                             isNegativeLine || isBr ? 'text-rose-700' : 'text-slate-900'
                           }`}
                         >
@@ -386,7 +388,7 @@ export const DocumentPreviewModal: React.FC<DocumentPreviewModalProps> = ({
                   })
                 ) : (
                   <tr>
-                    <td colSpan={6} className="p-3 text-center text-slate-400">
+                    <td colSpan={6} className="p-2 text-center text-slate-400 text-[10px]">
                       Aucun article
                     </td>
                   </tr>
