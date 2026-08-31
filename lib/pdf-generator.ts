@@ -222,21 +222,18 @@ function drawVerdeOrtoHeader(
     doc.text(`ICE : ${clientIce}`, 10.5, cY);
   }
 
-  // Right Box: Document Reference (Aligned to Left)
+  // Right Box: Document Reference (Labels & Values aligned to the left together)
   doc.roundedRect(rightBoxX, boxY, rightBoxW, boxH, 1.5, 1.5, 'FD');
 
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(7.0);
   doc.setTextColor(15, 23, 42);
-  doc.text(`N° de ${docTypeTitle} :`, rightBoxX + 3, boxY + 4.5);
-  doc.setFont('helvetica', 'bold');
-  doc.text(docNumber, rightBoxX + rightBoxW - 3, boxY + 4.5, { align: 'right' });
+  doc.text(`N° de ${docTypeTitle} : ${docNumber}`, rightBoxX + 3, boxY + 4.5);
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(6.5);
   doc.setTextColor(51, 65, 85);
-  doc.text('Date :', rightBoxX + 3, boxY + 8.5);
-  doc.text(docDate, rightBoxX + rightBoxW - 3, boxY + 8.5, { align: 'right' });
+  doc.text(`Date : ${docDate}`, rightBoxX + 3, boxY + 8.5);
 
   if (extraDetails && extraDetails.length > 0) {
     let eY = boxY + 12.0;
@@ -249,8 +246,7 @@ function drawVerdeOrtoHeader(
         doc.setFont('helvetica', 'normal');
       }
       doc.setFontSize(5.5);
-      doc.text(`${extra.label} :`, rightBoxX + 3, eY);
-      doc.text(extra.value, rightBoxX + rightBoxW - 3, eY, { align: 'right', maxWidth: 28 });
+      doc.text(`${extra.label} : ${extra.value}`, rightBoxX + 3, eY, { maxWidth: rightBoxW - 6 });
       eY += 2.8;
     }
   }
