@@ -143,7 +143,7 @@ function drawVerdeOrtoHeader(
     }
   }
 
-  // Partner / Cooperative / Inspection mentions below Logo (top right, close to logo, no padding)
+  // Partner / Cooperative / Inspection mentions below Logo (centered, close to logo, no padding)
   if (company.partenaire_coop && company.partenaire_coop.trim()) {
     const coopLines = company.partenaire_coop
       .split('\n')
@@ -157,7 +157,7 @@ function drawVerdeOrtoHeader(
       if (i === coopLines.length - 1 && coopLines.length > 2) {
         doc.setFont('helvetica', 'normal');
       }
-      doc.text(coopLines[i], 98, coopY, { align: 'right' });
+      doc.text(coopLines[i], centerX, coopY, { align: 'center' });
       coopY += 2.6;
     }
   }
@@ -221,20 +221,20 @@ function drawVerdeOrtoHeader(
     doc.text(`ICE : ${clientIce}`, 10.5, cY);
   }
 
-  // Right Box: Document Reference (Aligned to Right)
+  // Right Box: Document Reference (Aligned to Left)
   doc.roundedRect(rightBoxX, boxY, rightBoxW, boxH, 1.5, 1.5, 'FD');
 
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(7.0);
   doc.setTextColor(15, 23, 42);
-  doc.text(`N° de ${docTypeTitle} :`, rightBoxX + rightBoxW - 30, boxY + 4.5, { align: 'right' });
+  doc.text(`N° de ${docTypeTitle} :`, rightBoxX + 3, boxY + 4.5);
   doc.setFont('helvetica', 'bold');
   doc.text(docNumber, rightBoxX + rightBoxW - 3, boxY + 4.5, { align: 'right' });
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(6.5);
   doc.setTextColor(51, 65, 85);
-  doc.text('Date :', rightBoxX + rightBoxW - 30, boxY + 8.5, { align: 'right' });
+  doc.text('Date :', rightBoxX + 3, boxY + 8.5);
   doc.text(docDate, rightBoxX + rightBoxW - 3, boxY + 8.5, { align: 'right' });
 
   if (extraDetails && extraDetails.length > 0) {
@@ -248,7 +248,7 @@ function drawVerdeOrtoHeader(
         doc.setFont('helvetica', 'normal');
       }
       doc.setFontSize(5.5);
-      doc.text(`${extra.label} :`, rightBoxX + rightBoxW - 30, eY, { align: 'right' });
+      doc.text(`${extra.label} :`, rightBoxX + 3, eY);
       doc.text(extra.value, rightBoxX + rightBoxW - 3, eY, { align: 'right', maxWidth: 28 });
       eY += 2.8;
     }

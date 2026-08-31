@@ -314,7 +314,7 @@ export const DocumentPreviewView: React.FC<DocumentPreviewViewProps> = ({
                 </div>
               )
             )}
-            <div className="w-full -mt-3.5 sm:-mt-4 text-right p-0 pr-0 m-0">
+            <div className="w-full -mt-3.5 sm:-mt-4 text-center p-0 m-0">
               {partnerLines.map((line, idx) => (
                 <div key={idx} className="text-[8px] sm:text-[8.5px] font-black text-slate-950 leading-tight uppercase p-0 m-0">
                   {line}
@@ -378,30 +378,30 @@ export const DocumentPreviewView: React.FC<DocumentPreviewViewProps> = ({
             )}
           </div>
 
-          {/* Right Box: Document Reference (Aligned to Right) */}
-          <div className="border border-slate-400 rounded-lg p-2 sm:p-2.5 bg-slate-100/80 space-y-0.5 min-h-[68px] text-right">
-            <div className="flex justify-end items-center gap-2 text-[10.5px] sm:text-[11px]">
+          {/* Right Box: Document Reference (Aligned to Left) */}
+          <div className="border border-slate-400 rounded-lg p-2 sm:p-2.5 bg-slate-100/80 space-y-0.5 min-h-[68px] text-left">
+            <div className="flex justify-between items-center text-[10.5px] sm:text-[11px]">
               <span className="font-bold text-slate-800">N° de {docTitle} :</span>
               <span className="font-extrabold tabular-nums text-slate-950">{doc.numero}</span>
             </div>
-            <div className="flex justify-end items-center gap-2 text-[9.5px] sm:text-[10px] text-slate-700">
+            <div className="flex justify-between items-center text-[9.5px] sm:text-[10px] text-slate-700">
               <span className="font-semibold text-slate-700">Date :</span>
               <span className="font-bold text-slate-950">{formatDate(doc.date)}</span>
             </div>
             {isFacture && (doc as Facture).bl_associes && (doc as Facture).bl_associes!.length > 0 && (
-              <div className="flex justify-end items-center gap-2 text-[9px] text-slate-600">
+              <div className="flex justify-between items-center text-[9px] text-slate-600">
                 <span className="font-medium">BLs liés :</span>
                 <span className="tabular-nums font-semibold">{(doc as Facture).bl_associes!.join(', ')}</span>
               </div>
             )}
             {isFacture && (doc as Facture).br_associes && (doc as Facture).br_associes!.length > 0 && (
-              <div className="flex justify-end items-center gap-2 text-[9px] text-rose-700 font-medium">
+              <div className="flex justify-between items-center text-[9px] text-rose-700 font-medium">
                 <span>Retours déduits (-) :</span>
                 <span className="tabular-nums font-bold">{(doc as Facture).br_associes!.join(', ')}</span>
               </div>
             )}
             {isBr && (doc as BonRetour).motif && (
-              <div className="flex justify-end items-center gap-2 text-[9px] text-rose-700">
+              <div className="flex justify-between items-center text-[9px] text-rose-700">
                 <span>Motif :</span>
                 <span className="truncate max-w-[130px] font-medium">{(doc as BonRetour).motif}</span>
               </div>

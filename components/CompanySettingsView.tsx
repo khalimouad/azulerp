@@ -223,7 +223,7 @@ export const CompanySettingsView: React.FC<CompanySettingsViewProps> = ({
                 )
               )}
 
-              <div className="w-full -mt-2.5 sm:-mt-3 text-right p-0 pr-0 m-0">
+              <div className="w-full -mt-2.5 sm:-mt-3 text-center p-0 m-0">
                 {partnerLines.map((line, idx) => (
                   <div key={idx} className="text-[8px] sm:text-[8.5px] font-bold text-slate-900 leading-tight uppercase p-0 m-0">
                     {line}
