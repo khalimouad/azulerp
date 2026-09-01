@@ -84,16 +84,6 @@ export const DocumentPreviewModal: React.FC<DocumentPreviewModalProps> = ({
     ? 'Bon de Retour'
     : 'Devis';
 
-  const totalHt = doc.total_ht || 0;
-  const totalTtc = doc.total_ttc || 0;
-  const totalTva = isFacture
-    ? (doc as Facture).total_tva || 0
-    : isBl
-    ? (doc as BonLivraison).total_tva || 0
-    : isBr
-    ? (doc as BonRetour).total_tva || 0
-    : (doc as Devis).total_tva || 0;
-
   // Compute exact totals & taxes dynamically from document lines
   const computedLines = (doc.lignes || []).map((l: any) => {
     const qte = Number(l.quantite) || 0;
