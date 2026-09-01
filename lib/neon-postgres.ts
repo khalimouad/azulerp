@@ -1325,6 +1325,17 @@ export async function initNeonPostgresSchema(customUrl?: string) {
     console.warn('Notice seeding users:', err);
   }
 
+  // Update factures dated 01/09/2026 to 31/08/2026
+  try {
+    await sql`
+      UPDATE factures
+      SET date = '2026-08-31'
+      WHERE date = '2026-09-01' OR date = '01/09/2026' OR date LIKE '2026-09-01%' OR date LIKE '01/09/2026%';
+    `;
+  } catch (err) {
+    console.warn('Notice updating facture dates:', err);
+  }
+
   return { success: true, message: 'Schéma PostgreSQL Neon initialisé avec succès' };
 }
 

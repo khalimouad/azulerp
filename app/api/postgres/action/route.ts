@@ -207,6 +207,15 @@ export async function POST(req: NextRequest) {
             return NextResponse.json(fetchAllCache.body);
           }
 
+          // Ensure factures dated 01/09/2026 are updated to 31/08/2026
+          try {
+            await sql`
+              UPDATE factures
+              SET date = '2026-08-31'
+              WHERE date = '2026-09-01' OR date = '01/09/2026' OR date LIKE '2026-09-01%' OR date LIKE '01/09/2026%';
+            `;
+          } catch (_) {}
+
           // Query all entities directly from PostgreSQL
           const [
             companyRes,
