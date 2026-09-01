@@ -85,6 +85,7 @@ import { FournisseursView } from '@/components/FournisseursView';
 import { ReglementsView } from '@/components/ReglementsView';
 import { EtatsRapportsView } from '@/components/EtatsRapportsView';
 import { SqliteConsoleView } from '@/components/SqliteConsoleView';
+import { AiDatabaseCopilotView } from '@/components/AiDatabaseCopilotView';
 import { ReferenceDataLists } from '@/components/ReferenceDataLists';
 import { CompanySettingsView } from '@/components/CompanySettingsView';
 import { PosView } from '@/components/PosView';
@@ -1174,6 +1175,11 @@ export default function Home() {
                 navigateTo('workflow-bl-facture');
               }}
             />
+          )}
+
+          {/* 11.2 ASSISTANT IA BASE DE DONNEES (GEMINI COPILOT) */}
+          {currentTab === 'ai-copilot' && (
+            <AiDatabaseCopilotView onDataChanged={reloadCoreData} />
           )}
 
           {/* 12. CONSOLE SQLITE */}

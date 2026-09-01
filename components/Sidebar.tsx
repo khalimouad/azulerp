@@ -26,6 +26,7 @@ import {
   LogOut,
   UserCheck,
   ShieldCheck,
+  Sparkles,
   X,
   PanelLeftClose,
   PanelLeftOpen,
@@ -140,8 +141,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
       ],
     },
     {
-      title: 'Technical',
+      title: 'Intelligence & Base de Données',
       items: [
+        { id: 'ai-copilot', label: 'Assistant IA BDD', icon: Sparkles, highlight: true },
         { id: 'sqlite', label: 'Gestion de la base Neon', icon: Database },
       ],
     },
