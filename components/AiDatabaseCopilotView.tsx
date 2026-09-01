@@ -92,7 +92,7 @@ interface AiDatabaseCopilotViewProps {
 
 export const AiDatabaseCopilotView: React.FC<AiDatabaseCopilotViewProps> = ({ onDataChanged }) => {
   const [apiKey, setApiKey] = useState('');
-  const [model, setModel] = useState('gemini-2.5-flash');
+  const [model, setModel] = useState('gemini-3.6-flash');
   const [isKeySettingsOpen, setIsKeySettingsOpen] = useState(false);
   const [keySaved, setKeySaved] = useState(false);
 
@@ -132,7 +132,7 @@ Pour commencer, assurez-vous que votre clé API Google Gemini est configurée ci
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const storedKey = localStorage.getItem('verdeorto_gemini_api_key') || '';
-      const storedModel = localStorage.getItem('verdeorto_gemini_model') || 'gemini-2.5-flash';
+      const storedModel = localStorage.getItem('verdeorto_gemini_model') || 'gemini-3.6-flash';
       setApiKey(storedKey);
       setModel(storedModel);
       if (!storedKey) {
@@ -424,8 +424,9 @@ Pour commencer, assurez-vous que votre clé API Google Gemini est configurée ci
                 onChange={(e) => setModel(e.target.value)}
                 className="w-full px-3 py-2 text-xs bg-slate-900 border border-slate-700 rounded-lg text-white focus:outline-hidden focus:border-indigo-500 transition"
               >
-                <option value="gemini-2.5-flash">Gemini 2.5 Flash (Rapide & Précis)</option>
-                <option value="gemini-2.5-pro">Gemini 2.5 Pro (Raisonnement Complexe)</option>
+                <option value="gemini-3.6-flash">Gemini 3.6 Flash (Recommandé - Rapide & Intelligent)</option>
+                <option value="gemini-3.6-pro">Gemini 3.6 Pro (Raisonnement Complexe & DBA)</option>
+                <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
                 <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
                 <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
               </select>

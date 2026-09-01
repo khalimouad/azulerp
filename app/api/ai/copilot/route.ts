@@ -77,37 +77,62 @@ export async function POST(req: NextRequest) {
         parts: [{ text: prompt }]
       });
 
-      const selectedModel = model.includes('gemini') ? model : 'gemini-2.5-flash';
-      const geminiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/${selectedModel}:generateContent?key=${apiKey.trim()}`;
+      const requestedModel = (model && typeof model === 'string' && model.trim()) ? model.trim() : 'gemini-3.6-flash';
+      const fallbackModels = Array.from(new Set([requestedModel, 'gemini-3.6-flash', 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro']));
 
-      const geminiRes = await fetch(geminiEndpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents,
-          systemInstruction: {
-            parts: [{ text: DB_SCHEMA_SYSTEM_PROMPT }]
-          },
-          generationConfig: {
-            temperature: 0.2,
-            maxOutputTokens: 2048,
-          }
-        })
-      });
+      let geminiRes: Response | null = null;
+      let lastErrorText = '';
+      let successfulModel = requestedModel;
 
-      if (!geminiRes.ok) {
-        const errText = await geminiRes.text();
-        console.error('Gemini API error:', geminiRes.status, errText);
-        let parsedMsg = `Erreur API Gemini (${geminiRes.status})`;
+      for (const currentModel of fallbackModels) {
         try {
-          const jsonErr = JSON.parse(errText);
+          const geminiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/${currentModel}:generateContent?key=${apiKey.trim()}`;
+          const res = await fetch(geminiEndpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents,
+              systemInstruction: {
+                parts: [{ text: DB_SCHEMA_SYSTEM_PROMPT }]
+              },
+              generationConfig: {
+                temperature: 0.2,
+                maxOutputTokens: 2048,
+              }
+            })
+          });
+
+          if (res.ok) {
+            geminiRes = res;
+            successfulModel = currentModel;
+            break;
+          } else {
+            const errBody = await res.text();
+            lastErrorText = errBody;
+            // If 404 (model not found / deprecated), continue to try next fallback
+            if (res.status === 404) {
+              continue;
+            } else {
+              geminiRes = res;
+              break;
+            }
+          }
+        } catch (fetchErr: any) {
+          lastErrorText = fetchErr?.message || 'Network error';
+        }
+      }
+
+      if (!geminiRes || !geminiRes.ok) {
+        let parsedMsg = `Erreur API Gemini : ${lastErrorText || 'Modèle indisponible'}`;
+        try {
+          const jsonErr = JSON.parse(lastErrorText);
           parsedMsg = jsonErr?.error?.message || parsedMsg;
         } catch (_) {}
 
         return NextResponse.json({
           success: false,
           error: parsedMsg
-        }, { status: geminiRes.status >= 400 && geminiRes.status < 500 ? 400 : 500 });
+        }, { status: 400 });
       }
 
       const geminiData = await geminiRes.json();
@@ -123,6 +148,7 @@ export async function POST(req: NextRequest) {
         text: rawText,
         sql: extractedSql,
         queryType: extractedSql ? (isSqlMutation ? 'MUTATION' : 'SELECT') : null,
+        modelUsed: successfulModel,
       });
     }
 
