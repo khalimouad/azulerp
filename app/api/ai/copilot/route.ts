@@ -40,9 +40,9 @@ export async function POST(req: NextRequest) {
     if (!session) return unauthorizedResponse();
 
     const body = await req.json();
-    const { action, prompt, conversationHistory = [], apiKey: clientApiKey, model = 'gemini-2.5-flash', query, isMutation } = body;
+    const { action, prompt, conversationHistory = [], images = [], apiKey: clientApiKey, model = 'gemini-3.6-flash', query, isMutation } = body;
 
-    // Action 1: CHAT with Gemini AI
+    // Action 1: CHAT with Gemini AI (with Multimodal Image Support)
     if (action === 'chat') {
       const apiKey = clientApiKey || process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY;
       if (!apiKey || !apiKey.trim()) {
@@ -52,8 +52,8 @@ export async function POST(req: NextRequest) {
         }, { status: 400 });
       }
 
-      if (!prompt || typeof prompt !== 'string' || !prompt.trim()) {
-        return NextResponse.json({ success: false, error: 'Prompt manquant.' }, { status: 400 });
+      if ((!prompt || typeof prompt !== 'string' || !prompt.trim()) && (!Array.isArray(images) || images.length === 0)) {
+        return NextResponse.json({ success: false, error: 'Veuillez saisir un message ou joindre une image.' }, { status: 400 });
       }
 
       // Build Gemini contents payload
@@ -71,10 +71,34 @@ export async function POST(req: NextRequest) {
         }
       }
 
+      // Build user parts (Text + Attached Images)
+      const userParts: any[] = [];
+      if (prompt && prompt.trim()) {
+        userParts.push({ text: prompt.trim() });
+      } else {
+        userParts.push({ text: "Analyse cette image de document et extrait les informations pertinentes (articles, prix, totaux, etc.)." });
+      }
+
+      if (Array.isArray(images) && images.length > 0) {
+        for (const img of images) {
+          if (img && img.data) {
+            const rawBase64 = String(img.data);
+            const base64Clean = rawBase64.includes(',') ? rawBase64.split(',')[1] : rawBase64;
+            const mimeType = img.mimeType || 'image/jpeg';
+            userParts.push({
+              inlineData: {
+                mimeType,
+                data: base64Clean
+              }
+            });
+          }
+        }
+      }
+
       // Add current user prompt
       contents.push({
         role: 'user',
-        parts: [{ text: prompt }]
+        parts: userParts
       });
 
       const requestedModel = (model && typeof model === 'string' && model.trim()) ? model.trim() : 'gemini-3.6-flash';
