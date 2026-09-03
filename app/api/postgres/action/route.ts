@@ -2298,8 +2298,21 @@ export async function POST(req: NextRequest) {
             // Bulletins de Paie
             for (const pay of casaData.payrolls) {
               await sql`
-                INSERT INTO payrolls (id, employee_id, matricule, nom_complet, periode_mois, periode_annee, salaire_base, primes, brut_global, cnss_salariale, amo_salariale, cimr_salariale, frais_professionnels, net_imposable, ir_brut, deductions_famille, ir_net, salaire_net, charges_patronales, cout_total_employeur, comptabilise)
-                VALUES (${pay.id}, ${pay.employee_id}, ${pay.matricule}, ${pay.nom_complet}, ${pay.periode_mois}, ${pay.periode_annee}, ${num(pay.salaire_base)}, ${num(pay.primes)}, ${num(pay.brut_global)}, ${num(pay.cnss_salariale)}, ${num(pay.amo_salariale)}, ${num(pay.cimr_salariale)}, ${num(pay.frais_professionnels)}, ${num(pay.net_imposable)}, ${num(pay.ir_brut)}, ${num(pay.deductions_famille)}, ${num(pay.ir_net)}, ${num(pay.salaire_net)}, ${num(pay.charges_patronales)}, ${num(pay.cout_total_employeur)}, true)
+                INSERT INTO payrolls (
+                  id, employee_id, matricule, nom_complet, poste, departement, cin, cnss,
+                  periode_mois, periode_annee, date_paie,
+                  salaire_base, primes, heures_sup, indemnites_non_imposables, salaire_brut,
+                  base_cnss, cotis_cnss_salariale, cotis_amo_salariale, cotis_cimr_salariale, total_cotis_salariales,
+                  frais_professionnels, salaire_net_imposable, ir_brut, deduction_charges_famille, ir_net,
+                  total_retenues, salaire_net, total_charges_patronales, cout_total_employeur, statut, comptabilise
+                ) VALUES (
+                  ${pay.id}, ${pay.employee_id}, ${pay.matricule}, ${pay.nom_complet}, ${pay.poste || ''}, ${pay.departement || ''}, ${pay.cin || ''}, ${pay.cnss || ''},
+                  ${pay.periode_mois}, ${pay.periode_annee}, ${pay.date_paie || '2026-01-31'},
+                  ${num(pay.salaire_base)}, ${num(pay.primes)}, ${num(pay.heures_sup)}, ${num(pay.indemnites_non_imposables)}, ${num(pay.salaire_brut)},
+                  ${num(pay.base_cnss)}, ${num(pay.cotis_cnss_salariale)}, ${num(pay.cotis_amo_salariale)}, ${num(pay.cotis_cimr_salariale)}, ${num(pay.total_cotis_salariales)},
+                  ${num(pay.frais_professionnels)}, ${num(pay.salaire_net_imposable)}, ${num(pay.ir_brut)}, ${num(pay.deduction_charges_famille)}, ${num(pay.ir_net)},
+                  ${num(pay.total_retenues)}, ${num(pay.salaire_net)}, ${num(pay.total_charges_patronales)}, ${num(pay.cout_total_employeur)}, 'valide', true
+                )
                 ON CONFLICT (id) DO UPDATE SET salaire_net = EXCLUDED.salaire_net;
               `;
             }
