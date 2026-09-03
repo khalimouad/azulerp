@@ -1404,7 +1404,7 @@ export default function Home() {
       {/* Mobile Sticky Bottom Navigation Bar */}
       <nav
         id="mobile-bottom-nav"
-        className="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-slate-900/95 backdrop-blur-md border-t border-slate-800 px-1 py-1 shadow-2xl flex items-center justify-around select-none safe-area-bottom"
+        className="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-slate-900/90 backdrop-blur-lg border-t border-slate-800/80 px-1 pt-1.5 pb-[max(env(safe-area-inset-bottom,0px),8px)] shadow-2xl flex items-center justify-around select-none safe-area-bottom"
         aria-label="Navigation rapide mobile"
       >
         <button

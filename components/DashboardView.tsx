@@ -143,43 +143,43 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       </div>
 
       {/* KPI Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
         {/* Total Facturé */}
-        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs hover:border-slate-300 transition">
+        <div className="bg-white p-3 sm:p-4 rounded-xl border border-slate-200 shadow-xs hover:border-slate-300 transition">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-              Chiffre d'Affaires Net Facturé
+            <span className="text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider truncate">
+              Chiffre d'Affaires Net
             </span>
-            <span className="p-2 rounded-lg bg-blue-50 text-blue-600">
-              <TrendingUp className="w-4 h-4" />
+            <span className="p-1.5 sm:p-2 rounded-lg bg-blue-50 text-blue-600 shrink-0">
+              <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </span>
           </div>
-          <div className="text-xl sm:text-2xl font-extrabold text-slate-900 font-mono mt-2">
+          <div className="text-base sm:text-2xl font-extrabold text-slate-900 font-mono mt-1.5 sm:mt-2 truncate">
             {formatCurrency(stats.total_facture_ttc)}
           </div>
-          <div className="text-[11px] text-slate-500 mt-1 flex items-center gap-1.5">
+          <div className="text-[10px] sm:text-[11px] text-slate-500 mt-1 flex flex-wrap items-center gap-1">
             <span className="font-mono font-medium">HT: {formatCurrency(stats.total_facture_ht, false)}</span>
-            <span>•</span>
+            <span className="hidden sm:inline">•</span>
             <span className="text-blue-600 font-semibold">{stats.factures_count} factures</span>
           </div>
         </div>
 
         {/* Total Encaissé */}
-        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs hover:border-slate-300 transition">
+        <div className="bg-white p-3 sm:p-4 rounded-xl border border-slate-200 shadow-xs hover:border-slate-300 transition">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-              Montant Encaissé (Règlements)
+            <span className="text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider truncate">
+              Montant Encaissé
             </span>
-            <span className="p-2 rounded-lg bg-emerald-50 text-emerald-600">
-              <CheckCircle2 className="w-4 h-4" />
+            <span className="p-1.5 sm:p-2 rounded-lg bg-emerald-50 text-emerald-600 shrink-0">
+              <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </span>
           </div>
-          <div className="text-xl sm:text-2xl font-extrabold text-emerald-700 font-mono mt-2">
+          <div className="text-base sm:text-2xl font-extrabold text-emerald-700 font-mono mt-1.5 sm:mt-2 truncate">
             {formatCurrency(stats.total_encaisse)}
           </div>
-          <div className="text-[11px] text-slate-500 mt-1">
-            Taux d'encaissement :{' '}
-            <strong className="text-emerald-700">
+          <div className="text-[10px] sm:text-[11px] text-slate-500 mt-1 truncate">
+            Taux :{' '}
+            <strong className="text-emerald-700 font-semibold">
               {stats.total_facture_ttc > 0
                 ? ((stats.total_encaisse / stats.total_facture_ttc) * 100).toFixed(1)
                 : '0'}
@@ -189,44 +189,44 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
 
         {/* Reste à Recouvrer (Impayés) */}
-        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs hover:border-slate-300 transition">
+        <div className="bg-white p-3 sm:p-4 rounded-xl border border-slate-200 shadow-xs hover:border-slate-300 transition">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-              Encours / Reste à Recouvrer
+            <span className="text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider truncate">
+              Reste à Recouvrer
             </span>
-            <span className="p-2 rounded-lg bg-rose-50 text-rose-600">
-              <CreditCard className="w-4 h-4" />
+            <span className="p-1.5 sm:p-2 rounded-lg bg-rose-50 text-rose-600 shrink-0">
+              <CreditCard className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </span>
           </div>
-          <div className="text-xl sm:text-2xl font-extrabold text-rose-700 font-mono mt-2">
+          <div className="text-base sm:text-2xl font-extrabold text-rose-700 font-mono mt-1.5 sm:mt-2 truncate">
             {formatCurrency(stats.total_impaye)}
           </div>
-          <div className="text-[11px] text-rose-600 font-medium mt-1">
-            Solde débiteur clients à relancer
+          <div className="text-[10px] sm:text-[11px] text-rose-600 font-medium mt-1 truncate">
+            Solde clients à relancer
           </div>
         </div>
 
         {/* BLs & Retours en attente de facturation */}
         <div
           onClick={onOpenBatchInvoicing}
-          className="bg-amber-50/70 p-4 rounded-xl border border-amber-200 shadow-xs hover:border-amber-300 cursor-pointer transition"
+          className="bg-amber-50/70 p-3 sm:p-4 rounded-xl border border-amber-200 shadow-xs hover:border-amber-300 cursor-pointer transition"
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-amber-900 uppercase tracking-wider">
-              En Attente de Facturation
+            <span className="text-[10px] sm:text-xs font-semibold text-amber-900 uppercase tracking-wider truncate">
+              À Facturer
             </span>
-            <span className="p-2 rounded-lg bg-amber-100 text-amber-800">
-              <Clock className="w-4 h-4" />
+            <span className="p-1.5 sm:p-2 rounded-lg bg-amber-100 text-amber-800 shrink-0">
+              <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </span>
           </div>
-          <div className="text-lg sm:text-xl font-extrabold text-amber-950 font-mono mt-2">
-            {stats.bl_en_attente_count} BLs {brCount > 0 && <span className="text-rose-700 text-sm font-bold">| {brCount} Retours</span>}
+          <div className="text-sm sm:text-xl font-extrabold text-amber-950 font-mono mt-1.5 sm:mt-2 truncate">
+            {stats.bl_en_attente_count} BLs {brCount > 0 && <span className="text-rose-700 text-xs sm:text-sm font-bold">| {brCount} BR</span>}
           </div>
-          <div className="text-[11px] text-amber-900 font-medium mt-1 flex items-center justify-between">
+          <div className="text-[10px] sm:text-[11px] text-amber-900 font-medium mt-1 flex items-center justify-between truncate">
             <span>
               Net: {formatCurrency(stats.bl_en_attente_total - brTotal)}
             </span>
-            <span className="flex items-center gap-0.5 text-blue-700 font-semibold">
+            <span className="hidden sm:flex items-center gap-0.5 text-blue-700 font-semibold">
               Consolider <ArrowRight className="w-3 h-3" />
             </span>
           </div>

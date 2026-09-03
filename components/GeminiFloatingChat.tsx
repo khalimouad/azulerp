@@ -382,11 +382,11 @@ Posez-moi n'importe quelle question sur vos factures, livraisons, clients, fourn
     <>
       {/* 1. Floating Launcher Button (Messenger Style) */}
       {!isOpen && (
-        <div className="fixed bottom-5 right-5 sm:bottom-6 sm:right-6 z-40 animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed bottom-20 right-3.5 sm:bottom-6 sm:right-6 z-40 animate-in fade-in zoom-in-95 duration-200">
           <button
             type="button"
             onClick={() => setIsOpen(true)}
-            className="group relative flex items-center gap-2 px-4 py-3 sm:px-4.5 sm:py-3.5 rounded-full bg-gradient-to-r from-indigo-600 via-blue-600 to-indigo-700 text-white shadow-xl shadow-indigo-600/30 hover:shadow-indigo-600/50 hover:scale-105 active:scale-95 transition-all duration-200 touch-manipulation border border-white/20"
+            className="group relative flex items-center gap-2 px-3.5 py-2.5 sm:px-4.5 sm:py-3.5 rounded-full bg-gradient-to-r from-indigo-600 via-blue-600 to-indigo-700 text-white shadow-xl shadow-indigo-600/30 hover:shadow-indigo-600/50 hover:scale-105 active:scale-95 transition-all duration-200 touch-manipulation border border-white/20"
             aria-label="Ouvrir l'assistant IA Gemini"
           >
             <div className="relative">
@@ -404,14 +404,17 @@ Posez-moi n'importe quelle question sur vos factures, livraisons, clients, fourn
       {/* 2. Floating Messenger Chat Window or Fullscreen View */}
       {isOpen && (
         <div
-          className={`fixed z-50 flex flex-col bg-white dark:bg-slate-900 shadow-2xl border border-slate-200 dark:border-slate-800 transition-all duration-300 ease-out ${
+          className={`fixed z-50 flex flex-col bg-white dark:bg-slate-900 shadow-2xl border-t sm:border border-slate-200 dark:border-slate-800 transition-all duration-300 ease-out ${
             isFullscreen
-              ? 'inset-2 sm:inset-6 rounded-3xl'
-              : 'bottom-4 right-4 sm:bottom-6 sm:right-6 w-[95vw] sm:w-[440px] h-[85vh] sm:h-[620px] max-h-[88vh] rounded-3xl'
+              ? 'inset-0 sm:inset-6 rounded-none sm:rounded-3xl'
+              : 'inset-x-0 bottom-0 sm:inset-auto sm:bottom-6 sm:right-6 sm:w-[450px] h-[90dvh] sm:h-[640px] max-h-[92dvh] rounded-t-3xl sm:rounded-3xl'
           }`}
         >
+          {/* Mobile Drag Indicator */}
+          <div className="w-12 h-1.5 bg-slate-300 dark:bg-slate-700 rounded-full mx-auto mt-2 sm:hidden shrink-0" />
+
           {/* Header */}
-          <div className="px-4 py-3.5 border-b border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-950/80 rounded-t-3xl flex items-center justify-between gap-2 shrink-0 backdrop-blur-xs">
+          <div className="px-4 py-3 sm:py-3.5 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-950/90 rounded-t-3xl flex items-center justify-between gap-2 shrink-0 backdrop-blur-md">
             <div className="flex items-center gap-2.5 min-w-0">
               <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-500 via-blue-500 to-purple-500 flex items-center justify-center text-white shadow-xs shrink-0">
                 <Sparkles className="w-4 h-4 animate-pulse" />
@@ -718,7 +721,7 @@ Posez-moi n'importe quelle question sur vos factures, livraisons, clients, fourn
           </div>
 
           {/* Bottom Input Box with Image Attachment */}
-          <div className="p-3 bg-slate-50/80 dark:bg-slate-950/80 border-t border-slate-200 dark:border-slate-800 rounded-b-3xl space-y-2 shrink-0">
+          <div className="p-3 pb-[max(env(safe-area-inset-bottom,0px),0.75rem)] bg-slate-50/90 dark:bg-slate-950/90 border-t border-slate-200 dark:border-slate-800 rounded-b-3xl space-y-2 shrink-0">
             {attachedImages.length > 0 && (
               <div className="flex flex-wrap gap-1.5 px-1">
                 {attachedImages.map((img) => (
