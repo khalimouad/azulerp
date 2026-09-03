@@ -68,6 +68,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const navSections = [
     {
+      title: 'Intelligence Artificielle',
+      items: [
+        {
+          id: 'ai-copilot',
+          label: 'Assistant IA Gemini',
+          icon: Sparkles,
+          highlight: true,
+          badge: 'Gemini 3.6',
+          badgeColor: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40',
+        },
+      ],
+    },
+    {
       title: 'Ventes & Facturation (B2B)',
       items: [
         { id: 'dashboard', label: 'Tableau de bord', icon: LayoutDashboard },
@@ -134,16 +147,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
       ],
     },
     {
-      title: 'Analyse',
+      title: 'Analyse & Paramètres',
       items: [
         { id: 'etats', label: 'États & Rapports', icon: BarChart3 },
         { id: 'company', label: 'Identifiants Société', icon: Building },
-      ],
-    },
-    {
-      title: 'Intelligence & Base de Données',
-      items: [
-        { id: 'ai-copilot', label: 'Assistant IA BDD', icon: Sparkles, highlight: true },
         { id: 'sqlite', label: 'Gestion de la base Neon', icon: Database },
       ],
     },

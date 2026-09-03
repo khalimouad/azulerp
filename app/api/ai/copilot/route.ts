@@ -5,33 +5,38 @@ import { readSession, unauthorizedResponse } from '@/lib/auth-session';
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 
-const DB_SCHEMA_SYSTEM_PROMPT = `Tu es l'Assistant IA Expert de Base de Données (Data Copilot) pour le progiciel de gestion Verde Orto (ERP Agroalimentaire & Restaurant à Marrakech, Maroc).
+const CURRENT_YEAR = '2026';
 
-Voici le schéma complet des tables PostgreSQL de la base de données :
+const DB_SCHEMA_SYSTEM_PROMPT = `Tu es l'Assistant IA Intelligent officiel de Verde Orto (ERP Agroalimentaire & Restaurant à Marrakech, Maroc), propulsé par Gemini.
 
-1. \`clients\` (id BIGINT PK, code VARCHAR, nom VARCHAR NOT NULL, interlocuteur VARCHAR, adresse TEXT, code_postal VARCHAR, ville VARCHAR, pays VARCHAR, telephone VARCHAR, mobile VARCHAR, email VARCHAR, ice VARCHAR, observations TEXT, solde NUMERIC, total_facture NUMERIC, total_regle NUMERIC, created_at TIMESTAMPTZ)
-2. \`produits\` (id BIGINT PK, code VARCHAR, libelle VARCHAR NOT NULL, code_barre VARCHAR, categorie_id BIGINT, categorie_nom VARCHAR, famille_id BIGINT, famille_nom VARCHAR, marque_id BIGINT, marque_nom VARCHAR, groupe VARCHAR, unite VARCHAR, prix_ht NUMERIC, taux_tva NUMERIC, prix_achat_ht NUMERIC, stock_actuel NUMERIC, stock_min NUMERIC, stock_virtuel NUMERIC, actif INT, notes TEXT)
-3. \`bons_livraison\` (id BIGINT PK, numero VARCHAR NOT NULL, date VARCHAR NOT NULL, client_id BIGINT, client_nom VARCHAR, client_ice VARCHAR, client_adresse TEXT, client_ville VARCHAR, total_ht NUMERIC, tva_20 NUMERIC, tva_10 NUMERIC, total_tva NUMERIC, total_ttc NUMERIC, statut VARCHAR ['En attente', 'Facturé'], etat VARCHAR ['Brouillon', 'Validé', 'Annulé'], facture_id BIGINT, facture_numero VARCHAR, cloture_sans_facture BOOLEAN, notes TEXT)
-4. \`bons_livraison_lignes\` (id BIGINT PK, bon_livraison_id BIGINT NOT NULL, produit_id BIGINT, designation VARCHAR NOT NULL, groupe VARCHAR, unite VARCHAR, quantite NUMERIC, prix_ht NUMERIC, taux_tva NUMERIC, remise_pct NUMERIC, total_ht NUMERIC, total_tva NUMERIC, total_ttc NUMERIC)
-5. \`bons_retour\` (id BIGINT PK, numero VARCHAR NOT NULL, date VARCHAR NOT NULL, client_id BIGINT, client_nom VARCHAR, client_ice VARCHAR, total_ht NUMERIC, total_tva NUMERIC, total_ttc NUMERIC, statut VARCHAR ['En attente', 'Facturé'], etat VARCHAR ['Brouillon', 'Validé', 'Annulé'], facture_id BIGINT, facture_numero VARCHAR, motif TEXT)
-6. \`bons_retour_lignes\` (id BIGINT PK, bon_retour_id BIGINT NOT NULL, produit_id BIGINT, designation VARCHAR NOT NULL, unite VARCHAR, quantite NUMERIC, prix_ht NUMERIC, taux_tva NUMERIC, total_ht NUMERIC, total_tva NUMERIC, total_ttc NUMERIC)
-7. \`factures\` (id BIGINT PK, numero VARCHAR NOT NULL, date VARCHAR NOT NULL, client_id BIGINT, client_nom VARCHAR, client_ice VARCHAR, client_adresse TEXT, client_ville VARCHAR, total_ht NUMERIC, tva_20 NUMERIC, tva_10 NUMERIC, total_tva NUMERIC, total_ttc NUMERIC, montant_regle NUMERIC, reste_a_payer NUMERIC, statut_paiement VARCHAR ['Impayé', 'Partiel', 'Soldé'], etat VARCHAR ['Brouillon', 'Validé', 'Annulé'], mode_reglement VARCHAR, bl_associes TEXT, br_associes TEXT, notes TEXT)
-8. \`factures_lignes\` (id BIGINT PK, facture_id BIGINT NOT NULL, produit_id BIGINT, designation VARCHAR NOT NULL, groupe VARCHAR, unite VARCHAR, quantite NUMERIC, prix_ht NUMERIC, taux_tva NUMERIC, remise_pct NUMERIC, total_ht NUMERIC, total_tva NUMERIC, total_ttc NUMERIC)
-9. \`reglements\` (id BIGINT PK, numero VARCHAR NOT NULL, date VARCHAR NOT NULL, client_id BIGINT, client_nom VARCHAR, facture_id BIGINT, facture_numero VARCHAR, montant NUMERIC, mode_paiement VARCHAR, reference_paiement VARCHAR, date_echeance VARCHAR, statut_cheque VARCHAR, statut_remise VARCHAR, statut VARCHAR, notes TEXT)
-10. \`fournisseurs\` (id BIGINT PK, code VARCHAR, nom VARCHAR NOT NULL, interlocuteur VARCHAR, adresse TEXT, ville VARCHAR, telephone VARCHAR, mobile VARCHAR, email VARCHAR, ice VARCHAR, solde_du NUMERIC, total_achats NUMERIC)
-11. \`factures_fournisseurs\` (id BIGINT PK, numero VARCHAR NOT NULL, fournisseur_id BIGINT NOT NULL, fournisseur_nom VARCHAR NOT NULL, fournisseur_ice VARCHAR, date_facture VARCHAR NOT NULL, date_echeance VARCHAR, total_ht NUMERIC, tva_20 NUMERIC, tva_10 NUMERIC, tva_7 NUMERIC, total_tva NUMERIC, total_ttc NUMERIC, montant_paye NUMERIC, reste_a_payer NUMERIC, statut VARCHAR, etat VARCHAR, designation_achat TEXT)
-12. \`paiements_fournisseurs\` (id BIGINT PK, fournisseur_id BIGINT NOT NULL, fournisseur_nom VARCHAR, facture_fournisseur_id BIGINT, facture_numero VARCHAR, date_paiement VARCHAR, montant NUMERIC, mode_paiement VARCHAR, numero_cheque_ref VARCHAR, banque_emettrice VARCHAR, date_echeance_depot VARCHAR, statut_cheque VARCHAR)
-13. \`devis\` & \`devis_lignes\`
-14. \`stock_mouvements\` (id BIGINT PK, produit_id BIGINT, produit_nom VARCHAR, type_mouvement VARCHAR, quantite NUMERIC, date_mouvement VARCHAR, reference_document VARCHAR, stock_apres NUMERIC, commentaire TEXT)
-15. \`company_info\` (nom, adresse, ice, if_fiscal, rc, cnss, patente, telephone, email, banque, rib, partenaire_coop, etc.)
-16. \`pos_ventes\` & \`pos_ventes_lignes\` & \`pos_tables\` & \`pos_produits\`
+Tu es capable de répondre à TOUTE question sur l'activité, les finances, les clients, les fournisseurs, les stocks, la facturation et les livraisons, ainsi que d'exécuter des modifications de données à la demande.
 
-RÈGLES IMPORTANTES :
-1. Réponds TOUJOURS en français de manière claire, concise et professionnelle.
-2. Si la demande de l'utilisateur implique une interrogation ou une modification de la base de données, fournis TOUJOURS le code SQL exact dans un bloc \`\`\`sql ... \`\`\`.
-3. Indique clairement s'il s'agit d'une opération de **LECTURE** (SELECT) ou d'une opération de **MODIFICATION / ÉCRITURE** (UPDATE, INSERT, DELETE).
-4. Explique brièvement ce que la requête va faire et quel en est l'impact.
-5. Veille à ce que le code SQL soit 100% valide sous PostgreSQL.
+### RÈGLES CRITIQUES DE PERFORMANCE & BASE DE DONNÉES :
+1. **ANNÉE EN COURS PAR DÉFAUT (${CURRENT_YEAR}) :**
+   - Sauf si l'utilisateur demande explicitement "tout l'historique", "toutes les années", "depuis le début", ou une autre année spécifique, TOUTES les requêtes temporelles doivent être restreintes à l'année en cours (${CURRENT_YEAR}) (ex: \`WHERE date LIKE '${CURRENT_YEAR}%'\` ou \`WHERE date >= '${CURRENT_YEAR}-01-01'\`).
+2. **OPTIMISATION & BASSE CONSOMMATION BDD :**
+   - Évite les \`SELECT *\` massifs. Sélectionne uniquement les colonnes nécessaires.
+   - Utilise toujours \`LIMIT 20\` ou \`LIMIT 50\` pour les listes.
+   - Privilégie les agrégations SQL (\`COUNT(*)\`, \`SUM(total_ttc)\`, \`SUM(reste_a_payer)\`, \`AVG(prix_ht)\`, \`GROUP BY\`) pour que la BDD calcule rapidement sans transférer des milliers de lignes.
+3. **TON & EXPÉRIENCE CONVERSATIONNELLE :**
+   - Sois chaleureux, clair, précis et professionnel (style Google Gemini).
+   - Explique toujours ta réponse en français courant.
+   - Si une requête SQL est nécessaire, fournis-la dans un bloc \`\`\`sql ... \`\`\`.
+   - Si c'est une question générale, analytique, de conseil ou d'explication métier, réponds directement et intelligemment en calculant ou en résumant les données.
+4. **ANALYSE D'IMAGES :**
+   - Si l'utilisateur joint une image (facture, bon de livraison, ticket de caisse, note manuscrite, tableau), lis minutieusement tous les éléments (produits, quantités, prix unitaires, TVA, totaux, date, client/fournisseur) et propose l'action appropriée.
+
+### SCHÉMA POSTGRESQL VERDE ORTO :
+- \`clients\` (id, code, nom, interlocuteur, adresse, ville, telephone, ice, solde, total_facture, total_regle)
+- \`produits\` (id, code, libelle, unite, prix_ht, taux_tva, prix_achat_ht, stock_actuel, stock_min, stock_virtuel, actif)
+- \`bons_livraison\` (id, numero, date, client_id, client_nom, client_ice, total_ht, tva_20, tva_10, total_tva, total_ttc, statut ['En attente','Facturé'], etat ['Brouillon','Validé','Annulé'], facture_id, facture_numero)
+- \`bons_livraison_lignes\` (id, bon_livraison_id, produit_id, designation, unite, quantite, prix_ht, taux_tva, remise_pct, total_ht, total_tva, total_ttc)
+- \`bons_retour\` & \`bons_retour_lignes\` (id, numero, date, client_id, client_nom, total_ht, total_ttc, statut, etat, facture_id, motif)
+- \`factures\` (id, numero, date, client_id, client_nom, client_ice, total_ht, tva_20, tva_10, total_tva, total_ttc, montant_regle, reste_a_payer, statut_paiement ['Impayé','Partiel','Soldé'], etat ['Brouillon','Validé','Annulé'], mode_reglement, bl_associes, br_associes)
+- \`factures_lignes\` (id, facture_id, produit_id, designation, unite, quantite, prix_ht, taux_tva, remise_pct, total_ht, total_tva, total_ttc)
+- \`reglements\` (id, numero, date, client_id, client_nom, facture_id, facture_numero, montant, mode_paiement, reference_paiement, statut_cheque)
+- \`fournisseurs\` & \`factures_fournisseurs\` & \`paiements_fournisseurs\`
+- \`stock_mouvements\` & \`devis\` & \`company_info\` & \`pos_ventes\`
 `;
 
 export async function POST(req: NextRequest) {
@@ -42,7 +47,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { action, prompt, conversationHistory = [], images = [], apiKey: clientApiKey, model = 'gemini-3.6-flash', query, isMutation } = body;
 
-    // Action 1: CHAT with Gemini AI (with Multimodal Image Support)
+    // Action 1: CHAT with Gemini AI (Text + Multimodal Vision)
     if (action === 'chat') {
       const apiKey = clientApiKey || process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY;
       if (!apiKey || !apiKey.trim()) {
@@ -53,7 +58,7 @@ export async function POST(req: NextRequest) {
       }
 
       if ((!prompt || typeof prompt !== 'string' || !prompt.trim()) && (!Array.isArray(images) || images.length === 0)) {
-        return NextResponse.json({ success: false, error: 'Veuillez saisir un message ou joindre une image.' }, { status: 400 });
+        return NextResponse.json({ success: false, error: 'Veuillez poser une question ou joindre un document.' }, { status: 400 });
       }
 
       // Build Gemini contents payload
@@ -76,7 +81,7 @@ export async function POST(req: NextRequest) {
       if (prompt && prompt.trim()) {
         userParts.push({ text: prompt.trim() });
       } else {
-        userParts.push({ text: "Analyse cette image de document et extrait les informations pertinentes (articles, prix, totaux, etc.)." });
+        userParts.push({ text: "Analyse ce document/image joint et donne-moi une vue d'ensemble des données extraites." });
       }
 
       if (Array.isArray(images) && images.length > 0) {
@@ -95,7 +100,6 @@ export async function POST(req: NextRequest) {
         }
       }
 
-      // Add current user prompt
       contents.push({
         role: 'user',
         parts: userParts
@@ -133,7 +137,6 @@ export async function POST(req: NextRequest) {
           } else {
             const errBody = await res.text();
             lastErrorText = errBody;
-            // If 404 (model not found / deprecated), continue to try next fallback
             if (res.status === 404) {
               continue;
             } else {
@@ -186,7 +189,6 @@ export async function POST(req: NextRequest) {
       const startTime = Date.now();
       const trimmedQuery = query.trim();
 
-      // Check if mutation or select
       const isMutationQuery = /^(update|delete|insert|alter|drop|truncate|create)\b/i.test(trimmedQuery);
 
       try {
@@ -203,8 +205,8 @@ export async function POST(req: NextRequest) {
             durationMs,
             isMutation: isMutationQuery,
             message: isMutationQuery
-              ? `Requête exécutée avec succès en ${durationMs}ms.`
-              : `${result.length} ligne(s) trouvée(s) en ${durationMs}ms.`
+              ? `Opération effectuée avec succès (${durationMs}ms).`
+              : `${result.length} résultat(s) trouvé(s) (${durationMs}ms).`
           });
         }
 
@@ -215,7 +217,7 @@ export async function POST(req: NextRequest) {
           rowCount: 0,
           durationMs,
           isMutation: isMutationQuery,
-          message: `Opération SQL effectuée avec succès en ${durationMs}ms.`
+          message: `Requête exécutée avec succès (${durationMs}ms).`
         });
       } catch (sqlErr: any) {
         return NextResponse.json({

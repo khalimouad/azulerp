@@ -86,6 +86,7 @@ import { ReglementsView } from '@/components/ReglementsView';
 import { EtatsRapportsView } from '@/components/EtatsRapportsView';
 import { SqliteConsoleView } from '@/components/SqliteConsoleView';
 import { AiDatabaseCopilotView } from '@/components/AiDatabaseCopilotView';
+import { GeminiFloatingChat } from '@/components/GeminiFloatingChat';
 import { ReferenceDataLists } from '@/components/ReferenceDataLists';
 import { CompanySettingsView } from '@/components/CompanySettingsView';
 import { PosView } from '@/components/PosView';
@@ -1490,6 +1491,9 @@ export default function Home() {
           <span className="text-[10px] leading-tight">Menu</span>
         </button>
       </nav>
+
+      {/* Global Floating Gemini Assistant (Messenger Style across all pages) */}
+      <GeminiFloatingChat onDataChanged={reloadCoreData} onNavigateTab={navigateTo} />
     </div>
   );
 }
