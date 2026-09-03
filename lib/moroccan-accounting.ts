@@ -659,11 +659,13 @@ export function computeGeneralBalance(entries: JournalEntry[]): Record<string, A
   entries.forEach(entry => {
     if (entry.status === 'brouillon') return; // Only validated entries
     entry.lines.forEach(line => {
-      if (!balance[line.account_code]) {
-        const cls = parseInt(line.account_code[0], 10) as AccountClassId;
-        balance[line.account_code] = {
-          code: line.account_code,
-          libelle: line.account_label || formatAccountLabel(line.account_code),
+      const code = line.account_code || line.compte_code;
+      if (!code) return;
+      if (!balance[code]) {
+        const cls = parseInt(code[0], 10) as AccountClassId;
+        balance[code] = {
+          code: code,
+          libelle: line.account_label || line.compte_libelle || formatAccountLabel(code),
           classe: (cls >= 1 && cls <= 7) ? cls : 6,
           type: 'expense',
           total_debit: 0,
@@ -672,8 +674,8 @@ export function computeGeneralBalance(entries: JournalEntry[]): Record<string, A
           solde_credit: 0,
         };
       }
-      balance[line.account_code].total_debit += Number(line.debit) || 0;
-      balance[line.account_code].total_credit += Number(line.credit) || 0;
+      balance[code].total_debit += Number(line.debit) || 0;
+      balance[code].total_credit += Number(line.credit) || 0;
     });
   });
 
@@ -888,18 +890,19 @@ export function calculateSIMPLTVA(entries: JournalEntry[]): SimplTVAReport {
   entries.forEach(entry => {
     if (entry.status === 'brouillon') return;
     entry.lines.forEach(line => {
+      const code = line.account_code || line.compte_code || '';
       // Ventes
-      if (line.account_code.startsWith('7111') || line.account_code.startsWith('7121')) {
+      if (code.startsWith('7111') || code.startsWith('7121')) {
         base20 += Number(line.credit) || 0;
       }
-      if (line.account_code === '4455') {
+      if (code === '4455') {
         tva20 += Number(line.credit) || 0;
       }
       // Achats & déductions
-      if (line.account_code === '3455') {
+      if (code === '3455') {
         tvaDeductibleCharges += Number(line.debit) || 0;
       }
-      if (line.account_code === '34551') {
+      if (code === '34551') {
         tvaDeductibleImmo += Number(line.debit) || 0;
       }
     });
@@ -1002,13 +1005,15 @@ export function generateFiduciaireExportCSV(entries: JournalEntry[]): string {
     const jName = MOROCCAN_JOURNALS.find(j => j.code === entry.journal_code)?.nom || entry.journal_code;
 
     entry.lines.forEach(line => {
+      const code = line.account_code || line.compte_code || '';
+      const label = line.account_label || line.compte_libelle || formatAccountLabel(code);
       rows.push([
         `"${entry.journal_code}"`,
         `"${jName}"`,
         `"${entry.numero}"`,
         `"${entry.date}"`,
-        `"${line.account_code}"`,
-        `"${(line.account_label || formatAccountLabel(line.account_code)).replace(/"/g, '""')}"`,
+        `"${code}"`,
+        `"${label.replace(/"/g, '""')}"`,
         `"${line.piece_ref || entry.reference || ''}"`,
         `"${(line.libelle || entry.libelle).replace(/"/g, '""')}"`,
         (line.debit || 0).toFixed(2).replace('.', ','),
