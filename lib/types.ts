@@ -803,6 +803,28 @@ export interface LeaveRequest {
 // PRODUCTION & FABRICATION (MANUFACTURING)
 // ============================================================================
 
+export interface BOMInputLine {
+  id?: number | string;
+  produit_id?: number;
+  produit_nom: string;
+  quantite: number;
+  unite: string;
+  cout_unitaire: number;
+  cout_total: number;
+}
+
+export interface BOMOutputLine {
+  id?: number | string;
+  produit_id?: number;
+  produit_nom: string;
+  quantite: number;
+  unite: string;
+  est_dechet: boolean;
+  pourcentage_repartition?: number;
+  cout_unitaire_estime?: number;
+  cout_total_estime?: number;
+}
+
 export interface BOMComponent {
   produit_id?: number;
   produit_nom: string;
@@ -821,11 +843,15 @@ export interface BOM {
   produit_fini_nom: string;
   quantite_produite: number;
   unite: string;
+  // Multi-matières premières & Multi-produits finis (FastERP style)
+  inputs?: BOMInputLine[];
+  outputs?: BOMOutputLine[];
   composants: BOMComponent[];
   cout_matieres_estime: number;
   cout_main_oeuvre_estime: number;
   frais_generaux_estime: number;
   cout_revient_unitaire: number;
+  rendement_pct?: number;
   actif: boolean;
   version?: string;
   notes?: string;
@@ -845,6 +871,17 @@ export interface ProductionOrderComponent {
   cout_total: number;
 }
 
+export interface ProductionOrderOutput {
+  produit_id?: number;
+  produit_nom: string;
+  quantite_prevue: number;
+  quantite_reelle?: number;
+  unite: string;
+  est_dechet: boolean;
+  cout_unitaire?: number;
+  cout_total?: number;
+}
+
 export interface ProductionOrder {
   id?: number;
   numero: string;
@@ -861,12 +898,15 @@ export interface ProductionOrder {
   responsable?: string;
   atelier?: string;
   status: ProductionOrderStatus;
+  inputs?: BOMInputLine[];
+  outputs?: ProductionOrderOutput[];
   composants_consommes: ProductionOrderComponent[];
   cout_matieres: number;
   cout_main_oeuvre: number;
   cout_machines_ateliers: number;
   cout_total_production: number;
   cout_revient_unitaire: number;
+  rendement_pct?: number;
   // Intégration stocks & comptabilité
   stock_destocke: boolean;
   stock_entre: boolean;

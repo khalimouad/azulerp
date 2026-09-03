@@ -14,54 +14,72 @@ import { generateProductionJournalEntry } from './moroccan-accounting';
 // ============================================================================
 
 export const DEFAULT_WORK_CENTERS: WorkCenter[] = [
-  { id: 1, nom: 'Atelier Cuisine & Préparation', taux_horaire: 45, capacite_jour_heures: 8, statut: 'operationnel' },
+  { id: 1, nom: 'Atelier de Fabrication & Transformation', taux_horaire: 45, capacite_jour_heures: 8, statut: 'operationnel' },
   { id: 2, nom: 'Ligne de Conditionnement & Emballage', taux_horaire: 55, capacite_jour_heures: 8, statut: 'operationnel' },
-  { id: 3, nom: 'Chambre Froide & Stockage Matières', taux_horaire: 30, capacite_jour_heures: 24, statut: 'operationnel' },
+  { id: 3, nom: 'Zone de Stockage & Matières Premières', taux_horaire: 30, capacite_jour_heures: 24, statut: 'operationnel' },
 ];
 
 export const SAMPLE_BOMS: BOM[] = [
   {
     id: 1,
     code: 'BOM-HUILE-75CL',
-    nom: 'Huile d’Olive Vierge Extra Bio - Bouteille 75cl',
+    nom: 'Conditionnement Huile d’Olive Bio (Bouteilles 75cl & 25cl)',
     produit_fini_nom: 'Huile d’Olive Bio 75cl',
     quantite_produite: 100,
     unite: 'Bouteille',
     actif: true,
     version: '1.0',
-    notes: 'Embouteillage et étiquetage certifié Bio',
-    composants: [
-      { produit_nom: 'Huile d’olive vrac (Litre)', quantite: 75, unite: 'L', cout_unitaire: 60, cout_total: 4500 },
+    notes: 'Extraction et conditionnement certifié Bio',
+    inputs: [
+      { produit_nom: 'Huile d’olive vrac (Litre)', quantite: 80, unite: 'L', cout_unitaire: 60, cout_total: 4800 },
       { produit_nom: 'Bouteille en verre 75cl', quantite: 100, unite: 'Pce', cout_unitaire: 4.5, cout_total: 450 },
       { produit_nom: 'Bouchon sécurisé à vis', quantite: 100, unite: 'Pce', cout_unitaire: 0.8, cout_total: 80 },
       { produit_nom: 'Étiquette adhésive dorée', quantite: 100, unite: 'Pce', cout_unitaire: 1.2, cout_total: 120 },
     ],
-    cout_matieres_estime: 5150,
+    outputs: [
+      { produit_nom: 'Huile d’Olive Bio 75cl', quantite: 100, unite: 'Bouteille', est_dechet: false, pourcentage_repartition: 95, cout_unitaire_estime: 56.5, cout_total_estime: 5650 },
+      { produit_nom: 'Résidus de filtration / Déchet', quantite: 5, unite: 'Kg', est_dechet: true, pourcentage_repartition: 0, cout_unitaire_estime: 0, cout_total_estime: 0 },
+    ],
+    composants: [
+      { produit_nom: 'Huile d’olive vrac (Litre)', quantite: 80, unite: 'L', cout_unitaire: 60, cout_total: 4800 },
+      { produit_nom: 'Bouteille en verre 75cl', quantite: 100, unite: 'Pce', cout_unitaire: 4.5, cout_total: 450 },
+      { produit_nom: 'Bouchon sécurisé à vis', quantite: 100, unite: 'Pce', cout_unitaire: 0.8, cout_total: 80 },
+      { produit_nom: 'Étiquette adhésive dorée', quantite: 100, unite: 'Pce', cout_unitaire: 1.2, cout_total: 120 },
+    ],
+    cout_matieres_estime: 5450,
     cout_main_oeuvre_estime: 250, // 5h @ 50 DH
     frais_generaux_estime: 100,
-    cout_revient_unitaire: 55, // (5150 + 250 + 100) / 100
+    cout_revient_unitaire: 58.00,
+    rendement_pct: 94,
   },
   {
     id: 2,
-    code: 'BOM-PESTO-200G',
-    nom: 'Pesto Artisanal au Basilic Frais - Pot 200g',
-    produit_fini_nom: 'Pesto Basilic Artisanal 200g',
-    quantite_produite: 50,
-    unite: 'Pot',
+    code: 'BOM-FARINE-SEMOULE',
+    nom: 'Transformation Blé Meunerie (Farine T55 & Semoule)',
+    produit_fini_nom: 'Farine Supérieure T55',
+    quantite_produite: 1000,
+    unite: 'Kg',
     actif: true,
-    version: '1.1',
-    notes: 'Recette italienne traditionnelle sans conservateur',
-    composants: [
-      { produit_nom: 'Basilic frais cultivé', quantite: 6, unite: 'Kg', cout_unitaire: 30, cout_total: 180 },
-      { produit_nom: 'Huile d’olive vierge extra', quantite: 5, unite: 'L', cout_unitaire: 65, cout_total: 325 },
-      { produit_nom: 'Pignons de pin méditerranéens', quantite: 1.5, unite: 'Kg', cout_unitaire: 180, cout_total: 270 },
-      { produit_nom: 'Fromage Parmesan râpé', quantite: 2, unite: 'Kg', cout_unitaire: 120, cout_total: 240 },
-      { produit_nom: 'Pots en verre 200g avec capsule', quantite: 50, unite: 'Pce', cout_unitaire: 2.5, cout_total: 125 },
+    version: '1.2',
+    notes: 'Mouture industrielle avec séparation son et semoule',
+    inputs: [
+      { produit_nom: 'Blé dur de meunerie (Qx)', quantite: 1200, unite: 'Kg', cout_unitaire: 3.8, cout_total: 4560 },
+      { produit_nom: 'Sacs d’emballage kraft 25kg', quantite: 40, unite: 'Pce', cout_unitaire: 4.0, cout_total: 160 },
     ],
-    cout_matieres_estime: 1140,
-    cout_main_oeuvre_estime: 150,
-    frais_generaux_estime: 50,
-    cout_revient_unitaire: 26.80, // (1140 + 150 + 50) / 50
+    outputs: [
+      { produit_nom: 'Farine Supérieure T55', quantite: 800, unite: 'Kg', est_dechet: false, pourcentage_repartition: 75, cout_unitaire_estime: 4.70, cout_total_estime: 3760 },
+      { produit_nom: 'Semoule Fine Extra', quantite: 250, unite: 'Kg', est_dechet: false, pourcentage_repartition: 25, cout_unitaire_estime: 5.00, cout_total_estime: 1250 },
+      { produit_nom: 'Son de blé (Déchet valorisable)', quantite: 150, unite: 'Kg', est_dechet: true, pourcentage_repartition: 0, cout_unitaire_estime: 0, cout_total_estime: 0 },
+    ],
+    composants: [
+      { produit_nom: 'Blé dur de meunerie (Qx)', quantite: 1200, unite: 'Kg', cout_unitaire: 3.8, cout_total: 4560 },
+      { produit_nom: 'Sacs d’emballage kraft 25kg', quantite: 40, unite: 'Pce', cout_unitaire: 4.0, cout_total: 160 },
+    ],
+    cout_matieres_estime: 4720,
+    cout_main_oeuvre_estime: 400,
+    frais_generaux_estime: 180,
+    cout_revient_unitaire: 5.05,
+    rendement_pct: 88,
   },
 ];
 
@@ -196,28 +214,58 @@ export function completeProductionOrder(
   const movements: Partial<StockMouvement>[] = [];
 
   // Sorties matières premières
-  order.composants_consommes.forEach(comp => {
+  if (Array.isArray(order.inputs) && order.inputs.length > 0) {
+    order.inputs.forEach(inp => {
+      movements.push({
+        date: today,
+        type: 'SORTIE_BL',
+        motif: `Consommation production - ${order.numero}`,
+        quantite: inp.quantite,
+        reference_doc: order.numero,
+        produit_id: inp.produit_id || 0,
+        produit_nom: inp.produit_nom,
+      });
+    });
+  } else {
+    order.composants_consommes.forEach(comp => {
+      movements.push({
+        date: today,
+        type: 'SORTIE_BL',
+        motif: `Consommation production - ${order.numero}`,
+        quantite: comp.quantite_reelle,
+        reference_doc: order.numero,
+        produit_id: comp.produit_id || 0,
+        produit_nom: comp.produit_nom,
+      });
+    });
+  }
+
+  // Entrée produit(s) fini(s)
+  if (Array.isArray(order.outputs) && order.outputs.length > 0) {
+    order.outputs.forEach(out => {
+      if (!out.est_dechet) {
+        movements.push({
+          date: today,
+          type: 'ENTREE',
+          motif: `Fabrication achevée - ${order.numero}`,
+          quantite: out.quantite_reelle || out.quantite_prevue,
+          reference_doc: order.numero,
+          produit_id: out.produit_id || 0,
+          produit_nom: out.produit_nom,
+        });
+      }
+    });
+  } else {
     movements.push({
       date: today,
-      type: 'SORTIE_BL',
-      motif: `Consommation production - ${order.numero}`,
-      quantite: comp.quantite_reelle,
+      type: 'ENTREE',
+      motif: `Fabrication achevée - ${order.numero}`,
+      quantite: order.quantite_reelle || order.quantite_prevue,
       reference_doc: order.numero,
-      produit_id: comp.produit_id || 0,
-      produit_nom: comp.produit_nom,
+      produit_id: order.produit_fini_id || 0,
+      produit_nom: order.produit_fini_nom,
     });
-  });
-
-  // Entrée produit fini
-  movements.push({
-    date: today,
-    type: 'ENTREE',
-    motif: `Fabrication achevée - ${order.numero}`,
-    quantite: order.quantite_reelle || order.quantite_prevue,
-    reference_doc: order.numero,
-    produit_id: order.produit_fini_id || 0,
-    produit_nom: order.produit_fini_nom,
-  });
+  }
 
   const updatedOrder: ProductionOrder = {
     ...order,

@@ -2756,12 +2756,26 @@ export async function POST(req: NextRequest) {
         // ====================================================================
         case 'save_bom': {
           const { bom } = payload;
-          const compJson = JSON.stringify(bom.composants || []);
+          // Synchronize composants from inputs if inputs provided
+          const compList = (bom.inputs && bom.inputs.length > 0)
+            ? bom.inputs.map((inp: any) => ({
+                produit_nom: inp.produit_nom,
+                quantite: num(inp.quantite),
+                unite: inp.unite || 'Kg',
+                cout_unitaire: num(inp.cout_unitaire),
+                cout_total: num(inp.cout_total),
+              }))
+            : (bom.composants || []);
+          const compJson = JSON.stringify(compList);
+          const firstFinished = (bom.outputs && bom.outputs.length > 0)
+            ? bom.outputs.find((o: any) => !o.est_dechet)?.produit_nom || bom.produit_fini_nom || ''
+            : bom.produit_fini_nom || '';
+
           if (bom.id) {
             await sql`
               UPDATE boms
               SET nom = ${bom.nom},
-                  produit_fini_nom = ${bom.produit_fini_nom},
+                  produit_fini_nom = ${firstFinished},
                   quantite_produite = ${num(bom.quantite_produite, 1)},
                   unite = ${bom.unite || 'Pce'},
                   composants = ${compJson}::jsonb,
@@ -2783,7 +2797,7 @@ export async function POST(req: NextRequest) {
                 composants, cout_matieres_estime, cout_main_oeuvre_estime,
                 frais_generaux_estime, cout_revient_unitaire, actif, version, notes
               ) VALUES (
-                ${nextCode}, ${bom.nom}, ${bom.produit_fini_nom}, ${num(bom.quantite_produite, 1)}, ${bom.unite || 'Pce'},
+                ${nextCode}, ${bom.nom}, ${firstFinished}, ${num(bom.quantite_produite, 1)}, ${bom.unite || 'Pce'},
                 ${compJson}::jsonb, ${num(bom.cout_matieres_estime)}, ${num(bom.cout_main_oeuvre_estime)},
                 ${num(bom.frais_generaux_estime)}, ${num(bom.cout_revient_unitaire)}, ${Boolean(bom.actif)}, ${bom.version || '1.0'}, ${bom.notes || ''}
               )
@@ -2803,7 +2817,21 @@ export async function POST(req: NextRequest) {
 
         case 'save_production_order': {
           const { order } = payload;
-          const compJson = JSON.stringify(order.composants_consommes || []);
+          const compList = (order.inputs && order.inputs.length > 0)
+            ? order.inputs.map((inp: any) => ({
+                produit_nom: inp.produit_nom,
+                quantite_prevue: num(inp.quantite),
+                quantite_reelle: num(inp.quantite),
+                unite: inp.unite || 'Kg',
+                cout_unitaire: num(inp.cout_unitaire),
+                cout_total: num(inp.cout_total),
+              }))
+            : (order.composants_consommes || []);
+          const compJson = JSON.stringify(compList);
+          const firstFinished = (order.outputs && order.outputs.length > 0)
+            ? order.outputs.find((o: any) => !o.est_dechet)?.produit_nom || order.produit_fini_nom || ''
+            : order.produit_fini_nom || '';
+
           if (order.id) {
             await sql`
               UPDATE production_orders
@@ -2832,7 +2860,7 @@ export async function POST(req: NextRequest) {
                 cout_matieres, cout_main_oeuvre, cout_machines_ateliers, cout_total_production, cout_revient_unitaire,
                 stock_destocke, stock_entre, comptabilise, notes
               ) VALUES (
-                ${nextNum}, ${order.bom_id || null}, ${order.bom_nom || ''}, ${order.produit_fini_nom}, ${num(order.quantite_prevue, 1)}, ${num(order.quantite_reelle, 1)}, ${order.unite || 'Pce'},
+                ${nextNum}, ${order.bom_id || null}, ${order.bom_nom || ''}, ${firstFinished}, ${num(order.quantite_prevue, 1)}, ${num(order.quantite_reelle, 1)}, ${order.unite || 'Pce'},
                 ${order.date_lancement}, ${order.date_prevue_fin || ''}, ${order.responsable || 'Chef d’atelier'}, ${order.atelier || 'Atelier Principal'}, ${order.status || 'confirme'}, ${compJson}::jsonb,
                 ${num(order.cout_matieres)}, ${num(order.cout_main_oeuvre)}, ${num(order.cout_machines_ateliers)}, ${num(order.cout_total_production)}, ${num(order.cout_revient_unitaire)},
                 false, false, false, ${order.notes || ''}
@@ -2849,8 +2877,17 @@ export async function POST(req: NextRequest) {
           const { order } = payload;
           const today = new Date().toISOString().split('T')[0];
 
-          // 1. Stock movements: deduct components
-          if (Array.isArray(order.composants_consommes)) {
+          // 1. Stock movements: deduct components / raw materials
+          if (Array.isArray(order.inputs) && order.inputs.length > 0) {
+            for (const inp of order.inputs) {
+              const qte = num(inp.quantite, 1);
+              await sql`
+                UPDATE produits 
+                SET stock_actuel = stock_actuel - ${qte} 
+                WHERE libelle = ${inp.produit_nom} OR code = ${inp.produit_nom};
+              `.catch(() => {});
+            }
+          } else if (Array.isArray(order.composants_consommes)) {
             for (const comp of order.composants_consommes) {
               const qte = num(comp.quantite_reelle || comp.quantite_prevue, 1);
               await sql`
@@ -2861,13 +2898,26 @@ export async function POST(req: NextRequest) {
             }
           }
 
-          // 2. Increase stock for finished product
-          const qteProduite = num(order.quantite_reelle || order.quantite_prevue, 1);
-          await sql`
-            UPDATE produits 
-            SET stock_actuel = stock_actuel + ${qteProduite} 
-            WHERE libelle = ${order.produit_fini_nom} OR code = ${order.produit_fini_nom};
-          `.catch(() => {});
+          // 2. Increase stock for finished product(s)
+          if (Array.isArray(order.outputs) && order.outputs.length > 0) {
+            for (const out of order.outputs) {
+              if (!out.est_dechet) {
+                const qteOut = num(out.quantite_reelle || out.quantite_prevue, 1);
+                await sql`
+                  UPDATE produits 
+                  SET stock_actuel = stock_actuel + ${qteOut} 
+                  WHERE libelle = ${out.produit_nom} OR code = ${out.produit_nom};
+                `.catch(() => {});
+              }
+            }
+          } else {
+            const qteProduite = num(order.quantite_reelle || order.quantite_prevue, 1);
+            await sql`
+              UPDATE produits 
+              SET stock_actuel = stock_actuel + ${qteProduite} 
+              WHERE libelle = ${order.produit_fini_nom} OR code = ${order.produit_fini_nom};
+            `.catch(() => {});
+          }
 
           // 3. Generate accounting entry
           const entry = generateProductionJournalEntry(order);

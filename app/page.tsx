@@ -111,6 +111,8 @@ import { DocumentPreviewView } from '@/components/DocumentPreviewView';
 import { AccountingView } from '@/components/AccountingView';
 import { HumanResourcesView } from '@/components/HumanResourcesView';
 import { ManufacturingView } from '@/components/ManufacturingView';
+import { BOMManagementView } from '@/components/manufacturing/BOMManagementView';
+import { ProductionOrderManagementView } from '@/components/manufacturing/ProductionOrderManagementView';
 import {
   JournalEntry,
   PlanAccount,
@@ -1249,12 +1251,31 @@ export default function Home() {
           )}
 
           {/* FABRICATION & PRODUCTION (MANUFACTURING) */}
-          {currentTab === 'manufacturing' && (
-            <ManufacturingView
+          {currentTab === 'manufacturing-boms' && (
+            <BOMManagementView
               boms={boms}
-              productionOrders={productionOrders}
               produits={produits}
               onRefresh={reloadCoreData}
+              onNavigateTab={navigateTo}
+            />
+          )}
+
+          {currentTab === 'manufacturing-orders' && (
+            <ProductionOrderManagementView
+              productionOrders={productionOrders}
+              boms={boms}
+              produits={produits}
+              onRefresh={reloadCoreData}
+              onNavigateTab={navigateTo}
+            />
+          )}
+
+          {currentTab === 'manufacturing' && (
+            <BOMManagementView
+              boms={boms}
+              produits={produits}
+              onRefresh={reloadCoreData}
+              onNavigateTab={navigateTo}
             />
           )}
 

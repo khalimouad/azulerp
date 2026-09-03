@@ -980,7 +980,7 @@ export const PosView: React.FC<PosViewProps> = ({
                   : posTheme === 'dark' ? 'text-slate-400' : 'text-slate-600'
               }`}
             >
-              <span>Addition</span>
+              <span>Panier</span>
               {cart.length > 0 && (
                 <span className="px-1.5 py-0.2 rounded-full bg-emerald-400 text-slate-950 text-[10px] font-black">
                   {orderCalculations.itemsCount}
@@ -994,8 +994,9 @@ export const PosView: React.FC<PosViewProps> = ({
             <div className={`flex items-center gap-2 border px-3.5 py-1.5 rounded-xl ${
               posTheme === 'dark' ? 'bg-slate-950 border-slate-800 text-slate-300' : 'bg-slate-50 border-slate-200 text-slate-800'
             }`}>
+              <Store className="w-3.5 h-3.5 text-emerald-500" />
               <span className="text-xs font-bold">
-                {activeTable ? `Table ${activeTable.numero} (${activeTable.nom})` : 'Vente Directe / Comptoir'}
+                Caisse Comptoir / Vente Directe
               </span>
             </div>
           </div>
@@ -1106,7 +1107,7 @@ export const PosView: React.FC<PosViewProps> = ({
               <div className="flex items-center gap-2">
                 <Receipt className="w-4 h-4 text-emerald-500" />
                 <span className={`text-sm font-bold ${posTheme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
-                  L'Addition ({orderCalculations.itemsCount} plat{orderCalculations.itemsCount > 1 ? 's' : ''})
+                  Panier ({orderCalculations.itemsCount} article{orderCalculations.itemsCount > 1 ? 's' : ''})
                 </span>
               </div>
               <div className="flex items-center gap-2">
@@ -1115,15 +1116,15 @@ export const PosView: React.FC<PosViewProps> = ({
                     type="button"
                     onClick={() => {
                       setCart([]);
-                      showToast('Ticket vidé.');
+                      showToast('Panier vidé.');
                     }}
-                    className="text-xs text-rose-400 hover:text-rose-300 font-semibold"
+                    className="text-xs text-rose-400 hover:text-rose-300 font-semibold cursor-pointer"
                   >
                     Vider
                   </button>
                 )}
                 <span className="text-xs font-bold text-slate-400 bg-slate-800 px-2 py-0.5 rounded">
-                  {typeCommande === 'SUR_PLACE' ? 'Sur Place' : 'À Emporter'}
+                  {typeCommande === 'SUR_PLACE' ? 'Comptoir' : 'À Emporter'}
                 </span>
               </div>
             </div>
@@ -1134,10 +1135,10 @@ export const PosView: React.FC<PosViewProps> = ({
                 <div className={`h-full flex flex-col items-center justify-center text-center p-6 ${
                   posTheme === 'dark' ? 'text-slate-500' : 'text-slate-400'
                 }`}>
-                  <Utensils className={`w-12 h-12 mb-3 ${posTheme === 'dark' ? 'text-slate-700' : 'text-slate-300'}`} />
-                  <p className={`text-sm font-bold ${posTheme === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}>Aucun plat sélectionné</p>
+                  <Store className={`w-12 h-12 mb-3 ${posTheme === 'dark' ? 'text-slate-700' : 'text-slate-300'}`} />
+                  <p className={`text-sm font-bold ${posTheme === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}>Panier vide</p>
                   <p className={`text-xs mt-1 max-w-[240px] ${posTheme === 'dark' ? 'text-slate-500' : 'text-slate-400'}`}>
-                    Sélectionnez une catégorie à droite puis touchez les plats pour composer l'addition.
+                    Sélectionnez une catégorie ou scannez un article pour l'ajouter au panier.
                   </p>
                 </div>
               ) : (
@@ -1300,43 +1301,33 @@ export const PosView: React.FC<PosViewProps> = ({
             <div className={`p-3 border-b flex items-center justify-between gap-3 transition-colors ${
               posTheme === 'dark' ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200 shadow-xs'
             }`}>
-              <div className={`flex items-center gap-1.5 p-1 rounded-xl border ${
-                posTheme === 'dark' ? 'bg-slate-950 border-slate-800' : 'bg-slate-100 border-slate-200'
-              }`}>
-                <button
-                  type="button"
-                  onClick={() => setRightPanelTab('CARTE')}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition cursor-pointer ${
-                    rightPanelTab === 'CARTE'
-                      ? 'bg-emerald-600 text-white shadow-md'
-                      : posTheme === 'dark' ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  <Tag className="w-3.5 h-3.5" />
-                  <span>Carte & Menu ({products.length})</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setRightPanelTab('TABLES')}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition cursor-pointer ${
-                    rightPanelTab === 'TABLES'
-                      ? 'bg-blue-600 text-white shadow-md'
-                      : posTheme === 'dark' ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  <Utensils className="w-3.5 h-3.5" />
-                  <span>Plan de Salle ({tables.length} tables)</span>
-                </button>
+              <div className="flex items-center gap-2">
+                <div className={`flex items-center gap-1.5 p-1 rounded-xl border ${
+                  posTheme === 'dark' ? 'bg-slate-950 border-slate-800' : 'bg-slate-100 border-slate-200'
+                }`}>
+                  <button
+                    type="button"
+                    onClick={() => setRightPanelTab('CARTE')}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition cursor-pointer ${
+                      rightPanelTab === 'CARTE'
+                        ? 'bg-emerald-600 text-white shadow-md'
+                        : posTheme === 'dark' ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    <Tag className="w-3.5 h-3.5" />
+                    <span>Catalogue Articles ({products.length})</span>
+                  </button>
+                </div>
               </div>
 
-              {/* Direct Counter / Walk-in order button */}
+              {/* Quick direct sale reset button */}
               <button
                 type="button"
                 onClick={handleDirectCounterSale}
-                className="flex items-center gap-1.5 px-3.5 py-2 bg-emerald-700/80 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold transition border border-emerald-600/50 shadow-sm active:scale-95"
+                className="flex items-center gap-1.5 px-3.5 py-2 bg-emerald-700/80 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold transition border border-emerald-600/50 shadow-sm active:scale-95 cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5" />
-                <span>Vente Directe</span>
+                <span>Nouvelle Vente</span>
               </button>
             </div>
 
@@ -1352,7 +1343,7 @@ export const PosView: React.FC<PosViewProps> = ({
                         <Search className={`w-4 h-4 absolute left-3.5 top-3 ${posTheme === 'dark' ? 'text-slate-500' : 'text-slate-400'}`} />
                         <input
                           type="text"
-                          placeholder="Rechercher un plat, ingrédient ou boisson..."
+                          placeholder="Rechercher un article par nom, référence ou code-barres..."
                           value={productSearch}
                           onChange={(e) => setProductSearch(e.target.value)}
                           className={`w-full pl-10 pr-3 py-2.5 rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500 transition ${
@@ -1368,7 +1359,7 @@ export const PosView: React.FC<PosViewProps> = ({
                     <div className={`px-3.5 py-1 text-xs font-bold flex items-center justify-between ${
                       posTheme === 'dark' ? 'text-slate-400' : 'text-slate-600'
                     }`}>
-                      <span>Choisissez une Catégorie</span>
+                      <span>Rayons & Catégories</span>
                       <span>{categories.length} catégories</span>
                     </div>
 
@@ -1420,7 +1411,7 @@ export const PosView: React.FC<PosViewProps> = ({
                                 <p className={`text-[10px] truncate ${
                                   posTheme === 'dark' ? 'text-slate-400' : 'text-slate-500'
                                 }`}>
-                                  {count} plat{count > 1 ? 's' : ''}
+                                  {count} article{count > 1 ? 's' : ''}
                                 </p>
                               </div>
                             </div>
@@ -1434,7 +1425,7 @@ export const PosView: React.FC<PosViewProps> = ({
                     </div>
                   </div>
                 ) : (
-                  /* 2. PRODUCTS IN CATEGORY (Clicking dish adds to cart and returns back to categories) */
+                  /* 2. PRODUCTS IN CATEGORY (Clicking article adds to cart and returns back to categories) */
                   <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
                     {/* Top navigation bar */}
                     <div className={`p-3 border-b flex items-center justify-between gap-2.5 transition-colors ${
@@ -1465,7 +1456,7 @@ export const PosView: React.FC<PosViewProps> = ({
                         <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
                           posTheme === 'dark' ? 'text-slate-400 bg-slate-950 border-slate-800' : 'text-slate-700 bg-slate-100 border-slate-250'
                         }`}>
-                          {filteredProducts.length} plat{filteredProducts.length > 1 ? 's' : ''}
+                          {filteredProducts.length} article{filteredProducts.length > 1 ? 's' : ''}
                         </span>
                       </div>
 
@@ -1486,7 +1477,7 @@ export const PosView: React.FC<PosViewProps> = ({
                       </div>
                     </div>
 
-                    {/* Dishes Touch Grid (Strict 4-Columns: Photo + Name + Price Only) */}
+                    {/* Articles Touch Grid */}
                     <div className="flex-1 min-h-0 p-3 overflow-y-auto overscroll-contain grid grid-cols-2 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-4 gap-2 sm:gap-2.5 auto-rows-[140px] sm:auto-rows-[150px] content-start touch-pan-y">
                       {filteredProducts.map((prod) => {
                         const isAvailable = prod.disponible === 1;
@@ -1504,7 +1495,7 @@ export const PosView: React.FC<PosViewProps> = ({
                               // Auto return to categories
                               setSelectedCategory(null);
                               setProductSearch('');
-                              showToast(`"${prod.nom}" ajouté à l'addition`);
+                              showToast(`"${prod.nom}" ajouté au panier`);
                             }}
                             disabled={!isAvailable}
                             className={`group relative h-[145px] sm:h-[155px] min-h-[145px] text-left rounded-2xl border overflow-hidden transition flex flex-col justify-between active:scale-95 touch-manipulation cursor-pointer ${

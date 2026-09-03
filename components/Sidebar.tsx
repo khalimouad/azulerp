@@ -172,20 +172,30 @@ export const Sidebar: React.FC<SidebarProps> = ({
       title: 'Fabrication & Production',
       items: [
         {
-          id: 'manufacturing',
-          label: 'Fabrication & Recettes (BOM)',
+          id: 'manufacturing-boms',
+          label: 'Nomenclatures (BOM)',
+          icon: Layers,
+          highlight: false,
+          badge: 'Formules',
+          badgeColor: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40',
+        },
+        {
+          id: 'manufacturing-orders',
+          label: 'Ordres de Fabrication (OF)',
           icon: Factory,
           highlight: false,
+          badge: 'Production',
+          badgeColor: 'bg-blue-500/20 text-blue-300 border-blue-500/40',
         },
       ],
     },
     {
-      title: 'Restaurant & Caisse (POS)',
+      title: 'Point de Vente (POS)',
       items: [
-        { id: 'pos', label: 'Plan de Salle & Caisse', icon: Store, highlight: true },
-        { id: 'pos-tickets', label: 'Historique des Additions', icon: Receipt },
-        { id: 'pos-produits', label: 'Carte & Menu Restaurant', icon: Tag },
-        { id: 'pos-sessions', label: 'Services & Clôtures Z', icon: Clock },
+        { id: 'pos', label: 'Caisse & Terminal POS', icon: Store, highlight: true },
+        { id: 'pos-tickets', label: 'Historique des Ventes', icon: Receipt },
+        { id: 'pos-produits', label: 'Catalogue Caisse', icon: Tag },
+        { id: 'pos-sessions', label: 'Sessions & Clôtures', icon: Clock },
       ],
     },
     {
