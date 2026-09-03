@@ -289,7 +289,7 @@ export function generateClientPaymentJournalEntry(reglement: Reglement): Journal
   const isCaisse = reglement.mode === 'Espèces';
   const journalCode: JournalCode = isCaisse ? 'CA' : 'BNQ';
   const compteTresorerie = isCaisse ? '5161' : '5141';
-  const ref = reglement.reference || `REG-${reglement.id || Date.now()}`;
+  const ref = reglement.reference_paiement || (reglement as any).reference || `REG-${reglement.id || Date.now()}`;
 
   const lines: JournalEntryLine[] = [
     {
