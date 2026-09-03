@@ -2176,6 +2176,7 @@ export async function POST(req: NextRequest) {
                 rib = EXCLUDED.rib,
                 logo_titre = EXCLUDED.logo_titre,
                 logo_sous_titre = EXCLUDED.logo_sous_titre;
+            `;
 
             // Clients
             for (const c of casaData.clients) {
