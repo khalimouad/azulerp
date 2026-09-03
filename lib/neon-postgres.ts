@@ -16,25 +16,33 @@ export function getNeonDatabaseUrl(customUrl?: string): string | null {
     return customUrl.trim();
   }
 
-  // Direct connection string keys
+  // Direct connection string keys (supporting both standard and azulerp_ prefixed names)
+  const env = process.env as Record<string, string | undefined>;
   const directUrl =
-    process.env.DATABASE_URL ||
-    process.env.POSTGRES_URL ||
-    process.env.POSTGRES_PRISMA_URL ||
-    process.env.DATABASE_URL_UNPOOLED ||
-    process.env.POSTGRES_URL_NON_POOLING ||
-    process.env.POSTGRES_URL_NO_SSL ||
-    process.env.NEON_DATABASE_URL;
+    env.DATABASE_URL ||
+    env.azulerp_DATABASE_URL ||
+    env.POSTGRES_URL ||
+    env.azulerp_POSTGRES_URL ||
+    env.POSTGRES_PRISMA_URL ||
+    env.azulerp_POSTGRES_PRISMA_URL ||
+    env.DATABASE_URL_UNPOOLED ||
+    env.azulerp_DATABASE_URL_UNPOOLED ||
+    env.POSTGRES_URL_NON_POOLING ||
+    env.azulerp_POSTGRES_URL_NON_POOLING ||
+    env.POSTGRES_URL_NO_SSL ||
+    env.azulerp_POSTGRES_URL_NO_SSL ||
+    env.NEON_DATABASE_URL ||
+    env.azulerp_NEON_DATABASE_URL;
 
   if (directUrl && directUrl.trim()) {
     return directUrl.trim();
   }
 
   // Construct from separate PG* variables if provided
-  const host = process.env.PGHOST || process.env.POSTGRES_HOST;
-  const user = process.env.PGUSER || process.env.POSTGRES_USER;
-  const password = process.env.PGPASSWORD || process.env.POSTGRES_PASSWORD;
-  const database = process.env.PGDATABASE || process.env.POSTGRES_DATABASE;
+  const host = env.PGHOST || env.azulerp_PGHOST || env.POSTGRES_HOST || env.azulerp_POSTGRES_HOST;
+  const user = env.PGUSER || env.azulerp_POSTGRES_USER || env.POSTGRES_USER;
+  const password = env.PGPASSWORD || env.azulerp_POSTGRES_PASSWORD || env.POSTGRES_PASSWORD;
+  const database = env.PGDATABASE || env.azulerp_POSTGRES_DATABASE || env.POSTGRES_DATABASE;
 
   if (host && user && password && database) {
     return `postgresql://${encodeURIComponent(user)}:${encodeURIComponent(password)}@${host}/${database}?sslmode=require`;
