@@ -8,7 +8,8 @@ import {
   Facture,
   Reglement,
   PayrollSlip,
-  ProductionOrder
+  ProductionOrder,
+  AccountClassId
 } from './types';
 
 // ============================================================================
