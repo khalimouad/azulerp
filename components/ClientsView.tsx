@@ -65,6 +65,7 @@ export const ClientsView: React.FC<ClientsViewProps> = ({
   const [searchVille, setSearchVille] = useState('');
   const [searchIce, setSearchIce] = useState('');
   const [rawSelectedClientId, setRawSelectedClientId] = useState<number | null>(null);
+  const [mobileTab, setMobileTab] = useState<'ANNUAIRE' | 'TARIFS'>('ANNUAIRE');
 
   // Pagination state for client list
   const [currentPage, setCurrentPage] = useState(1);
@@ -290,10 +291,36 @@ export const ClientsView: React.FC<ClientsViewProps> = ({
 
   return (
     <div className="space-y-4">
-      {/* Top Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
+      {/* ========================================================================= */}
+      {/* 1. TOP HEADER (Compact on mobile, full on desktop) */}
+      {/* ========================================================================= */}
+      {/* Mobile Top Header (sm:hidden) */}
+      <div className="flex items-center justify-between gap-2 p-3 bg-white rounded-xl border border-slate-200 shadow-xs sm:hidden">
+        <div className="flex items-center gap-2 min-w-0">
+          <Building className="w-5 h-5 text-blue-600 shrink-0" />
+          <div className="min-w-0">
+            <h2 className="font-bold text-slate-900 text-sm truncate flex items-center gap-1.5">
+              Clients & Tarifs
+              <span className="text-[11px] font-semibold px-1.5 py-0.2 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+                {clients.length}
+              </span>
+            </h2>
+          </div>
+        </div>
+        <button
+          onClick={onOpenNewClient}
+          className="flex items-center gap-1 px-3 py-1.5 text-xs font-bold rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition shadow-xs active:scale-95"
+        >
+          <Plus className="w-3.5 h-3.5" />
+          <span>+ Client</span>
+        </button>
+      </div>
+
+      {/* Desktop Top Header (hidden sm:flex) */}
+      <div className="hidden sm:flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
         <div>
           <h2 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
+            <Building className="w-5 h-5 text-blue-600" />
             Gestion des Clients & Grilles Tarifaires Personnalisées
             <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
               {clients.length} comptes clients
@@ -315,13 +342,41 @@ export const ClientsView: React.FC<ClientsViewProps> = ({
         </div>
       </div>
 
+      {/* Mobile Tab Switcher (lg:hidden) */}
+      <div className="lg:hidden flex rounded-xl bg-slate-100 p-1 border border-slate-200 shadow-2xs">
+        <button
+          type="button"
+          onClick={() => setMobileTab('ANNUAIRE')}
+          className={`flex-1 py-2 text-xs font-bold rounded-lg transition flex items-center justify-center gap-1.5 ${
+            mobileTab === 'ANNUAIRE'
+              ? 'bg-white text-blue-700 shadow-xs'
+              : 'text-slate-600 hover:text-slate-900'
+          }`}
+        >
+          <Building className="w-3.5 h-3.5 text-blue-600" />
+          <span>Annuaire ({filteredClients.length})</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setMobileTab('TARIFS')}
+          className={`flex-1 py-2 text-xs font-bold rounded-lg transition flex items-center justify-center gap-1.5 ${
+            mobileTab === 'TARIFS'
+              ? 'bg-white text-blue-700 shadow-xs'
+              : 'text-slate-600 hover:text-slate-900'
+          }`}
+        >
+          <Tag className="w-3.5 h-3.5 text-emerald-600" />
+          <span className="truncate">Tarifs {selectedClient ? `(${selectedClient.nom})` : ''}</span>
+        </button>
+      </div>
+
       {/* Main 2-Halves Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         {/* ========================================================================= */}
         {/* LEFT HALF (6 Cols): CUSTOMER DIRECTORY & SELECTED CLIENT INFO */}
         {/* ========================================================================= */}
-        <div className="lg:col-span-6 space-y-4">
-          <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden flex flex-col h-[700px]">
+        <div className={`lg:col-span-6 space-y-4 ${mobileTab === 'ANNUAIRE' ? 'block' : 'hidden lg:block'}`}>
+          <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden flex flex-col lg:h-[700px]">
             {/* Top Search & Filter Bar for Customers */}
             <div className="p-3 border-b border-slate-200 bg-slate-50/70 space-y-2">
               <div className="flex items-center justify-between">
@@ -347,8 +402,151 @@ export const ClientsView: React.FC<ClientsViewProps> = ({
               </div>
             </div>
 
-            {/* Customers Table / List */}
-            <div className="flex-1 overflow-y-auto">
+            {/* Mobile Cards List (md:hidden) */}
+            <div className="md:hidden space-y-3 p-3">
+              {filteredClients.length === 0 ? (
+                <div className="p-8 text-center text-slate-400 text-xs bg-slate-50 rounded-xl border border-slate-200">
+                  Aucun client ne correspond à votre recherche.
+                </div>
+              ) : (
+                paginatedClients.map((client) => {
+                  const stats = clientStats.get(client.id) || { blCount: 0, pendingBlCount: 0, totalFacture: 0, unpaidFacture: 0 };
+                  const isSelected = selectedClientId === client.id;
+
+                  return (
+                    <div
+                      key={client.id}
+                      className={`bg-white rounded-xl border shadow-xs overflow-hidden transition ${
+                        isSelected
+                          ? 'border-blue-500 ring-2 ring-blue-500/20 bg-blue-50/10'
+                          : 'border-slate-200'
+                      }`}
+                    >
+                      {/* Top bar of card */}
+                      <div
+                        className="p-3.5 pb-2.5 border-b border-slate-100 flex items-start justify-between gap-2 cursor-pointer hover:bg-slate-50/60"
+                        onClick={() => setSelectedClientId(client.id)}
+                      >
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="font-mono text-xs font-bold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">
+                              {client.code || `CL${String(client.id).padStart(3, '0')}`}
+                            </span>
+                            <span className="font-bold text-slate-900 text-sm">
+                              {client.nom}
+                            </span>
+                          </div>
+                          {client.interlocuteur && (
+                            <div className="text-[11px] text-slate-500 mt-0.5">
+                              Contact : <span className="font-medium text-slate-700">{client.interlocuteur}</span>
+                            </div>
+                          )}
+                        </div>
+
+                        {isSelected && (
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-600 text-white shrink-0 shadow-2xs">
+                            Sélectionné
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Card details */}
+                      <div
+                        className="p-3.5 space-y-2 cursor-pointer hover:bg-slate-50/60"
+                        onClick={() => setSelectedClientId(client.id)}
+                      >
+                        <div className="flex items-center justify-between text-xs">
+                          <div className="text-slate-600 truncate">
+                            <span className="text-slate-400 text-[10px] uppercase font-bold block">Localisation & ICE</span>
+                            <span className="font-medium text-slate-800">{client.ville || 'Marrakech'}</span>
+                            {client.ice && <span className="text-slate-400 font-mono text-[11px]"> • ICE: {client.ice}</span>}
+                          </div>
+
+                          <div className="text-right shrink-0">
+                            <span className="text-slate-400 text-[10px] uppercase font-bold block">Solde Impayé</span>
+                            <span className={`font-mono font-black text-sm ${stats.unpaidFacture > 0 ? 'text-rose-600' : 'text-slate-700'}`}>
+                              {formatCurrency(stats.unpaidFacture)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Action buttons */}
+                      <div className="bg-slate-50/90 px-3 py-2 border-t border-slate-100 flex items-center justify-between gap-1 flex-wrap">
+                        <div className="flex items-center gap-1.5">
+                          {client.telephone && (
+                            <a
+                              href={`tel:${client.telephone}`}
+                              className="flex items-center gap-1 px-2.5 min-h-[36px] rounded-lg text-xs font-semibold bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 shadow-2xs transition active:scale-95 touch-manipulation"
+                              title="Appeler le client"
+                            >
+                              <Phone className="w-3.5 h-3.5" />
+                              <span>Appeler</span>
+                            </a>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedClientId(client.id);
+                              setMobileTab('TARIFS');
+                            }}
+                            className="flex items-center gap-1 px-2.5 min-h-[36px] rounded-lg text-xs font-semibold bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 shadow-2xs transition active:scale-95 touch-manipulation"
+                          >
+                            <Tag className="w-3.5 h-3.5 text-blue-600" />
+                            <span>Tarifs</span>
+                          </button>
+                        </div>
+
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => onNewBlForClient(client)}
+                            className="flex items-center gap-1 px-2 min-h-[36px] rounded-lg text-xs font-semibold bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 shadow-2xs transition active:scale-95 touch-manipulation"
+                            title="Créer un BL"
+                          >
+                            <Truck className="w-3.5 h-3.5 text-emerald-600" />
+                            <span>+ BL</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => onNewFactureForClient(client)}
+                            className="flex items-center gap-1 px-2 min-h-[36px] rounded-lg text-xs font-semibold bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 shadow-2xs transition active:scale-95 touch-manipulation"
+                            title="Créer une Facture"
+                          >
+                            <FileText className="w-3.5 h-3.5 text-blue-600" />
+                            <span>+ Fact</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => onEditClient(client)}
+                            className="min-h-[36px] min-w-[36px] flex items-center justify-center rounded-lg text-slate-500 hover:text-slate-800 bg-white border border-slate-200 transition active:scale-95 touch-manipulation"
+                            title="Modifier"
+                          >
+                            <Edit className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (confirm(`Supprimer définitivement le client ${client.nom} ?`)) {
+                                onDeleteClient(client.id);
+                                if (selectedClientId === client.id) setSelectedClientId(null);
+                              }
+                            }}
+                            className="min-h-[36px] min-w-[36px] flex items-center justify-center rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition active:scale-95 touch-manipulation"
+                            title="Supprimer"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            {/* Desktop Customers Table (hidden md:block) */}
+            <div className="hidden md:block flex-1 overflow-y-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead className="sticky top-0 bg-blue-700 text-white z-10">
                   <tr className="divide-x divide-blue-600 font-semibold text-[11px]">
@@ -513,8 +711,8 @@ export const ClientsView: React.FC<ClientsViewProps> = ({
         {/* ========================================================================= */}
         {/* RIGHT HALF (6 Cols): PRODUCT PRICELIST & NEGOTIATED RATES FOR CLIENT */}
         {/* ========================================================================= */}
-        <div className="lg:col-span-6 space-y-4">
-          <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden flex flex-col h-[700px]">
+        <div className={`lg:col-span-6 space-y-4 ${mobileTab === 'TARIFS' ? 'block' : 'hidden lg:block'}`}>
+          <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden flex flex-col lg:h-[700px]">
             {/* Top Bar for Pricelist */}
             <div className="p-3 border-b border-slate-200 bg-slate-50/70 space-y-2">
               <div className="flex items-center justify-between">

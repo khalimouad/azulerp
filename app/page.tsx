@@ -694,7 +694,7 @@ export default function Home() {
         />
 
         {/* Viewport Content */}
-        <main className={`flex-1 p-3 sm:p-6 lg:p-7 w-full mx-auto overflow-x-hidden pb-24 lg:pb-7 transition-[max-width] duration-300 ${sidebarCollapsed ? 'max-w-none' : 'max-w-[1600px]'}`}>
+        <main className={`flex-1 p-3 sm:p-6 lg:p-7 w-full mx-auto overflow-x-hidden pb-28 lg:pb-7 transition-[max-width] duration-300 ${sidebarCollapsed ? 'max-w-none' : 'max-w-[1600px]'}`}>
           {/* 1. DASHBOARD */}
           {currentTab === 'dashboard' && (
             <DashboardView
@@ -1438,8 +1438,8 @@ export default function Home() {
           <Truck className="w-5 h-5 mb-0.5" />
           <span className="text-[10px] leading-tight">BL</span>
           {stats.bl_en_attente_count > 0 && (
-            <span className="absolute top-1 right-1.5 w-4 h-4 bg-amber-500 text-slate-950 text-[9px] font-black rounded-full flex items-center justify-center">
-              {stats.bl_en_attente_count}
+            <span className="absolute top-0.5 right-1 min-w-[18px] h-4 px-1 bg-amber-500 text-slate-950 text-[9px] font-black rounded-full flex items-center justify-center shadow-xs">
+              {stats.bl_en_attente_count > 999 ? `${(stats.bl_en_attente_count / 1000).toFixed(1)}k` : stats.bl_en_attente_count}
             </span>
           )}
         </button>
@@ -1475,8 +1475,8 @@ export default function Home() {
           <Package className="w-5 h-5 mb-0.5" />
           <span className="text-[10px] leading-tight">Stocks</span>
           {stats.stock_alerts_count > 0 && (
-            <span className="absolute top-1 right-1.5 w-4 h-4 bg-rose-500 text-white text-[9px] font-black rounded-full flex items-center justify-center">
-              {stats.stock_alerts_count}
+            <span className="absolute top-0.5 right-1 min-w-[18px] h-4 px-1 bg-rose-500 text-white text-[9px] font-black rounded-full flex items-center justify-center shadow-xs">
+              {stats.stock_alerts_count > 999 ? '999+' : stats.stock_alerts_count}
             </span>
           )}
         </button>

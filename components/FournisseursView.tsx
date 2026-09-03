@@ -542,7 +542,7 @@ export const FournisseursView: React.FC<FournisseursViewProps> = ({
       {/* SUB-PAGES NAVIGATION TABS BAR */}
       {/* ========================================================================= */}
       <div className="bg-white p-2.5 rounded-xl border border-slate-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 text-xs">
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 text-xs no-scrollbar">
           <button
             onClick={() => handleTabChange('FOURNISSEURS')}
             className={`flex items-center gap-1.5 px-3.5 py-2 rounded-lg font-bold transition whitespace-nowrap ${
@@ -731,7 +731,124 @@ export const FournisseursView: React.FC<FournisseursViewProps> = ({
             </div>
           </div>
 
-          <div className="overflow-x-auto">
+          {/* ========================================================================= */}
+          {/* MOBILE SUPPLIER CARDS (md:hidden) */}
+          {/* ========================================================================= */}
+          <div className="md:hidden space-y-3 p-3">
+            {filteredFournisseurs.length === 0 ? (
+              <div className="p-8 text-center text-slate-400 text-xs bg-slate-50 rounded-xl border border-slate-200">
+                Aucun fournisseur trouvé.
+              </div>
+            ) : (
+              filteredFournisseurs.map((f) => (
+                <div key={f.id} className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
+                  <div className="p-3.5 pb-2.5 border-b border-slate-100 flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="font-mono text-xs font-bold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">
+                          {f.code || `FOUR-${f.id}`}
+                        </span>
+                        <span className="font-bold text-slate-900 text-sm">{f.nom}</span>
+                      </div>
+                      {f.interlocuteur && (
+                        <div className="text-[11px] text-slate-500 mt-0.5">
+                          Contact : <span className="font-medium text-slate-700">{f.interlocuteur}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="p-3.5 space-y-2">
+                    <div className="flex items-center justify-between text-xs">
+                      <div>
+                        <span className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Ville & ICE</span>
+                        <span className="font-medium text-slate-800">{f.ville || '-'}</span>
+                        {f.ice && <span className="text-slate-400 font-mono text-[11px]"> • ICE: {f.ice}</span>}
+                      </div>
+
+                      <div className="text-right">
+                        <span className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Solde Dû</span>
+                        <span className={`font-mono font-black text-sm ${(f.solde_du || 0) > 0 ? 'text-rose-600' : 'text-slate-700'}`}>
+                          {formatCurrency(f.solde_du || 0)}
+                        </span>
+                        <div className="text-[10px] text-slate-400 font-mono">
+                          Achats: {formatCurrency(f.total_achats || 0, false)}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-slate-50/90 px-3 py-2 border-t border-slate-100 flex items-center justify-between gap-1 flex-wrap">
+                    <div className="flex items-center gap-1.5">
+                      {(f.telephone || f.gsm) && (
+                        <a
+                          href={`tel:${f.telephone || f.gsm}`}
+                          className="flex items-center gap-1 px-2.5 min-h-[36px] rounded-lg text-xs font-semibold bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 shadow-2xs transition active:scale-95 touch-manipulation"
+                          title="Appeler le fournisseur"
+                        >
+                          <Phone className="w-3.5 h-3.5" />
+                          <span>Appeler</span>
+                        </a>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => setStatementSupplier(f)}
+                        className="flex items-center gap-1 px-2.5 min-h-[36px] rounded-lg text-xs font-semibold bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 shadow-2xs transition active:scale-95 touch-manipulation"
+                        title="Relevé de Compte"
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                        <span>Relevé</span>
+                      </button>
+                    </div>
+
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => handleOpenNewInvoice(f)}
+                        className="flex items-center gap-1 px-2 min-h-[36px] rounded-lg text-xs font-semibold bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 shadow-2xs transition active:scale-95 touch-manipulation"
+                        title="+ Facture d'Achat"
+                      >
+                        <Receipt className="w-3.5 h-3.5 text-indigo-600" />
+                        <span>+ Fact</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleOpenNewPayment(f)}
+                        className="flex items-center gap-1 px-2 min-h-[36px] rounded-lg text-xs font-semibold bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 shadow-2xs transition active:scale-95 touch-manipulation"
+                        title="+ Règlement"
+                      >
+                        <CreditCard className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>+ Pay</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => onEditFournisseur(f)}
+                        className="min-h-[36px] min-w-[36px] flex items-center justify-center rounded-lg text-slate-600 hover:text-slate-900 bg-white border border-slate-200 transition active:scale-95 touch-manipulation"
+                        title="Modifier"
+                      >
+                        <Edit className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (confirm(`Supprimer définitivement le fournisseur ${f.nom} ?`)) {
+                            onDeleteFournisseur(f.id);
+                          }
+                        }}
+                        className="min-h-[36px] min-w-[36px] flex items-center justify-center rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition active:scale-95 touch-manipulation"
+                        title="Supprimer"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Desktop Table (hidden md:block) */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
                 <tr className="bg-slate-800 text-white font-semibold divide-x divide-slate-700">
@@ -806,7 +923,9 @@ export const FournisseursView: React.FC<FournisseursViewProps> = ({
                           </button>
                           <button
                             onClick={() => {
-                              onDeleteFournisseur(f.id);
+                              if (confirm(`Supprimer définitivement le fournisseur ${f.nom} ?`)) {
+                                onDeleteFournisseur(f.id);
+                              }
                             }}
                             className="p-1 hover:bg-rose-100 text-slate-400 hover:text-rose-600 rounded transition"
                             title="Supprimer"
@@ -883,7 +1002,113 @@ export const FournisseursView: React.FC<FournisseursViewProps> = ({
             </button>
           </div>
 
-          <div className="overflow-x-auto">
+          {/* ========================================================================= */}
+          {/* MOBILE INVOICE CARDS (md:hidden space-y-3 p-3) */}
+          {/* ========================================================================= */}
+          <div className="md:hidden space-y-3 p-3">
+            {filteredFactures.length === 0 ? (
+              <div className="p-8 text-center text-slate-400 text-xs bg-slate-50 rounded-xl border border-slate-200">
+                Aucune facture fournisseur correspondant aux critères.
+              </div>
+            ) : (
+              filteredFactures.map((f) => (
+                <div key={f.id} className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
+                  <div className="p-3.5 pb-2.5 border-b border-slate-100 flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="font-mono font-extrabold text-sm text-slate-900">
+                          {f.numero}
+                        </span>
+                        <span className="text-[10px] text-slate-400 font-mono">
+                          {formatDate(f.date_facture)}
+                        </span>
+                      </div>
+                      <div className="text-[11px] text-slate-500 font-medium">
+                        Échéance : {f.date_echeance ? formatDate(f.date_echeance) : 'Non définie'}
+                      </div>
+                    </div>
+
+                    <span
+                      className={`px-2 py-0.5 rounded-full text-[10px] font-bold shrink-0 ${
+                        f.statut === 'Payée'
+                          ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                          : f.statut === 'Partiel'
+                          ? 'bg-blue-100 text-blue-800 border border-blue-300'
+                          : 'bg-rose-100 text-rose-800 border border-rose-300'
+                      }`}
+                    >
+                      {f.statut}
+                    </span>
+                  </div>
+
+                  <div className="p-3.5 space-y-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <span className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">
+                          Fournisseur
+                        </span>
+                        <div className="font-bold text-slate-900 text-xs truncate">
+                          {f.fournisseur_nom}
+                        </div>
+                        {f.designation_achat && (
+                          <div className="text-[11px] text-slate-500 mt-0.5 truncate">
+                            {f.designation_achat}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="text-right shrink-0">
+                        <span className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">
+                          Reste à Payer
+                        </span>
+                        <div className="font-mono font-black text-base text-rose-700">
+                          {formatCurrency(f.reste_a_payer)}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500 font-mono">
+                      <span>Total TTC: {formatCurrency(f.total_ttc)}</span>
+                      <span>Déjà réglé: {formatCurrency(f.montant_paye)}</span>
+                    </div>
+                  </div>
+
+                  <div className="bg-slate-50/90 px-3 py-2 border-t border-slate-100 flex items-center justify-between gap-1">
+                    {f.reste_a_payer > 0 ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const sup = fournisseurs.find((four) => four.id === f.fournisseur_id);
+                          handleOpenNewPayment(sup, f);
+                        }}
+                        className="flex items-center gap-1.5 px-3 min-h-[36px] rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-2xs transition active:scale-95 touch-manipulation"
+                      >
+                        <CreditCard className="w-3.5 h-3.5" />
+                        <span>Régler cette facture</span>
+                      </button>
+                    ) : (
+                      <span className="text-emerald-700 text-xs font-semibold flex items-center gap-1">
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        Facture soldée
+                      </span>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteInvoice(f.id, f.numero)}
+                      className="min-h-[36px] min-w-[36px] flex items-center justify-center rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition active:scale-95 touch-manipulation"
+                      title="Supprimer"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Desktop Invoices Table (hidden md:block) */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
                 <tr className="bg-indigo-900 text-white font-semibold divide-x divide-indigo-800">
@@ -1019,7 +1244,121 @@ export const FournisseursView: React.FC<FournisseursViewProps> = ({
             </button>
           </div>
 
-          <div className="overflow-x-auto">
+          {/* ========================================================================= */}
+          {/* MOBILE PAYMENT CARDS (md:hidden space-y-3 p-3) */}
+          {/* ========================================================================= */}
+          <div className="md:hidden space-y-3 p-3">
+            {filteredPaiements.length === 0 ? (
+              <div className="p-8 text-center text-slate-400 text-xs bg-slate-50 rounded-xl border border-slate-200">
+                Aucun paiement fournisseur correspondant aux critères.
+              </div>
+            ) : (
+              filteredPaiements.map((p) => {
+                const isCheque = p.mode_paiement === 'Chèque' || p.mode_paiement === 'Traite / Effet';
+
+                return (
+                  <div key={p.id} className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
+                    <div className="p-3.5 pb-2.5 border-b border-slate-100 flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-mono font-bold text-xs text-slate-800">
+                            {formatDate(p.date_paiement)}
+                          </span>
+                        </div>
+                        {p.facture_numero ? (
+                          <span className="text-[11px] font-mono text-indigo-700 font-semibold">
+                            Facture : {p.facture_numero}
+                          </span>
+                        ) : (
+                          <span className="text-[11px] text-slate-400 italic">
+                            Paiement Global / Acompte
+                          </span>
+                        )}
+                      </div>
+
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-800 border border-slate-200 shrink-0">
+                        {p.mode_paiement}
+                      </span>
+                    </div>
+
+                    <div className="p-3.5 space-y-2">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0 flex-1">
+                          <span className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">
+                            Fournisseur
+                          </span>
+                          <div className="font-bold text-slate-900 text-xs truncate">
+                            {p.fournisseur_nom}
+                          </div>
+                          {(p.banque_emettrice || p.numero_cheque_ref) && (
+                            <div className="text-[11px] text-slate-500 mt-0.5 font-mono">
+                              {p.banque_emettrice ? `${p.banque_emettrice} ` : ''}
+                              {p.numero_cheque_ref ? `(N° ${p.numero_cheque_ref})` : ''}
+                            </div>
+                          )}
+                          {p.date_echeance_depot && (
+                            <div className="text-[11px] text-amber-800 font-medium mt-0.5">
+                              Échéance dépôt : {formatDate(p.date_echeance_depot)}
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="text-right shrink-0">
+                          <span className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">
+                            Montant Réglé
+                          </span>
+                          <div className="font-mono font-black text-base text-emerald-700">
+                            {formatCurrency(p.montant)}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-slate-50/90 px-3 py-2 border-t border-slate-100 flex items-center justify-between gap-2">
+                      <div>
+                        {isCheque ? (
+                          <select
+                            value={p.statut_cheque}
+                            onChange={(e) =>
+                              handleUpdateChequeStatus(
+                                p.id,
+                                e.target.value as 'En attente' | 'Déposé / Débité' | 'Annulé'
+                              )
+                            }
+                            className={`text-[11px] font-bold px-2 py-1 rounded-lg border cursor-pointer ${
+                              p.statut_cheque === 'Déposé / Débité'
+                                ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                                : p.statut_cheque === 'En attente'
+                                ? 'bg-amber-100 text-amber-800 border-amber-300'
+                                : 'bg-slate-100 text-slate-600 border-slate-300'
+                            }`}
+                          >
+                            <option value="En attente">⏳ En attente</option>
+                            <option value="Déposé / Débité">✓ Débité</option>
+                            <option value="Annulé">✕ Annulé</option>
+                          </select>
+                        ) : (
+                          <span className="text-[11px] text-slate-500 font-medium">Réglé ({p.mode_paiement})</span>
+                        )}
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => handleDeletePayment(p.id)}
+                        className="min-h-[36px] min-w-[36px] flex items-center justify-center rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition active:scale-95 touch-manipulation"
+                        title="Supprimer"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+
+          {/* Desktop Payments Table (hidden md:block) */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
                 <tr className="bg-emerald-900 text-white font-semibold divide-x divide-emerald-800">

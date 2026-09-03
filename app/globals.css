@@ -1,5 +1,14 @@
 @import "tailwindcss";
 
+/* Hide scrollbars for mobile horizontal filter chips */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 @media print {
   html,
   body {

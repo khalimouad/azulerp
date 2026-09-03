@@ -382,20 +382,21 @@ Posez-moi n'importe quelle question sur vos factures, livraisons, clients, fourn
     <>
       {/* 1. Floating Launcher Button (Messenger Style) */}
       {!isOpen && (
-        <div className="fixed bottom-20 right-3.5 sm:bottom-6 sm:right-6 z-40 animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed bottom-20 right-3 sm:bottom-6 sm:right-6 z-40 animate-in fade-in zoom-in-95 duration-200">
           <button
             type="button"
             onClick={() => setIsOpen(true)}
-            className="group relative flex items-center gap-2 px-3.5 py-2.5 sm:px-4.5 sm:py-3.5 rounded-full bg-gradient-to-r from-indigo-600 via-blue-600 to-indigo-700 text-white shadow-xl shadow-indigo-600/30 hover:shadow-indigo-600/50 hover:scale-105 active:scale-95 transition-all duration-200 touch-manipulation border border-white/20"
+            className="group relative flex items-center justify-center w-11 h-11 sm:w-auto sm:h-auto sm:px-4 sm:py-3 rounded-full bg-gradient-to-r from-indigo-600 via-blue-600 to-indigo-700 text-white shadow-lg shadow-indigo-600/30 hover:shadow-indigo-600/50 hover:scale-105 active:scale-95 transition-all duration-200 touch-manipulation border border-white/20"
             aria-label="Ouvrir l'assistant IA Gemini"
+            title="Assistant IA Gemini"
           >
-            <div className="relative">
-              <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-white animate-pulse" />
+            <div className="relative flex items-center justify-center">
+              <Sparkles className="w-5 h-5 text-white animate-pulse" />
               <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-emerald-400 border-2 border-slate-900 rounded-full" />
             </div>
-            <div className="flex flex-col text-left pr-1">
+            <div className="hidden sm:flex flex-col text-left pr-1 ml-2">
               <span className="text-xs sm:text-sm font-black tracking-tight leading-tight">Gemini IA</span>
-              <span className="text-[10px] text-indigo-200 font-medium leading-none hidden sm:inline">Assistant ERP</span>
+              <span className="text-[10px] text-indigo-200 font-medium leading-none">Assistant ERP</span>
             </div>
           </button>
         </div>

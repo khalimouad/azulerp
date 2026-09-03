@@ -21,6 +21,11 @@ import {
   FileText,
   RefreshCw,
   Loader2,
+  ChevronDown,
+  ChevronUp,
+  SlidersHorizontal,
+  Search,
+  X,
 } from 'lucide-react';
 
 interface FacturesViewProps {
@@ -59,6 +64,8 @@ export const FacturesView: React.FC<FacturesViewProps> = ({
   const [filterEtat, setFilterEtat] = useState<'ALL' | 'VALIDE' | 'BROUILLON' | 'ANNULE'>('ALL');
   const [filterStatutPaiement, setFilterStatutPaiement] = useState<'ALL' | 'SOLDE' | 'PARTIEL' | 'IMPAYE'>('ALL');
   const [selectedFactureId, setSelectedFactureId] = useState<number | null>(null);
+  const [showMobileKpiDetails, setShowMobileKpiDetails] = useState(false);
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -142,8 +149,52 @@ export const FacturesView: React.FC<FacturesViewProps> = ({
 
   return (
     <div className="space-y-4">
-      {/* Title & Top Action Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
+      {/* ========================================================================= */}
+      {/* 1. TOP HEADER (Compact on mobile, full on desktop) */}
+      {/* ========================================================================= */}
+      {/* Mobile Top Header (sm:hidden) */}
+      <div className="flex items-center justify-between gap-2 p-3 bg-white rounded-xl border border-slate-200 shadow-xs sm:hidden">
+        <div className="flex items-center gap-2 min-w-0">
+          <FileText className="w-5 h-5 text-blue-600 shrink-0" />
+          <div className="min-w-0">
+            <h2 className="font-bold text-slate-900 text-sm truncate flex items-center gap-1.5">
+              Factures
+              <span className="text-[11px] font-semibold px-1.5 py-0.2 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+                {filteredFactures.length}
+              </span>
+            </h2>
+          </div>
+        </div>
+        <div className="flex items-center gap-1.5 shrink-0">
+          {onRefresh && (
+            <button
+              onClick={onRefresh}
+              disabled={isLoading}
+              className="p-2 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-300 transition active:scale-95 disabled:opacity-50"
+              title="Actualiser"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin text-blue-600' : ''}`} />
+            </button>
+          )}
+          <button
+            onClick={onOpenBatchInvoicing}
+            className="px-2.5 py-1.5 text-xs font-medium rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100 transition active:scale-95"
+            title="Facturation en lot"
+          >
+            🔄 Lots
+          </button>
+          <button
+            onClick={onOpenNewFacture}
+            className="flex items-center gap-1 px-3 py-1.5 text-xs font-bold rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition shadow-xs active:scale-95"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>Facture</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Desktop Top Header (hidden sm:flex) */}
+      <div className="hidden sm:flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
         <div>
           <h2 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
             <FileText className="w-5 h-5 text-blue-600" />
@@ -185,38 +236,208 @@ export const FacturesView: React.FC<FacturesViewProps> = ({
         </div>
       </div>
 
-      {/* Mobile Financial Summary Strip */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 md:hidden">
-        <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-xs">
-          <span className="text-[10px] uppercase font-bold text-slate-400">Total Facturé</span>
-          <div className="text-sm font-mono font-black text-slate-900 mt-0.5">
-            {formatCurrency(totals.totalTtc)}
+      {/* ========================================================================= */}
+      {/* 2. FINANCIAL SUMMARY: REPLIABLE MINI-BAR ON MOBILE (md:hidden) */}
+      {/* ========================================================================= */}
+      <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden md:hidden">
+        {/* Compact summary bar */}
+        <button
+          type="button"
+          onClick={() => setShowMobileKpiDetails(!showMobileKpiDetails)}
+          className="w-full px-3 py-2.5 flex items-center justify-between text-xs bg-gradient-to-r from-slate-50 via-white to-slate-50 hover:bg-slate-100/70 transition"
+        >
+          <div className="flex items-center gap-2 font-mono flex-wrap">
+            <span className="text-slate-500 font-sans text-[11px]">Facturé:</span>
+            <span className="font-bold text-slate-900">{formatCurrency(totals.totalTtc)}</span>
+            <span className="text-slate-300">•</span>
+            <span className="text-rose-600 font-sans text-[11px]">Reste:</span>
+            <span className="font-bold text-rose-700">{formatCurrency(totals.restePayer)}</span>
           </div>
-          <span className="text-[10px] text-slate-400">{filteredFactures.length} factures</span>
-        </div>
-        <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-xs">
-          <span className="text-[10px] uppercase font-bold text-emerald-600">Total Encaissé</span>
-          <div className="text-sm font-mono font-black text-emerald-700 mt-0.5">
-            {formatCurrency(totals.montantRegle)}
+          <div className="flex items-center gap-1 text-[11px] text-blue-600 font-semibold shrink-0">
+            <span>{showMobileKpiDetails ? 'Moins' : 'Détails'}</span>
+            {showMobileKpiDetails ? (
+              <ChevronUp className="w-3.5 h-3.5" />
+            ) : (
+              <ChevronDown className="w-3.5 h-3.5" />
+            )}
           </div>
-          <span className="text-[10px] text-emerald-600 font-medium">
-            {totals.totalTtc > 0 ? ((totals.montantRegle / totals.totalTtc) * 100).toFixed(0) : '0'}% recouvré
-          </span>
-        </div>
-        <div className="bg-white p-3 rounded-xl border border-rose-100 bg-rose-50/20 shadow-xs col-span-2 sm:col-span-1">
-          <span className="text-[10px] uppercase font-bold text-rose-700">Reste à Recouvrer</span>
-          <div className="text-sm font-mono font-black text-rose-700 mt-0.5">
-            {formatCurrency(totals.restePayer)}
+        </button>
+
+        {/* Expanded detail cards */}
+        {showMobileKpiDetails && (
+          <div className="p-2.5 border-t border-slate-100 grid grid-cols-2 gap-2 bg-slate-50/70 animate-in fade-in duration-150">
+            <div className="bg-white p-2.5 rounded-lg border border-slate-200 shadow-2xs">
+              <span className="text-[10px] uppercase font-bold text-emerald-600">Total Encaissé</span>
+              <div className="text-xs font-mono font-black text-emerald-700 mt-0.5">
+                {formatCurrency(totals.montantRegle)}
+              </div>
+              <span className="text-[10px] text-emerald-600 font-medium">
+                {totals.totalTtc > 0 ? ((totals.montantRegle / totals.totalTtc) * 100).toFixed(0) : '0'}% recouvré
+              </span>
+            </div>
+            <div className="bg-white p-2.5 rounded-lg border border-slate-200 shadow-2xs">
+              <span className="text-[10px] uppercase font-bold text-slate-400">Total HT & TVA</span>
+              <div className="text-xs font-mono font-bold text-slate-700 mt-0.5">
+                HT: {formatCurrency(totals.totalHt, false)}
+              </div>
+              <div className="text-[10px] font-mono text-slate-500">
+                TVA: {formatCurrency(totals.totalTva, false)}
+              </div>
+            </div>
           </div>
-          <span className="text-[10px] text-rose-600 font-medium">Créances clients</span>
-        </div>
+        )}
       </div>
 
-      {/* Filter Tabs: Document State & Payment Status & Date Range */}
-      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-3 bg-white p-3 rounded-xl border border-slate-200 shadow-xs">
+      {/* ========================================================================= */}
+      {/* 3. MOBILE SEARCH & QUICK FILTER CHIPS (md:hidden) */}
+      {/* ========================================================================= */}
+      <div className="space-y-2 md:hidden">
+        {/* Search input + Filter toggle button */}
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1">
+            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <input
+              type="text"
+              placeholder="Rechercher N°, Client..."
+              value={filterNum || filterSociete}
+              onChange={(e) => {
+                setFilterNum(e.target.value);
+                setFilterSociete(e.target.value);
+              }}
+              className="w-full pl-8 pr-7 py-2 text-xs bg-white text-slate-800 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-xs"
+            />
+            {(filterNum || filterSociete) && (
+              <button
+                type="button"
+                onClick={() => {
+                  setFilterNum('');
+                  setFilterSociete('');
+                }}
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setShowMobileFilters(!showMobileFilters)}
+            className={`flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-xl border transition shadow-xs shrink-0 ${
+              showMobileFilters || filterStartDate || filterEndDate
+                ? 'bg-blue-50 border-blue-300 text-blue-700'
+                : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+            }`}
+          >
+            <SlidersHorizontal className="w-3.5 h-3.5" />
+            <span>Filtres</span>
+            {(filterStartDate || filterEndDate) && (
+              <span className="w-2 h-2 rounded-full bg-blue-600" />
+            )}
+          </button>
+        </div>
+
+        {/* 1-Tap horizontal filter pills */}
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5 text-xs whitespace-nowrap">
+          <button
+            onClick={() => {
+              setFilterEtat('ALL');
+              setFilterStatutPaiement('ALL');
+            }}
+            className={`px-3 py-1 rounded-full text-xs font-medium transition shrink-0 ${
+              filterEtat === 'ALL' && filterStatutPaiement === 'ALL'
+                ? 'bg-slate-900 text-white shadow-xs'
+                : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+            }`}
+          >
+            Toutes ({counts.all})
+          </button>
+          <button
+            onClick={() => {
+              setFilterEtat('VALIDE');
+              setFilterStatutPaiement('IMPAYE');
+            }}
+            className={`px-3 py-1 rounded-full text-xs font-medium transition shrink-0 flex items-center gap-1 ${
+              filterStatutPaiement === 'IMPAYE'
+                ? 'bg-rose-600 text-white shadow-xs font-bold'
+                : 'bg-white text-rose-700 border border-rose-200 hover:bg-rose-50'
+            }`}
+          >
+            🔴 Impayées ({counts.impaye})
+          </button>
+          <button
+            onClick={() => {
+              setFilterEtat('VALIDE');
+              setFilterStatutPaiement('PARTIEL');
+            }}
+            className={`px-3 py-1 rounded-full text-xs font-medium transition shrink-0 flex items-center gap-1 ${
+              filterStatutPaiement === 'PARTIEL'
+                ? 'bg-purple-600 text-white shadow-xs font-bold'
+                : 'bg-white text-purple-700 border border-purple-200 hover:bg-purple-50'
+            }`}
+          >
+            Partielles ({counts.partiel})
+          </button>
+          <button
+            onClick={() => {
+              setFilterEtat('VALIDE');
+              setFilterStatutPaiement('SOLDE');
+            }}
+            className={`px-3 py-1 rounded-full text-xs font-medium transition shrink-0 flex items-center gap-1 ${
+              filterStatutPaiement === 'SOLDE'
+                ? 'bg-emerald-600 text-white shadow-xs font-bold'
+                : 'bg-white text-emerald-700 border border-emerald-200 hover:bg-emerald-50'
+            }`}
+          >
+            Soldées ({counts.solde})
+          </button>
+          <button
+            onClick={() => {
+              setFilterEtat('BROUILLON');
+              setFilterStatutPaiement('ALL');
+            }}
+            className={`px-3 py-1 rounded-full text-xs font-medium transition shrink-0 flex items-center gap-1 ${
+              filterEtat === 'BROUILLON'
+                ? 'bg-slate-700 text-white shadow-xs font-bold'
+                : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50'
+            }`}
+          >
+            Brouillons ({counts.brouillon})
+          </button>
+        </div>
+
+        {/* Expandable Mobile Date Filter Sheet */}
+        {showMobileFilters && (
+          <div className="p-3 bg-white rounded-xl border border-slate-200 shadow-xs space-y-2.5 animate-in fade-in duration-150">
+            <div className="flex items-center justify-between text-xs font-bold text-slate-700 border-b border-slate-100 pb-1.5">
+              <span>Filtrer par date</span>
+              <button
+                onClick={() => setShowMobileFilters(false)}
+                className="text-slate-400 hover:text-slate-600 p-0.5"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <DateRangeFilter
+              startDate={filterStartDate}
+              endDate={filterEndDate}
+              onDateChange={(start, end) => {
+                setFilterStartDate(start);
+                setFilterEndDate(end);
+              }}
+              variant="blue"
+            />
+          </div>
+        )}
+      </div>
+
+      {/* ========================================================================= */}
+      {/* 4. DESKTOP FILTER BAR (Full WinDev layout - hidden md:flex) */}
+      {/* ========================================================================= */}
+      <div className="hidden md:flex flex-col xl:flex-row xl:items-center justify-between gap-3 bg-white p-3 rounded-xl border border-slate-200 shadow-xs">
         <div className="flex flex-col md:flex-row md:items-center gap-2.5">
           {/* State tabs */}
-          <div className="flex items-center gap-1.5 text-xs overflow-x-auto pb-1 md:pb-0 scrollbar-none whitespace-nowrap">
+          <div className="flex items-center gap-1.5 text-xs overflow-x-auto pb-1 md:pb-0 no-scrollbar whitespace-nowrap">
             <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mr-1 shrink-0">État :</span>
             <button
               onClick={() => setFilterEtat('ALL')}
@@ -264,7 +485,7 @@ export const FacturesView: React.FC<FacturesViewProps> = ({
           </div>
 
           {/* Payment tabs */}
-          <div className="flex items-center gap-1 text-xs border-t md:border-t-0 md:border-l border-slate-200 pt-2 md:pt-0 md:pl-3 overflow-x-auto pb-1 md:pb-0 scrollbar-none whitespace-nowrap">
+          <div className="flex items-center gap-1 text-xs border-t md:border-t-0 md:border-l border-slate-200 pt-2 md:pt-0 md:pl-3 overflow-x-auto pb-1 md:pb-0 no-scrollbar whitespace-nowrap">
             <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mr-1 shrink-0">Règlement :</span>
             <button
               onClick={() => setFilterStatutPaiement('ALL')}
@@ -309,8 +530,8 @@ export const FacturesView: React.FC<FacturesViewProps> = ({
           </div>
         </div>
 
-        {/* Date Range Filter & Mobile Search Bar */}
-        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+        {/* Date Range Filter */}
+        <div className="flex items-center">
           <DateRangeFilter
             startDate={filterStartDate}
             endDate={filterEndDate}
@@ -320,20 +541,6 @@ export const FacturesView: React.FC<FacturesViewProps> = ({
             }}
             variant="blue"
           />
-
-          {/* Quick search input on mobile */}
-          <div className="w-full sm:w-52 md:hidden">
-            <input
-              type="text"
-              placeholder="Filtrer N°, Société..."
-              value={filterNum || filterSociete}
-              onChange={(e) => {
-                setFilterNum(e.target.value);
-                setFilterSociete(e.target.value);
-              }}
-              className="w-full px-3 py-1.5 text-xs bg-slate-50 text-slate-800 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
         </div>
       </div>
 

@@ -23,6 +23,9 @@ import {
   RotateCcw,
   RefreshCw,
   Loader2,
+  Search,
+  SlidersHorizontal,
+  X,
 } from 'lucide-react';
 
 interface BonsLivraisonViewProps {
@@ -55,6 +58,7 @@ export const BonsLivraisonView: React.FC<BonsLivraisonViewProps> = ({
   const [filterStartDate, setFilterStartDate] = useState(() => getCurrentYearDateRange().start);
   const [filterEndDate, setFilterEndDate] = useState(() => getCurrentYearDateRange().end);
   const [selectedBlIds, setSelectedBlIds] = useState<number[]>([]);
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -168,8 +172,60 @@ export const BonsLivraisonView: React.FC<BonsLivraisonViewProps> = ({
 
   return (
     <div className="space-y-4">
-      {/* Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
+      {/* ========================================================================= */}
+      {/* 1. TOP HEADER (Compact on mobile, full on desktop) */}
+      {/* ========================================================================= */}
+      {/* Mobile Top Header (sm:hidden) */}
+      <div className="flex items-center justify-between gap-2 p-3 bg-white rounded-xl border border-slate-200 shadow-xs sm:hidden">
+        <div className="flex items-center gap-2 min-w-0">
+          <Truck className="w-5 h-5 text-emerald-600 shrink-0" />
+          <div className="min-w-0">
+            <h2 className="font-bold text-slate-900 text-sm truncate flex items-center gap-1.5">
+              Bons de Livraison
+              <span className="text-[11px] font-semibold px-1.5 py-0.2 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                {filteredBls.length}
+              </span>
+            </h2>
+          </div>
+        </div>
+        <div className="flex items-center gap-1.5 shrink-0">
+          {onRefresh && (
+            <button
+              onClick={onRefresh}
+              disabled={isLoading}
+              className="p-2 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-300 transition active:scale-95 disabled:opacity-50"
+              title="Actualiser"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin text-emerald-600' : ''}`} />
+            </button>
+          )}
+          {selectedBlIds.length > 0 && (
+            <button
+              onClick={() => {
+                if (!isSingleClientSelected) {
+                  alert('Veuillez sélectionner des BLs appartenant au même client.');
+                  return;
+                }
+                onBatchInvoiceSelected(selectedBlIds);
+              }}
+              className="px-2.5 py-1.5 text-xs font-bold rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition active:scale-95 shadow-xs"
+              title="Facturer"
+            >
+              Facturer ({selectedBlIds.length})
+            </button>
+          )}
+          <button
+            onClick={onOpenNewBl}
+            className="flex items-center gap-1 px-3 py-1.5 text-xs font-bold rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 transition shadow-xs active:scale-95"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>+ BL</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Desktop Top Header (hidden sm:flex) */}
+      <div className="hidden sm:flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
         <div>
           <h2 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
             <Truck className="w-5 h-5 text-emerald-600" />
@@ -272,9 +328,133 @@ export const BonsLivraisonView: React.FC<BonsLivraisonViewProps> = ({
         </div>
       )}
 
-      {/* Filter Tabs, Date Range & Search Bar */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 bg-white p-3 rounded-xl border border-slate-200 shadow-xs">
-        <div className="flex items-center gap-1.5 text-xs overflow-x-auto pb-1 lg:pb-0 scrollbar-none whitespace-nowrap">
+      {/* ========================================================================= */}
+      {/* 2. MOBILE SEARCH & QUICK FILTER CHIPS (md:hidden) */}
+      {/* ========================================================================= */}
+      <div className="space-y-2 md:hidden">
+        {/* Search input + Filter toggle button */}
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1">
+            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <input
+              type="text"
+              placeholder="Rechercher BL, Client, Facture..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-8 pr-7 py-2 text-xs bg-white text-slate-800 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-xs"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setShowMobileFilters(!showMobileFilters)}
+            className={`flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-xl border transition shadow-xs shrink-0 ${
+              showMobileFilters || filterStartDate || filterEndDate
+                ? 'bg-emerald-50 border-emerald-300 text-emerald-700'
+                : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+            }`}
+          >
+            <SlidersHorizontal className="w-3.5 h-3.5" />
+            <span>Filtres</span>
+            {(filterStartDate || filterEndDate) && (
+              <span className="w-2 h-2 rounded-full bg-emerald-600" />
+            )}
+          </button>
+        </div>
+
+        {/* 1-Tap horizontal filter pills */}
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5 text-xs whitespace-nowrap">
+          <button
+            onClick={() => setFilterStatut('ALL')}
+            className={`px-3 py-1 rounded-full text-xs font-medium transition shrink-0 ${
+              filterStatut === 'ALL'
+                ? 'bg-slate-900 text-white shadow-xs'
+                : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+            }`}
+          >
+            Tous ({counts.all})
+          </button>
+          <button
+            onClick={() => setFilterStatut('VALIDE')}
+            className={`px-3 py-1 rounded-full text-xs font-medium transition shrink-0 flex items-center gap-1 ${
+              filterStatut === 'VALIDE'
+                ? 'bg-emerald-600 text-white shadow-xs font-bold'
+                : 'bg-white text-emerald-700 border border-emerald-200 hover:bg-emerald-50'
+            }`}
+          >
+            Validés ({counts.valide})
+          </button>
+          <button
+            onClick={() => setFilterStatut('ATTENTE')}
+            className={`px-3 py-1 rounded-full text-xs font-medium transition shrink-0 flex items-center gap-1 ${
+              filterStatut === 'ATTENTE'
+                ? 'bg-amber-500 text-white shadow-xs font-bold'
+                : 'bg-white text-amber-800 border border-amber-200 hover:bg-amber-50'
+            }`}
+          >
+            ⏳ À facturer ({counts.attente})
+          </button>
+          <button
+            onClick={() => setFilterStatut('BROUILLON')}
+            className={`px-3 py-1 rounded-full text-xs font-medium transition shrink-0 flex items-center gap-1 ${
+              filterStatut === 'BROUILLON'
+                ? 'bg-slate-700 text-white shadow-xs font-bold'
+                : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50'
+            }`}
+          >
+            Brouillons ({counts.brouillon})
+          </button>
+          <button
+            onClick={() => setFilterStatut('ANNULE')}
+            className={`px-3 py-1 rounded-full text-xs font-medium transition shrink-0 flex items-center gap-1 ${
+              filterStatut === 'ANNULE'
+                ? 'bg-rose-600 text-white shadow-xs font-bold'
+                : 'bg-white text-rose-700 border border-rose-200 hover:bg-rose-50'
+            }`}
+          >
+            Annulés ({counts.annule})
+          </button>
+        </div>
+
+        {/* Expandable Mobile Date Filter Sheet */}
+        {showMobileFilters && (
+          <div className="p-3 bg-white rounded-xl border border-slate-200 shadow-xs space-y-2.5 animate-in fade-in duration-150">
+            <div className="flex items-center justify-between text-xs font-bold text-slate-700 border-b border-slate-100 pb-1.5">
+              <span>Filtrer par date</span>
+              <button
+                onClick={() => setShowMobileFilters(false)}
+                className="text-slate-400 hover:text-slate-600 p-0.5"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <DateRangeFilter
+              startDate={filterStartDate}
+              endDate={filterEndDate}
+              onDateChange={(start, end) => {
+                setFilterStartDate(start);
+                setFilterEndDate(end);
+              }}
+              variant="emerald"
+            />
+          </div>
+        )}
+      </div>
+
+      {/* ========================================================================= */}
+      {/* 3. DESKTOP FILTER BAR (hidden md:flex) */}
+      {/* ========================================================================= */}
+      <div className="hidden md:flex flex-col lg:flex-row lg:items-center justify-between gap-3 bg-white p-3 rounded-xl border border-slate-200 shadow-xs">
+        <div className="flex items-center gap-1.5 text-xs overflow-x-auto pb-1 lg:pb-0 no-scrollbar whitespace-nowrap">
           <button
             onClick={() => setFilterStatut('ALL')}
             className={`px-3 py-1.5 rounded-lg font-medium transition shrink-0 ${
