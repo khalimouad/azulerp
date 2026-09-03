@@ -1077,7 +1077,7 @@ export function AccountingView({
                   <label className="text-xs font-semibold text-slate-600 dark:text-slate-400 block mb-1">Journal</label>
                   <select
                     value={newEntry.journal_code}
-                    onChange={(e) => setNewEntry({ ...newEntry, journal_code: e.target.value })}
+                    onChange={(e) => setNewEntry({ ...newEntry, journal_code: e.target.value as any })}
                     className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm"
                   >
                     {journals.map(j => (
