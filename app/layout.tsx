@@ -3,13 +3,13 @@ import Script from 'next/script';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Verde Orto - ERP Gestion Commerciale & POS Restaurant',
-  description: 'Système moderne de gestion commerciale, factures, bons de livraison (BL), devis, catalogue produits, clients, stock et caisse POS restaurant.',
+  title: 'AZULERP - ERP Maroc & Gestion Commerciale Casablanca 2026',
+  description: 'Système moderne de gestion commerciale, factures, bons de livraison (BL), devis, achats, comptabilité marocaine PCGM, fabrication et paie.',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
-    title: 'Verde Orto POS',
+    title: 'AZULERP',
   },
   icons: {
     icon: '/icon.svg',

@@ -177,7 +177,7 @@ export const SqliteConsoleView: React.FC<SqliteConsoleViewProps> = ({ onDatabase
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `verdeorto_neon_postgres_backup_${new Date().toISOString().slice(0, 10)}.json`;
+      a.download = `azulerp_neon_postgres_backup_${new Date().toISOString().slice(0, 10)}.json`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);

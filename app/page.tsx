@@ -52,6 +52,7 @@ import {
   logoutAuthenticatedSession,
 } from '@/lib/sqlite-service';
 import { testNeonConnection } from '@/lib/neon-sync-service';
+import { CASA_COMPANY_2026 } from '@/lib/sample-casa-seed';
 import {
   Facture,
   BonLivraison,
@@ -107,6 +108,23 @@ import { CreateFournisseurView } from '@/components/CreateFournisseurView';
 import { PaymentView } from '@/components/PaymentView';
 import { AdjustStockView } from '@/components/AdjustStockView';
 import { DocumentPreviewView } from '@/components/DocumentPreviewView';
+import { AccountingView } from '@/components/AccountingView';
+import { HumanResourcesView } from '@/components/HumanResourcesView';
+import { ManufacturingView } from '@/components/ManufacturingView';
+import {
+  JournalEntry,
+  PlanAccount,
+  AccountingJournal,
+  FixedAsset,
+  Employee,
+  PayrollSlip,
+  LeaveRequest,
+  BOM,
+  ProductionOrder
+} from '@/lib/types';
+import { OFFICIAL_PCGM_ACCOUNTS, MOROCCAN_JOURNALS } from '@/lib/moroccan-accounting';
+import { getSampleMoroccanEmployees } from '@/lib/moroccan-payroll';
+import { SAMPLE_BOMS } from '@/lib/manufacturing-service';
 
 export default function Home() {
   const [sqliteReady, setSqliteReady] = useState(false);
@@ -155,22 +173,19 @@ export default function Home() {
   const [devisList, setDevisList] = useState<Devis[]>([]);
   const [reglements, setReglements] = useState<Reglement[]>([]);
   const [stockMouvements, setStockMouvements] = useState<StockMouvement[]>([]);
-  const [company, setCompany] = useState<CompanyInfo>({
-    nom: 'VERDEORTO SARL AU',
-    ice: '000194441000024',
-    if_fiscal: '3381764',
-    rc: '35265',
-    cnss: '7788302',
-    patente: '46201837',
-    capital: '100 000,00',
-    rib: '145 450 21211 2604506 000 4 11',
-    adresse: 'Avenue Al Mouqaouama, Quartier Ain Merroudi, Résidence DaVinci, Bloc F, Magasin N°20',
-    code_postal: '40000',
-    ville: 'Marrakech',
-    pays: 'Maroc',
-    telephone: '0808551156 / 0678301643',
-    email: 'verdeorto@gmail.com',
-  });
+
+  // Comptabilité, RH & Fabrication
+  const [journalEntries, setJournalEntries] = useState<JournalEntry[]>([]);
+  const [chartOfAccounts, setChartOfAccounts] = useState<PlanAccount[]>(OFFICIAL_PCGM_ACCOUNTS);
+  const [accountingJournals, setAccountingJournals] = useState<AccountingJournal[]>(MOROCCAN_JOURNALS);
+
+  const [fixedAssets, setFixedAssets] = useState<FixedAsset[]>([]);
+  const [employees, setEmployees] = useState<Employee[]>(getSampleMoroccanEmployees());
+  const [payrolls, setPayrolls] = useState<PayrollSlip[]>([]);
+  const [leaves, setLeaves] = useState<LeaveRequest[]>([]);
+  const [boms, setBoms] = useState<BOM[]>(SAMPLE_BOMS);
+  const [productionOrders, setProductionOrders] = useState<ProductionOrder[]>([]);
+  const [company, setCompany] = useState<CompanyInfo>(CASA_COMPANY_2026);
   const [stats, setStats] = useState<DashboardStats>({
     total_facture_ht: 0,
     total_facture_ttc: 0,
@@ -299,6 +314,15 @@ export default function Home() {
         setDevisList(data.devis || []);
         setReglements(data.reglements || []);
         setStockMouvements(data.stock_mouvements || []);
+        if (data.journal_entries) setJournalEntries(data.journal_entries);
+        if (data.chart_of_accounts) setChartOfAccounts(data.chart_of_accounts);
+        if (data.accounting_journals) setAccountingJournals(data.accounting_journals);
+        if (data.fixed_assets) setFixedAssets(data.fixed_assets);
+        if (data.employees) setEmployees(data.employees);
+        if (data.payrolls) setPayrolls(data.payrolls);
+        if (data.leaves) setLeaves(data.leaves);
+        if (data.boms) setBoms(data.boms);
+        if (data.production_orders) setProductionOrders(data.production_orders);
         if (data.company) setCompany(data.company);
 
         // Compute dashboard stats synchronously from snapshot
@@ -449,7 +473,8 @@ export default function Home() {
     setCurrentUser(user);
     setIsScreenLocked(false);
     try {
-      localStorage.setItem('verdeorto_auth_user', JSON.stringify(user));
+      localStorage.setItem('azulerp_auth_user', JSON.stringify(user));
+      localStorage.removeItem('verdeorto_auth_user');
     } catch (e) {
       console.warn('Could not persist auth in localStorage', e);
     }
@@ -464,6 +489,7 @@ export default function Home() {
   const handleLogout = async () => {
     await logoutAuthenticatedSession();
     try {
+      localStorage.removeItem('azulerp_auth_user');
       localStorage.removeItem('verdeorto_auth_user');
     } catch (e) {
       console.warn(e);
@@ -734,7 +760,7 @@ export default function Home() {
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = `verdeorto_pos_backup_${new Date().toISOString().split('T')[0]}.sqlite`;
+                a.download = `azulerp_pos_backup_${new Date().toISOString().split('T')[0]}.sqlite`;
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
@@ -755,7 +781,7 @@ export default function Home() {
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = `verdeorto_pos_backup_${new Date().toISOString().split('T')[0]}.sqlite`;
+                a.download = `azulerp_pos_backup_${new Date().toISOString().split('T')[0]}.sqlite`;
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
@@ -776,7 +802,7 @@ export default function Home() {
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = `verdeorto_pos_backup_${new Date().toISOString().split('T')[0]}.sqlite`;
+                a.download = `azulerp_pos_backup_${new Date().toISOString().split('T')[0]}.sqlite`;
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
@@ -797,7 +823,7 @@ export default function Home() {
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = `verdeorto_pos_backup_${new Date().toISOString().split('T')[0]}.sqlite`;
+                a.download = `azulerp_pos_backup_${new Date().toISOString().split('T')[0]}.sqlite`;
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
@@ -1196,6 +1222,39 @@ export default function Home() {
                 await updateCompanyInfo(newInfo);
                 await reloadData();
               }}
+            />
+          )}
+
+          {/* COMPTABILITÉ GÉNÉRALE & FISCALITÉ MAROCAINE (PCGM) */}
+          {currentTab === 'accounting' && (
+            <AccountingView
+              entries={journalEntries}
+              accounts={chartOfAccounts}
+              journals={accountingJournals}
+              assets={fixedAssets}
+              factures={factures}
+              reglements={reglements}
+              onRefresh={reloadCoreData}
+            />
+          )}
+
+          {/* RESSOURCES HUMAINES & PAIE (LOI DE FINANCES 2026) */}
+          {currentTab === 'hr' && (
+            <HumanResourcesView
+              employees={employees}
+              payrolls={payrolls}
+              leaves={leaves}
+              onRefresh={reloadCoreData}
+            />
+          )}
+
+          {/* FABRICATION & PRODUCTION (MANUFACTURING) */}
+          {currentTab === 'manufacturing' && (
+            <ManufacturingView
+              boms={boms}
+              productionOrders={productionOrders}
+              produits={produits}
+              onRefresh={reloadCoreData}
             />
           )}
 

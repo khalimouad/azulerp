@@ -1,6 +1,6 @@
 {
-  "name": "Verdeorto Golive3",
-  "description": "Système moderne de gestion commerciale ERP et POS Restaurant connecté à PostgreSQL Neon (Vercel).",
+  "name": "AZULERP",
+  "description": "Système moderne de gestion commerciale ERP et Production Industrielle Maroc connectée à PostgreSQL Neon.",
   "requestFramePermissions": [],
   "majorCapabilities": [
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"

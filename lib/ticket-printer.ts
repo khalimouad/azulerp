@@ -30,8 +30,8 @@ export const DEFAULT_TICKET_PRINTER_SETTINGS: TicketPrinterSettings = {
   documentPaperSize: 'A4',
 };
 
-const STORAGE_KEY = 'verdeorto.ticket-printer.v2';
-const LEGACY_STORAGE_KEY = 'verdeorto.ticket-printer.v1';
+const STORAGE_KEY = 'azulerp.ticket-printer.v2';
+const LEGACY_STORAGE_KEY = 'verdeorto.ticket-printer.v2';
 
 export function getTicketPrinterSettings(): TicketPrinterSettings {
   if (typeof window === 'undefined') return DEFAULT_TICKET_PRINTER_SETTINGS;
@@ -141,14 +141,14 @@ export function buildEposXml(
     return `${t1.padEnd(10, ' ')}${t2.padStart(18, ' ')}${t3.padStart(14, ' ')}`;
   };
 
-  const boutiqueLine = format2Col('Boutique : VerdeOrto 1', `Ticket: ${sale.numero_ticket || '1'}`);
+  const boutiqueLine = format2Col('Boutique : AZULERP Casablanca', `Ticket: ${sale.numero_ticket || '1'}`);
 
   return `<epos-print xmlns="http://www.epson-pos.com/schemas/2011/03/epos-print">
-  <text align="center" width="2" height="2">VERDEORTO Snack Italy&#10;</text>
-  <text align="center">Av al moukawama Quartier Merrodi Residence Davin&#10;</text>
-  <text align="center">c1 Bloc F Mag N 20 Marrakech&#10;</text>
-  <text align="center">08 08 55 11 56 / 06 62 12 34 49&#10;</text>
-  <text align="center">www.verdeorto.weebly.com&#10;</text>
+  <text align="center" width="2" height="2">AZULERP MAROC&#10;</text>
+  <text align="center">148 Bd Sidi Mohamed Ben Abdellah Ain Sebaa&#10;</text>
+  <text align="center">Casablanca - Maroc&#10;</text>
+  <text align="center">05 22 35 40 80 / 05 22 35 40 81&#10;</text>
+  <text align="center">www.azulerp.ma&#10;</text>
   <text align="center" font="font_b">${escapeHtml(docTitle)}&#10;</text>
   <text align="center">${divider}&#10;</text>
   <text align="left">Date creation : ${escapeHtml(createdDate)}&#10;</text>
@@ -210,13 +210,13 @@ export function buildEscPosBytes(
   // 2. HEADER - Center Aligned
   addBytes(0x1b, 0x61, 0x01); // Center
   addBytes(0x1d, 0x21, 0x11); // GS ! 0x11 (Double Width & Height Bold)
-  addLine('VERDEORTO Snack Italy');
+  addLine('AZULERP MAROC');
   addBytes(0x1d, 0x21, 0x00); // Normal font
 
-  addLine('Av al moukawama Quartier Merrodi Residence Davin');
-  addLine('c1 Bloc F Mag N 20 Marrakech');
-  addLine('08 08 55 11 56 / 06 62 12 34 49');
-  addLine('www.verdeorto.weebly.com');
+  addLine('148 Bd Sidi Mohamed Ben Abdellah Ain Sebaa');
+  addLine('Casablanca - Maroc');
+  addLine('05 22 35 40 80 / 05 22 35 40 81');
+  addLine('www.azulerp.ma');
   
   const docTitle = receiptType === 'ADDITION' ? "NOTE D'ADDITION" : (receiptType === 'DUPLICATA' ? 'DUPLICATA' : 'TICKET DE CAISSE');
   addBytes(0x1b, 0x45, 0x01); // Bold
@@ -229,7 +229,7 @@ export function buildEscPosBytes(
   addBytes(0x1b, 0x61, 0x00); // Left
   const createdDate = formatTicketDateTime(sale.date_vente);
   addLine(`Date creation : ${createdDate}`);
-  const boutiqueInfo = `Boutique : VerdeOrto 1`;
+  const boutiqueInfo = `Boutique : AZULERP Casablanca`;
   const ticketInfo = `Ticket: ${sale.numero_ticket || '1'}`;
   const metaSpaces = Math.max(1, colWidth - boutiqueInfo.length - ticketInfo.length);
   addLine(`${boutiqueInfo}${' '.repeat(metaSpaces)}${ticketInfo}`);

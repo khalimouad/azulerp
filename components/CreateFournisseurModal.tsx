@@ -117,7 +117,7 @@ export const CreateFournisseurModal: React.FC<CreateFournisseurModalProps> = ({
               <label className="block font-semibold text-slate-700 mb-1">Ville</label>
               <input
                 type="text"
-                list="verdeorto-cities"
+                list="azulerp-cities"
                 value={form.ville}
                 onChange={(e) => setForm({ ...form, ville: e.target.value })}
                 className="w-full px-3 py-1.5 bg-slate-50 rounded-lg border border-slate-300"

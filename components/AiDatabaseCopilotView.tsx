@@ -108,7 +108,7 @@ export const AiDatabaseCopilotView: React.FC<AiDatabaseCopilotViewProps> = ({ on
   const [messages, setMessages] = useState<ChatMessage[]>(() => {
     if (typeof window !== 'undefined') {
       try {
-        const saved = localStorage.getItem('verdeorto_ai_copilot_messages_v2');
+        const saved = localStorage.getItem('azulerp_ai_copilot_messages_v2') || localStorage.getItem('verdeorto_ai_copilot_messages_v2');
         if (saved) return JSON.parse(saved);
       } catch (_) {}
     }
@@ -137,8 +137,8 @@ Je peux répondre à vos questions, analyser vos documents et mettre à jour vos
   // Load settings on mount
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const storedKey = localStorage.getItem('verdeorto_gemini_api_key') || '';
-      const storedModel = localStorage.getItem('verdeorto_gemini_model') || 'gemini-3.6-flash';
+      const storedKey = localStorage.getItem('azulerp_gemini_api_key') || localStorage.getItem('verdeorto_gemini_api_key') || '';
+      const storedModel = localStorage.getItem('azulerp_gemini_model') || localStorage.getItem('verdeorto_gemini_model') || 'gemini-3.6-flash';
       setApiKey(storedKey);
       setModel(storedModel);
       if (!storedKey) {
@@ -151,7 +151,7 @@ Je peux répondre à vos questions, analyser vos documents et mettre à jour vos
   useEffect(() => {
     if (typeof window !== 'undefined') {
       try {
-        localStorage.setItem('verdeorto_ai_copilot_messages_v2', JSON.stringify(messages));
+        localStorage.setItem('azulerp_ai_copilot_messages_v2', JSON.stringify(messages));
       } catch (_) {}
     }
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -159,8 +159,10 @@ Je peux répondre à vos questions, analyser vos documents et mettre à jour vos
 
   const handleSaveKey = () => {
     if (typeof window !== 'undefined') {
-      localStorage.setItem('verdeorto_gemini_api_key', apiKey.trim());
-      localStorage.setItem('verdeorto_gemini_model', model);
+      localStorage.setItem('azulerp_gemini_api_key', apiKey.trim());
+      localStorage.setItem('azulerp_gemini_model', model);
+      localStorage.removeItem('verdeorto_gemini_api_key');
+      localStorage.removeItem('verdeorto_gemini_model');
       setKeySaved(true);
       setTimeout(() => setKeySaved(false), 2500);
       if (apiKey.trim()) {
@@ -181,7 +183,7 @@ Je peux répondre à vos questions, analyser vos documents et mettre à jour vos
       ];
       setMessages(initial);
       if (typeof window !== 'undefined') {
-        localStorage.setItem('verdeorto_ai_copilot_messages_v2', JSON.stringify(initial));
+        localStorage.setItem('azulerp_ai_copilot_messages_v2', JSON.stringify(initial));
       }
     }
   };

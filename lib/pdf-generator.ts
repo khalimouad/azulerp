@@ -724,7 +724,7 @@ function drawA4Identity(doc: jsPDF, company: CompanyInfo) {
   doc.setTextColor(...dark);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(10.5);
-  doc.text((company.nom || 'VERDEORTO SARL AU').toUpperCase(), 14, 15);
+  doc.text((company.nom || 'AGRO-ATLAS CASABLANCA SARL').toUpperCase(), 14, 15);
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8.2);
@@ -747,14 +747,14 @@ function drawA4Identity(doc: jsPDF, company: CompanyInfo) {
       doc.addImage(company.logo_image, format, 65, 7, 80, 34);
     } catch { /* Text fallback below remains visible. */ }
   } else {
-    doc.setDrawColor(81, 112, 53);
-    doc.setFillColor(231, 238, 210);
+    doc.setDrawColor(37, 99, 235);
+    doc.setFillColor(239, 246, 255);
     doc.setLineWidth(0.8);
     doc.ellipse(centerX, 23, 32, 13, 'FD');
-    doc.setFont('times', 'bolditalic');
-    doc.setFontSize(22);
-    doc.setTextColor(44, 65, 35);
-    doc.text(company.logo_titre || 'VerdeOrto', centerX, 25, { align: 'center' });
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(18);
+    doc.setTextColor(30, 64, 175);
+    doc.text(company.logo_titre || 'AZULERP', centerX, 25, { align: 'center' });
     if (company.logo_sous_titre) {
       doc.setFontSize(6.5);
       doc.text(company.logo_sous_titre, centerX, 31, { align: 'center' });

@@ -1,7 +1,7 @@
 {
-  "name": "Verde Orto - POS Restaurant & Caisse iPad",
-  "short_name": "Verde Orto POS",
-  "description": "Système de Caisse Enregistreuse POS et Gestion Commerciale 100% Hors-Ligne pour iPad et Tablettes",
+  "name": "AZULERP - ERP Maroc & Casablanca 2026",
+  "short_name": "AZULERP",
+  "description": "Système de Gestion Commerciale ERP Maroc, Comptabilité PCGM, Achats et Ventes",
   "start_url": "/",
   "display": "standalone",
   "orientation": "any",

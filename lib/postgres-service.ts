@@ -26,7 +26,18 @@ import {
   DbImportProgress,
   DbImportSummary,
   DatabaseHealthInfo,
+  PlanAccount,
+  AccountingJournal,
+  JournalEntry,
+  FixedAsset,
+  Employee,
+  PayrollSlip,
+  LeaveRequest,
+  BOM,
+  ProductionOrder,
 } from './types';
+
+import { CASA_COMPANY_2026 } from './sample-casa-seed';
 
 // In-memory runtime cache for snappy UI responsiveness
 let cachedData: any = null;
@@ -37,22 +48,7 @@ let inFlightFetchAllPromise: Promise<any> | null = null;
 function getFallbackData() {
   if (cachedData) return cachedData;
   return {
-    company: {
-      nom: 'VERDEORTO SARL AU',
-      ice: '000194441000024',
-      if_fiscal: '3381764',
-      rc: '35265',
-      cnss: '7788302',
-      patente: '46201837',
-      capital: '100 000,00',
-      rib: '145 450 21211 2604506 000 4 11',
-      adresse: 'Avenue Al Mouqaouama, Quartier Ain Merroudi, Résidence DaVinci, Bloc F, Magasin N°20',
-      code_postal: '40000',
-      ville: 'Marrakech',
-      pays: 'Maroc',
-      telephone: '0808551156 / 0678301643',
-      email: 'verdeorto@gmail.com',
-    },
+    company: CASA_COMPANY_2026,
     clients: [],
     fournisseurs: [],
     produits: [],
@@ -1415,12 +1411,17 @@ export async function deletePaiementFournisseur(id: number): Promise<void> {
 }
 
 export async function resetToSampleData(): Promise<void> {
-  await apiCall('init_schema');
+  await apiCall('seed_sample_casa');
   await fetchAllData();
 }
 
 export async function resetDatabaseToDefault(): Promise<void> {
   return resetToSampleData();
+}
+
+export async function seedCasablanca2026Dataset(): Promise<void> {
+  await apiCall('seed_sample_casa');
+  await fetchAllData();
 }
 
 
@@ -1458,3 +1459,149 @@ export async function executeRawQuery(sqlQuery: string): Promise<{ columns: stri
     values: (data.rows || []).map((row: any) => Object.values(row)),
   };
 }
+
+// ============================================================================
+// COMPTABILITÉ MAROCAINE (PCGM, JOURNAUX, ÉCRITURES, IMMOBILISATIONS)
+// ============================================================================
+
+export async function fetchChartOfAccounts(): Promise<PlanAccount[]> {
+  const data = await fetchAllData();
+  return data?.chart_of_accounts || [];
+}
+
+export async function fetchAccountingJournals(): Promise<AccountingJournal[]> {
+  const data = await fetchAllData();
+  return data?.accounting_journals || [];
+}
+
+export async function fetchJournalEntries(): Promise<JournalEntry[]> {
+  const data = await fetchAllData();
+  return data?.journal_entries || [];
+}
+
+export async function saveJournalEntry(entry: JournalEntry): Promise<void> {
+  await apiCall('save_journal_entry', { entry });
+  await fetchAllData(true);
+}
+
+export async function deleteJournalEntry(id: number): Promise<void> {
+  await apiCall('delete_journal_entry', { id });
+  await fetchAllData(true);
+}
+
+export async function syncAllOperationalEntries(): Promise<{ count: number }> {
+  const res = await apiCall('sync_all_operational_entries');
+  await fetchAllData(true);
+  return { count: res?.count || 0 };
+}
+
+export async function fetchFixedAssets(): Promise<FixedAsset[]> {
+  const data = await fetchAllData();
+  return data?.fixed_assets || [];
+}
+
+export async function saveFixedAsset(asset: FixedAsset): Promise<void> {
+  await apiCall('save_fixed_asset', { asset });
+  await fetchAllData(true);
+}
+
+export async function deleteFixedAsset(id: number): Promise<void> {
+  await apiCall('delete_fixed_asset', { id });
+  await fetchAllData(true);
+}
+
+// ============================================================================
+// RESSOURCES HUMAINES & PAIE MAROCAINE (LF 2026)
+// ============================================================================
+
+export async function fetchEmployees(): Promise<Employee[]> {
+  const data = await fetchAllData();
+  return data?.employees || [];
+}
+
+export async function saveEmployee(employee: Employee): Promise<void> {
+  await apiCall('save_employee', { employee });
+  await fetchAllData(true);
+}
+
+export async function deleteEmployee(id: number): Promise<void> {
+  await apiCall('delete_employee', { id });
+  await fetchAllData(true);
+}
+
+export async function fetchPayrolls(): Promise<PayrollSlip[]> {
+  const data = await fetchAllData();
+  return data?.payrolls || [];
+}
+
+export async function savePayroll(payroll: PayrollSlip): Promise<void> {
+  await apiCall('save_payroll', { payroll });
+  await fetchAllData(true);
+}
+
+export async function postPayrollToAccounting(payroll: PayrollSlip): Promise<any> {
+  const res = await apiCall('post_payroll_to_accounting', { payroll });
+  await fetchAllData(true);
+  return res;
+}
+
+export async function deletePayroll(id: number): Promise<void> {
+  await apiCall('delete_payroll', { id });
+  await fetchAllData(true);
+}
+
+export async function fetchLeaves(): Promise<LeaveRequest[]> {
+  const data = await fetchAllData();
+  return data?.leaves || [];
+}
+
+export async function saveLeave(leave: LeaveRequest): Promise<void> {
+  await apiCall('save_leave', { leave });
+  await fetchAllData(true);
+}
+
+export async function deleteLeave(id: number): Promise<void> {
+  await apiCall('delete_leave', { id });
+  await fetchAllData(true);
+}
+
+// ============================================================================
+// FABRICATION & PRODUCTION (MANUFACTURING)
+// ============================================================================
+
+export async function fetchBOMs(): Promise<BOM[]> {
+  const data = await fetchAllData();
+  return data?.boms || [];
+}
+
+export async function saveBOM(bom: BOM): Promise<void> {
+  await apiCall('save_bom', { bom });
+  await fetchAllData(true);
+}
+
+export async function deleteBOM(id: number): Promise<void> {
+  await apiCall('delete_bom', { id });
+  await fetchAllData(true);
+}
+
+export async function fetchProductionOrders(): Promise<ProductionOrder[]> {
+  const data = await fetchAllData();
+  return data?.production_orders || [];
+}
+
+export async function saveProductionOrder(order: ProductionOrder): Promise<void> {
+  await apiCall('save_production_order', { order });
+  await fetchAllData(true);
+}
+
+export async function completeProductionOrder(order: ProductionOrder): Promise<any> {
+  const res = await apiCall('complete_production_order', { order });
+  await fetchAllData(true);
+  return res;
+}
+
+export async function deleteProductionOrder(id: number): Promise<void> {
+  await apiCall('delete_production_order', { id });
+  await fetchAllData(true);
+}
+

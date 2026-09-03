@@ -579,17 +579,17 @@ export const OFFICIAL_FOURNISSEURS: SeedFournisseur[] = [
   },
   {
     "code": "FR010",
-    "nom": "VERDEORTO",
-    "interlocuteur": "Melle",
-    "adresse": "",
-    "cp": "40000",
-    "ville": "MARRAKECH",
-    "tel": "0524439498",
-    "gsm": "",
-    "fax": "",
-    "email": "",
-    "ice": "000194441000024",
-    "observations": ""
+    "nom": "AZULERP LOGISTIQUE",
+    "interlocuteur": "M. Yassine",
+    "adresse": "Zone Industrielle Ain Sebaâ",
+    "cp": "20250",
+    "ville": "CASABLANCA",
+    "tel": "0522354080",
+    "gsm": "0661234567",
+    "fax": "0522354089",
+    "email": "logistique@azulerp.ma",
+    "ice": "001894523000088",
+    "observations": "Partenaire Logistique"
   },
   {
     "code": "FR011",

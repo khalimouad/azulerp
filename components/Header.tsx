@@ -81,14 +81,13 @@ export const Header: React.FC<HeaderProps> = ({
 
           <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
             <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-blue-600 flex items-center justify-center font-black text-xs sm:text-sm text-white shadow-inner tracking-wider shrink-0">
-              GI
+              AZ
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-1.5 sm:gap-2">
                 <h1 className="font-extrabold text-xs sm:text-base tracking-tight text-white flex items-center gap-1 truncate">
-                  <span className="hidden xs:inline">Gest Commerciale</span>
-                  <span className="xs:hidden">Gest ERP</span>
-                  <span className="text-blue-400 font-bold hidden xs:inline">ERP</span>
+                  <span>AZULERP</span>
+                  <span className="text-blue-400 font-bold text-[10px] sm:text-xs bg-blue-950/80 border border-blue-800/80 px-1.5 py-0.5 rounded-md">2026</span>
                 </h1>
                 <div className="shrink-0">
                   <SyncStatusBadge onDataReload={onDataReload} compact />

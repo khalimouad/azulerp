@@ -371,7 +371,7 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="yassine@verdeorto.ma"
+                    placeholder="yassine@azulerp.ma"
                     className="w-full px-3 py-1.5 text-xs bg-slate-900 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
                   />
                 </div>

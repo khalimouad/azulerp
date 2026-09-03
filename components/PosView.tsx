@@ -138,7 +138,7 @@ export const PosView: React.FC<PosViewProps> = ({
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const saved = window.localStorage.getItem('verdeorto_pos_theme');
+      const saved = window.localStorage.getItem('azulerp_pos_theme') || window.localStorage.getItem('verdeorto_pos_theme');
       if (saved === 'light' || saved === 'dark') {
         setPosTheme(saved);
       }
@@ -149,7 +149,8 @@ export const PosView: React.FC<PosViewProps> = ({
     setPosTheme((prev) => {
       const next = prev === 'dark' ? 'light' : 'dark';
       if (typeof window !== 'undefined') {
-        window.localStorage.setItem('verdeorto_pos_theme', next);
+        window.localStorage.setItem('azulerp_pos_theme', next);
+        window.localStorage.removeItem('verdeorto_pos_theme');
       }
       return next;
     });
@@ -281,7 +282,7 @@ export const PosView: React.FC<PosViewProps> = ({
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `verdeorto_caisse_backup_${new Date().toISOString().replace(/[:.]/g, '-')}.sqlite`;
+        a.download = `azulerp_caisse_backup_${new Date().toISOString().replace(/[:.]/g, '-')}.sqlite`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -1993,12 +1994,12 @@ export const PosView: React.FC<PosViewProps> = ({
             <div className="max-w-sm w-full bg-white text-slate-900 rounded-2xl p-5 shadow-2xl space-y-3 font-mono text-[11px]">
               {/* HEADER */}
               <div className="text-center space-y-0.5">
-                <h3 className="text-sm font-black uppercase">VERDEORTO Snack Italy</h3>
+                <h3 className="text-sm font-black uppercase">AZULERP MAROC</h3>
                 <p className="text-[10px] text-slate-600 leading-tight">
-                  Av al moukawama Quartier Merrodi Residence Davin<br />
-                  c1 Bloc F Mag N 20 Marrakech<br />
-                  08 08 55 11 56 / 06 62 12 34 49<br />
-                  www.verdeorto.weebly.com
+                  148 Bd Sidi Mohamed Ben Abdellah Ain Sebaa<br />
+                  Casablanca - Maroc<br />
+                  05 22 35 40 80 / 05 22 35 40 81<br />
+                  www.azulerp.ma
                 </p>
                 <p className="text-xs font-bold pt-1">
                   {receiptType === 'ADDITION' ? "NOTE D'ADDITION" : 'DUPLICATA'}
@@ -2011,7 +2012,7 @@ export const PosView: React.FC<PosViewProps> = ({
               <div className="text-[10px] space-y-0.5">
                 <div>Date creation : {formatTicketDateTime(lastSale.date_vente)}</div>
                 <div className="flex justify-between">
-                  <span>Boutique : VerdeOrto 1</span>
+                  <span>Boutique : AZULERP Casablanca</span>
                   <span>Ticket: {lastSale.numero_ticket}</span>
                 </div>
                 <div>Caissier : {lastSale.caissier || 'Admin'}</div>

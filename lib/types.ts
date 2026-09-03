@@ -619,4 +619,267 @@ export interface DatabaseHealthInfo {
   integrityOk: boolean;
 }
 
+// ============================================================================
+// COMPTABILITÉ MAROCAINE (PCGM & CGNC)
+// ============================================================================
 
+export type AccountClassId = 1 | 2 | 3 | 4 | 5 | 6 | 7;
+export type AccountType = 'asset' | 'liability' | 'equity' | 'expense' | 'revenue' | 'contra-asset';
+
+export interface PlanAccount {
+  id?: number;
+  code: string;
+  libelle: string;
+  libelle_ar?: string;
+  classe: AccountClassId;
+  type: AccountType;
+  allow_entry: boolean;
+  solde_debit?: number;
+  solde_credit?: number;
+  status?: 'active' | 'archived';
+}
+
+export type JournalCode = 'ACH' | 'VTE' | 'BNQ' | 'CA' | 'OD' | 'PAIE' | 'IMM' | 'AN';
+
+export interface AccountingJournal {
+  id?: number;
+  code: JournalCode;
+  nom: string;
+  nom_ar?: string;
+  description?: string;
+  color?: string;
+}
+
+export interface JournalEntryLine {
+  id?: number | string;
+  entry_id?: number;
+  account_code?: string;
+  account_label?: string;
+  compte_code?: string;
+  compte_libelle?: string;
+  debit: number;
+  credit: number;
+  libelle?: string;
+  piece_ref?: string;
+  lettrage?: string;
+}
+
+export interface JournalEntry {
+  id?: number;
+  numero: string;
+  date: string;
+  journal_code: JournalCode;
+  libelle: string;
+  reference?: string;
+  status: 'brouillon' | 'valide' | 'cloture';
+  total_debit: number;
+  total_credit: number;
+  source_type?: 'facture_vente' | 'facture_achat' | 'reglement_client' | 'paiement_fournisseur' | 'paie' | 'production' | 'amortissement' | 'manuel';
+  source_id?: number | string;
+  lines: JournalEntryLine[];
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface FixedAsset {
+  id?: number;
+  code: string;
+  designation: string;
+  compte_immobilisation: string; // Ex: 2340 Matériel de transport
+  compte_amortissement: string;  // Ex: 2834 Amortissements du matériel de transport
+  compte_dotation: string;       // Ex: 6193 Dotations d'exploitation aux amortissements
+  valeur_acquisition: number;
+  date_acquisition: string;
+  date_mise_service: string;
+  duree_annees: number;
+  methode: 'lineaire' | 'degressif';
+  taux: number;
+  amortissements_cumules: number;
+  vna: number;
+  statut: 'en_service' | 'cede' | 'mis_au_rebut';
+  notes?: string;
+}
+
+// ============================================================================
+// RESSOURCES HUMAINES & PAIE MAROCAINE (LF 2026)
+// ============================================================================
+
+export type ContractType = 'CDI' | 'CDD' | 'Stage' | 'ANAPEC' | 'Freelance' | 'Autre';
+export type FamilyStatus = 'Celibataire' | 'Marie' | 'Divorce' | 'Veuf';
+
+export interface Employee {
+  id?: number;
+  matricule: string;
+  nom: string;
+  prenom: string;
+  nom_complet?: string;
+  cin: string;
+  cnss?: string;
+  departement: string;
+  poste: string;
+  date_embauche: string;
+  date_naissance?: string;
+  type_contrat: ContractType;
+  salaire_base: number;
+  situation_familiale: FamilyStatus;
+  nombre_enfants: number;
+  has_cimr: boolean;
+  rib?: string;
+  banque?: string;
+  telephone?: string;
+  email?: string;
+  adresse?: string;
+  statut: 'actif' | 'inactif' | 'conge' | 'quitte';
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface PayrollSlip {
+  id?: number;
+  employee_id: number;
+  matricule: string;
+  nom_complet: string;
+  poste?: string;
+  departement?: string;
+  cin?: string;
+  cnss?: string;
+  periode_mois: number; // 1 - 12
+  periode_annee: number; // Ex: 2026
+  date_paie: string;
+  date_virement?: string;
+  // Éléments bruts
+  salaire_base: number;
+  primes: number;
+  heures_sup: number;
+  indemnites_non_imposables: number;
+  salaire_brut: number;
+  // Cotisations salariales
+  base_cnss: number;
+  cotis_cnss_salariale: number;
+  cotis_amo_salariale: number;
+  cotis_cimr_salariale: number;
+  total_cotis_salariales: number;
+  // Impôt sur le Revenu (IR)
+  frais_professionnels: number;
+  salaire_net_imposable: number;
+  ir_brut: number;
+  deduction_charges_famille: number;
+  ir_net: number;
+  // Retenues & Net
+  total_retenues: number;
+  avances_acomptes?: number;
+  salaire_net: number;
+  // Charges patronales
+  charges_patronales_cnss: number;
+  charges_patronales_alloc_fam: number;
+  charges_patronales_amo: number;
+  charges_patronales_fp: number; // Formation pro
+  charges_patronales_cimr: number;
+  total_charges_patronales: number;
+  cout_total_employeur: number;
+  // Statuts & Intégration comptable
+  statut: 'brouillon' | 'valide' | 'paye';
+  comptabilise: boolean;
+  journal_entry_id?: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface LeaveRequest {
+  id?: number;
+  employee_id: number;
+  employee_name: string;
+  type: 'annuel' | 'maladie' | 'maternite' | 'sans_solde' | 'exceptionnel';
+  date_debut: string;
+  date_fin: string;
+  jours: number;
+  motif?: string;
+  statut: 'en_attente' | 'approuve' | 'refuse' | 'annule';
+  created_at?: string;
+}
+
+// ============================================================================
+// PRODUCTION & FABRICATION (MANUFACTURING)
+// ============================================================================
+
+export interface BOMComponent {
+  produit_id?: number;
+  produit_nom: string;
+  quantite: number;
+  unite: string;
+  cout_unitaire: number;
+  cout_total: number;
+  est_dechet?: boolean;
+}
+
+export interface BOM {
+  id?: number;
+  code: string;
+  nom: string;
+  produit_fini_id?: number;
+  produit_fini_nom: string;
+  quantite_produite: number;
+  unite: string;
+  composants: BOMComponent[];
+  cout_matieres_estime: number;
+  cout_main_oeuvre_estime: number;
+  frais_generaux_estime: number;
+  cout_revient_unitaire: number;
+  actif: boolean;
+  version?: string;
+  notes?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export type ProductionOrderStatus = 'brouillon' | 'confirme' | 'en_cours' | 'termine' | 'annule';
+
+export interface ProductionOrderComponent {
+  produit_id?: number;
+  produit_nom: string;
+  quantite_prevue: number;
+  quantite_reelle: number;
+  unite: string;
+  cout_unitaire: number;
+  cout_total: number;
+}
+
+export interface ProductionOrder {
+  id?: number;
+  numero: string;
+  bom_id?: number;
+  bom_nom?: string;
+  produit_fini_id?: number;
+  produit_fini_nom: string;
+  quantite_prevue: number;
+  quantite_reelle?: number;
+  unite: string;
+  date_lancement: string;
+  date_prevue_fin: string;
+  date_cloture?: string;
+  responsable?: string;
+  atelier?: string;
+  status: ProductionOrderStatus;
+  composants_consommes: ProductionOrderComponent[];
+  cout_matieres: number;
+  cout_main_oeuvre: number;
+  cout_machines_ateliers: number;
+  cout_total_production: number;
+  cout_revient_unitaire: number;
+  // Intégration stocks & comptabilité
+  stock_destocke: boolean;
+  stock_entre: boolean;
+  comptabilise: boolean;
+  journal_entry_id?: number;
+  notes?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface WorkCenter {
+  id?: number;
+  nom: string;
+  taux_horaire: number;
+  capacite_jour_heures: number;
+  statut: 'operationnel' | 'maintenance';
+}

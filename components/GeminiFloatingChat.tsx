@@ -111,7 +111,7 @@ export const GeminiFloatingChat: React.FC<GeminiFloatingChatProps> = ({
   const [messages, setMessages] = useState<ChatMessage[]>(() => {
     if (typeof window !== 'undefined') {
       try {
-        const saved = localStorage.getItem('verdeorto_gemini_messenger_msgs');
+        const saved = localStorage.getItem('azulerp_gemini_messenger_msgs') || localStorage.getItem('verdeorto_gemini_messenger_msgs');
         if (saved) return JSON.parse(saved);
       } catch (_) {}
     }
@@ -135,8 +135,8 @@ Posez-moi n'importe quelle question sur vos factures, livraisons, clients, fourn
   // Load API Key & Model
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const storedKey = localStorage.getItem('verdeorto_gemini_api_key') || '';
-      const storedModel = localStorage.getItem('verdeorto_gemini_model') || 'gemini-3.6-flash';
+      const storedKey = localStorage.getItem('azulerp_gemini_api_key') || localStorage.getItem('verdeorto_gemini_api_key') || '';
+      const storedModel = localStorage.getItem('azulerp_gemini_model') || localStorage.getItem('verdeorto_gemini_model') || 'gemini-3.6-flash';
       setApiKey(storedKey);
       setModel(storedModel);
     }
@@ -146,7 +146,7 @@ Posez-moi n'importe quelle question sur vos factures, livraisons, clients, fourn
   useEffect(() => {
     if (typeof window !== 'undefined') {
       try {
-        localStorage.setItem('verdeorto_gemini_messenger_msgs', JSON.stringify(messages));
+        localStorage.setItem('azulerp_gemini_messenger_msgs', JSON.stringify(messages));
       } catch (_) {}
     }
     if (isOpen) {
@@ -156,8 +156,10 @@ Posez-moi n'importe quelle question sur vos factures, livraisons, clients, fourn
 
   const handleSaveKey = () => {
     if (typeof window !== 'undefined') {
-      localStorage.setItem('verdeorto_gemini_api_key', apiKey.trim());
-      localStorage.setItem('verdeorto_gemini_model', model);
+      localStorage.setItem('azulerp_gemini_api_key', apiKey.trim());
+      localStorage.setItem('azulerp_gemini_model', model);
+      localStorage.removeItem('verdeorto_gemini_api_key');
+      localStorage.removeItem('verdeorto_gemini_model');
       setKeySaved(true);
       setTimeout(() => setKeySaved(false), 2500);
       if (apiKey.trim()) {
@@ -178,7 +180,7 @@ Posez-moi n'importe quelle question sur vos factures, livraisons, clients, fourn
       ];
       setMessages(initial);
       if (typeof window !== 'undefined') {
-        localStorage.setItem('verdeorto_gemini_messenger_msgs', JSON.stringify(initial));
+        localStorage.setItem('azulerp_gemini_messenger_msgs', JSON.stringify(initial));
       }
     }
   };

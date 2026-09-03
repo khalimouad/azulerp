@@ -126,13 +126,44 @@ export const CompanySettingsView: React.FC<CompanySettingsViewProps> = ({
           </p>
         </div>
 
-        <button
-          onClick={handleSubmit}
-          className="flex items-center justify-center gap-2 px-5 py-2.5 text-xs font-bold rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-md transition active:scale-95 shrink-0"
-        >
-          <Save className="w-4 h-4" />
-          Enregistrer les modifications
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={async () => {
+              if (confirm('Voulez-vous charger le jeu de données d’exemple officiel Casablanca 2026 (Clients, BLs vers Factures, Achats, Production, RH et Comptabilité) ?')) {
+                try {
+                  const res = await fetch('/api/postgres/action', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'seed_sample_casa', payload: {} }),
+                  });
+                  const d = await res.json();
+                  if (d.success) {
+                    alert('Données Casablanca 2026 chargées avec succès ! Rechargement en cours...');
+                    window.location.reload();
+                  } else {
+                    alert(`Erreur: ${d.error || 'Impossible de charger les données'}`);
+                  }
+                } catch (e: any) {
+                  alert(`Erreur réseau: ${e.message}`);
+                }
+              }
+            }}
+            className="flex items-center justify-center gap-2 px-4 py-2.5 text-xs font-bold rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white shadow-md transition active:scale-95 shrink-0"
+            title="Injecter le jeu de données d'une entreprise industrielle marocaine à Casablanca"
+          >
+            <Sparkles className="w-4 h-4 text-indigo-200" />
+            Charger Démo Casablanca 2026
+          </button>
+
+          <button
+            onClick={handleSubmit}
+            className="flex items-center justify-center gap-2 px-5 py-2.5 text-xs font-bold rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-md transition active:scale-95 shrink-0"
+          >
+            <Save className="w-4 h-4" />
+            Enregistrer les modifications
+          </button>
+        </div>
       </div>
 
       {saved && (
@@ -443,7 +474,7 @@ export const CompanySettingsView: React.FC<CompanySettingsViewProps> = ({
                 type="text"
                 value={form.nom || ''}
                 onChange={(e) => setForm({ ...form, nom: e.target.value })}
-                placeholder="ex: VERDEORTO SARL AU"
+                placeholder="ex: AGRO-ATLAS CASABLANCA SARL"
                 className="w-full px-3 py-2 text-xs bg-slate-50 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
               />
             </div>
@@ -662,10 +693,10 @@ export const CompanySettingsView: React.FC<CompanySettingsViewProps> = ({
                 <label className="block text-xs font-semibold text-slate-700 mb-1">Ville</label>
                 <input
                   type="text"
-                  list="verdeorto-cities"
+                  list="azulerp-cities"
                   value={form.ville || ''}
                   onChange={(e) => setForm({ ...form, ville: e.target.value })}
-                  placeholder="ex: Marrakech"
+                  placeholder="ex: Casablanca"
                   className="w-full px-3 py-2 text-xs bg-slate-50 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
@@ -696,7 +727,7 @@ export const CompanySettingsView: React.FC<CompanySettingsViewProps> = ({
               <label className="block text-xs font-semibold text-slate-700 mb-1">Banque & Agence</label>
               <input
                 type="text"
-                list="verdeorto-banks"
+                list="azulerp-banks"
                 value={form.banque || ''}
                 onChange={(e) => setForm({ ...form, banque: e.target.value })}
                 placeholder="ex: BANQUE POPULAIRE Agence Ben Tachfine"

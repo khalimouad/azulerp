@@ -1,7 +1,8 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import { NextRequest, NextResponse } from 'next/server';
 
-export const SESSION_COOKIE = 'verdeorto_session';
+export const SESSION_COOKIE = 'azulerp_session';
+export const LEGACY_SESSION_COOKIE = 'verdeorto_session';
 const SESSION_MAX_AGE_SECONDS = 60 * 60 * 12;
 
 export type SessionUser = {
@@ -36,7 +37,7 @@ export function createSessionToken(user: SessionUser): string {
 }
 
 export function readSession(request: NextRequest): SessionUser | null {
-  const token = request.cookies.get(SESSION_COOKIE)?.value;
+  const token = request.cookies.get(SESSION_COOKIE)?.value || request.cookies.get(LEGACY_SESSION_COOKIE)?.value;
   return readSessionToken(token);
 }
 
@@ -84,6 +85,13 @@ export function setSessionCookie(response: NextResponse, user: SessionUser) {
 
 export function clearSessionCookie(response: NextResponse) {
   response.cookies.set(SESSION_COOKIE, '', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    path: '/',
+    maxAge: 0,
+  });
+  response.cookies.set(LEGACY_SESSION_COOKIE, '', {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'strict',

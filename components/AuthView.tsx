@@ -44,8 +44,8 @@ export const AuthView: React.FC<AuthViewProps> = ({ onLoginSuccess }) => {
             <ShieldCheck className="w-8 h-8" />
           </div>
           <div>
-            <h1 className="text-2xl font-black text-white tracking-tight">Verde Orto</h1>
-            <p className="text-xs text-slate-400 font-medium mt-0.5">Connexion sécurisée à votre compte</p>
+            <h1 className="text-2xl font-black text-white tracking-tight">AZULERP</h1>
+            <p className="text-xs text-slate-400 font-medium mt-0.5">Connexion sécurisée à votre ERP Maroc</p>
           </div>
         </div>
         {error && (

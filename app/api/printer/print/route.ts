@@ -56,14 +56,13 @@ function buildEscPosBuffer(
 
   // 2. HEADER - Center Aligned
   addCmd([0x1b, 0x61, 0x01]); // Center
-  addCmd([0x1d, 0x21, 0x11]); // GS ! 0x11 (Double Width & Height)
-  addLine('VERDEORTO Snack Italy');
+  addLine('AZULERP MAROC');
   addCmd([0x1d, 0x21, 0x00]); // Normal size
 
-  addLine('Av al moukawama Quartier Merrodi Residence Davin');
-  addLine('c1 Bloc F Mag N 20 Marrakech');
-  addLine('08 08 55 11 56 / 06 62 12 34 49');
-  addLine('www.verdeorto.weebly.com');
+  addLine('148 Bd Sidi Mohamed Ben Abdellah Ain Sebaa');
+  addLine('Casablanca - Maroc');
+  addLine('05 22 35 40 80 / 05 22 35 40 81');
+  addLine('www.azulerp.ma');
 
   const docTitle = receiptType === 'ADDITION' ? "NOTE D'ADDITION" : (receiptType === 'DUPLICATA' ? 'DUPLICATA' : 'TICKET DE CAISSE');
   addCmd([0x1b, 0x45, 0x01]); // Bold

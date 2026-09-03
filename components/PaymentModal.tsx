@@ -164,7 +164,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
               <label className="block font-semibold text-slate-700 mb-1">Banque</label>
               <input
                 type="text"
-                list="verdeorto-banks"
+                list="azulerp-banks"
                 placeholder="Ex: Attijariwafa, BCP..."
                 value={banque}
                 onChange={(e) => setBanque(e.target.value)}

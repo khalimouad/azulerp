@@ -168,7 +168,7 @@ export const CreateFournisseurView: React.FC<CreateFournisseurViewProps> = ({
               <label className="block text-xs font-semibold text-slate-700 mb-1.5">Ville</label>
               <input
                 type="text"
-                list="verdeorto-cities"
+                list="azulerp-cities"
                 placeholder="Casablanca"
                 value={form.ville || ''}
                 onChange={(e) => setForm({ ...form, ville: e.target.value })}

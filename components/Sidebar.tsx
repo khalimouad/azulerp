@@ -30,6 +30,11 @@ import {
   X,
   PanelLeftClose,
   PanelLeftOpen,
+  Scale,
+  BookOpen,
+  Factory,
+  Landmark,
+  Calendar,
 } from 'lucide-react';
 import { AppUser } from '@/lib/types';
 
@@ -138,6 +143,43 @@ export const Sidebar: React.FC<SidebarProps> = ({
       ],
     },
     {
+      title: 'Comptabilité & Fiscalité (Maroc)',
+      items: [
+        {
+          id: 'accounting',
+          label: 'Comptabilité Générale',
+          icon: Scale,
+          highlight: true,
+          badge: 'PCGM',
+          badgeColor: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40',
+        },
+      ],
+    },
+    {
+      title: 'Ressources Humaines & Paie',
+      items: [
+        {
+          id: 'hr',
+          label: 'Personnel & Paie (LF 2026)',
+          icon: Users,
+          highlight: false,
+          badge: 'CNSS / IR',
+          badgeColor: 'bg-teal-500/20 text-teal-300 border-teal-500/40',
+        },
+      ],
+    },
+    {
+      title: 'Fabrication & Production',
+      items: [
+        {
+          id: 'manufacturing',
+          label: 'Fabrication & Recettes (BOM)',
+          icon: Factory,
+          highlight: false,
+        },
+      ],
+    },
+    {
       title: 'Restaurant & Caisse (POS)',
       items: [
         { id: 'pos', label: 'Plan de Salle & Caisse', icon: Store, highlight: true },
@@ -181,9 +223,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <div className="lg:hidden px-4 py-3 border-b border-slate-800 flex items-center justify-between bg-slate-950/80">
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center font-bold text-xs text-white">
-              GI
+              AZ
             </div>
-            <span className="font-bold text-sm text-white">Menu Navigation</span>
+            <span className="font-bold text-sm text-white">AZULERP</span>
           </div>
           <button
             type="button"

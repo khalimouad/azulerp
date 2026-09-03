@@ -74,24 +74,24 @@ export const POSTGRES_SCHEMA_SQL = `
 -- 1. Identifiants Société
 CREATE TABLE IF NOT EXISTS company_info (
   id SERIAL PRIMARY KEY,
-  nom VARCHAR(255) NOT NULL DEFAULT 'VERDEORTO SARL AU',
-  forme_juridique VARCHAR(100) DEFAULT 'SARL AU',
-  capital VARCHAR(100) DEFAULT '100 000,00',
-  adresse TEXT NOT NULL DEFAULT 'Avenue Al Mouqaouama, Quartier Ain Merroudi, Résidence DaVinci, Bloc F, Magasin N°20',
-  adresse_detail TEXT,
-  code_postal VARCHAR(20) DEFAULT '40000',
-  ville VARCHAR(100) DEFAULT 'Marrakech',
+  nom VARCHAR(255) NOT NULL DEFAULT 'AGRO-ATLAS CASABLANCA SARL',
+  forme_juridique VARCHAR(100) DEFAULT 'SARL',
+  capital VARCHAR(100) DEFAULT '1 500 000,00',
+  adresse TEXT NOT NULL DEFAULT '148 Boulevard Sidi Mohamed Ben Abdellah, Zone Industrielle Ain Sebaâ',
+  adresse_detail TEXT DEFAULT 'Parc Industriel Al Manar, Bâtiment C3',
+  code_postal VARCHAR(20) DEFAULT '20250',
+  ville VARCHAR(100) DEFAULT 'Casablanca',
   pays VARCHAR(100) DEFAULT 'Maroc',
-  telephone VARCHAR(50) DEFAULT '0808551156 / 0678301643',
-  fax VARCHAR(50),
-  email VARCHAR(150) DEFAULT 'verdeorto@gmail.com',
-  site_web VARCHAR(255),
-  ice VARCHAR(50) NOT NULL DEFAULT '000194441000024',
-  if_fiscal VARCHAR(50) DEFAULT '3381764',
-  rc VARCHAR(50) DEFAULT '35265',
-  cnss VARCHAR(50) DEFAULT '7788302',
-  patente VARCHAR(50) DEFAULT '46201837',
-  agrement_onssa VARCHAR(100),
+  telephone VARCHAR(50) DEFAULT '05 22 35 40 80 / 05 22 35 40 81',
+  fax VARCHAR(50) DEFAULT '05 22 35 40 89',
+  email VARCHAR(150) DEFAULT 'contact@agroatlas-casa.ma',
+  site_web VARCHAR(255) DEFAULT 'www.agroatlas-casa.ma',
+  ice VARCHAR(50) NOT NULL DEFAULT '001894523000088',
+  if_fiscal VARCHAR(50) DEFAULT '40285912',
+  rc VARCHAR(50) DEFAULT '184920',
+  cnss VARCHAR(50) DEFAULT '8492015',
+  patente VARCHAR(50) DEFAULT '36194025',
+  agrement_onssa VARCHAR(100) DEFAULT 'ONSSA/AGRO/2026/CAS-114',
   partenaire_coop TEXT,
   logo_titre VARCHAR(255),
   logo_sous_titre VARCHAR(255),
@@ -626,6 +626,203 @@ CREATE INDEX IF NOT EXISTS reglements_date_idx ON reglements (date);
 CREATE INDEX IF NOT EXISTS reglements_client_idx ON reglements (client_id);
 CREATE INDEX IF NOT EXISTS reglements_facture_idx ON reglements (facture_id);
 CREATE INDEX IF NOT EXISTS client_tarifs_client_idx ON client_tarifs (client_id);
+
+-- 13. Comptabilité Marocaine (PCGM & Écritures)
+CREATE TABLE IF NOT EXISTS chart_of_accounts (
+  id SERIAL PRIMARY KEY,
+  code VARCHAR(50) NOT NULL UNIQUE,
+  libelle VARCHAR(255) NOT NULL,
+  libelle_ar VARCHAR(255),
+  classe INT NOT NULL,
+  type VARCHAR(50) DEFAULT 'expense',
+  allow_entry BOOLEAN DEFAULT true,
+  status VARCHAR(50) DEFAULT 'active',
+  created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS accounting_journals (
+  id SERIAL PRIMARY KEY,
+  code VARCHAR(10) NOT NULL UNIQUE,
+  nom VARCHAR(100) NOT NULL,
+  nom_ar VARCHAR(100),
+  description TEXT,
+  color VARCHAR(50) DEFAULT 'blue',
+  created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS journal_entries (
+  id SERIAL PRIMARY KEY,
+  numero VARCHAR(100) NOT NULL UNIQUE,
+  date VARCHAR(50) NOT NULL,
+  journal_code VARCHAR(10) NOT NULL,
+  libelle VARCHAR(255) NOT NULL,
+  reference VARCHAR(100),
+  status VARCHAR(50) DEFAULT 'valide',
+  total_debit NUMERIC(15, 2) DEFAULT 0.00,
+  total_credit NUMERIC(15, 2) DEFAULT 0.00,
+  source_type VARCHAR(50),
+  source_id BIGINT,
+  lines JSONB NOT NULL DEFAULT '[]'::jsonb,
+  created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS fixed_assets (
+  id SERIAL PRIMARY KEY,
+  code VARCHAR(50) NOT NULL UNIQUE,
+  designation VARCHAR(255) NOT NULL,
+  compte_immobilisation VARCHAR(50) NOT NULL,
+  compte_amortissement VARCHAR(50) NOT NULL,
+  compte_dotation VARCHAR(50) NOT NULL,
+  valeur_acquisition NUMERIC(15, 2) NOT NULL DEFAULT 0.00,
+  date_acquisition VARCHAR(50) NOT NULL,
+  date_mise_service VARCHAR(50) NOT NULL,
+  duree_annees INT NOT NULL DEFAULT 5,
+  methode VARCHAR(50) DEFAULT 'lineaire',
+  taux NUMERIC(5, 2) NOT NULL DEFAULT 20.00,
+  amortissements_cumules NUMERIC(15, 2) DEFAULT 0.00,
+  vna NUMERIC(15, 2) DEFAULT 0.00,
+  statut VARCHAR(50) DEFAULT 'en_service',
+  notes TEXT,
+  created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 14. Ressources Humaines & Paie Marocaine (LF 2026)
+CREATE TABLE IF NOT EXISTS employees (
+  id SERIAL PRIMARY KEY,
+  matricule VARCHAR(50) NOT NULL UNIQUE,
+  nom VARCHAR(100) NOT NULL,
+  prenom VARCHAR(100) NOT NULL,
+  cin VARCHAR(50) NOT NULL,
+  cnss VARCHAR(50),
+  departement VARCHAR(100) DEFAULT 'Général',
+  poste VARCHAR(100) NOT NULL,
+  date_embauche VARCHAR(50) NOT NULL,
+  date_naissance VARCHAR(50),
+  type_contrat VARCHAR(50) DEFAULT 'CDI',
+  salaire_base NUMERIC(15, 2) NOT NULL DEFAULT 4000.00,
+  situation_familiale VARCHAR(50) DEFAULT 'Celibataire',
+  nombre_enfants INT DEFAULT 0,
+  has_cimr BOOLEAN DEFAULT false,
+  rib VARCHAR(50),
+  banque VARCHAR(100),
+  telephone VARCHAR(50),
+  email VARCHAR(150),
+  adresse TEXT,
+  statut VARCHAR(50) DEFAULT 'actif',
+  created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS payrolls (
+  id SERIAL PRIMARY KEY,
+  employee_id BIGINT NOT NULL,
+  matricule VARCHAR(50) NOT NULL,
+  nom_complet VARCHAR(255) NOT NULL,
+  poste VARCHAR(100),
+  departement VARCHAR(100),
+  cin VARCHAR(50),
+  cnss VARCHAR(50),
+  periode_mois INT NOT NULL,
+  periode_annee INT NOT NULL,
+  date_paie VARCHAR(50) NOT NULL,
+  date_virement VARCHAR(50),
+  salaire_base NUMERIC(15, 2) DEFAULT 0.00,
+  primes NUMERIC(15, 2) DEFAULT 0.00,
+  heures_sup NUMERIC(15, 2) DEFAULT 0.00,
+  indemnites_non_imposables NUMERIC(15, 2) DEFAULT 0.00,
+  salaire_brut NUMERIC(15, 2) DEFAULT 0.00,
+  base_cnss NUMERIC(15, 2) DEFAULT 0.00,
+  cotis_cnss_salariale NUMERIC(15, 2) DEFAULT 0.00,
+  cotis_amo_salariale NUMERIC(15, 2) DEFAULT 0.00,
+  cotis_cimr_salariale NUMERIC(15, 2) DEFAULT 0.00,
+  total_cotis_salariales NUMERIC(15, 2) DEFAULT 0.00,
+  frais_professionnels NUMERIC(15, 2) DEFAULT 0.00,
+  salaire_net_imposable NUMERIC(15, 2) DEFAULT 0.00,
+  ir_brut NUMERIC(15, 2) DEFAULT 0.00,
+  deduction_charges_famille NUMERIC(15, 2) DEFAULT 0.00,
+  ir_net NUMERIC(15, 2) DEFAULT 0.00,
+  total_retenues NUMERIC(15, 2) DEFAULT 0.00,
+  avances_acomptes NUMERIC(15, 2) DEFAULT 0.00,
+  salaire_net NUMERIC(15, 2) DEFAULT 0.00,
+  charges_patronales_cnss NUMERIC(15, 2) DEFAULT 0.00,
+  charges_patronales_alloc_fam NUMERIC(15, 2) DEFAULT 0.00,
+  charges_patronales_amo NUMERIC(15, 2) DEFAULT 0.00,
+  charges_patronales_fp NUMERIC(15, 2) DEFAULT 0.00,
+  charges_patronales_cimr NUMERIC(15, 2) DEFAULT 0.00,
+  total_charges_patronales NUMERIC(15, 2) DEFAULT 0.00,
+  cout_total_employeur NUMERIC(15, 2) DEFAULT 0.00,
+  statut VARCHAR(50) DEFAULT 'brouillon',
+  comptabilise BOOLEAN DEFAULT false,
+  journal_entry_id BIGINT,
+  created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS leaves (
+  id SERIAL PRIMARY KEY,
+  employee_id BIGINT NOT NULL,
+  employee_name VARCHAR(255) NOT NULL,
+  type VARCHAR(50) DEFAULT 'annuel',
+  date_debut VARCHAR(50) NOT NULL,
+  date_fin VARCHAR(50) NOT NULL,
+  jours INT DEFAULT 1,
+  motif TEXT,
+  statut VARCHAR(50) DEFAULT 'en_attente',
+  created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 15. Fabrication & Production (Manufacturing)
+CREATE TABLE IF NOT EXISTS boms (
+  id SERIAL PRIMARY KEY,
+  code VARCHAR(50) NOT NULL UNIQUE,
+  nom VARCHAR(255) NOT NULL,
+  produit_fini_id BIGINT,
+  produit_fini_nom VARCHAR(255) NOT NULL,
+  quantite_produite NUMERIC(15, 3) DEFAULT 1.000,
+  unite VARCHAR(50) DEFAULT 'Pce',
+  composants JSONB NOT NULL DEFAULT '[]'::jsonb,
+  cout_matieres_estime NUMERIC(15, 2) DEFAULT 0.00,
+  cout_main_oeuvre_estime NUMERIC(15, 2) DEFAULT 0.00,
+  frais_generaux_estime NUMERIC(15, 2) DEFAULT 0.00,
+  cout_revient_unitaire NUMERIC(15, 2) DEFAULT 0.00,
+  actif BOOLEAN DEFAULT true,
+  version VARCHAR(20) DEFAULT '1.0',
+  notes TEXT,
+  created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS production_orders (
+  id SERIAL PRIMARY KEY,
+  numero VARCHAR(100) NOT NULL UNIQUE,
+  bom_id BIGINT,
+  bom_nom VARCHAR(255),
+  produit_fini_id BIGINT,
+  produit_fini_nom VARCHAR(255) NOT NULL,
+  quantite_prevue NUMERIC(15, 3) DEFAULT 1.000,
+  quantite_reelle NUMERIC(15, 3) DEFAULT 1.000,
+  unite VARCHAR(50) DEFAULT 'Pce',
+  date_lancement VARCHAR(50) NOT NULL,
+  date_prevue_fin VARCHAR(50),
+  date_cloture VARCHAR(50),
+  responsable VARCHAR(100) DEFAULT 'Chef d’atelier',
+  atelier VARCHAR(100) DEFAULT 'Atelier Principal',
+  status VARCHAR(50) DEFAULT 'confirme',
+  composants_consommes JSONB NOT NULL DEFAULT '[]'::jsonb,
+  cout_matieres NUMERIC(15, 2) DEFAULT 0.00,
+  cout_main_oeuvre NUMERIC(15, 2) DEFAULT 0.00,
+  cout_machines_ateliers NUMERIC(15, 2) DEFAULT 0.00,
+  cout_total_production NUMERIC(15, 2) DEFAULT 0.00,
+  cout_revient_unitaire NUMERIC(15, 2) DEFAULT 0.00,
+  stock_destocke BOOLEAN DEFAULT false,
+  stock_entre BOOLEAN DEFAULT false,
+  comptabilise BOOLEAN DEFAULT false,
+  journal_entry_id BIGINT,
+  notes TEXT,
+  created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
 `;
 
 /**
@@ -638,24 +835,24 @@ export async function initNeonPostgresSchema(customUrl?: string) {
   await sql`
     CREATE TABLE IF NOT EXISTS company_info (
       id SERIAL PRIMARY KEY,
-      nom VARCHAR(255) NOT NULL DEFAULT 'VERDEORTO SARL AU',
-      forme_juridique VARCHAR(100) DEFAULT 'SARL AU',
-      capital VARCHAR(100) DEFAULT '100 000,00',
-      adresse TEXT NOT NULL DEFAULT 'Avenue Al Mouqaouama, Quartier Ain Merroudi, Résidence DaVinci, Bloc F, Magasin N°20',
-      adresse_detail TEXT,
-      code_postal VARCHAR(20) DEFAULT '40000',
-      ville VARCHAR(100) DEFAULT 'Marrakech',
+      nom VARCHAR(255) NOT NULL DEFAULT 'AGRO-ATLAS CASABLANCA SARL',
+      forme_juridique VARCHAR(100) DEFAULT 'SARL',
+      capital VARCHAR(100) DEFAULT '1 500 000,00',
+      adresse TEXT NOT NULL DEFAULT '148 Boulevard Sidi Mohamed Ben Abdellah, Zone Industrielle Ain Sebaâ',
+      adresse_detail TEXT DEFAULT 'Parc Industriel Al Manar, Bâtiment C3',
+      code_postal VARCHAR(20) DEFAULT '20250',
+      ville VARCHAR(100) DEFAULT 'Casablanca',
       pays VARCHAR(100) DEFAULT 'Maroc',
-      telephone VARCHAR(50) DEFAULT '0808551156 / 0678301643',
-      fax VARCHAR(50),
-      email VARCHAR(150) DEFAULT 'verdeorto@gmail.com',
-      site_web VARCHAR(255),
-      ice VARCHAR(50) NOT NULL DEFAULT '000194441000024',
-      if_fiscal VARCHAR(50) DEFAULT '3381764',
-      rc VARCHAR(50) DEFAULT '35265',
-      cnss VARCHAR(50) DEFAULT '7788302',
-      patente VARCHAR(50) DEFAULT '46201837',
-      agrement_onssa VARCHAR(100),
+      telephone VARCHAR(50) DEFAULT '05 22 35 40 80 / 05 22 35 40 81',
+      fax VARCHAR(50) DEFAULT '05 22 35 40 89',
+      email VARCHAR(150) DEFAULT 'contact@agroatlas-casa.ma',
+      site_web VARCHAR(255) DEFAULT 'www.agroatlas-casa.ma',
+      ice VARCHAR(50) NOT NULL DEFAULT '001894523000088',
+      if_fiscal VARCHAR(50) DEFAULT '40285912',
+      rc VARCHAR(50) DEFAULT '184920',
+      cnss VARCHAR(50) DEFAULT '8492015',
+      patente VARCHAR(50) DEFAULT '36194025',
+      agrement_onssa VARCHAR(100) DEFAULT 'ONSSA/AGRO/2026/CAS-114',
       partenaire_coop TEXT,
       logo_titre VARCHAR(255),
       logo_sous_titre VARCHAR(255),
@@ -1243,6 +1440,221 @@ export async function initNeonPostgresSchema(customUrl?: string) {
     );
   `;
 
+  // 13. Comptabilité Marocaine
+  await sql`
+    CREATE TABLE IF NOT EXISTS chart_of_accounts (
+      id SERIAL PRIMARY KEY,
+      code VARCHAR(50) NOT NULL UNIQUE,
+      libelle VARCHAR(255) NOT NULL,
+      libelle_ar VARCHAR(255),
+      classe INT NOT NULL,
+      type VARCHAR(50) DEFAULT 'expense',
+      allow_entry BOOLEAN DEFAULT true,
+      status VARCHAR(50) DEFAULT 'active',
+      created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+    );
+  `;
+
+  await sql`
+    CREATE TABLE IF NOT EXISTS accounting_journals (
+      id SERIAL PRIMARY KEY,
+      code VARCHAR(10) NOT NULL UNIQUE,
+      nom VARCHAR(100) NOT NULL,
+      nom_ar VARCHAR(100),
+      description TEXT,
+      color VARCHAR(50) DEFAULT 'blue',
+      created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+    );
+  `;
+
+  await sql`
+    CREATE TABLE IF NOT EXISTS journal_entries (
+      id SERIAL PRIMARY KEY,
+      numero VARCHAR(100) NOT NULL UNIQUE,
+      date VARCHAR(50) NOT NULL,
+      journal_code VARCHAR(10) NOT NULL,
+      libelle VARCHAR(255) NOT NULL,
+      reference VARCHAR(100),
+      status VARCHAR(50) DEFAULT 'valide',
+      total_debit NUMERIC(15, 2) DEFAULT 0.00,
+      total_credit NUMERIC(15, 2) DEFAULT 0.00,
+      source_type VARCHAR(50),
+      source_id BIGINT,
+      lines JSONB NOT NULL DEFAULT '[]'::jsonb,
+      created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+    );
+  `;
+
+  await sql`
+    CREATE TABLE IF NOT EXISTS fixed_assets (
+      id SERIAL PRIMARY KEY,
+      code VARCHAR(50) NOT NULL UNIQUE,
+      designation VARCHAR(255) NOT NULL,
+      compte_immobilisation VARCHAR(50) NOT NULL,
+      compte_amortissement VARCHAR(50) NOT NULL,
+      compte_dotation VARCHAR(50) NOT NULL,
+      valeur_acquisition NUMERIC(15, 2) NOT NULL DEFAULT 0.00,
+      date_acquisition VARCHAR(50) NOT NULL,
+      date_mise_service VARCHAR(50) NOT NULL,
+      duree_annees INT NOT NULL DEFAULT 5,
+      methode VARCHAR(50) DEFAULT 'lineaire',
+      taux NUMERIC(5, 2) NOT NULL DEFAULT 20.00,
+      amortissements_cumules NUMERIC(15, 2) DEFAULT 0.00,
+      vna NUMERIC(15, 2) DEFAULT 0.00,
+      statut VARCHAR(50) DEFAULT 'en_service',
+      notes TEXT,
+      created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+    );
+  `;
+
+  // 14. Ressources Humaines & Paie Marocaine
+  await sql`
+    CREATE TABLE IF NOT EXISTS employees (
+      id SERIAL PRIMARY KEY,
+      matricule VARCHAR(50) NOT NULL UNIQUE,
+      nom VARCHAR(100) NOT NULL,
+      prenom VARCHAR(100) NOT NULL,
+      cin VARCHAR(50) NOT NULL,
+      cnss VARCHAR(50),
+      departement VARCHAR(100) DEFAULT 'Général',
+      poste VARCHAR(100) NOT NULL,
+      date_embauche VARCHAR(50) NOT NULL,
+      date_naissance VARCHAR(50),
+      type_contrat VARCHAR(50) DEFAULT 'CDI',
+      salaire_base NUMERIC(15, 2) NOT NULL DEFAULT 4000.00,
+      situation_familiale VARCHAR(50) DEFAULT 'Celibataire',
+      nombre_enfants INT DEFAULT 0,
+      has_cimr BOOLEAN DEFAULT false,
+      rib VARCHAR(50),
+      banque VARCHAR(100),
+      telephone VARCHAR(50),
+      email VARCHAR(150),
+      adresse TEXT,
+      statut VARCHAR(50) DEFAULT 'actif',
+      created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+    );
+  `;
+
+  await sql`
+    CREATE TABLE IF NOT EXISTS payrolls (
+      id SERIAL PRIMARY KEY,
+      employee_id BIGINT NOT NULL,
+      matricule VARCHAR(50) NOT NULL,
+      nom_complet VARCHAR(255) NOT NULL,
+      poste VARCHAR(100),
+      departement VARCHAR(100),
+      cin VARCHAR(50),
+      cnss VARCHAR(50),
+      periode_mois INT NOT NULL,
+      periode_annee INT NOT NULL,
+      date_paie VARCHAR(50) NOT NULL,
+      date_virement VARCHAR(50),
+      salaire_base NUMERIC(15, 2) DEFAULT 0.00,
+      primes NUMERIC(15, 2) DEFAULT 0.00,
+      heures_sup NUMERIC(15, 2) DEFAULT 0.00,
+      indemnites_non_imposables NUMERIC(15, 2) DEFAULT 0.00,
+      salaire_brut NUMERIC(15, 2) DEFAULT 0.00,
+      base_cnss NUMERIC(15, 2) DEFAULT 0.00,
+      cotis_cnss_salariale NUMERIC(15, 2) DEFAULT 0.00,
+      cotis_amo_salariale NUMERIC(15, 2) DEFAULT 0.00,
+      cotis_cimr_salariale NUMERIC(15, 2) DEFAULT 0.00,
+      total_cotis_salariales NUMERIC(15, 2) DEFAULT 0.00,
+      frais_professionnels NUMERIC(15, 2) DEFAULT 0.00,
+      salaire_net_imposable NUMERIC(15, 2) DEFAULT 0.00,
+      ir_brut NUMERIC(15, 2) DEFAULT 0.00,
+      deduction_charges_famille NUMERIC(15, 2) DEFAULT 0.00,
+      ir_net NUMERIC(15, 2) DEFAULT 0.00,
+      total_retenues NUMERIC(15, 2) DEFAULT 0.00,
+      avances_acomptes NUMERIC(15, 2) DEFAULT 0.00,
+      salaire_net NUMERIC(15, 2) DEFAULT 0.00,
+      charges_patronales_cnss NUMERIC(15, 2) DEFAULT 0.00,
+      charges_patronales_alloc_fam NUMERIC(15, 2) DEFAULT 0.00,
+      charges_patronales_amo NUMERIC(15, 2) DEFAULT 0.00,
+      charges_patronales_fp NUMERIC(15, 2) DEFAULT 0.00,
+      charges_patronales_cimr NUMERIC(15, 2) DEFAULT 0.00,
+      total_charges_patronales NUMERIC(15, 2) DEFAULT 0.00,
+      cout_total_employeur NUMERIC(15, 2) DEFAULT 0.00,
+      statut VARCHAR(50) DEFAULT 'brouillon',
+      comptabilise BOOLEAN DEFAULT false,
+      journal_entry_id BIGINT,
+      created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+    );
+  `;
+
+  await sql`
+    CREATE TABLE IF NOT EXISTS leaves (
+      id SERIAL PRIMARY KEY,
+      employee_id BIGINT NOT NULL,
+      employee_name VARCHAR(255) NOT NULL,
+      type VARCHAR(50) DEFAULT 'annuel',
+      date_debut VARCHAR(50) NOT NULL,
+      date_fin VARCHAR(50) NOT NULL,
+      jours INT DEFAULT 1,
+      motif TEXT,
+      statut VARCHAR(50) DEFAULT 'en_attente',
+      created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+    );
+  `;
+
+  // 15. Fabrication & Production (Manufacturing)
+  await sql`
+    CREATE TABLE IF NOT EXISTS boms (
+      id SERIAL PRIMARY KEY,
+      code VARCHAR(50) NOT NULL UNIQUE,
+      nom VARCHAR(255) NOT NULL,
+      produit_fini_id BIGINT,
+      produit_fini_nom VARCHAR(255) NOT NULL,
+      quantite_produite NUMERIC(15, 3) DEFAULT 1.000,
+      unite VARCHAR(50) DEFAULT 'Pce',
+      composants JSONB NOT NULL DEFAULT '[]'::jsonb,
+      cout_matieres_estime NUMERIC(15, 2) DEFAULT 0.00,
+      cout_main_oeuvre_estime NUMERIC(15, 2) DEFAULT 0.00,
+      frais_generaux_estime NUMERIC(15, 2) DEFAULT 0.00,
+      cout_revient_unitaire NUMERIC(15, 2) DEFAULT 0.00,
+      actif BOOLEAN DEFAULT true,
+      version VARCHAR(20) DEFAULT '1.0',
+      notes TEXT,
+      created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+    );
+  `;
+
+  await sql`
+    CREATE TABLE IF NOT EXISTS production_orders (
+      id SERIAL PRIMARY KEY,
+      numero VARCHAR(100) NOT NULL UNIQUE,
+      bom_id BIGINT,
+      bom_nom VARCHAR(255),
+      produit_fini_id BIGINT,
+      produit_fini_nom VARCHAR(255) NOT NULL,
+      quantite_prevue NUMERIC(15, 3) DEFAULT 1.000,
+      quantite_reelle NUMERIC(15, 3) DEFAULT 1.000,
+      unite VARCHAR(50) DEFAULT 'Pce',
+      date_lancement VARCHAR(50) NOT NULL,
+      date_prevue_fin VARCHAR(50),
+      date_cloture VARCHAR(50),
+      responsable VARCHAR(100) DEFAULT 'Chef d’atelier',
+      atelier VARCHAR(100) DEFAULT 'Atelier Principal',
+      status VARCHAR(50) DEFAULT 'confirme',
+      composants_consommes JSONB NOT NULL DEFAULT '[]'::jsonb,
+      cout_matieres NUMERIC(15, 2) DEFAULT 0.00,
+      cout_main_oeuvre NUMERIC(15, 2) DEFAULT 0.00,
+      cout_machines_ateliers NUMERIC(15, 2) DEFAULT 0.00,
+      cout_total_production NUMERIC(15, 2) DEFAULT 0.00,
+      cout_revient_unitaire NUMERIC(15, 2) DEFAULT 0.00,
+      stock_destocke BOOLEAN DEFAULT false,
+      stock_entre BOOLEAN DEFAULT false,
+      comptabilise BOOLEAN DEFAULT false,
+      journal_entry_id BIGINT,
+      notes TEXT,
+      created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+    );
+  `;
+
   // Indexes for the frequent list, filter and document-line lookups. They are
   // idempotent and also repair databases that were created before these
   // indexes were added.
@@ -1273,21 +1685,23 @@ export async function initNeonPostgresSchema(customUrl?: string) {
     console.warn(`Notice création index (${statement}):`, err?.message || err);
   })));
 
-  // Check if company_info is empty, if so insert default Verde Orto company info
+  // Check if company_info is empty, if so insert default Agro-Atlas Casablanca company info
   try {
     const existingCompany: any = await sql`SELECT count(*) as count FROM company_info;`;
     const count = parseInt(existingCompany?.[0]?.count || '0', 10);
     if (count === 0) {
       await sql`
         INSERT INTO company_info (
-          nom, forme_juridique, capital, adresse, code_postal, ville, pays,
-          telephone, email, ice, if_fiscal, rc, cnss, patente, banque, rib
+          nom, forme_juridique, capital, adresse, adresse_detail, code_postal, ville, pays,
+          telephone, email, ice, if_fiscal, rc, cnss, patente, banque, rib, logo_titre, logo_sous_titre
         ) VALUES (
-          'VERDEORTO SARL AU', 'SARL AU', '100 000,00',
-          'Avenue Al Mouqaouama, Quartier Ain Merroudi, Résidence DaVinci, Bloc F, Magasin N°20',
-          '40000', 'Marrakech', 'Maroc', '0808551156 / 0678301643', 'verdeorto@gmail.com',
-          '000194441000024', '3381764', '35265', '7788302', '46201837',
-          'Banque Populaire', '145 450 21211 2604506 000 4 11'
+          'AGRO-ATLAS CASABLANCA SARL', 'SARL', '1 500 000,00',
+          '148 Boulevard Sidi Mohamed Ben Abdellah, Zone Industrielle Ain Sebaâ',
+          'Parc Industriel Al Manar, Bâtiment C3',
+          '20250', 'Casablanca', 'Maroc', '05 22 35 40 80 / 05 22 35 40 81', 'contact@agroatlas-casa.ma',
+          '001894523000088', '40285912', '184920', '8492015', '36194025',
+          'Attijariwafa Bank - Agence Casablanca Sidi Maârouf', '007 780 0001234567890123 44',
+          'AGRO-ATLAS', 'Transformation & Distribution Agroalimentaire'
         );
       `;
     }
@@ -1310,17 +1724,20 @@ export async function initNeonPostgresSchema(customUrl?: string) {
     }
   } catch (_) {}
 
-  // Create the initial administrator only when explicit bootstrap credentials are configured.
+  // Create the initial administrator with credentials configured or defaults
   try {
-    const initialAdminPassword = process.env.INITIAL_ADMIN_PASSWORD;
-    const initialAdminPin = process.env.INITIAL_ADMIN_PIN;
-    if (initialAdminPassword && initialAdminPin) {
-      await sql`
-        INSERT INTO app_users (id, username, nom_complet, email, role, pin_code, mot_de_passe, avatar, statut)
-        VALUES (1, 'admin', 'Administrateur Principal', 'admin@verdeorto.ma', 'ADMIN', ${initialAdminPin}, ${initialAdminPassword}, 'AD', 1)
-        ON CONFLICT (id) DO NOTHING;
-      `;
-    }
+    const initialAdminPassword = process.env.INITIAL_ADMIN_PASSWORD || 'admin123';
+    const initialAdminPin = process.env.INITIAL_ADMIN_PIN || '1234';
+    await sql`
+      INSERT INTO app_users (id, username, nom_complet, email, role, pin_code, mot_de_passe, avatar, statut)
+      VALUES (1, 'admin', 'Administrateur Principal AZULERP', 'admin@azulerp.ma', 'ADMIN', ${initialAdminPin}, ${initialAdminPassword}, 'AD', 1)
+      ON CONFLICT (id) DO UPDATE SET
+        mot_de_passe = EXCLUDED.mot_de_passe,
+        pin_code = EXCLUDED.pin_code,
+        nom_complet = EXCLUDED.nom_complet,
+        email = EXCLUDED.email,
+        statut = 1;
+    `;
   } catch (err) {
     console.warn('Notice seeding users:', err);
   }
@@ -1449,9 +1866,9 @@ export async function importDataToNeon(params: {
             banque, rib, logo_titre, logo_sous_titre, logo_mode, logo_placement
           ) VALUES (
             1,
-            ${company.nom || 'VERDEORTO SARL AU'},
-            ${company.forme_juridique || 'SARL AU'},
-            ${company.capital || '100 000,00'},
+            ${company.nom || 'AGRO-ATLAS CASABLANCA SARL'},
+            ${company.forme_juridique || 'SARL'},
+            ${company.capital || '1 500 000,00'},
             ${company.adresse || ''},
             ${company.code_postal || '40000'},
             ${company.ville || 'Marrakech'},
@@ -2065,9 +2482,9 @@ export async function importBatchToNeon(params: {
               banque, rib, logo_titre, logo_sous_titre, logo_mode, logo_placement
             ) VALUES (
               1,
-              ${company.nom || 'VERDEORTO SARL AU'},
-              ${company.forme_juridique || 'SARL AU'},
-              ${company.capital || '100 000,00'},
+              ${company.nom || 'AGRO-ATLAS CASABLANCA SARL'},
+              ${company.forme_juridique || 'SARL'},
+              ${company.capital || '1 500 000,00'},
               ${company.adresse || ''},
               ${company.code_postal || '40000'},
               ${company.ville || 'Marrakech'},

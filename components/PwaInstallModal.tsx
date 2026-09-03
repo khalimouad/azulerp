@@ -127,7 +127,7 @@ export const PwaInstallModal: React.FC<PwaInstallModalProps> = ({
               </div>
               <div className="flex-1">
                 <p className="text-slate-200 font-semibold">
-                  Touchez <strong className="text-emerald-400">"Ajouter"</strong> en haut à droite. L'icône <strong className="text-white">Verde Orto POS</strong> apparaîtra sur votre écran d'accueil d'iPad !
+                  Touchez <strong className="text-emerald-400">"Ajouter"</strong> en haut à droite. L'icône <strong className="text-white">AZULERP</strong> apparaîtra sur votre écran d'accueil d'iPad !
                 </p>
               </div>
             </div>
