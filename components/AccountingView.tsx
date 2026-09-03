@@ -205,7 +205,7 @@ export function AccountingView({
       status: 'valide',
       total_debit: Math.round(totalD * 100) / 100,
       total_credit: Math.round(totalC * 100) / 100,
-      source_type: 'MANUEL',
+      source_type: 'manuel',
       lines: (newEntry.lines || []).map((l, i) => ({
         id: i + 1,
         compte_code: l.compte_code,
