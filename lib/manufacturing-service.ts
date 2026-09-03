@@ -199,22 +199,24 @@ export function completeProductionOrder(
   order.composants_consommes.forEach(comp => {
     movements.push({
       date: today,
-      type_mouvement: 'Sortie',
+      type: 'SORTIE_BL',
       motif: `Consommation production - ${order.numero}`,
       quantite: comp.quantite_reelle,
-      reference_document: order.numero,
-      designation: comp.produit_nom,
+      reference_doc: order.numero,
+      produit_id: comp.produit_id || 0,
+      produit_nom: comp.produit_nom,
     });
   });
 
   // Entrée produit fini
   movements.push({
     date: today,
-    type_mouvement: 'Entree',
+    type: 'ENTREE',
     motif: `Fabrication achevée - ${order.numero}`,
     quantite: order.quantite_reelle || order.quantite_prevue,
-    reference_document: order.numero,
-    designation: order.produit_fini_nom,
+    reference_doc: order.numero,
+    produit_id: order.produit_fini_id || 0,
+    produit_nom: order.produit_fini_nom,
   });
 
   const updatedOrder: ProductionOrder = {
