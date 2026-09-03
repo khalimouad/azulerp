@@ -67,7 +67,12 @@ export const AuthView: React.FC<AuthViewProps> = ({ onLoginSuccess }) => {
             {loading ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <><Lock className="w-4 h-4" /><span>Se connecter</span><ArrowRight className="w-4 h-4" /></>}
           </button>
         </form>
-        <p className="text-center text-[10px] text-slate-500">Le code PIN est disponible uniquement pour déverrouiller une session déjà authentifiée.</p>
+        <div className="pt-2 text-center space-y-1">
+          <p className="text-[11px] text-slate-400">
+            Identifiants par défaut : <span className="text-emerald-400 font-mono font-bold">admin</span> / <span className="text-emerald-400 font-mono font-bold">admin123</span>
+          </p>
+          <p className="text-[10px] text-slate-500">Le code PIN est disponible uniquement pour déverrouiller une session déjà authentifiée.</p>
+        </div>
       </div>
     </div>
   );
