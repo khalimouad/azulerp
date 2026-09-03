@@ -208,7 +208,16 @@ export async function POST(req: NextRequest) {
             posVentesLignesRes,
             usersRes,
             facturesFournisseursRes,
-            paiementsFournisseursRes
+            paiementsFournisseursRes,
+            chartOfAccountsRes,
+            accountingJournalsRes,
+            journalEntriesRes,
+            fixedAssetsRes,
+            employeesRes,
+            payrollsRes,
+            leavesRes,
+            bomsRes,
+            productionOrdersRes
           ] = await Promise.all([
             sql`SELECT * FROM company_info LIMIT 1;`.catch(() => []),
             sql`SELECT * FROM clients ORDER BY nom ASC;`.catch(() => []),
