@@ -724,6 +724,7 @@ export interface Employee {
   situation_familiale: FamilyStatus;
   nombre_enfants: number;
   has_cimr: boolean;
+  taux_cimr?: number;
   rib?: string;
   banque?: string;
   telephone?: string;

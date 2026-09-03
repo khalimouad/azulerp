@@ -2289,8 +2289,8 @@ export async function POST(req: NextRequest) {
             // Collaborateurs RH
             for (const emp of casaData.employees) {
               await sql`
-                INSERT INTO employees (id, matricule, nom, prenom, nom_complet, cin, cnss, departement, poste, date_embauche, type_contrat, salaire_base, situation_familiale, nombre_enfants, has_cimr, taux_cimr, banque, rib, statut)
-                VALUES (${emp.id}, ${emp.matricule}, ${emp.nom}, ${emp.prenom}, ${emp.nom_complet}, ${emp.cin}, ${emp.cnss || ''}, ${emp.departement}, ${emp.poste}, ${emp.date_embauche}, ${emp.type_contrat}, ${num(emp.salaire_base)}, ${emp.situation_familiale}, ${emp.nombre_enfants || 0}, ${emp.has_cimr || false}, ${num(emp.taux_cimr)}, ${emp.banque || ''}, ${emp.rib || ''}, ${emp.statut || 'actif'})
+                INSERT INTO employees (id, matricule, nom, prenom, cin, cnss, departement, poste, date_embauche, type_contrat, salaire_base, situation_familiale, nombre_enfants, has_cimr, banque, rib, statut)
+                VALUES (${emp.id}, ${emp.matricule}, ${emp.nom}, ${emp.prenom}, ${emp.cin}, ${emp.cnss || ''}, ${emp.departement}, ${emp.poste}, ${emp.date_embauche}, ${emp.type_contrat}, ${num(emp.salaire_base)}, ${emp.situation_familiale}, ${emp.nombre_enfants || 0}, ${emp.has_cimr || false}, ${emp.banque || ''}, ${emp.rib || ''}, ${emp.statut || 'actif'})
                 ON CONFLICT (matricule) DO UPDATE SET salaire_base = EXCLUDED.salaire_base;
               `;
             }
