@@ -163,9 +163,9 @@ export function formatAccountLabel(code: string): string {
  * Crédit 4455 (TVA Facturée)
  */
 export function generateSalesInvoiceJournalEntry(facture: Facture): JournalEntry {
-  const ttc = Number(facture.montant_ttc) || 0;
-  const ht = Number(facture.montant_ht) || (ttc / 1.2);
-  const tva = Number(facture.montant_tva) || (ttc - ht);
+  const ttc = Number(facture.total_ttc ?? (facture as any).montant_ttc) || 0;
+  const ht = Number(facture.total_ht ?? (facture as any).montant_ht) || (ttc / 1.2);
+  const tva = Number(facture.total_tva ?? (facture as any).montant_tva) || (ttc - ht);
 
   const lines: JournalEntryLine[] = [
     {
