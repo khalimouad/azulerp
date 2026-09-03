@@ -226,32 +226,32 @@ export const BonsLivraisonView: React.FC<BonsLivraisonViewProps> = ({
 
       {/* Floating Selection & Addition Banner */}
       {selectedBlIds.length > 0 && (
-        <div className="bg-indigo-950 text-white p-3 sm:p-4 rounded-xl shadow-md border border-indigo-800 flex flex-wrap items-center justify-between gap-3 animate-in fade-in slide-in-from-top-2">
-          <div className="flex items-center gap-3">
-            <span className="p-2 rounded-lg bg-indigo-800 text-indigo-200">
+        <div className="sticky bottom-16 lg:bottom-4 z-20 bg-indigo-950 text-white p-3 sm:p-4 rounded-xl shadow-xl border border-indigo-700 flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in slide-in-from-bottom-2">
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            <span className="p-2 rounded-lg bg-indigo-800 text-indigo-200 shrink-0">
               <CheckSquare className="w-5 h-5" />
             </span>
-            <div>
-              <div className="text-xs font-bold flex items-center gap-2">
-                <span>{selectedBlIds.length} bon(s) de livraison sélectionné(s)</span>
+            <div className="min-w-0">
+              <div className="text-xs font-bold flex flex-wrap items-center gap-1.5 sm:gap-2">
+                <span>{selectedBlIds.length} BL sélectionné{selectedBlIds.length > 1 ? 's' : ''}</span>
                 {selectedBlsObjects[0] && (
-                  <span className="px-2 py-0.5 rounded bg-indigo-800/80 text-indigo-200 font-medium">
+                  <span className="px-2 py-0.5 rounded bg-indigo-800/80 text-indigo-200 font-medium truncate max-w-[200px]">
                     Client : {selectedBlsObjects[0].client_nom}
                   </span>
                 )}
               </div>
-              <div className="text-xs text-indigo-300 font-mono mt-0.5">
-                Total HT : <span className="font-semibold text-slate-200">{formatCurrency(selectedBlsTotals.totalHt, false)}</span> + TVA : <span className="font-semibold text-slate-200">{formatCurrency(selectedBlsTotals.totalTva, false)}</span> = <span className="font-extrabold text-emerald-400 text-sm">TTC : {formatCurrency(selectedBlsTotals.totalTtc)}</span>
+              <div className="text-xs text-indigo-300 font-mono mt-0.5 truncate">
+                Total : <span className="font-extrabold text-emerald-400 text-sm">{formatCurrency(selectedBlsTotals.totalTtc)}</span>
               </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={() => setSelectedBlIds([])}
               className="px-3 py-1.5 text-xs text-indigo-200 hover:text-white hover:bg-indigo-900 rounded-lg transition"
             >
-              Désélectionner tout
+              Désélectionner
             </button>
             <button
               onClick={() => {
@@ -262,10 +262,10 @@ export const BonsLivraisonView: React.FC<BonsLivraisonViewProps> = ({
                 onBatchInvoiceSelected(selectedBlIds);
               }}
               disabled={!isSingleClientSelected}
-              className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white shadow transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white shadow transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <FileText className="w-4 h-4" />
-              <span>Générer Facture ({formatCurrency(selectedBlsTotals.totalTtc)})</span>
+              <span>Générer Facture</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -274,10 +274,10 @@ export const BonsLivraisonView: React.FC<BonsLivraisonViewProps> = ({
 
       {/* Filter Tabs, Date Range & Search Bar */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 bg-white p-3 rounded-xl border border-slate-200 shadow-xs">
-        <div className="flex flex-wrap items-center gap-1.5 text-xs">
+        <div className="flex items-center gap-1.5 text-xs overflow-x-auto pb-1 lg:pb-0 scrollbar-none whitespace-nowrap">
           <button
             onClick={() => setFilterStatut('ALL')}
-            className={`px-3 py-1.5 rounded-lg font-medium transition ${
+            className={`px-3 py-1.5 rounded-lg font-medium transition shrink-0 ${
               filterStatut === 'ALL'
                 ? 'bg-slate-900 text-white shadow-xs'
                 : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200'
@@ -287,7 +287,7 @@ export const BonsLivraisonView: React.FC<BonsLivraisonViewProps> = ({
           </button>
           <button
             onClick={() => setFilterStatut('VALIDE')}
-            className={`px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1.5 ${
+            className={`px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1.5 shrink-0 ${
               filterStatut === 'VALIDE'
                 ? 'bg-emerald-600 text-white shadow-xs'
                 : 'bg-white text-emerald-700 hover:bg-emerald-50 border border-emerald-200'
@@ -298,7 +298,7 @@ export const BonsLivraisonView: React.FC<BonsLivraisonViewProps> = ({
           </button>
           <button
             onClick={() => setFilterStatut('BROUILLON')}
-            className={`px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1.5 ${
+            className={`px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1.5 shrink-0 ${
               filterStatut === 'BROUILLON'
                 ? 'bg-slate-700 text-white shadow-xs'
                 : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-300'
@@ -309,7 +309,7 @@ export const BonsLivraisonView: React.FC<BonsLivraisonViewProps> = ({
           </button>
           <button
             onClick={() => setFilterStatut('ANNULE')}
-            className={`px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1.5 ${
+            className={`px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1.5 shrink-0 ${
               filterStatut === 'ANNULE'
                 ? 'bg-rose-600 text-white shadow-xs'
                 : 'bg-white text-rose-700 hover:bg-rose-50 border border-rose-200'
@@ -320,14 +320,14 @@ export const BonsLivraisonView: React.FC<BonsLivraisonViewProps> = ({
           </button>
           <button
             onClick={() => setFilterStatut('ATTENTE')}
-            className={`px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1.5 ${
+            className={`px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1.5 shrink-0 ${
               filterStatut === 'ATTENTE'
                 ? 'bg-amber-500 text-white shadow-xs'
                 : 'bg-white text-amber-700 hover:bg-amber-50 border border-amber-200'
             }`}
           >
             <Clock className="w-3.5 h-3.5" />
-            En attente de facturation ({counts.attente})
+            En attente ({counts.attente})
           </button>
         </div>
 
@@ -361,8 +361,244 @@ export const BonsLivraisonView: React.FC<BonsLivraisonViewProps> = ({
         </div>
       )}
 
-      {/* Table */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
+      {/* ========================================================================= */}
+      {/* 1. MOBILE CARD LIST (Smartphone View - block md:hidden) */}
+      {/* ========================================================================= */}
+      <div className="block md:hidden space-y-3">
+        {isLoading ? (
+          <div className="bg-white p-12 rounded-xl border border-slate-200 text-center text-slate-500 flex flex-col items-center justify-center gap-2">
+            <Loader2 className="w-7 h-7 text-emerald-600 animate-spin" />
+            <span className="text-sm font-medium text-slate-700">Chargement des bons de livraison...</span>
+          </div>
+        ) : filteredBls.length === 0 ? (
+          <div className="bg-white p-8 rounded-xl border border-slate-200 text-center text-slate-400 text-sm">
+            Aucun Bon de Livraison trouvé.
+          </div>
+        ) : (
+          paginatedBls.map((bl) => {
+            const isSelected = selectedBlIds.includes(bl.id);
+            const etat: DocumentState = bl.etat || 'Validé';
+            const isBrouillon = etat === 'Brouillon';
+            const isAnnule = etat === 'Annulé';
+            const isValide = !isBrouillon && !isAnnule;
+            const isInvoiced = Boolean(bl.facture_id || bl.facture_numero);
+            const isAttente = isValide && !isInvoiced;
+
+            return (
+              <div
+                key={bl.id}
+                className={`bg-white rounded-xl border transition shadow-xs overflow-hidden ${
+                  isSelected
+                    ? 'border-indigo-500 ring-2 ring-indigo-500/20 bg-indigo-50/20'
+                    : isAnnule
+                    ? 'border-rose-200 bg-rose-50/10'
+                    : isBrouillon
+                    ? 'border-slate-300 bg-slate-50/40'
+                    : 'border-slate-200 hover:border-emerald-300'
+                }`}
+              >
+                {/* Mobile Card Top: Selection Checkbox + N° + Date + État Badge */}
+                <div className="p-3 bg-slate-50/80 border-b border-slate-100 flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 min-w-0">
+                    {isAttente && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleSelectBl(bl.id);
+                        }}
+                        className="min-w-[36px] min-h-[36px] flex items-center justify-center -ml-1 text-indigo-600 rounded-lg active:bg-indigo-100 touch-manipulation"
+                        aria-label="Sélectionner le BL"
+                      >
+                        {isSelected ? (
+                          <CheckSquare className="w-5 h-5 text-indigo-600" />
+                        ) : (
+                          <Square className="w-5 h-5 text-slate-400" />
+                        )}
+                      </button>
+                    )}
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <span className={`font-mono font-bold text-sm text-slate-900 ${isAnnule ? 'line-through text-slate-400' : ''}`}>
+                          {bl.numero}
+                        </span>
+                      </div>
+                      <div className="text-[11px] text-slate-500 flex items-center gap-1">
+                        <span>{formatDate(bl.date)}</span>
+                        {bl.lignes && bl.lignes.length > 0 && (
+                          <>
+                            <span>•</span>
+                            <span>{bl.lignes.length} article{bl.lignes.length > 1 ? 's' : ''}</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    {isValide && (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                        Validé
+                      </span>
+                    )}
+                    {isBrouillon && (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-300">
+                        Brouillon
+                      </span>
+                    )}
+                    {isAnnule && (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-300">
+                        Annulé
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Mobile Card Body: Client Name & Financial Totals */}
+                <div
+                  className="p-3.5 space-y-2 cursor-pointer active:bg-slate-50 transition"
+                  onClick={() => onViewBl(bl)}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <span className="text-[10px] uppercase font-bold text-slate-400">Client</span>
+                      <div className="font-bold text-slate-900 text-sm truncate">{bl.client_nom}</div>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <span className="text-[10px] uppercase font-bold text-slate-400">Total TTC</span>
+                      <div className="font-mono font-black text-emerald-700 text-base">
+                        {formatCurrency(bl.total_ttc)}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between text-xs pt-2 border-t border-slate-100 text-slate-500">
+                    <div className="font-mono text-[11px]">
+                      HT: <span className="font-semibold text-slate-700">{formatCurrency(bl.total_ht, false)}</span> • TVA: <span className="font-semibold text-slate-700">{formatCurrency(bl.total_tva, false)}</span>
+                    </div>
+                    <div>
+                      {isValide ? (
+                        isInvoiced ? (
+                          <span className="font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded text-[10px] border border-emerald-200">
+                            {bl.facture_numero ? bl.facture_numero : 'Facturé'}
+                          </span>
+                        ) : (
+                          <span className="text-amber-800 bg-amber-50 px-2 py-0.5 rounded text-[10px] font-bold border border-amber-200">
+                            ⏳ En attente facturation
+                          </span>
+                        )
+                      ) : (
+                        <span className="text-slate-400 italic text-[10px]">{isAnnule ? 'Annulé' : 'Brouillon'}</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Mobile Card Bottom: Action Buttons */}
+                <div className="bg-slate-50/90 px-3 py-2 border-t border-slate-100 flex items-center justify-between gap-1">
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => onViewBl(bl)}
+                      className="flex items-center gap-1 px-3 min-h-[36px] rounded-lg text-xs font-semibold bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 shadow-2xs transition active:scale-95 touch-manipulation"
+                    >
+                      <Eye className="w-4 h-4 text-emerald-600" />
+                      <span>Aperçu</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => generateBlPdf(bl, company)}
+                      className="flex items-center gap-1 px-2.5 min-h-[36px] rounded-lg text-xs font-semibold bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 shadow-2xs transition active:scale-95 touch-manipulation"
+                      title="Télécharger PDF"
+                    >
+                      <Printer className="w-4 h-4 text-slate-600" />
+                      <span>PDF</span>
+                    </button>
+                  </div>
+
+                  <div className="flex items-center gap-1">
+                    {isBrouillon && onEditBl && (
+                      <button
+                        type="button"
+                        onClick={() => onEditBl(bl)}
+                        className="flex items-center gap-1 px-2.5 min-h-[36px] rounded-lg text-xs font-semibold bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 transition active:scale-95 touch-manipulation"
+                      >
+                        <Edit className="w-3.5 h-3.5" />
+                        <span>Modifier</span>
+                      </button>
+                    )}
+
+                    {isBrouillon && onUpdateBlState && (
+                      <button
+                        type="button"
+                        onClick={() => onUpdateBlState(bl.id, 'Validé')}
+                        className="min-h-[36px] px-2.5 flex items-center justify-center rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-2xs transition active:scale-95 touch-manipulation"
+                        title="Valider le BL"
+                      >
+                        <CheckCircle2 className="w-4 h-4" />
+                      </button>
+                    )}
+
+                    {isValide && onUpdateBlState && (
+                      <button
+                        type="button"
+                        onClick={() => onUpdateBlState(bl.id, 'Annulé')}
+                        className="min-h-[36px] px-2.5 flex items-center justify-center rounded-lg text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-100 transition active:scale-95 touch-manipulation"
+                        title="Annuler le BL"
+                      >
+                        <Ban className="w-4 h-4" />
+                      </button>
+                    )}
+
+                    {isAnnule && onUpdateBlState && (
+                      <button
+                        type="button"
+                        onClick={() => onUpdateBlState(bl.id, 'Brouillon')}
+                        className="min-h-[36px] px-2 flex items-center justify-center rounded-lg text-xs font-bold bg-slate-100 text-slate-700 border border-slate-300 hover:bg-slate-200 transition active:scale-95 touch-manipulation"
+                        title="Remettre en brouillon"
+                      >
+                        <RotateCcw className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (confirm(`Supprimer définitivement le bon de livraison ${bl.numero} ?`)) {
+                          onDeleteBl(bl.id);
+                        }
+                      }}
+                      className="min-h-[36px] min-w-[36px] flex items-center justify-center rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition active:scale-95 touch-manipulation"
+                      title="Supprimer"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          })
+        )}
+
+        {/* Mobile Summary Box */}
+        {filteredBls.length > 0 && (
+          <div className="bg-slate-900 text-white p-3.5 rounded-xl shadow-xs text-xs flex items-center justify-between font-mono">
+            <div>
+              <div className="text-[10px] text-slate-400 font-sans uppercase">Total affiché ({filteredBls.length} BLs)</div>
+              <div className="font-extrabold text-emerald-400 text-base">{formatCurrency(totals.totalTtc)}</div>
+            </div>
+            <div className="text-right text-[11px] text-slate-300">
+              <div>HT: {formatCurrency(totals.totalHt, false)}</div>
+              <div>TVA: {formatCurrency(totals.totalTva, false)}</div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ========================================================================= */}
+      {/* 2. DESKTOP TABLE (hidden on mobile - hidden md:block) */}
+      {/* ========================================================================= */}
+      <div className="hidden md:block bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs border-collapse">
             <thead>
@@ -638,20 +874,22 @@ export const BonsLivraisonView: React.FC<BonsLivraisonViewProps> = ({
               </tr>
             </tfoot>
           </table>
-
-          {/* Table Pagination */}
-          <TablePagination
-            currentPage={currentPage}
-            pageSize={pageSize}
-            totalItems={filteredBls.length}
-            onPageChange={setCurrentPage}
-            onPageSizeChange={(newSize) => {
-              setPageSize(newSize);
-              setCurrentPage(1);
-            }}
-            itemLabel="bons de livraison"
-          />
         </div>
+      </div>
+
+      {/* Shared Pagination (Works for both Mobile Cards and Desktop Table) */}
+      <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
+        <TablePagination
+          currentPage={currentPage}
+          pageSize={pageSize}
+          totalItems={filteredBls.length}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={(newSize) => {
+            setPageSize(newSize);
+            setCurrentPage(1);
+          }}
+          itemLabel="bons de livraison"
+        />
       </div>
     </div>
   );

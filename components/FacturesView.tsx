@@ -185,15 +185,42 @@ export const FacturesView: React.FC<FacturesViewProps> = ({
         </div>
       </div>
 
+      {/* Mobile Financial Summary Strip */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 md:hidden">
+        <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-xs">
+          <span className="text-[10px] uppercase font-bold text-slate-400">Total Facturé</span>
+          <div className="text-sm font-mono font-black text-slate-900 mt-0.5">
+            {formatCurrency(totals.totalTtc)}
+          </div>
+          <span className="text-[10px] text-slate-400">{filteredFactures.length} factures</span>
+        </div>
+        <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-xs">
+          <span className="text-[10px] uppercase font-bold text-emerald-600">Total Encaissé</span>
+          <div className="text-sm font-mono font-black text-emerald-700 mt-0.5">
+            {formatCurrency(totals.montantRegle)}
+          </div>
+          <span className="text-[10px] text-emerald-600 font-medium">
+            {totals.totalTtc > 0 ? ((totals.montantRegle / totals.totalTtc) * 100).toFixed(0) : '0'}% recouvré
+          </span>
+        </div>
+        <div className="bg-white p-3 rounded-xl border border-rose-100 bg-rose-50/20 shadow-xs col-span-2 sm:col-span-1">
+          <span className="text-[10px] uppercase font-bold text-rose-700">Reste à Recouvrer</span>
+          <div className="text-sm font-mono font-black text-rose-700 mt-0.5">
+            {formatCurrency(totals.restePayer)}
+          </div>
+          <span className="text-[10px] text-rose-600 font-medium">Créances clients</span>
+        </div>
+      </div>
+
       {/* Filter Tabs: Document State & Payment Status & Date Range */}
       <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-3 bg-white p-3 rounded-xl border border-slate-200 shadow-xs">
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-col md:flex-row md:items-center gap-2.5">
           {/* State tabs */}
-          <div className="flex flex-wrap items-center gap-1.5 text-xs">
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mr-1">État :</span>
+          <div className="flex items-center gap-1.5 text-xs overflow-x-auto pb-1 md:pb-0 scrollbar-none whitespace-nowrap">
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mr-1 shrink-0">État :</span>
             <button
               onClick={() => setFilterEtat('ALL')}
-              className={`px-2.5 py-1.5 rounded-lg font-medium transition ${
+              className={`px-2.5 py-1.5 rounded-lg font-medium transition shrink-0 ${
                 filterEtat === 'ALL'
                   ? 'bg-slate-900 text-white shadow-xs'
                   : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200'
@@ -203,7 +230,7 @@ export const FacturesView: React.FC<FacturesViewProps> = ({
             </button>
             <button
               onClick={() => setFilterEtat('VALIDE')}
-              className={`px-2.5 py-1.5 rounded-lg font-medium transition flex items-center gap-1 ${
+              className={`px-2.5 py-1.5 rounded-lg font-medium transition flex items-center gap-1 shrink-0 ${
                 filterEtat === 'VALIDE'
                   ? 'bg-emerald-600 text-white shadow-xs'
                   : 'bg-white text-emerald-700 hover:bg-emerald-50 border border-emerald-200'
@@ -214,7 +241,7 @@ export const FacturesView: React.FC<FacturesViewProps> = ({
             </button>
             <button
               onClick={() => setFilterEtat('BROUILLON')}
-              className={`px-2.5 py-1.5 rounded-lg font-medium transition flex items-center gap-1 ${
+              className={`px-2.5 py-1.5 rounded-lg font-medium transition flex items-center gap-1 shrink-0 ${
                 filterEtat === 'BROUILLON'
                   ? 'bg-slate-700 text-white shadow-xs'
                   : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-300'
@@ -225,7 +252,7 @@ export const FacturesView: React.FC<FacturesViewProps> = ({
             </button>
             <button
               onClick={() => setFilterEtat('ANNULE')}
-              className={`px-2.5 py-1.5 rounded-lg font-medium transition flex items-center gap-1 ${
+              className={`px-2.5 py-1.5 rounded-lg font-medium transition flex items-center gap-1 shrink-0 ${
                 filterEtat === 'ANNULE'
                   ? 'bg-rose-600 text-white shadow-xs'
                   : 'bg-white text-rose-700 hover:bg-rose-50 border border-rose-200'
@@ -237,11 +264,11 @@ export const FacturesView: React.FC<FacturesViewProps> = ({
           </div>
 
           {/* Payment tabs */}
-          <div className="flex flex-wrap items-center gap-1 text-xs border-l border-slate-200 pl-3">
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mr-1">Règlement :</span>
+          <div className="flex items-center gap-1 text-xs border-t md:border-t-0 md:border-l border-slate-200 pt-2 md:pt-0 md:pl-3 overflow-x-auto pb-1 md:pb-0 scrollbar-none whitespace-nowrap">
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mr-1 shrink-0">Règlement :</span>
             <button
               onClick={() => setFilterStatutPaiement('ALL')}
-              className={`px-2 py-1 rounded text-xs transition ${
+              className={`px-2 py-1 rounded text-xs transition shrink-0 ${
                 filterStatutPaiement === 'ALL'
                   ? 'bg-blue-100 text-blue-800 font-bold'
                   : 'text-slate-600 hover:bg-slate-100'
@@ -251,7 +278,7 @@ export const FacturesView: React.FC<FacturesViewProps> = ({
             </button>
             <button
               onClick={() => setFilterStatutPaiement('SOLDE')}
-              className={`px-2 py-1 rounded text-xs transition ${
+              className={`px-2 py-1 rounded text-xs transition shrink-0 ${
                 filterStatutPaiement === 'SOLDE'
                   ? 'bg-emerald-100 text-emerald-800 font-bold'
                   : 'text-slate-600 hover:bg-slate-100'
@@ -261,7 +288,7 @@ export const FacturesView: React.FC<FacturesViewProps> = ({
             </button>
             <button
               onClick={() => setFilterStatutPaiement('PARTIEL')}
-              className={`px-2 py-1 rounded text-xs transition ${
+              className={`px-2 py-1 rounded text-xs transition shrink-0 ${
                 filterStatutPaiement === 'PARTIEL'
                   ? 'bg-purple-100 text-purple-800 font-bold'
                   : 'text-slate-600 hover:bg-slate-100'
@@ -271,7 +298,7 @@ export const FacturesView: React.FC<FacturesViewProps> = ({
             </button>
             <button
               onClick={() => setFilterStatutPaiement('IMPAYE')}
-              className={`px-2 py-1 rounded text-xs transition ${
+              className={`px-2 py-1 rounded text-xs transition shrink-0 ${
                 filterStatutPaiement === 'IMPAYE'
                   ? 'bg-rose-100 text-rose-800 font-bold'
                   : 'text-slate-600 hover:bg-slate-100'
@@ -282,8 +309,8 @@ export const FacturesView: React.FC<FacturesViewProps> = ({
           </div>
         </div>
 
-        {/* Date Range Filter */}
-        <div className="flex items-center">
+        {/* Date Range Filter & Mobile Search Bar */}
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
           <DateRangeFilter
             startDate={filterStartDate}
             endDate={filterEndDate}
@@ -293,11 +320,259 @@ export const FacturesView: React.FC<FacturesViewProps> = ({
             }}
             variant="blue"
           />
+
+          {/* Quick search input on mobile */}
+          <div className="w-full sm:w-52 md:hidden">
+            <input
+              type="text"
+              placeholder="Filtrer N°, Société..."
+              value={filterNum || filterSociete}
+              onChange={(e) => {
+                setFilterNum(e.target.value);
+                setFilterSociete(e.target.value);
+              }}
+              className="w-full px-3 py-1.5 text-xs bg-slate-50 text-slate-800 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
         </div>
       </div>
 
-      {/* Main Grid Table matching WinDev Screenshot */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
+      {/* ========================================================================= */}
+      {/* 1. MOBILE CARD LIST (Smartphone View - block md:hidden) */}
+      {/* ========================================================================= */}
+      <div className="block md:hidden space-y-3">
+        {isLoading ? (
+          <div className="bg-white p-12 rounded-xl border border-slate-200 text-center text-slate-500 flex flex-col items-center justify-center gap-2">
+            <Loader2 className="w-7 h-7 text-blue-600 animate-spin" />
+            <span className="text-sm font-medium text-slate-700">Chargement des factures...</span>
+          </div>
+        ) : filteredFactures.length === 0 ? (
+          <div className="bg-white p-8 rounded-xl border border-slate-200 text-center text-slate-400 text-sm">
+            Aucune facture ne correspond aux critères de recherche.
+          </div>
+        ) : (
+          paginatedFactures.map((facture) => {
+            const isSelected = selectedFactureId === facture.id;
+            const etat: DocumentState = facture.etat || 'Validé';
+            const isValide = etat === 'Validé';
+            const isBrouillon = etat === 'Brouillon';
+            const isAnnule = etat === 'Annulé';
+            const isSolde = facture.statut_paiement === 'Soldé';
+            const isPartiel = facture.statut_paiement === 'Partiel';
+            const isUnpaid = toNumeric(facture.montant_regle) <= 0.009;
+
+            return (
+              <div
+                key={facture.id}
+                className={`bg-white rounded-xl border transition shadow-xs overflow-hidden ${
+                  isAnnule
+                    ? 'border-rose-200 bg-rose-50/10'
+                    : isBrouillon
+                    ? 'border-slate-300 bg-slate-50/40'
+                    : isSelected
+                    ? 'border-blue-500 ring-2 ring-blue-500/20 bg-blue-50/20'
+                    : 'border-slate-200 hover:border-blue-300'
+                }`}
+              >
+                {/* Mobile Card Top Bar */}
+                <div className="p-3 bg-slate-50/80 border-b border-slate-100 flex items-center justify-between gap-2">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <span className={`font-mono font-bold text-sm text-slate-900 ${isAnnule ? 'line-through text-slate-400' : ''}`}>
+                        {facture.numero}
+                      </span>
+                      {facture.bl_associes && facture.bl_associes.length > 0 && (
+                        <span className="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-200">
+                          {facture.bl_associes.length} BLs liés
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-[11px] text-slate-500 mt-0.5">
+                      {formatDate(facture.date)}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    {/* État */}
+                    {isValide && (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                        Validée
+                      </span>
+                    )}
+                    {isBrouillon && (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-300">
+                        Brouillon
+                      </span>
+                    )}
+                    {isAnnule && (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-300">
+                        Annulée
+                      </span>
+                    )}
+
+                    {/* Paiement */}
+                    {isValide && (
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
+                          isSolde
+                            ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                            : isPartiel
+                            ? 'bg-purple-100 text-purple-800 border-purple-300'
+                            : 'bg-rose-100 text-rose-800 border-rose-300'
+                        }`}
+                      >
+                        {facture.statut_paiement || 'Impayé'}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Mobile Card Body: Client Name & Financials */}
+                <div
+                  className="p-3.5 space-y-2 cursor-pointer active:bg-slate-50 transition"
+                  onClick={() => {
+                    setSelectedFactureId(facture.id);
+                    onViewFacture(facture);
+                  }}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <span className="text-[10px] uppercase font-bold text-slate-400">Client / Société</span>
+                      <div className="font-bold text-slate-900 text-sm truncate">{facture.client_nom}</div>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <span className="text-[10px] uppercase font-bold text-slate-400">Total TTC</span>
+                      <div className="font-mono font-black text-slate-950 text-base">
+                        {formatCurrency(facture.total_ttc)}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between text-xs pt-2 border-t border-slate-100 font-mono">
+                    <div className="text-slate-500 text-[11px]">
+                      HT: <span className="font-semibold text-slate-700">{formatCurrency(facture.total_ht, false)}</span> • TVA: <span className="font-semibold text-slate-700">{formatCurrency(facture.total_tva, false)}</span>
+                    </div>
+                    <div className="text-right">
+                      {!isSolde && toNumeric(facture.reste_a_payer) > 0 ? (
+                        <div className="text-rose-600 font-bold text-xs">
+                          Reste: {formatCurrency(facture.reste_a_payer)}
+                        </div>
+                      ) : (
+                        <div className="text-emerald-700 font-semibold text-xs">
+                          Soldée (100%)
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Mobile Card Bottom: Action Buttons */}
+                <div className="bg-slate-50/90 px-3 py-2 border-t border-slate-100 flex items-center justify-between gap-1">
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedFactureId(facture.id);
+                        onViewFacture(facture);
+                      }}
+                      className="flex items-center gap-1 px-3 min-h-[36px] rounded-lg text-xs font-semibold bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 shadow-2xs transition active:scale-95 touch-manipulation"
+                    >
+                      <Eye className="w-4 h-4 text-blue-600" />
+                      <span>Aperçu</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => generateFacturePdf(facture, company)}
+                      className="flex items-center gap-1 px-2.5 min-h-[36px] rounded-lg text-xs font-semibold bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 shadow-2xs transition active:scale-95 touch-manipulation"
+                      title="Télécharger PDF"
+                    >
+                      <Printer className="w-4 h-4 text-slate-600" />
+                      <span>PDF</span>
+                    </button>
+                  </div>
+
+                  <div className="flex items-center gap-1">
+                    {/* Quick Encaisser Button */}
+                    {isValide && !isSolde && (
+                      <button
+                        type="button"
+                        onClick={() => onOpenPaymentModal(facture)}
+                        className="flex items-center gap-1 px-2.5 min-h-[36px] rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-2xs transition active:scale-95 touch-manipulation"
+                        title="Encaisser"
+                      >
+                        <CreditCard className="w-3.5 h-3.5" />
+                        <span>Encaisser</span>
+                      </button>
+                    )}
+
+                    {isBrouillon && onEditFacture && (
+                      <button
+                        type="button"
+                        onClick={() => onEditFacture(facture)}
+                        className="flex items-center gap-1 px-2.5 min-h-[36px] rounded-lg text-xs font-semibold bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 transition active:scale-95 touch-manipulation"
+                      >
+                        <Edit className="w-3.5 h-3.5" />
+                        <span>Modifier</span>
+                      </button>
+                    )}
+
+                    {isBrouillon && onUpdateFactureState && (
+                      <button
+                        type="button"
+                        onClick={() => onUpdateFactureState(facture.id, 'Validé')}
+                        className="min-h-[36px] px-2.5 flex items-center justify-center rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-2xs transition active:scale-95 touch-manipulation"
+                        title="Valider la facture"
+                      >
+                        <CheckCircle2 className="w-4 h-4" />
+                      </button>
+                    )}
+
+                    {isUnpaid && onUpdateFactureState && (
+                      <button
+                        type="button"
+                        onClick={() => onUpdateFactureState(facture.id, 'Annulé')}
+                        className="min-h-[36px] px-2.5 flex items-center justify-center rounded-lg text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-100 transition active:scale-95 touch-manipulation"
+                        title="Annuler la facture"
+                      >
+                        <Ban className="w-4 h-4" />
+                      </button>
+                    )}
+
+                    {isAnnule && isUnpaid && onUpdateFactureState && (
+                      <button
+                        type="button"
+                        onClick={() => onUpdateFactureState(facture.id, 'Brouillon')}
+                        className="min-h-[36px] px-2 flex items-center justify-center rounded-lg text-xs font-bold bg-slate-100 text-slate-700 border border-slate-300 hover:bg-slate-200 transition active:scale-95 touch-manipulation"
+                        title="Remettre en brouillon"
+                      >
+                        <RotateCcw className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (confirm(`Voulez-vous supprimer définitivement la facture ${facture.numero} ?`)) {
+                          onDeleteFacture(facture.id);
+                        }
+                      }}
+                      className="min-h-[36px] min-w-[36px] flex items-center justify-center rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition active:scale-95 touch-manipulation"
+                      title="Supprimer"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+
+      {/* ========================================================================= */}
+      {/* 2. DESKTOP TABLE (hidden on mobile - hidden md:block) */}
+      {/* ========================================================================= */}
+      <div className="hidden md:block bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs border-collapse">
             <thead>
@@ -460,17 +735,17 @@ export const FacturesView: React.FC<FacturesViewProps> = ({
                       </td>
                       <td className="py-2 px-3 text-center">
                         {isValide && (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-800 border border-emerald-300">
                             ✓ Validé
                           </span>
                         )}
                         {isBrouillon && (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-300">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-300">
                             ✎ Brouillon
                           </span>
                         )}
                         {isAnnule && (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-rose-100 text-rose-800 border border-rose-300">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-rose-100 text-rose-800 border border-rose-300">
                             ✗ Annulé
                           </span>
                         )}
@@ -640,20 +915,22 @@ export const FacturesView: React.FC<FacturesViewProps> = ({
               </tr>
             </tfoot>
           </table>
-
-          {/* Table Pagination */}
-          <TablePagination
-            currentPage={currentPage}
-            pageSize={pageSize}
-            totalItems={filteredFactures.length}
-            onPageChange={setCurrentPage}
-            onPageSizeChange={(newSize) => {
-              setPageSize(newSize);
-              setCurrentPage(1);
-            }}
-            itemLabel="factures"
-          />
         </div>
+      </div>
+
+      {/* Shared Pagination (Works for both Mobile Cards and Desktop Table) */}
+      <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
+        <TablePagination
+          currentPage={currentPage}
+          pageSize={pageSize}
+          totalItems={filteredFactures.length}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={(newSize) => {
+            setPageSize(newSize);
+            setCurrentPage(1);
+          }}
+          itemLabel="factures"
+        />
       </div>
     </div>
   );
