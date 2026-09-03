@@ -131,11 +131,12 @@ export function AccountingView({
   }, []);
 
   // 1. Calculations and Aggregations
-  const balance = useMemo(() => computeGeneralBalance(entries, accounts), [entries, accounts]);
-  const cpc = useMemo(() => calculateCPC(balance), [balance]);
-  const bilan = useMemo(() => calculateBilan(balance), [balance]);
+  const balanceRecord = useMemo(() => computeGeneralBalance(entries), [entries]);
+  const balanceList = useMemo(() => Object.values(balanceRecord).filter(b => b.total_debit > 0 || b.total_credit > 0), [balanceRecord]);
+  const cpc = useMemo(() => calculateCPC(entries), [entries]);
+  const bilan = useMemo(() => calculateBilan(entries), [entries]);
   const simplTva = useMemo(() => calculateSIMPLTVA(entries), [entries]);
-  const simplIs = useMemo(() => calculateSIMPLIS(cpc.resultat_net, cpc.produits_exploitation.ventes_marchandises), [cpc]);
+  const simplIs = useMemo(() => calculateSIMPLIS(entries), [entries]);
 
   // Overall totals
   const totalDebitAll = entries.reduce((s, e) => s + (Number(e.total_debit) || 0), 0);
@@ -666,25 +667,25 @@ export function AccountingView({
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80">
-                {balance.map(b => (
-                  <tr key={b.compte_code} className="hover:bg-slate-50/70 dark:hover:bg-slate-800/40">
+                {balanceList.map(b => (
+                  <tr key={b.code} className="hover:bg-slate-50/70 dark:hover:bg-slate-800/40">
                     <td className="py-3 px-4 font-mono font-bold text-indigo-600 dark:text-indigo-400">
-                      {b.compte_code}
+                      {b.code}
                     </td>
                     <td className="py-3 px-4 font-medium text-slate-900 dark:text-white">
-                      {b.compte_libelle}
+                      {b.libelle}
                     </td>
                     <td className="py-3 px-4 text-right font-mono text-slate-900 dark:text-white">
-                      {b.cumul_debit > 0 ? formatCurrency(b.cumul_debit) : '-'}
+                      {b.total_debit > 0 ? formatCurrency(b.total_debit) : '-'}
                     </td>
                     <td className="py-3 px-4 text-right font-mono text-slate-900 dark:text-white">
-                      {b.cumul_credit > 0 ? formatCurrency(b.cumul_credit) : '-'}
+                      {b.total_credit > 0 ? formatCurrency(b.total_credit) : '-'}
                     </td>
                     <td className="py-3 px-4 text-right font-mono font-bold text-emerald-600 dark:text-emerald-400">
-                      {b.solde_debiteur > 0 ? formatCurrency(b.solde_debiteur) : '-'}
+                      {b.solde_debit > 0 ? formatCurrency(b.solde_debit) : '-'}
                     </td>
                     <td className="py-3 px-4 text-right font-mono font-bold text-indigo-600 dark:text-indigo-400">
-                      {b.solde_crediteur > 0 ? formatCurrency(b.solde_crediteur) : '-'}
+                      {b.solde_credit > 0 ? formatCurrency(b.solde_credit) : '-'}
                     </td>
                   </tr>
                 ))}
@@ -695,16 +696,16 @@ export function AccountingView({
                     TOTAUX GÉNÉRAUX DE LA BALANCE
                   </td>
                   <td className="py-3.5 px-4 text-right font-mono text-slate-900 dark:text-white">
-                    {formatCurrency(balance.reduce((s, b) => s + b.cumul_debit, 0))}
+                    {formatCurrency(balanceList.reduce((s, b) => s + b.total_debit, 0))}
                   </td>
                   <td className="py-3.5 px-4 text-right font-mono text-slate-900 dark:text-white">
-                    {formatCurrency(balance.reduce((s, b) => s + b.cumul_credit, 0))}
+                    {formatCurrency(balanceList.reduce((s, b) => s + b.total_credit, 0))}
                   </td>
                   <td className="py-3.5 px-4 text-right font-mono text-emerald-600 dark:text-emerald-400">
-                    {formatCurrency(balance.reduce((s, b) => s + b.solde_debiteur, 0))}
+                    {formatCurrency(balanceList.reduce((s, b) => s + b.solde_debit, 0))}
                   </td>
                   <td className="py-3.5 px-4 text-right font-mono text-indigo-600 dark:text-indigo-400">
-                    {formatCurrency(balance.reduce((s, b) => s + b.solde_crediteur, 0))}
+                    {formatCurrency(balanceList.reduce((s, b) => s + b.solde_credit, 0))}
                   </td>
                 </tr>
               </tfoot>
@@ -731,39 +732,15 @@ export function AccountingView({
             {/* Exploitation */}
             <div className="space-y-2">
               <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">I. Exploitation</h4>
-              <div className="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-800 text-sm">
-                <span>Ventes de Marchandises (7111)</span>
-                <span className="font-mono font-medium">{formatCurrency(cpc.produits_exploitation.ventes_marchandises)}</span>
-              </div>
-              <div className="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-800 text-sm">
-                <span>Variation des stocks de produits (71321)</span>
-                <span className="font-mono font-medium">{formatCurrency(cpc.produits_exploitation.variation_stocks)}</span>
-              </div>
               <div className="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-800 text-sm text-indigo-600 font-bold">
                 <span>Total Produits d'Exploitation (I)</span>
-                <span className="font-mono">{formatCurrency(cpc.produits_exploitation.total)}</span>
+                <span className="font-mono">{formatCurrency(cpc.produits_exploitation)}</span>
               </div>
 
               <div className="pt-2 space-y-1.5">
-                <div className="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800 text-sm text-slate-600 dark:text-slate-400">
-                  <span>Achats revendus de marchandises (6111)</span>
-                  <span className="font-mono">{formatCurrency(cpc.charges_exploitation.achats_marchandises)}</span>
-                </div>
-                <div className="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800 text-sm text-slate-600 dark:text-slate-400">
-                  <span>Matières et fournitures consommées (61241)</span>
-                  <span className="font-mono">{formatCurrency(cpc.charges_exploitation.matieres_consommees)}</span>
-                </div>
-                <div className="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800 text-sm text-slate-600 dark:text-slate-400">
-                  <span>Charges de Personnel & Salaires (6171 / 6174)</span>
-                  <span className="font-mono">{formatCurrency(cpc.charges_exploitation.charges_personnel)}</span>
-                </div>
-                <div className="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800 text-sm text-slate-600 dark:text-slate-400">
-                  <span>Dotations d'exploitation (6193)</span>
-                  <span className="font-mono">{formatCurrency(cpc.charges_exploitation.dotations_exploitation)}</span>
-                </div>
                 <div className="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-800 text-sm text-rose-600 font-bold">
                   <span>Total Charges d'Exploitation (II)</span>
-                  <span className="font-mono">{formatCurrency(cpc.charges_exploitation.total)}</span>
+                  <span className="font-mono">{formatCurrency(cpc.charges_exploitation)}</span>
                 </div>
               </div>
 
@@ -802,22 +779,24 @@ export function AccountingView({
             {/* Actif */}
             <div className="space-y-2">
               <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">ACTIF</h4>
-              <div className="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-800 text-sm">
-                <span>Actif Immobilisé (Classe 2)</span>
-                <span className="font-mono font-medium">{formatCurrency(bilan.actif.immobilise.net)}</span>
-              </div>
-              <div className="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-800 text-sm">
-                <span>Stocks (Matières & Marchandises - 31xx)</span>
-                <span className="font-mono font-medium">{formatCurrency(bilan.actif.circulant.stocks)}</span>
-              </div>
-              <div className="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-800 text-sm">
-                <span>Créances Clients & Comptes rattachés (3421)</span>
-                <span className="font-mono font-medium">{formatCurrency(bilan.actif.circulant.clients)}</span>
-              </div>
-              <div className="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-800 text-sm">
-                <span>Trésorerie - Actif (Banques & Caisse - 51xx)</span>
-                <span className="font-mono font-medium">{formatCurrency(bilan.actif.tresorerie.banque_caisse)}</span>
-              </div>
+              {bilan.actif.immobilise.map(r => (
+                <div key={r.code} className="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-800 text-sm">
+                  <span>{r.libelle}</span>
+                  <span className="font-mono font-medium">{formatCurrency(r.net)}</span>
+                </div>
+              ))}
+              {bilan.actif.circulant.map(r => (
+                <div key={r.code} className="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-800 text-sm">
+                  <span>{r.libelle}</span>
+                  <span className="font-mono font-medium">{formatCurrency(r.net)}</span>
+                </div>
+              ))}
+              {bilan.actif.tresorerie.map(r => (
+                <div key={r.code} className="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-800 text-sm">
+                  <span>{r.libelle}</span>
+                  <span className="font-mono font-medium">{formatCurrency(r.net)}</span>
+                </div>
+              ))}
               <div className="p-3 bg-emerald-50 dark:bg-emerald-950/40 rounded-xl flex justify-between items-center font-bold text-sm text-emerald-800 dark:text-emerald-300">
                 <span>TOTAL ACTIF</span>
                 <span className="font-mono text-base">{formatCurrency(bilan.actif.total)}</span>
@@ -827,18 +806,24 @@ export function AccountingView({
             {/* Passif */}
             <div className="space-y-2 pt-2">
               <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">PASSIF</h4>
-              <div className="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-800 text-sm">
-                <span>Capitaux Propres & Capital Social (1111)</span>
-                <span className="font-mono font-medium">{formatCurrency(bilan.passif.capitaux_propres.capital_social)}</span>
-              </div>
-              <div className="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-800 text-sm">
-                <span>Dettes Fournisseurs & Comptes rattachés (4411)</span>
-                <span className="font-mono font-medium">{formatCurrency(bilan.passif.circulant.fournisseurs)}</span>
-              </div>
-              <div className="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-800 text-sm">
-                <span>Dettes Fiscales & Sociales (CNSS, AMO, IR - 44xx)</span>
-                <span className="font-mono font-medium">{formatCurrency(bilan.passif.circulant.etat_et_organismes)}</span>
-              </div>
+              {bilan.passif.financement_permanent.map(r => (
+                <div key={r.code} className="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-800 text-sm">
+                  <span>{r.libelle}</span>
+                  <span className="font-mono font-medium">{formatCurrency(r.net)}</span>
+                </div>
+              ))}
+              {bilan.passif.passif_circulant.map(r => (
+                <div key={r.code} className="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-800 text-sm">
+                  <span>{r.libelle}</span>
+                  <span className="font-mono font-medium">{formatCurrency(r.net)}</span>
+                </div>
+              ))}
+              {bilan.passif.tresorerie.map(r => (
+                <div key={r.code} className="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-800 text-sm">
+                  <span>{r.libelle}</span>
+                  <span className="font-mono font-medium">{formatCurrency(r.net)}</span>
+                </div>
+              ))}
               <div className="p-3 bg-indigo-50 dark:bg-indigo-950/40 rounded-xl flex justify-between items-center font-bold text-sm text-indigo-800 dark:text-indigo-300">
                 <span>TOTAL PASSIF</span>
                 <span className="font-mono text-base">{formatCurrency(bilan.passif.total)}</span>
@@ -871,35 +856,35 @@ export function AccountingView({
               <div className="flex justify-between py-2 border-b border-slate-100 dark:border-slate-800 text-sm">
                 <span>TVA Facturée Collectée (4455)</span>
                 <span className="font-mono font-bold text-slate-900 dark:text-white">
-                  {formatCurrency(simplTva.tva_collectee)}
+                  {formatCurrency(simplTva.total_tva_collectee)}
                 </span>
               </div>
               <div className="flex justify-between py-2 border-b border-slate-100 dark:border-slate-800 text-sm">
                 <span>TVA Récupérable sur Charges (34552)</span>
                 <span className="font-mono font-semibold text-emerald-600 dark:text-emerald-400">
-                  - {formatCurrency(simplTva.tva_recuperable_charges)}
+                  - {formatCurrency(simplTva.tva_deductible_charges)}
                 </span>
               </div>
               <div className="flex justify-between py-2 border-b border-slate-100 dark:border-slate-800 text-sm">
                 <span>TVA Récupérable sur Immobilisations (34551)</span>
                 <span className="font-mono font-semibold text-emerald-600 dark:text-emerald-400">
-                  - {formatCurrency(simplTva.tva_recuperable_immo)}
+                  - {formatCurrency(simplTva.tva_deductible_immobilisations)}
                 </span>
               </div>
 
               <div className={`p-4 rounded-xl font-bold flex justify-between items-center ${
-                simplTva.tva_due > 0
+                simplTva.tva_nette_due > 0
                   ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-900 dark:text-amber-300 border border-amber-200 dark:border-amber-800'
                   : 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-900 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'
               }`}>
                 <div>
                   <p className="text-xs uppercase font-medium">Position Fiscale Nette</p>
                   <p className="text-base font-bold">
-                    {simplTva.tva_due > 0 ? 'TVA Nette à Verser au Trésor' : 'Crédit de TVA à Reporter'}
+                    {simplTva.tva_nette_due > 0 ? 'TVA Nette à Verser au Trésor' : 'Crédit de TVA à Reporter'}
                   </p>
                 </div>
                 <span className="text-xl font-mono">
-                  {formatCurrency(simplTva.tva_due > 0 ? simplTva.tva_due : simplTva.credit_tva)}
+                  {formatCurrency(simplTva.tva_nette_due > 0 ? simplTva.tva_nette_due : simplTva.credit_tva_a_reporter)}
                 </span>
               </div>
             </div>
@@ -925,17 +910,17 @@ export function AccountingView({
               <div className="flex justify-between py-2 border-b border-slate-100 dark:border-slate-800 text-sm">
                 <span>Bénéfice Net Fiscal Estimé</span>
                 <span className="font-mono font-bold text-slate-900 dark:text-white">
-                  {formatCurrency(simplIs.benefice_fiscal)}
+                  {formatCurrency(simplIs.resultat_fiscal_imposable)}
                 </span>
               </div>
               <div className="flex justify-between py-2 border-b border-slate-100 dark:border-slate-800 text-sm">
-                <span>Taux Proportionnel IS Applicable</span>
+                <span>Tranche IS Applicable</span>
                 <span className="font-mono font-semibold text-indigo-600 dark:text-indigo-400">
-                  {(simplIs.taux_is * 100).toFixed(0)} %
+                  {simplIs.tranche_applicable}
                 </span>
               </div>
               <div className="flex justify-between py-2 border-b border-slate-100 dark:border-slate-800 text-sm">
-                <span>Cotisation Minimale (0.25% du CA HT)</span>
+                <span>Cotisation Minimale (0.5% du CA HT)</span>
                 <span className="font-mono text-slate-600 dark:text-slate-400">
                   {formatCurrency(simplIs.cotisation_minimale)}
                 </span>
@@ -947,7 +932,7 @@ export function AccountingView({
                   <p className="text-base font-bold">Total Impôt sur les Sociétés</p>
                 </div>
                 <span className="text-xl font-mono">
-                  {formatCurrency(simplIs.is_du)}
+                  {formatCurrency(simplIs.impot_du_definitif)}
                 </span>
               </div>
             </div>
