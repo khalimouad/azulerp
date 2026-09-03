@@ -551,10 +551,10 @@ export function ProductionOrderManagementView({
               <div className="border border-slate-200 dark:border-slate-700 rounded-xl p-3">
                 <h4 className="font-bold mb-2 uppercase text-slate-400 text-[10px]">Matières Consommées (Intrants)</h4>
                 <div className="space-y-1">
-                  {(viewingOrder.inputs || viewingOrder.composants_consommes || []).map((c, i) => (
+                  {(viewingOrder.inputs || viewingOrder.composants_consommes || []).map((c: any, i) => (
                     <div key={i} className="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800">
                       <span>{c.produit_nom}</span>
-                      <span className="font-mono">{c.quantite || (c as any).quantite_reelle || (c as any).quantite_prevue} {c.unite}</span>
+                      <span className="font-mono">{c.quantite || c.quantite_reelle || c.quantite_prevue} {c.unite}</span>
                     </div>
                   ))}
                 </div>
