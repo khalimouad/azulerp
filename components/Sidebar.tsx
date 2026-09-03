@@ -309,10 +309,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
                     : 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
                 }`}>
-                  {currentUser.avatar || currentUser.nom_complet.slice(0, 2).toUpperCase()}
+                  {currentUser.avatar || (currentUser.nom_complet || currentUser.username || 'AD').slice(0, 2).toUpperCase()}
                 </div>
                 <div className={`${collapsed ? 'lg:hidden' : ''} min-w-0`}>
-                  <div className="text-xs font-bold text-white truncate">{currentUser.nom_complet}</div>
+                  <div className="text-xs font-bold text-white truncate">{currentUser.nom_complet || currentUser.username || 'Admin'}</div>
                   <div className="text-[10px] text-slate-400 font-medium truncate flex items-center gap-1">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" />
                     {currentUser.role}

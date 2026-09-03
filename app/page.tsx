@@ -481,7 +481,7 @@ export default function Home() {
     if (user.role === 'CAISSE') {
       setCurrentTab('pos');
     } else {
-      setCurrentTab('pos');
+      setCurrentTab('dashboard');
     }
     await reloadData();
   };

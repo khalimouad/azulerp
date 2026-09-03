@@ -76,14 +76,14 @@ export const LockScreenModal: React.FC<LockScreenModalProps> = ({
         
         {/* User Avatar */}
         <div className="relative mx-auto w-16 h-16 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center text-xl font-black text-white shadow-lg shadow-emerald-950">
-          {user.avatar || user.nom_complet.slice(0, 2).toUpperCase()}
+          {user.avatar || (user.nom_complet || user.username || 'AD').slice(0, 2).toUpperCase()}
           <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-amber-500 text-slate-950 flex items-center justify-center text-xs font-bold border-2 border-slate-900">
             <Lock className="w-3 h-3" />
           </div>
         </div>
 
         <div>
-          <h2 className="text-base font-bold text-white">{user.nom_complet}</h2>
+          <h2 className="text-base font-bold text-white">{user.nom_complet || user.username || 'Administrateur'}</h2>
           <p className="text-xs text-slate-400">Session verrouillée • Rôle {user.role}</p>
         </div>
 

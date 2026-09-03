@@ -184,11 +184,11 @@ export const Header: React.FC<HeaderProps> = ({
                     ? 'bg-amber-500/30 text-amber-300 border border-amber-500/40'
                     : 'bg-blue-500/30 text-blue-300 border border-blue-500/40'
                 }`}>
-                  {currentUser.avatar || currentUser.nom_complet.slice(0, 2).toUpperCase()}
+                  {currentUser.avatar || (currentUser.nom_complet || currentUser.username || 'AD').slice(0, 2).toUpperCase()}
                 </div>
                 <div className="hidden sm:block text-left">
                   <div className="text-[11px] font-bold text-white leading-tight truncate max-w-[100px]">
-                    {currentUser.nom_complet}
+                    {currentUser.nom_complet || currentUser.username || 'Admin'}
                   </div>
                   <div className="text-[9px] font-semibold text-slate-400">
                     {currentUser.role}
