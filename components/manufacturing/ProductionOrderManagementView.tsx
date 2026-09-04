@@ -27,7 +27,8 @@ import {
   Eye,
   RefreshCw,
   X,
-  Boxes
+  Boxes,
+  Edit
 } from 'lucide-react';
 
 interface ProductionOrderManagementViewProps {
@@ -36,6 +37,8 @@ interface ProductionOrderManagementViewProps {
   produits?: Produit[];
   onRefresh?: () => void;
   onNavigateTab?: (tab: string) => void;
+  onCreateNew?: () => void;
+  onEditOrder?: (order: ProductionOrder) => void;
 }
 
 export function ProductionOrderManagementView({
@@ -44,6 +47,8 @@ export function ProductionOrderManagementView({
   produits = [],
   onRefresh,
   onNavigateTab,
+  onCreateNew,
+  onEditOrder,
 }: ProductionOrderManagementViewProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
@@ -183,7 +188,15 @@ export function ProductionOrderManagementView({
             )}
             <button
               type="button"
-              onClick={() => setShowNewOfModal(true)}
+              onClick={() => {
+                if (onCreateNew) {
+                  onCreateNew();
+                } else if (onNavigateTab) {
+                  onNavigateTab('create-production-order');
+                } else {
+                  setShowNewOfModal(true);
+                }
+              }}
               className="px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white shadow-md shadow-blue-600/20 flex items-center gap-2 cursor-pointer transition active:scale-95"
             >
               <Plus className="w-4 h-4" />
@@ -372,6 +385,23 @@ export function ProductionOrderManagementView({
                             >
                               <Eye className="w-3.5 h-3.5" />
                             </button>
+
+                            {order.status !== 'termine' && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (onEditOrder) {
+                                    onEditOrder(order);
+                                  } else if (onNavigateTab) {
+                                    onNavigateTab('create-production-order');
+                                  }
+                                }}
+                                title="Modifier l'Ordre de Fabrication"
+                                className="p-1.5 rounded-lg text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 cursor-pointer"
+                              >
+                                <Edit className="w-3.5 h-3.5" />
+                              </button>
+                            )}
 
                             {order.status === 'confirme' && (
                               <button

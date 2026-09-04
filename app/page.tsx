@@ -50,6 +50,8 @@ import {
   fetchImpendingSupplierCheques,
   getAuthenticatedSession,
   logoutAuthenticatedSession,
+  saveBOM,
+  saveProductionOrder,
 } from '@/lib/sqlite-service';
 import { testNeonConnection } from '@/lib/neon-sync-service';
 import { CASA_COMPANY_2026 } from '@/lib/sample-casa-seed';
@@ -113,6 +115,8 @@ import { HumanResourcesView } from '@/components/HumanResourcesView';
 import { ManufacturingView } from '@/components/ManufacturingView';
 import { BOMManagementView } from '@/components/manufacturing/BOMManagementView';
 import { ProductionOrderManagementView } from '@/components/manufacturing/ProductionOrderManagementView';
+import { CreateBomView } from '@/components/manufacturing/CreateBomView';
+import { CreateProductionOrderView } from '@/components/manufacturing/CreateProductionOrderView';
 import {
   JournalEntry,
   PlanAccount,
@@ -255,6 +259,9 @@ export default function Home() {
   const [paymentFacture, setPaymentFacture] = useState<Facture | null>(null);
   const [paymentToEdit, setPaymentToEdit] = useState<Reglement | null>(null);
   const [preSelectedClientId, setPreSelectedClientId] = useState<number | undefined>(undefined);
+  const [bomToEdit, setBomToEdit] = useState<BOM | null>(null);
+  const [productionOrderToEdit, setProductionOrderToEdit] = useState<ProductionOrder | null>(null);
+  const [preSelectedBomForOrder, setPreSelectedBomForOrder] = useState<number | undefined>(undefined);
 
   // Document preview state
   const [previewDocType, setPreviewDocType] = useState<'FACTURE' | 'BL' | 'BR' | 'DEVIS'>('FACTURE');
@@ -1257,6 +1264,23 @@ export default function Home() {
               produits={produits}
               onRefresh={reloadCoreData}
               onNavigateTab={navigateTo}
+              onCreateNew={() => {
+                setBomToEdit(null);
+                navigateTo('create-bom');
+              }}
+              onEditBom={(bom) => {
+                setBomToEdit(bom);
+                navigateTo('create-bom');
+              }}
+              onDuplicateBom={(bom) => {
+                setBomToEdit(bom);
+                navigateTo('create-bom');
+              }}
+              onLaunchOF={(bom) => {
+                setPreSelectedBomForOrder(bom.id);
+                setProductionOrderToEdit(null);
+                navigateTo('create-production-order');
+              }}
             />
           )}
 
@@ -1267,6 +1291,15 @@ export default function Home() {
               produits={produits}
               onRefresh={reloadCoreData}
               onNavigateTab={navigateTo}
+              onCreateNew={() => {
+                setProductionOrderToEdit(null);
+                setPreSelectedBomForOrder(undefined);
+                navigateTo('create-production-order');
+              }}
+              onEditOrder={(order) => {
+                setProductionOrderToEdit(order);
+                navigateTo('create-production-order');
+              }}
             />
           )}
 
@@ -1276,12 +1309,69 @@ export default function Home() {
               produits={produits}
               onRefresh={reloadCoreData}
               onNavigateTab={navigateTo}
+              onCreateNew={() => {
+                setBomToEdit(null);
+                navigateTo('create-bom');
+              }}
+              onEditBom={(bom) => {
+                setBomToEdit(bom);
+                navigateTo('create-bom');
+              }}
+              onDuplicateBom={(bom) => {
+                setBomToEdit(bom);
+                navigateTo('create-bom');
+              }}
+              onLaunchOF={(bom) => {
+                setPreSelectedBomForOrder(bom.id);
+                setProductionOrderToEdit(null);
+                navigateTo('create-production-order');
+              }}
             />
           )}
 
           {/* ============================================================ */}
           {/* FULL PAGE FORM & PREVIEW VIEWS WITH RETURN BUTTONS */}
           {/* ============================================================ */}
+
+          {/* FULL PAGE: NOUVELLE / MODIFIER NOMENCLATURE (BOM) */}
+          {currentTab === 'create-bom' && (
+            <CreateBomView
+              produits={produits}
+              bomToEdit={bomToEdit}
+              onBack={() => {
+                setBomToEdit(null);
+                setCurrentTab(previousTab === 'create-bom' ? 'manufacturing-boms' : previousTab);
+              }}
+              onSave={async (savedBom) => {
+                await saveBOM(savedBom);
+                await reloadCoreData();
+                setBomToEdit(null);
+                setCurrentTab('manufacturing-boms');
+              }}
+            />
+          )}
+
+          {/* FULL PAGE: NOUVEAU / MODIFIER ORDRE DE FABRICATION (OF) */}
+          {currentTab === 'create-production-order' && (
+            <CreateProductionOrderView
+              boms={boms}
+              produits={produits}
+              orderToEdit={productionOrderToEdit}
+              preSelectedBomId={preSelectedBomForOrder}
+              onBack={() => {
+                setProductionOrderToEdit(null);
+                setPreSelectedBomForOrder(undefined);
+                setCurrentTab(previousTab === 'create-production-order' ? 'manufacturing-orders' : previousTab);
+              }}
+              onSave={async (savedOrder) => {
+                await saveProductionOrder(savedOrder);
+                await reloadCoreData();
+                setProductionOrderToEdit(null);
+                setPreSelectedBomForOrder(undefined);
+                setCurrentTab('manufacturing-orders');
+              }}
+            />
+          )}
 
           {/* FULL PAGE: NOUVEAU / MODIFIER BL */}
           {currentTab === 'create-bl' && (

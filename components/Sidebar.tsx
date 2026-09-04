@@ -270,7 +270,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <div className="space-y-1 sm:space-y-0.5">
                 {section.items.map((item) => {
                   const Icon = item.icon;
-                  const isActive = currentTab === item.id;
+                  const isActive =
+                    currentTab === item.id ||
+                    (item.id === 'bl' && currentTab === 'create-bl') ||
+                    (item.id === 'br' && currentTab === 'create-br') ||
+                    (item.id === 'factures' && currentTab === 'create-facture') ||
+                    (item.id === 'devis' && currentTab === 'create-devis') ||
+                    (item.id === 'clients' && currentTab === 'create-client') ||
+                    (item.id === 'produits' && currentTab === 'create-produit') ||
+                    (item.id === 'fournisseurs' && currentTab === 'create-fournisseur') ||
+                    (item.id === 'manufacturing-boms' && currentTab === 'create-bom') ||
+                    (item.id === 'manufacturing-orders' && currentTab === 'create-production-order');
                   return (
                     <button
                       key={item.id}
