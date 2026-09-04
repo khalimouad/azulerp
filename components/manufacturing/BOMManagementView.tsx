@@ -23,7 +23,8 @@ import {
   X,
   Sparkles,
   Play,
-  FileSpreadsheet
+  FileSpreadsheet,
+  PackageCheck
 } from 'lucide-react';
 
 interface BOMManagementViewProps {
