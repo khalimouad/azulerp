@@ -272,21 +272,55 @@ export const CreateBomView: React.FC<CreateBomViewProps> = ({
     setInputs((prev) => prev.filter((_, i) => i !== index));
   };
 
-  // --- Handlers for Extrants (Outputs) ---
+  // Automatic Imputation % Calculation based on finished product quantities
+  const handleAutoCalculateImputations = (overrideOutputs?: BOMOutputLine[]) => {
+    const list = overrideOutputs || outputs;
+    const nonWaste = list.filter((o) => !o.est_dechet);
+    const sumFinished = nonWaste.reduce((s, o) => s + (Number(o.quantite) || 0), 0);
+    if (sumFinished <= 0) return;
+
+    let allocated = 0;
+    const updated = list.map((o) => {
+      if (o.est_dechet) {
+        return { ...o, pourcentage_repartition: 0 };
+      }
+      const rawPct = (Number(o.quantite) / sumFinished) * 100;
+      const rounded = Math.round(rawPct * 10) / 10;
+      allocated += rounded;
+      return { ...o, pourcentage_repartition: rounded };
+    });
+
+    const diff = Math.round((100 - allocated) * 10) / 10;
+    if (diff !== 0) {
+      const firstFinIdx = updated.findIndex((o) => !o.est_dechet);
+      if (firstFinIdx >= 0) {
+        updated[firstFinIdx].pourcentage_repartition = Math.max(
+          0,
+          Math.round(((updated[firstFinIdx].pourcentage_repartition || 0) + diff) * 10) / 10
+        );
+      }
+    }
+
+    setOutputs(updated);
+  };
+
   const handleAddOutput = (estDechet: boolean = false) => {
     const firstP = produits[0];
-    setOutputs((prev) => [
-      ...prev,
-      {
-        id: `out-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-        produit_id: estDechet ? undefined : firstP?.id,
-        produit_nom: estDechet ? 'Déchet / Rebut' : firstP?.libelle || '',
-        quantite: estDechet ? 1 : 10,
-        unite: estDechet ? 'Kg' : firstP?.unite || 'Kg',
-        est_dechet: estDechet,
-        pourcentage_repartition: estDechet ? 0 : 100,
-      },
-    ]);
+    const newOutput: BOMOutputLine = {
+      id: `out-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      produit_id: estDechet ? undefined : firstP?.id,
+      produit_nom: estDechet ? 'Déchet / Rebut' : firstP?.libelle || '',
+      quantite: estDechet ? 1 : 10,
+      unite: estDechet ? 'Kg' : firstP?.unite || 'Kg',
+      est_dechet: estDechet,
+      pourcentage_repartition: estDechet ? 0 : 100,
+    };
+    const nextList = [...outputs, newOutput];
+    if (!estDechet) {
+      handleAutoCalculateImputations(nextList);
+    } else {
+      setOutputs(nextList);
+    }
   };
 
   const handleSelectOutputProduct = (index: number, productId: number) => {
@@ -323,7 +357,8 @@ export const CreateBomView: React.FC<CreateBomViewProps> = ({
       alert('Une nomenclature doit comporter au moins un extrant (produit fini ou déchet).');
       return;
     }
-    setOutputs((prev) => prev.filter((_, i) => i !== index));
+    const nextList = outputs.filter((_, i) => i !== index);
+    handleAutoCalculateImputations(nextList);
   };
 
   // --- Form Submission ---
@@ -768,7 +803,16 @@ export const CreateBomView: React.FC<CreateBomViewProps> = ({
             </span>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            <button
+              type="button"
+              onClick={() => handleAutoCalculateImputations()}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-lg transition active:scale-95 cursor-pointer"
+              title="Calculer automatiquement les % d'imputation au prorata des quantités de produits finis (0% pour les déchets)"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
+              <span>Calculer Imputations %</span>
+            </button>
             <button
               type="button"
               onClick={() => handleAddOutput(false)}

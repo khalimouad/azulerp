@@ -279,6 +279,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     (item.id === 'clients' && currentTab === 'create-client') ||
                     (item.id === 'produits' && currentTab === 'create-produit') ||
                     (item.id === 'fournisseurs' && currentTab === 'create-fournisseur') ||
+                    (item.id === 'accounting' && (currentTab === 'create-journal-entry' || currentTab === 'create-fixed-asset')) ||
+                    (item.id === 'hr' && (currentTab === 'create-employee' || currentTab === 'create-leave')) ||
                     (item.id === 'manufacturing-boms' && currentTab === 'create-bom') ||
                     (item.id === 'manufacturing-orders' && currentTab === 'create-production-order');
                   return (

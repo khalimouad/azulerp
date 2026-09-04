@@ -52,6 +52,10 @@ import {
   logoutAuthenticatedSession,
   saveBOM,
   saveProductionOrder,
+  saveEmployee,
+  saveLeave,
+  saveJournalEntry,
+  saveFixedAsset,
 } from '@/lib/sqlite-service';
 import { testNeonConnection } from '@/lib/neon-sync-service';
 import { CASA_COMPANY_2026 } from '@/lib/sample-casa-seed';
@@ -117,6 +121,10 @@ import { BOMManagementView } from '@/components/manufacturing/BOMManagementView'
 import { ProductionOrderManagementView } from '@/components/manufacturing/ProductionOrderManagementView';
 import { CreateBomView } from '@/components/manufacturing/CreateBomView';
 import { CreateProductionOrderView } from '@/components/manufacturing/CreateProductionOrderView';
+import { CreateEmployeeView } from '@/components/hr/CreateEmployeeView';
+import { CreateLeaveView } from '@/components/hr/CreateLeaveView';
+import { CreateJournalEntryView } from '@/components/accounting/CreateJournalEntryView';
+import { CreateFixedAssetView } from '@/components/accounting/CreateFixedAssetView';
 import {
   JournalEntry,
   PlanAccount,
@@ -262,6 +270,10 @@ export default function Home() {
   const [bomToEdit, setBomToEdit] = useState<BOM | null>(null);
   const [productionOrderToEdit, setProductionOrderToEdit] = useState<ProductionOrder | null>(null);
   const [preSelectedBomForOrder, setPreSelectedBomForOrder] = useState<number | undefined>(undefined);
+  const [employeeToEdit, setEmployeeToEdit] = useState<Employee | null>(null);
+  const [leaveToEdit, setLeaveToEdit] = useState<LeaveRequest | null>(null);
+  const [journalEntryToEdit, setJournalEntryToEdit] = useState<JournalEntry | null>(null);
+  const [fixedAssetToEdit, setFixedAssetToEdit] = useState<FixedAsset | null>(null);
 
   // Document preview state
   const [previewDocType, setPreviewDocType] = useState<'FACTURE' | 'BL' | 'BR' | 'DEVIS'>('FACTURE');
@@ -1244,6 +1256,22 @@ export default function Home() {
               factures={factures}
               reglements={reglements}
               onRefresh={reloadCoreData}
+              onCreateEntry={() => {
+                setJournalEntryToEdit(null);
+                navigateTo('create-journal-entry');
+              }}
+              onEditEntry={(entry) => {
+                setJournalEntryToEdit(entry);
+                navigateTo('create-journal-entry');
+              }}
+              onCreateAsset={() => {
+                setFixedAssetToEdit(null);
+                navigateTo('create-fixed-asset');
+              }}
+              onEditAsset={(asset) => {
+                setFixedAssetToEdit(asset);
+                navigateTo('create-fixed-asset');
+              }}
             />
           )}
 
@@ -1254,6 +1282,22 @@ export default function Home() {
               payrolls={payrolls}
               leaves={leaves}
               onRefresh={reloadCoreData}
+              onCreateEmployee={() => {
+                setEmployeeToEdit(null);
+                navigateTo('create-employee');
+              }}
+              onEditEmployee={(emp) => {
+                setEmployeeToEdit(emp);
+                navigateTo('create-employee');
+              }}
+              onCreateLeave={() => {
+                setLeaveToEdit(null);
+                navigateTo('create-leave');
+              }}
+              onEditLeave={(leave) => {
+                setLeaveToEdit(leave);
+                navigateTo('create-leave');
+              }}
             />
           )}
 
@@ -1369,6 +1413,78 @@ export default function Home() {
                 setProductionOrderToEdit(null);
                 setPreSelectedBomForOrder(undefined);
                 setCurrentTab('manufacturing-orders');
+              }}
+            />
+          )}
+
+          {/* FULL PAGE: NOUVEAU / MODIFIER COLLABORATEUR (RH) */}
+          {currentTab === 'create-employee' && (
+            <CreateEmployeeView
+              employeeToEdit={employeeToEdit}
+              onBack={() => {
+                setEmployeeToEdit(null);
+                setCurrentTab('hr');
+              }}
+              onSave={async (empData) => {
+                await saveEmployee(empData as Employee);
+                await reloadCoreData();
+                setEmployeeToEdit(null);
+                setCurrentTab('hr');
+              }}
+            />
+          )}
+
+          {/* FULL PAGE: NOUVELLE / MODIFIER DEMANDE DE CONGÉ (RH) */}
+          {currentTab === 'create-leave' && (
+            <CreateLeaveView
+              leaveToEdit={leaveToEdit}
+              employees={employees}
+              onBack={() => {
+                setLeaveToEdit(null);
+                setCurrentTab('hr');
+              }}
+              onSave={async (leaveData) => {
+                await saveLeave(leaveData as LeaveRequest);
+                await reloadCoreData();
+                setLeaveToEdit(null);
+                setCurrentTab('hr');
+              }}
+            />
+          )}
+
+          {/* FULL PAGE: NOUVELLE / MODIFIER ÉCRITURE COMPTABLE */}
+          {currentTab === 'create-journal-entry' && (
+            <CreateJournalEntryView
+              entryToEdit={journalEntryToEdit}
+              accounts={chartOfAccounts}
+              journals={accountingJournals}
+              onBack={() => {
+                setJournalEntryToEdit(null);
+                setCurrentTab('accounting');
+              }}
+              onSave={async (entryData) => {
+                await saveJournalEntry(entryData as JournalEntry);
+                await reloadCoreData();
+                setJournalEntryToEdit(null);
+                setCurrentTab('accounting');
+              }}
+            />
+          )}
+
+          {/* FULL PAGE: NOUVELLE / MODIFIER IMMOBILISATION */}
+          {currentTab === 'create-fixed-asset' && (
+            <CreateFixedAssetView
+              assetToEdit={fixedAssetToEdit}
+              accounts={chartOfAccounts}
+              onBack={() => {
+                setFixedAssetToEdit(null);
+                setCurrentTab('accounting');
+              }}
+              onSave={async (assetData) => {
+                await saveFixedAsset(assetData as FixedAsset);
+                await reloadCoreData();
+                setFixedAssetToEdit(null);
+                setCurrentTab('accounting');
               }}
             />
           )}

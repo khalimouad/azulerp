@@ -31,7 +31,9 @@ import {
   X,
   Eye,
   Check,
-  Briefcase
+  Briefcase,
+  Edit,
+  Ban
 } from 'lucide-react';
 
 export type HRTab = 'EMPLOYEES' | 'PAYROLL' | 'LEAVES';
@@ -41,13 +43,21 @@ interface HumanResourcesViewProps {
   payrolls?: PayrollSlip[];
   leaves?: LeaveRequest[];
   onRefresh?: () => void;
+  onCreateEmployee?: () => void;
+  onEditEmployee?: (employee: Employee) => void;
+  onCreateLeave?: () => void;
+  onEditLeave?: (leave: LeaveRequest) => void;
 }
 
 export function HumanResourcesView({
   employees = [],
   payrolls = [],
   leaves = [],
-  onRefresh
+  onRefresh,
+  onCreateEmployee,
+  onEditEmployee,
+  onCreateLeave,
+  onEditLeave,
 }: HumanResourcesViewProps) {
   const [currentTab, setCurrentTab] = useState<HRTab>('EMPLOYEES');
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -207,7 +217,7 @@ export function HumanResourcesView({
 
           <div className="flex flex-wrap items-center gap-3">
             <button
-              onClick={() => setShowEmployeeModal(true)}
+              onClick={() => (onCreateEmployee ? onCreateEmployee() : setShowEmployeeModal(true))}
               className="flex items-center gap-2 px-4 py-2.5 bg-teal-600 hover:bg-teal-500 text-white rounded-xl font-medium transition shadow-lg shadow-teal-600/30 text-sm"
             >
               <Plus className="w-4 h-4" />
@@ -364,17 +374,29 @@ export function HumanResourcesView({
                         </div>
                       </td>
                       <td className="py-3.5 px-4 text-center">
-                        <button
-                          onClick={async () => {
-                            if (confirm(`Supprimer l'employé ${emp.nom} ?`)) {
-                              if (emp.id) await deleteEmployee(emp.id);
-                              if (onRefresh) onRefresh();
-                            }
-                          }}
-                          className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg transition"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        <div className="flex items-center justify-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => onEditEmployee && onEditEmployee(emp)}
+                            className="p-1.5 text-slate-400 hover:text-teal-600 hover:bg-teal-50 dark:hover:bg-slate-800 rounded-lg transition"
+                            title="Modifier ce collaborateur"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              if (confirm(`Supprimer l'employé ${emp.nom_complet || emp.nom} ?`)) {
+                                if (emp.id) await deleteEmployee(emp.id);
+                                if (onRefresh) onRefresh();
+                              }
+                            }}
+                            className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-slate-800 rounded-lg transition"
+                            title="Supprimer ce collaborateur"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))
@@ -524,7 +546,7 @@ export function HumanResourcesView({
               <p className="text-xs text-slate-500 mt-0.5">Suivi des congés annuels légaux (1.5 jour par mois travaillé)</p>
             </div>
             <button
-              onClick={() => setShowLeaveModal(true)}
+              onClick={() => (onCreateLeave ? onCreateLeave() : setShowLeaveModal(true))}
               className="flex items-center gap-2 px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white rounded-xl text-xs font-semibold transition"
             >
               <Plus className="w-4 h-4" />
@@ -543,12 +565,13 @@ export function HumanResourcesView({
                   <th className="py-3.5 px-4 text-center">Durée</th>
                   <th className="py-3.5 px-4">Motif</th>
                   <th className="py-3.5 px-4 text-center">Statut</th>
+                  <th className="py-3.5 px-4 text-center">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80">
                 {leaves.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="py-8 text-center text-slate-400">
+                    <td colSpan={8} className="py-8 text-center text-slate-400">
                       Aucune absence enregistrée.
                     </td>
                   </tr>
@@ -562,9 +585,71 @@ export function HumanResourcesView({
                       <td className="py-3 px-4 text-center font-bold">{l.jours} jour(s)</td>
                       <td className="py-3 px-4 text-slate-500">{l.motif || '-'}</td>
                       <td className="py-3 px-4 text-center">
-                        <span className="px-2.5 py-0.5 text-xs font-bold rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400">
+                        <span className={`px-2.5 py-0.5 text-xs font-bold rounded-full ${
+                          l.statut === 'approuve'
+                            ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400'
+                            : l.statut === 'annule'
+                            ? 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 line-through'
+                            : l.statut === 'refuse'
+                            ? 'bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400'
+                            : 'bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400'
+                        }`}>
                           {l.statut}
                         </span>
+                      </td>
+                      <td className="py-3 px-4 text-center">
+                        <div className="flex items-center justify-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => onEditLeave && onEditLeave(l)}
+                            className="p-1.5 text-slate-400 hover:text-teal-600 hover:bg-teal-50 dark:hover:bg-slate-800 rounded-lg transition"
+                            title="Modifier cette demande"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </button>
+                          {l.statut !== 'annule' ? (
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                if (confirm(`Annuler la demande de congé de ${l.employee_name} ?`)) {
+                                  await saveLeave({ ...l, statut: 'annule' });
+                                  if (onRefresh) onRefresh();
+                                }
+                              }}
+                              className="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-slate-800 rounded-lg transition"
+                              title="Annuler ce congé"
+                            >
+                              <Ban className="w-4 h-4" />
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                if (confirm(`Rétablir la demande de congé de ${l.employee_name} ?`)) {
+                                  await saveLeave({ ...l, statut: 'en_attente' });
+                                  if (onRefresh) onRefresh();
+                                }
+                              }}
+                              className="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-slate-800 rounded-lg transition"
+                              title="Rétablir cette demande"
+                            >
+                              <CheckCircle2 className="w-4 h-4" />
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              if (confirm(`Supprimer définitivement cette demande de congé ?`)) {
+                                if (l.id) await deleteLeave(l.id);
+                                if (onRefresh) onRefresh();
+                              }
+                            }}
+                            className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-slate-800 rounded-lg transition"
+                            title="Supprimer cette demande"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))

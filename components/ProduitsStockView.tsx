@@ -4,7 +4,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { Produit, StockMouvement } from '@/lib/types';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { TablePagination } from '@/components/TablePagination';
-import { Plus, Search, Package, AlertTriangle, ArrowUpDown, History, Edit, Trash2, ArrowUpRight, ArrowDownLeft } from 'lucide-react';
+import { Plus, Search, Package, AlertTriangle, ArrowUpDown, History, Edit, Trash2, ArrowUpRight, ArrowDownLeft, DollarSign, TrendingUp } from 'lucide-react';
 
 interface ProduitsStockViewProps {
   produits: Produit[];
@@ -46,6 +46,18 @@ export const ProduitsStockView: React.FC<ProduitsStockViewProps> = ({
       if (p.groupe) set.add(p.groupe);
     });
     return Array.from(set);
+  }, [produits]);
+
+  const totalStockValuation = useMemo(() => {
+    return produits.reduce((sum, p) => {
+      const unitCost = Number(p.prix_achat_ht || p.prix_achat || p.prix_ht || 0);
+      const stock = Math.max(0, Number(p.stock_actuel) || 0);
+      return sum + (unitCost * stock);
+    }, 0);
+  }, [produits]);
+
+  const totalStockUnits = useMemo(() => {
+    return produits.reduce((sum, p) => sum + (Number(p.stock_actuel) || 0), 0);
   }, [produits]);
 
   const filteredProduits = useMemo(() => {
@@ -146,6 +158,38 @@ export const ProduitsStockView: React.FC<ProduitsStockViewProps> = ({
 
       {activeTab === 'CATALOG' ? (
         <>
+          {/* Global Inventory Valuation & KPIs Bar */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs">
+            <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100">
+              <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block">Articles Référencés</span>
+              <span className="text-base font-bold text-slate-900 mt-0.5 block">{produits.length} références</span>
+            </div>
+            <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100">
+              <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block">Unités en Stock</span>
+              <span className="text-base font-mono font-bold text-slate-900 mt-0.5 block">
+                {totalStockUnits.toLocaleString('fr-FR', { maximumFractionDigits: 1 })}
+              </span>
+            </div>
+            <div className="p-2.5 rounded-lg bg-emerald-50/70 border border-emerald-100">
+              <span className="text-[11px] font-bold text-emerald-800 uppercase tracking-wider block flex items-center gap-1">
+                <TrendingUp className="w-3.5 h-3.5 text-emerald-600" />
+                Valorisation Stock (Coût Réel)
+              </span>
+              <span className="text-base font-mono font-extrabold text-emerald-700 mt-0.5 block">
+                {formatCurrency(totalStockValuation)}
+              </span>
+            </div>
+            <div className="p-2.5 rounded-lg bg-rose-50/70 border border-rose-100">
+              <span className="text-[11px] font-bold text-rose-800 uppercase tracking-wider block flex items-center gap-1">
+                <AlertTriangle className="w-3.5 h-3.5 text-rose-600" />
+                Alertes Rupture / Réappro
+              </span>
+              <span className="text-base font-mono font-bold text-rose-700 mt-0.5 block">
+                {produits.filter((p) => p.stock_actuel <= p.stock_min).length} articles
+              </span>
+            </div>
+          </div>
+
           {/* Group and Filter Bar */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
             {/* Group pills */}
@@ -331,21 +375,22 @@ export const ProduitsStockView: React.FC<ProduitsStockViewProps> = ({
                 <thead>
                   <tr className="bg-blue-700 text-white font-semibold divide-x divide-blue-600">
                     <th className="py-2.5 px-3 min-w-[90px]">Code</th>
-                    <th className="py-2.5 px-3 min-w-[220px]">Libellé</th>
-                    <th className="py-2.5 px-3 min-w-[120px]">Groupe</th>
-                    <th className="py-2.5 px-3 min-w-[120px]">Famille</th>
-                    <th className="py-2.5 px-3 text-center min-w-[60px]">U M</th>
-                    <th className="py-2.5 px-3 text-center min-w-[80px]">Taux TVA</th>
-                    <th className="py-2.5 px-3 text-right min-w-[100px]">P U HT</th>
-                    <th className="py-2.5 px-3 text-right min-w-[110px] font-bold">Qtité en Stock</th>
-                    <th className="py-2.5 px-3 text-right min-w-[100px]">Stock Virtuel</th>
+                    <th className="py-2.5 px-3 min-w-[200px]">Libellé</th>
+                    <th className="py-2.5 px-3 min-w-[110px]">Groupe</th>
+                    <th className="py-2.5 px-3 min-w-[100px]">Famille</th>
+                    <th className="py-2.5 px-3 text-center min-w-[50px]">U M</th>
+                    <th className="py-2.5 px-3 text-center min-w-[70px]">TVA</th>
+                    <th className="py-2.5 px-3 text-right min-w-[90px]">P.U Vente HT</th>
+                    <th className="py-2.5 px-3 text-right min-w-[100px] text-amber-200">Coût Revient/Achat</th>
+                    <th className="py-2.5 px-3 text-right min-w-[100px] font-bold">Qté Stock</th>
+                    <th className="py-2.5 px-3 text-right min-w-[110px] text-emerald-200 font-bold">Valorisation HT</th>
                     <th className="py-2.5 px-3 text-center min-w-[100px]">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200">
                   {filteredProduits.length === 0 ? (
                     <tr>
-                      <td colSpan={10} className="py-12 text-center text-slate-400 text-sm">
+                      <td colSpan={11} className="py-12 text-center text-slate-400 text-sm">
                         Aucun produit trouvé.
                       </td>
                     </tr>
@@ -391,6 +436,9 @@ export const ProduitsStockView: React.FC<ProduitsStockViewProps> = ({
                           <td className="py-2 px-3 text-right font-mono font-bold text-slate-900">
                             {formatCurrency(p.prix_ht, false)}
                           </td>
+                          <td className="py-2 px-3 text-right font-mono text-amber-700 font-semibold bg-amber-50/30">
+                            {formatCurrency(p.prix_achat_ht || p.prix_achat || 0, false)}
+                          </td>
                           <td className="py-2 px-3 text-right font-mono font-bold">
                             <span
                               className={`px-2 py-0.5 rounded ${
@@ -402,8 +450,11 @@ export const ProduitsStockView: React.FC<ProduitsStockViewProps> = ({
                               {p.stock_actuel.toLocaleString('fr-FR', { minimumFractionDigits: 2 })}
                             </span>
                           </td>
-                          <td className="py-2 px-3 text-right font-mono text-slate-600">
-                            {(p.stock_virtuel ?? p.stock_actuel ?? 0).toLocaleString('fr-FR', { minimumFractionDigits: 2 })}
+                          <td className="py-2 px-3 text-right font-mono font-bold text-emerald-700 bg-emerald-50/30">
+                            {formatCurrency(
+                              p.stock_actuel * Number(p.prix_achat_ht || p.prix_achat || p.prix_ht || 0),
+                              false
+                            )}
                           </td>
                           <td className="py-1.5 px-2 text-center">
                             <div className="flex items-center justify-center gap-1">

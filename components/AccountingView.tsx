@@ -50,7 +50,8 @@ import {
   Calendar,
   Eye,
   X,
-  Printer
+  Printer,
+  Edit
 } from 'lucide-react';
 
 export type AccountingTab = 'JOURNAL' | 'PCGM' | 'BALANCE' | 'SYNTHESE' | 'FISCALITE' | 'IMMOBILISATIONS' | 'EXPORT';
@@ -63,6 +64,10 @@ interface AccountingViewProps {
   factures?: Facture[];
   reglements?: Reglement[];
   onRefresh?: () => void;
+  onCreateEntry?: () => void;
+  onEditEntry?: (entry: JournalEntry) => void;
+  onCreateAsset?: () => void;
+  onEditAsset?: (asset: FixedAsset) => void;
 }
 
 export function AccountingView({
@@ -72,7 +77,11 @@ export function AccountingView({
   assets = [],
   factures = [],
   reglements = [],
-  onRefresh
+  onRefresh,
+  onCreateEntry,
+  onEditEntry,
+  onCreateAsset,
+  onEditAsset,
 }: AccountingViewProps) {
   const [currentTab, setCurrentTab] = useState<AccountingTab>('JOURNAL');
   const [selectedJournal, setSelectedJournal] = useState<string>('ALL');
@@ -313,7 +322,7 @@ export function AccountingView({
             </button>
 
             <button
-              onClick={() => setShowEntryModal(true)}
+              onClick={() => (onCreateEntry ? onCreateEntry() : setShowEntryModal(true))}
               className="flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-medium transition shadow-lg shadow-emerald-600/30 text-sm"
             >
               <Plus className="w-4 h-4" />
@@ -525,13 +534,23 @@ export function AccountingView({
                         <td className="py-3.5 px-4 text-center">
                           <div className="flex items-center justify-center gap-1">
                             <button
+                              type="button"
                               onClick={() => setViewingEntry(entry)}
                               className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-slate-800 rounded-lg transition"
-                              title="Voir détail"
+                              title="Voir détail de l'écriture"
                             >
                               <Eye className="w-4 h-4" />
                             </button>
                             <button
+                              type="button"
+                              onClick={() => onEditEntry && onEditEntry(entry)}
+                              className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-slate-800 rounded-lg transition"
+                              title="Modifier cette écriture"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </button>
+                            <button
+                              type="button"
                               onClick={async () => {
                                 if (confirm(`Supprimer l'écriture ${entry.numero} ?`)) {
                                   if (entry.id) await deleteJournalEntry(entry.id);
@@ -949,7 +968,7 @@ export function AccountingView({
               <p className="text-xs text-slate-500 mt-0.5">Suivi des biens durables, taux d'amortissement et VNA</p>
             </div>
             <button
-              onClick={() => setShowAssetModal(true)}
+              onClick={() => (onCreateAsset ? onCreateAsset() : setShowAssetModal(true))}
               className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold transition"
             >
               <Plus className="w-4 h-4" />
@@ -969,12 +988,13 @@ export function AccountingView({
                   <th className="py-3.5 px-4 text-right">Amort. Cumulés</th>
                   <th className="py-3.5 px-4 text-right">VNA (Valeur Nette)</th>
                   <th className="py-3.5 px-4 text-center">Statut</th>
+                  <th className="py-3.5 px-4 text-center">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80">
                 {assets.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="py-8 text-center text-slate-400">
+                    <td colSpan={9} className="py-8 text-center text-slate-400">
                       Aucune immobilisation enregistrée. Cliquez sur « Ajouter Immobilisation ».
                     </td>
                   </tr>
@@ -1010,6 +1030,31 @@ export function AccountingView({
                         <span className="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
                           {asset.statut}
                         </span>
+                      </td>
+                      <td className="py-3 px-4 text-center">
+                        <div className="flex items-center justify-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => onEditAsset && onEditAsset(asset)}
+                            className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-slate-800 rounded-lg transition"
+                            title="Modifier cette immobilisation"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              if (confirm(`Supprimer définitivement l'immobilisation ${asset.code} (${asset.designation}) ?`)) {
+                                if (asset.id) await deleteFixedAsset(asset.id);
+                                if (onRefresh) onRefresh();
+                              }
+                            }}
+                            className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-slate-800 rounded-lg transition"
+                            title="Supprimer cette immobilisation"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))

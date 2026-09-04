@@ -2807,6 +2807,29 @@ export async function POST(req: NextRequest) {
                   cout_revient_unitaire = EXCLUDED.cout_revient_unitaire;
             `;
           }
+
+          // Automatically update finished product valuation and cost in stock catalog
+          if (Array.isArray(bom.outputs) && bom.outputs.length > 0) {
+            for (const out of bom.outputs) {
+              if (!out.est_dechet && (num(out.cout_unitaire_estime) > 0 || num(bom.cout_revient_unitaire) > 0)) {
+                const valCost = num(out.cout_unitaire_estime) > 0 ? num(out.cout_unitaire_estime) : num(bom.cout_revient_unitaire);
+                await sql`
+                  UPDATE produits 
+                  SET prix_achat_ht = ${valCost},
+                      prix_achat = ${valCost}
+                  WHERE (id = ${out.produit_id || -1}) OR libelle = ${out.produit_nom} OR code = ${out.produit_nom};
+                `.catch(() => {});
+              }
+            }
+          } else if (firstFinished && num(bom.cout_revient_unitaire) > 0) {
+            await sql`
+              UPDATE produits 
+              SET prix_achat_ht = ${num(bom.cout_revient_unitaire)},
+                  prix_achat = ${num(bom.cout_revient_unitaire)}
+              WHERE libelle = ${firstFinished} OR code = ${firstFinished};
+            `.catch(() => {});
+          }
+
           return NextResponse.json({ success: true });
         }
 
@@ -2898,15 +2921,19 @@ export async function POST(req: NextRequest) {
             }
           }
 
-          // 2. Increase stock for finished product(s)
+          // 2. Increase stock for finished product(s) and update product valuation & cost
+          const realOrderUnitCost = num(order.cout_revient_unitaire);
           if (Array.isArray(order.outputs) && order.outputs.length > 0) {
             for (const out of order.outputs) {
               if (!out.est_dechet) {
                 const qteOut = num(out.quantite_reelle || out.quantite_prevue, 1);
+                const outCost = num(out.cout_unitaire_estime) > 0 ? num(out.cout_unitaire_estime) : realOrderUnitCost;
                 await sql`
                   UPDATE produits 
-                  SET stock_actuel = stock_actuel + ${qteOut} 
-                  WHERE libelle = ${out.produit_nom} OR code = ${out.produit_nom};
+                  SET stock_actuel = stock_actuel + ${qteOut},
+                      prix_achat_ht = CASE WHEN ${outCost} > 0 THEN ${outCost} ELSE prix_achat_ht END,
+                      prix_achat = CASE WHEN ${outCost} > 0 THEN ${outCost} ELSE prix_achat END
+                  WHERE (id = ${out.produit_id || -1}) OR libelle = ${out.produit_nom} OR code = ${out.produit_nom};
                 `.catch(() => {});
               }
             }
@@ -2914,7 +2941,9 @@ export async function POST(req: NextRequest) {
             const qteProduite = num(order.quantite_reelle || order.quantite_prevue, 1);
             await sql`
               UPDATE produits 
-              SET stock_actuel = stock_actuel + ${qteProduite} 
+              SET stock_actuel = stock_actuel + ${qteProduite},
+                  prix_achat_ht = CASE WHEN ${realOrderUnitCost} > 0 THEN ${realOrderUnitCost} ELSE prix_achat_ht END,
+                  prix_achat = CASE WHEN ${realOrderUnitCost} > 0 THEN ${realOrderUnitCost} ELSE prix_achat END
               WHERE libelle = ${order.produit_fini_nom} OR code = ${order.produit_fini_nom};
             `.catch(() => {});
           }
