@@ -371,12 +371,12 @@ export const CreateProductionOrderView: React.FC<CreateProductionOrderViewProps>
               {stockCheck && (
                 <span
                   className={`text-xs font-bold px-2.5 py-1 rounded-full flex items-center gap-1.5 ${
-                    stockCheck.possible
+                    stockCheck.disponible
                       ? 'bg-emerald-100 text-emerald-800'
                       : 'bg-rose-100 text-rose-800'
                   }`}
                 >
-                  {stockCheck.possible ? (
+                  {stockCheck.disponible ? (
                     <>
                       <CheckCircle2 className="w-3.5 h-3.5" />
                       Stock Suffisant
@@ -402,19 +402,19 @@ export const CreateProductionOrderView: React.FC<CreateProductionOrderViewProps>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {stockCheck?.details.map((item, idx) => (
+                  {stockCheck?.alertes.map((item, idx) => (
                     <tr key={idx} className="hover:bg-slate-50/80">
                       <td className="py-2.5 font-semibold text-slate-900">
                         {item.produit_nom}
                       </td>
                       <td className="py-2.5 text-blue-700 font-bold">
-                        {item.requis.toFixed(2)} {item.unite}
+                        {item.quantite_requise.toFixed(2)}
                       </td>
                       <td className="py-2.5 font-medium text-slate-700">
-                        {item.disponible.toFixed(2)} {item.unite}
+                        {item.stock_actuel.toFixed(2)}
                       </td>
                       <td className="py-2.5">
-                        {item.suffisant ? (
+                        {item.statut === 'suffisant' ? (
                           <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
                             <Check className="w-3 h-3" />
                             OK
@@ -422,7 +422,7 @@ export const CreateProductionOrderView: React.FC<CreateProductionOrderViewProps>
                         ) : (
                           <span className="inline-flex items-center gap-1 text-[11px] font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200">
                             <AlertTriangle className="w-3 h-3" />
-                            Manque {item.manquant.toFixed(2)} {item.unite}
+                            Manque {item.manquant.toFixed(2)}
                           </span>
                         )}
                       </td>
