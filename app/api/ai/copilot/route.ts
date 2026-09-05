@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
     if (!session) return unauthorizedResponse();
 
     const body = await req.json();
-    const { action, prompt, conversationHistory = [], images = [], apiKey: clientApiKey, model = 'gemini-3.6-flash', query, isMutation } = body;
+    const { action, prompt, conversationHistory = [], images = [], apiKey: clientApiKey, model = 'gemini-3.8-flash', query, isMutation } = body;
 
     // Action 1: CHAT with Gemini AI (Text + Multimodal Vision)
     if (action === 'chat') {
@@ -105,8 +105,17 @@ export async function POST(req: NextRequest) {
         parts: userParts
       });
 
-      const requestedModel = (model && typeof model === 'string' && model.trim()) ? model.trim() : 'gemini-3.6-flash';
-      const fallbackModels = Array.from(new Set([requestedModel, 'gemini-3.6-flash', 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro']));
+      const requestedModel = (model && typeof model === 'string' && model.trim()) ? model.trim() : 'gemini-3.8-flash';
+      const fallbackModels = Array.from(new Set([
+        requestedModel,
+        'gemini-3.8-flash',
+        'gemini-3.8-pro',
+        'gemini-3.8',
+        'gemini-3.6-flash',
+        'gemini-2.0-flash',
+        'gemini-1.5-flash',
+        'gemini-1.5-pro'
+      ]));
 
       let geminiRes: Response | null = null;
       let lastErrorText = '';

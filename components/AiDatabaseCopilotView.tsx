@@ -96,7 +96,7 @@ interface AiDatabaseCopilotViewProps {
 
 export const AiDatabaseCopilotView: React.FC<AiDatabaseCopilotViewProps> = ({ onDataChanged }) => {
   const [apiKey, setApiKey] = useState('');
-  const [model, setModel] = useState('gemini-3.6-flash');
+  const [model, setModel] = useState('gemini-3.8-flash');
   const [isKeySettingsOpen, setIsKeySettingsOpen] = useState(false);
   const [keySaved, setKeySaved] = useState(false);
 
@@ -138,7 +138,11 @@ Je peux répondre à vos questions, analyser vos documents et mettre à jour vos
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const storedKey = localStorage.getItem('azulerp_gemini_api_key') || localStorage.getItem('verdeorto_gemini_api_key') || '';
-      const storedModel = localStorage.getItem('azulerp_gemini_model') || localStorage.getItem('verdeorto_gemini_model') || 'gemini-3.6-flash';
+      let storedModel = localStorage.getItem('azulerp_gemini_model') || localStorage.getItem('verdeorto_gemini_model') || 'gemini-3.8-flash';
+      if (storedModel === 'gemini-3.6-flash' || !storedModel) {
+        storedModel = 'gemini-3.8-flash';
+        localStorage.setItem('azulerp_gemini_model', 'gemini-3.8-flash');
+      }
       setApiKey(storedKey);
       setModel(storedModel);
       if (!storedKey) {
@@ -471,7 +475,10 @@ Je peux répondre à vos questions, analyser vos documents et mettre à jour vos
                 onChange={(e) => setModel(e.target.value)}
                 className="w-full px-3 py-2 text-xs bg-slate-950 border border-slate-700 rounded-xl text-white focus:outline-hidden focus:border-indigo-500"
               >
-                <option value="gemini-3.6-flash">Gemini 3.6 Flash (Recommandé)</option>
+                <option value="gemini-3.8-flash">Gemini 3.8 Flash (Recommandé / Par défaut)</option>
+                <option value="gemini-3.8-pro">Gemini 3.8 Pro</option>
+                <option value="gemini-3.8">Gemini 3.8</option>
+                <option value="gemini-3.6-flash">Gemini 3.6 Flash</option>
                 <option value="gemini-3.6-pro">Gemini 3.6 Pro</option>
                 <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
                 <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>

@@ -95,7 +95,7 @@ export const GeminiFloatingChat: React.FC<GeminiFloatingChatProps> = ({
   const [isKeySettingsOpen, setIsKeySettingsOpen] = useState(false);
 
   const [apiKey, setApiKey] = useState('');
-  const [model, setModel] = useState('gemini-3.6-flash');
+  const [model, setModel] = useState('gemini-3.8-flash');
   const [keySaved, setKeySaved] = useState(false);
 
   const [inputPrompt, setInputPrompt] = useState('');
@@ -136,7 +136,11 @@ Posez-moi n'importe quelle question sur vos factures, livraisons, clients, fourn
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const storedKey = localStorage.getItem('azulerp_gemini_api_key') || localStorage.getItem('verdeorto_gemini_api_key') || '';
-      const storedModel = localStorage.getItem('azulerp_gemini_model') || localStorage.getItem('verdeorto_gemini_model') || 'gemini-3.6-flash';
+      let storedModel = localStorage.getItem('azulerp_gemini_model') || localStorage.getItem('verdeorto_gemini_model') || 'gemini-3.8-flash';
+      if (storedModel === 'gemini-3.6-flash' || !storedModel) {
+        storedModel = 'gemini-3.8-flash';
+        localStorage.setItem('azulerp_gemini_model', 'gemini-3.8-flash');
+      }
       setApiKey(storedKey);
       setModel(storedModel);
     }
@@ -514,7 +518,10 @@ Posez-moi n'importe quelle question sur vos factures, livraisons, clients, fourn
                     onChange={(e) => setModel(e.target.value)}
                     className="flex-1 px-2.5 py-1 text-xs bg-slate-950 border border-slate-700 rounded-xl text-white focus:outline-hidden"
                   >
-                    <option value="gemini-3.6-flash">Gemini 3.6 Flash (Recommandé)</option>
+                    <option value="gemini-3.8-flash">Gemini 3.8 Flash (Recommandé / Par défaut)</option>
+                    <option value="gemini-3.8-pro">Gemini 3.8 Pro</option>
+                    <option value="gemini-3.8">Gemini 3.8</option>
+                    <option value="gemini-3.6-flash">Gemini 3.6 Flash</option>
                     <option value="gemini-3.6-pro">Gemini 3.6 Pro</option>
                     <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
                     <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
