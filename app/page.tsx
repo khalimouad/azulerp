@@ -101,7 +101,7 @@ import { AuthView } from '@/components/AuthView';
 import { UserManagementModal } from '@/components/UserManagementModal';
 import { LockScreenModal } from '@/components/LockScreenModal';
 import { DatabaseProgressModal } from '@/components/DatabaseProgressModal';
-import { Database, Sparkles, HardDrive, CheckCircle2, RefreshCw, Store, Truck, FileText, Package, Menu as MenuIcon } from 'lucide-react';
+import { Database, Sparkles, HardDrive, CheckCircle2, RefreshCw, Store, Truck, FileText, Package, Menu as MenuIcon, Plus, X, UserPlus, FileSpreadsheet, Factory, Calendar, CreditCard, Layers } from 'lucide-react';
 
 // Full Page Creation & Edit Views
 import { CreateBlView } from '@/components/CreateBlView';
@@ -167,6 +167,7 @@ export default function Home() {
   const [globalSearch, setGlobalSearch] = useState('');
   const [selectedYear, setSelectedYear] = useState(() => new Date().getFullYear().toString());
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mobileSpeedDialOpen, setMobileSpeedDialOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   // Lazy loading states for heavy list components
@@ -1687,44 +1688,200 @@ export default function Home() {
         </main>
       </div>
 
+      {/* Mobile Speed Dial Quick Action Bottom Sheet */}
+      {mobileSpeedDialOpen && (
+        <div className="lg:hidden fixed inset-0 z-50 flex flex-col justify-end animate-in fade-in duration-200">
+          <div
+            className="fixed inset-0 bg-slate-950/70 backdrop-blur-xs"
+            onClick={() => setMobileSpeedDialOpen(false)}
+          />
+          <div className="relative bg-slate-900 border-t border-slate-800 rounded-t-3xl p-5 shadow-2xl z-10 space-y-4 max-h-[85vh] overflow-y-auto animate-in slide-in-from-bottom duration-300">
+            <div className="flex items-center justify-between pb-1 border-b border-slate-800">
+              <div className="flex items-center gap-2">
+                <div className="w-2.5 h-2.5 rounded-full bg-blue-500" />
+                <span className="font-extrabold text-sm text-white">Création Rapide</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setMobileSpeedDialOpen(false)}
+                className="p-1 text-slate-400 hover:text-white rounded-lg cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2.5">
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileSpeedDialOpen(false);
+                  setBlToEdit(null);
+                  setPreSelectedClientId(undefined);
+                  navigateTo('create-bl');
+                }}
+                className="flex items-center gap-2.5 p-3 rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700/60 text-left transition active:scale-95 cursor-pointer"
+              >
+                <div className="w-9 h-9 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center shrink-0">
+                  <Truck className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-white">Nouveau BL</div>
+                  <div className="text-[10px] text-slate-400">Livraison client</div>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileSpeedDialOpen(false);
+                  setFactureToEdit(null);
+                  setPreSelectedClientId(undefined);
+                  navigateTo('create-facture');
+                }}
+                className="flex items-center gap-2.5 p-3 rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700/60 text-left transition active:scale-95 cursor-pointer"
+              >
+                <div className="w-9 h-9 rounded-lg bg-blue-500/20 text-blue-400 border border-blue-500/30 flex items-center justify-center shrink-0">
+                  <FileText className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-white">Nouvelle Facture</div>
+                  <div className="text-[10px] text-slate-400">Vente directe</div>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileSpeedDialOpen(false);
+                  setDevisToEdit(null);
+                  navigateTo('create-devis');
+                }}
+                className="flex items-center gap-2.5 p-3 rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700/60 text-left transition active:scale-95 cursor-pointer"
+              >
+                <div className="w-9 h-9 rounded-lg bg-purple-500/20 text-purple-400 border border-purple-500/30 flex items-center justify-center shrink-0">
+                  <FileSpreadsheet className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-white">Nouveau Devis</div>
+                  <div className="text-[10px] text-slate-400">Offre commerciale</div>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileSpeedDialOpen(false);
+                  setClientToEdit(null);
+                  navigateTo('create-client');
+                }}
+                className="flex items-center gap-2.5 p-3 rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700/60 text-left transition active:scale-95 cursor-pointer"
+              >
+                <div className="w-9 h-9 rounded-lg bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 flex items-center justify-center shrink-0">
+                  <UserPlus className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-white">Nouveau Client</div>
+                  <div className="text-[10px] text-slate-400">Compte & ICE</div>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileSpeedDialOpen(false);
+                  setProduitToEdit(null);
+                  navigateTo('create-produit');
+                }}
+                className="flex items-center gap-2.5 p-3 rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700/60 text-left transition active:scale-95 cursor-pointer"
+              >
+                <div className="w-9 h-9 rounded-lg bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center shrink-0">
+                  <Package className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-white">Nouvel Article</div>
+                  <div className="text-[10px] text-slate-400">Produit ou MP</div>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileSpeedDialOpen(false);
+                  setLeaveToEdit(null);
+                  navigateTo('create-leave');
+                }}
+                className="flex items-center gap-2.5 p-3 rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700/60 text-left transition active:scale-95 cursor-pointer"
+              >
+                <div className="w-9 h-9 rounded-lg bg-teal-500/20 text-teal-400 border border-teal-500/30 flex items-center justify-center shrink-0">
+                  <Calendar className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-white">Demande Congé</div>
+                  <div className="text-[10px] text-slate-400">RH & Absences</div>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileSpeedDialOpen(false);
+                  setProductionOrderToEdit(null);
+                  navigateTo('create-production-order');
+                }}
+                className="flex items-center gap-2.5 p-3 rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700/60 text-left transition active:scale-95 cursor-pointer"
+              >
+                <div className="w-9 h-9 rounded-lg bg-blue-500/20 text-blue-400 border border-blue-500/30 flex items-center justify-center shrink-0">
+                  <Factory className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-white">Nouvel Ordre OF</div>
+                  <div className="text-[10px] text-slate-400">Lancement prod.</div>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileSpeedDialOpen(false);
+                  navigateTo('pos');
+                }}
+                className="flex items-center gap-2.5 p-3 rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700/60 text-left transition active:scale-95 cursor-pointer"
+              >
+                <div className="w-9 h-9 rounded-lg bg-rose-500/20 text-rose-400 border border-rose-500/30 flex items-center justify-center shrink-0">
+                  <Store className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-white">Caisse POS</div>
+                  <div className="text-[10px] text-slate-400">Terminal vente</div>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Mobile Sticky Bottom Navigation Bar */}
       <nav
         id="mobile-bottom-nav"
-        className="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-slate-900/90 backdrop-blur-lg border-t border-slate-800/80 px-1 pt-1.5 pb-[max(env(safe-area-inset-bottom,0px),8px)] shadow-2xl flex items-center justify-around select-none safe-area-bottom"
+        className="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-slate-950/95 backdrop-blur-xl border-t border-slate-800/90 px-2 pt-1 pb-[max(env(safe-area-inset-bottom,0px),6px)] shadow-2xl flex items-center justify-around select-none safe-area-bottom"
         aria-label="Navigation rapide mobile"
       >
         <button
           type="button"
           onClick={() => {
             setPreviousTab(currentTab);
-            setCurrentTab('pos');
-          }}
-          className={`flex flex-col items-center justify-center min-w-[56px] min-h-[48px] py-1 px-2 rounded-xl transition touch-manipulation active:scale-95 ${
-            currentTab.startsWith('pos')
-              ? 'text-blue-400 bg-blue-950/60 font-bold'
-              : 'text-slate-400 hover:text-slate-200'
-          }`}
-        >
-          <Store className="w-5 h-5 mb-0.5" />
-          <span className="text-[10px] leading-tight">Caisse</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => {
-            setPreviousTab(currentTab);
             setCurrentTab('bl');
           }}
-          className={`flex flex-col items-center justify-center relative min-w-[56px] min-h-[48px] py-1 px-2 rounded-xl transition touch-manipulation active:scale-95 ${
+          className={`flex flex-col items-center justify-center relative min-w-[50px] min-h-[46px] py-1 px-1.5 rounded-xl transition touch-manipulation active:scale-95 cursor-pointer ${
             currentTab === 'bl' || currentTab === 'create-bl'
-              ? 'text-blue-400 bg-blue-950/60 font-bold'
+              ? 'text-blue-400 font-bold'
               : 'text-slate-400 hover:text-slate-200'
           }`}
         >
           <Truck className="w-5 h-5 mb-0.5" />
           <span className="text-[10px] leading-tight">BL</span>
           {stats.bl_en_attente_count > 0 && (
-            <span className="absolute top-0.5 right-1 min-w-[18px] h-4 px-1 bg-amber-500 text-slate-950 text-[9px] font-black rounded-full flex items-center justify-center shadow-xs">
+            <span className="absolute top-0.5 right-0.5 min-w-[17px] h-4 px-1 bg-amber-500 text-slate-950 text-[9px] font-black rounded-full flex items-center justify-center shadow-xs">
               {stats.bl_en_attente_count > 999 ? `${(stats.bl_en_attente_count / 1000).toFixed(1)}k` : stats.bl_en_attente_count}
             </span>
           )}
@@ -1736,14 +1893,25 @@ export default function Home() {
             setPreviousTab(currentTab);
             setCurrentTab('factures');
           }}
-          className={`flex flex-col items-center justify-center min-w-[56px] min-h-[48px] py-1 px-2 rounded-xl transition touch-manipulation active:scale-95 ${
+          className={`flex flex-col items-center justify-center min-w-[50px] min-h-[46px] py-1 px-1.5 rounded-xl transition touch-manipulation active:scale-95 cursor-pointer ${
             currentTab === 'factures' || currentTab === 'create-facture'
-              ? 'text-blue-400 bg-blue-950/60 font-bold'
+              ? 'text-blue-400 font-bold'
               : 'text-slate-400 hover:text-slate-200'
           }`}
         >
           <FileText className="w-5 h-5 mb-0.5" />
           <span className="text-[10px] leading-tight">Factures</span>
+        </button>
+
+        {/* Central Elevated Speed Dial Button */}
+        <button
+          type="button"
+          onClick={() => setMobileSpeedDialOpen(true)}
+          className="w-12 h-12 rounded-full bg-gradient-to-tr from-blue-600 via-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/30 flex items-center justify-center -translate-y-3 ring-4 ring-slate-950 active:scale-95 transition cursor-pointer"
+          title="Créer un nouveau document ou article"
+          aria-label="Action rapide"
+        >
+          <Plus className="w-6 h-6 stroke-[2.5]" />
         </button>
 
         <button
@@ -1752,16 +1920,16 @@ export default function Home() {
             setPreviousTab(currentTab);
             setCurrentTab('produits');
           }}
-          className={`flex flex-col items-center justify-center relative min-w-[56px] min-h-[48px] py-1 px-2 rounded-xl transition touch-manipulation active:scale-95 ${
+          className={`flex flex-col items-center justify-center relative min-w-[50px] min-h-[46px] py-1 px-1.5 rounded-xl transition touch-manipulation active:scale-95 cursor-pointer ${
             currentTab === 'produits' || currentTab === 'create-produit'
-              ? 'text-blue-400 bg-blue-950/60 font-bold'
+              ? 'text-blue-400 font-bold'
               : 'text-slate-400 hover:text-slate-200'
           }`}
         >
           <Package className="w-5 h-5 mb-0.5" />
           <span className="text-[10px] leading-tight">Stocks</span>
           {stats.stock_alerts_count > 0 && (
-            <span className="absolute top-0.5 right-1 min-w-[18px] h-4 px-1 bg-rose-500 text-white text-[9px] font-black rounded-full flex items-center justify-center shadow-xs">
+            <span className="absolute top-0.5 right-0.5 min-w-[17px] h-4 px-1 bg-rose-500 text-white text-[9px] font-black rounded-full flex items-center justify-center shadow-xs">
               {stats.stock_alerts_count > 999 ? '999+' : stats.stock_alerts_count}
             </span>
           )}
@@ -1770,7 +1938,7 @@ export default function Home() {
         <button
           type="button"
           onClick={() => setMobileMenuOpen(true)}
-          className="flex flex-col items-center justify-center min-w-[56px] min-h-[48px] py-1 px-2 rounded-xl text-slate-400 hover:text-slate-200 transition touch-manipulation active:scale-95"
+          className="flex flex-col items-center justify-center min-w-[50px] min-h-[46px] py-1 px-1.5 rounded-xl text-slate-400 hover:text-slate-200 transition touch-manipulation active:scale-95 cursor-pointer"
           aria-label="Ouvrir tous les menus"
         >
           <MenuIcon className="w-5 h-5 mb-0.5" />
