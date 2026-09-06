@@ -51,6 +51,20 @@ interface SidebarProps {
   onOpenUserManagement?: () => void;
 }
 
+interface NavItem {
+  id: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  highlight?: boolean;
+  badge?: string;
+  badgeColor?: string;
+}
+
+interface NavSection {
+  title: string;
+  items: NavItem[];
+}
+
 export const Sidebar: React.FC<SidebarProps> = ({
   currentTab,
   setCurrentTab,
@@ -69,7 +83,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const [navSearch, setNavSearch] = useState('');
 
-  const navSections = useMemo(() => [
+  const navSections: NavSection[] = useMemo(() => [
     {
       title: 'Pilotage & IA',
       items: [
