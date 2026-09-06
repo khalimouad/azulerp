@@ -720,10 +720,6 @@ export default function Home() {
         brEnAttenteCount={stats.br_en_attente_count}
         stockAlertsCount={stats.stock_alerts_count}
         supplierAlertsCount={supplierAlertsCount}
-        currentUser={currentUser}
-        onLogout={handleLogout}
-        onLockScreen={() => setIsScreenLocked(true)}
-        onOpenUserManagement={() => setIsUserManagementOpen(true)}
       />
 
       {/* Main Layout Area: Left Docked AI Assistant (Copilot) + Main Viewport */}
