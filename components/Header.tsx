@@ -33,6 +33,10 @@ import {
   Scale,
   Factory,
   X,
+  BookOpen,
+  Download,
+  AlertTriangle,
+  TrendingUp,
 } from 'lucide-react';
 import { AppUser } from '@/lib/types';
 import { SyncStatusBadge } from './SyncStatusBadge';
@@ -189,7 +193,14 @@ export const Header: React.FC<HeaderProps> = ({
           badge: supplierAlertsCount > 0 ? `${supplierAlertsCount}` : undefined,
           badgeColor: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
         },
-        { id: 'fournisseurs-reconciliation', label: 'Rapprochement & Soldes', icon: Layers },
+        {
+          id: 'fournisseurs-alertes',
+          label: 'Alertes Échéances Chèques',
+          icon: AlertTriangle,
+          badge: supplierAlertsCount > 0 ? `${supplierAlertsCount}` : undefined,
+          badgeColor: 'bg-rose-500/20 text-rose-300 border-rose-500/40',
+        },
+        { id: 'fournisseurs-reconciliation', label: 'Situation & Rapprochement', icon: Layers },
       ],
     },
     {
@@ -214,7 +225,13 @@ export const Header: React.FC<HeaderProps> = ({
       label: 'Comptabilité',
       icon: Scale,
       items: [
-        { id: 'accounting', label: 'Comptabilité Générale (PCGM)', icon: Scale },
+        { id: 'accounting-journal', label: 'Journal & Grand Livre', icon: BookOpen },
+        { id: 'accounting-balance', label: 'Balance Générale (6 Col)', icon: Scale },
+        { id: 'accounting-cpc', label: 'Bilan & CPC (CGNC)', icon: FileSpreadsheet },
+        { id: 'accounting-fiscalite', label: 'SIMPL-TVA & IS', icon: Building },
+        { id: 'accounting-assets', label: 'Immobilisations & Amort.', icon: TrendingUp },
+        { id: 'accounting-pcgm', label: 'Plan Comptable (PCGM)', icon: Layers },
+        { id: 'accounting-export', label: 'Export FEC / DGI', icon: Download },
       ],
     },
     {
@@ -261,8 +278,9 @@ export const Header: React.FC<HeaderProps> = ({
           (item.id === 'devis' && currentTab === 'create-devis') ||
           (item.id === 'clients' && currentTab === 'create-client') ||
           (item.id === 'produits' && (currentTab === 'create-produit' || currentTab === 'adjust-stock')) ||
-          (item.id === 'fournisseurs' && currentTab === 'create-fournisseur') ||
-          (item.id === 'accounting' && (currentTab === 'create-journal-entry' || currentTab === 'create-fixed-asset')) ||
+          ((item.id === 'fournisseurs' || item.id === 'factures-fournisseurs' || item.id === 'paiements-fournisseurs' || item.id === 'fournisseurs-alertes' || item.id === 'fournisseurs-reconciliation') && currentTab === 'create-fournisseur') ||
+          (category.id === 'achats' && (currentTab === 'fournisseurs' || currentTab === 'factures-fournisseurs' || currentTab === 'paiements-fournisseurs' || currentTab === 'fournisseurs-alertes' || currentTab === 'fournisseurs-reconciliation' || currentTab === 'create-fournisseur')) ||
+          (category.id === 'comptabilite' && (currentTab.startsWith('accounting') || currentTab === 'create-journal-entry' || currentTab === 'create-fixed-asset')) ||
           (item.id === 'hr' && (currentTab === 'create-employee' || currentTab === 'create-leave')) ||
           (item.id === 'manufacturing-boms' && currentTab === 'create-bom') ||
           (item.id === 'manufacturing-orders' && currentTab === 'create-production-order')
@@ -318,8 +336,10 @@ export const Header: React.FC<HeaderProps> = ({
         return { domain: 'Achats', page: "Factures d'Achat" };
       case 'paiements-fournisseurs':
         return { domain: 'Achats', page: 'Paiements Fournisseurs' };
+      case 'fournisseurs-alertes':
+        return { domain: 'Achats', page: 'Alertes Échéances Chèques' };
       case 'fournisseurs-reconciliation':
-        return { domain: 'Achats', page: 'Rapprochement & Soldes' };
+        return { domain: 'Achats', page: 'Situation & Rapprochement' };
       case 'produits':
         return { domain: 'Stocks & Production', page: 'Articles & Stocks' };
       case 'create-produit':
@@ -335,7 +355,20 @@ export const Header: React.FC<HeaderProps> = ({
       case 'create-production-order':
         return { domain: 'Stocks & Production', page: 'Nouvel Ordre de Fabrication' };
       case 'accounting':
-        return { domain: 'Comptabilité', page: 'Comptabilité Générale (PCGM)' };
+      case 'accounting-journal':
+        return { domain: 'Comptabilité', page: 'Journal & Grand Livre' };
+      case 'accounting-balance':
+        return { domain: 'Comptabilité', page: 'Balance Générale (6 Col)' };
+      case 'accounting-cpc':
+        return { domain: 'Comptabilité', page: 'Bilan & CPC (CGNC)' };
+      case 'accounting-fiscalite':
+        return { domain: 'Comptabilité', page: 'SIMPL-TVA & SIMPL-IS' };
+      case 'accounting-assets':
+        return { domain: 'Comptabilité', page: 'Immobilisations & Amortissements' };
+      case 'accounting-pcgm':
+        return { domain: 'Comptabilité', page: 'Plan Comptable (PCGM)' };
+      case 'accounting-export':
+        return { domain: 'Comptabilité', page: 'Export Fichier FEC / DGI' };
       case 'create-journal-entry':
         return { domain: 'Comptabilité', page: 'Saisie Écriture Comptable' };
       case 'create-fixed-asset':

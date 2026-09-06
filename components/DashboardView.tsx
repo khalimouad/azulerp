@@ -45,119 +45,119 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const brTotal = stats.br_en_attente_total || 0;
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-3.5">
       {/* Top Banner with Quick Actions */}
-      <div className="bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 text-white p-5 rounded-2xl shadow-md border border-slate-800">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 text-white p-3 sm:p-3.5 rounded-xl shadow-xs border border-slate-800">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
           <div>
-            <div className="flex items-center gap-2">
-              <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-blue-500/20 text-blue-300 border border-blue-400/30">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-500/20 text-blue-300 border border-blue-400/30">
                 {exercise === 'TOUS' ? 'Tous exercices' : `Exercice ${exercise}`}
               </span>
-              <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
                 Neon PostgreSQL connecté
               </span>
-              <span className="text-xs text-slate-400 hidden sm:inline">Dernière synchronisation cloud : instantanée</span>
+              <span className="text-[11px] text-slate-400 hidden sm:inline">Synchronisation instantanée</span>
             </div>
-            <h2 className="text-xl sm:text-2xl font-bold tracking-tight mt-1 text-white">
+            <h2 className="text-base sm:text-lg font-bold tracking-tight mt-0.5 text-white">
               Tableau de Bord Commercial & Ventes
             </h2>
-            <p className="text-xs text-slate-300 mt-0.5">
-              Données Neon en direct : {stats.produits_count ?? 0} articles · {stats.clients_count} clients · {stats.fournisseurs_count ?? 0} fournisseurs · {stats.familles_count ?? 0} familles
+            <p className="text-[11px] text-slate-300 mt-0.5">
+              Données Neon : {stats.produits_count ?? 0} articles · {stats.clients_count} clients · {stats.fournisseurs_count ?? 0} fournisseurs · {stats.familles_count ?? 0} familles
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-1.5 shrink-0">
             <button
               onClick={onOpenNewBl}
-              className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white shadow-xs transition active:scale-95"
+              className="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white shadow-xs transition active:scale-95"
             >
-              <Truck className="w-4 h-4" />
-              + Nouveau BL
+              <Truck className="w-3.5 h-3.5" />
+              <span>+ Nouveau BL</span>
             </button>
             {onOpenNewBr && (
               <button
                 onClick={onOpenNewBr}
-                className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg bg-rose-600 hover:bg-rose-500 text-white shadow-xs transition active:scale-95"
+                className="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg bg-rose-600 hover:bg-rose-500 text-white shadow-xs transition active:scale-95"
               >
-                <RotateCcw className="w-4 h-4" />
-                + Bon de Retour
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span>+ BR</span>
               </button>
             )}
             <button
               onClick={onOpenBatchInvoicing}
-              className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white shadow-xs transition active:scale-95"
+              className="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white shadow-xs transition active:scale-95"
             >
-              <Workflow className="w-4 h-4" />
-              Facturation Fin de Mois
+              <Workflow className="w-3.5 h-3.5" />
+              <span>Facturer BLs</span>
             </button>
           </div>
         </div>
 
         {/* Quick Repository Overview Strip */}
-        <div className="mt-4 pt-3 border-t border-slate-800/80 grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+        <div className="mt-2.5 pt-2 border-t border-slate-800/80 grid grid-cols-2 sm:grid-cols-4 gap-1.5 text-xs">
           <button
             onClick={() => onNavigate('produits')}
-            className="p-2 bg-slate-800/60 hover:bg-slate-800 rounded-xl border border-slate-700/60 text-left transition flex items-center justify-between"
+            className="p-1.5 sm:p-2 bg-slate-800/60 hover:bg-slate-800 rounded-lg border border-slate-700/60 text-left transition flex items-center justify-between"
           >
             <div>
-              <div className="text-[10px] text-slate-400 uppercase font-semibold">Catalogue Articles</div>
-              <div className="text-sm font-bold text-emerald-400">{stats.produits_count ?? 0} Produits</div>
+              <div className="text-[9px] text-slate-400 uppercase font-semibold">Articles</div>
+              <div className="text-xs sm:text-sm font-bold text-emerald-400">{stats.produits_count ?? 0} Produits</div>
             </div>
-            <Package className="w-4 h-4 text-slate-400" />
+            <Package className="w-3.5 h-3.5 text-slate-400 shrink-0" />
           </button>
 
           <button
             onClick={() => onNavigate('clients')}
-            className="p-2 bg-slate-800/60 hover:bg-slate-800 rounded-xl border border-slate-700/60 text-left transition flex items-center justify-between"
+            className="p-1.5 sm:p-2 bg-slate-800/60 hover:bg-slate-800 rounded-lg border border-slate-700/60 text-left transition flex items-center justify-between"
           >
             <div>
-              <div className="text-[10px] text-slate-400 uppercase font-semibold">Clients B2B</div>
-              <div className="text-sm font-bold text-blue-400">{stats.clients_count} Clients</div>
+              <div className="text-[9px] text-slate-400 uppercase font-semibold">Clients</div>
+              <div className="text-xs sm:text-sm font-bold text-blue-400">{stats.clients_count} Clients</div>
             </div>
-            <Users className="w-4 h-4 text-slate-400" />
+            <Users className="w-3.5 h-3.5 text-slate-400 shrink-0" />
           </button>
 
           <button
             onClick={() => onNavigate('fournisseurs')}
-            className="p-2 bg-slate-800/60 hover:bg-slate-800 rounded-xl border border-slate-700/60 text-left transition flex items-center justify-between"
+            className="p-1.5 sm:p-2 bg-slate-800/60 hover:bg-slate-800 rounded-lg border border-slate-700/60 text-left transition flex items-center justify-between"
           >
             <div>
-              <div className="text-[10px] text-slate-400 uppercase font-semibold">Fournisseurs</div>
-              <div className="text-sm font-bold text-amber-400">{stats.fournisseurs_count ?? 0} Fournisseurs</div>
+              <div className="text-[9px] text-slate-400 uppercase font-semibold">Fournisseurs</div>
+              <div className="text-xs sm:text-sm font-bold text-amber-400">{stats.fournisseurs_count ?? 0} Fournisseurs</div>
             </div>
-            <Truck className="w-4 h-4 text-slate-400" />
+            <Truck className="w-3.5 h-3.5 text-slate-400 shrink-0" />
           </button>
 
           <button
             onClick={() => onNavigate('produits')}
-            className="p-2 bg-slate-800/60 hover:bg-slate-800 rounded-xl border border-slate-700/60 text-left transition flex items-center justify-between"
+            className="p-1.5 sm:p-2 bg-slate-800/60 hover:bg-slate-800 rounded-lg border border-slate-700/60 text-left transition flex items-center justify-between"
           >
             <div>
-              <div className="text-[10px] text-slate-400 uppercase font-semibold">Structure Produits</div>
-              <div className="text-sm font-bold text-purple-400">{stats.familles_count ?? 0} Familles · {stats.categories_count ?? 0} Cat.</div>
+              <div className="text-[9px] text-slate-400 uppercase font-semibold">Structure</div>
+              <div className="text-xs sm:text-sm font-bold text-purple-400">{stats.familles_count ?? 0} Familles</div>
             </div>
-            <Workflow className="w-4 h-4 text-slate-400" />
+            <Workflow className="w-3.5 h-3.5 text-slate-400 shrink-0" />
           </button>
         </div>
       </div>
 
       {/* KPI Cards Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-2.5">
         {/* Total Facturé */}
-        <div className="bg-white p-3 sm:p-4 rounded-xl border border-slate-200 shadow-xs hover:border-slate-300 transition">
+        <div className="bg-white p-2.5 sm:p-3 rounded-lg border border-slate-200 shadow-xs hover:border-slate-300 transition">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider truncate">
+            <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider truncate">
               Chiffre d'Affaires Net
             </span>
-            <span className="p-1.5 sm:p-2 rounded-lg bg-blue-50 text-blue-600 shrink-0">
-              <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <span className="p-1 rounded-md bg-blue-50 text-blue-600 shrink-0">
+              <TrendingUp className="w-3.5 h-3.5" />
             </span>
           </div>
-          <div className="text-base sm:text-2xl font-extrabold text-slate-900 font-mono mt-1.5 sm:mt-2 truncate">
+          <div className="text-sm sm:text-lg font-bold text-slate-900 font-mono mt-0.5 truncate">
             {formatCurrency(stats.total_facture_ttc)}
           </div>
-          <div className="text-[10px] sm:text-[11px] text-slate-500 mt-1 flex flex-wrap items-center gap-1">
+          <div className="text-[10px] text-slate-400 mt-0.5 flex flex-wrap items-center gap-1">
             <span className="font-mono font-medium">HT: {formatCurrency(stats.total_facture_ht, false)}</span>
             <span className="hidden sm:inline">•</span>
             <span className="text-blue-600 font-semibold">{stats.factures_count} factures</span>
@@ -165,19 +165,19 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
 
         {/* Total Encaissé */}
-        <div className="bg-white p-3 sm:p-4 rounded-xl border border-slate-200 shadow-xs hover:border-slate-300 transition">
+        <div className="bg-white p-2.5 sm:p-3 rounded-lg border border-slate-200 shadow-xs hover:border-slate-300 transition">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider truncate">
+            <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider truncate">
               Montant Encaissé
             </span>
-            <span className="p-1.5 sm:p-2 rounded-lg bg-emerald-50 text-emerald-600 shrink-0">
-              <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <span className="p-1 rounded-md bg-emerald-50 text-emerald-600 shrink-0">
+              <CheckCircle2 className="w-3.5 h-3.5" />
             </span>
           </div>
-          <div className="text-base sm:text-2xl font-extrabold text-emerald-700 font-mono mt-1.5 sm:mt-2 truncate">
+          <div className="text-sm sm:text-lg font-bold text-emerald-700 font-mono mt-0.5 truncate">
             {formatCurrency(stats.total_encaisse)}
           </div>
-          <div className="text-[10px] sm:text-[11px] text-slate-500 mt-1 truncate">
+          <div className="text-[10px] text-slate-400 mt-0.5 truncate">
             Taux :{' '}
             <strong className="text-emerald-700 font-semibold">
               {stats.total_facture_ttc > 0
@@ -189,19 +189,19 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
 
         {/* Reste à Recouvrer (Impayés) */}
-        <div className="bg-white p-3 sm:p-4 rounded-xl border border-slate-200 shadow-xs hover:border-slate-300 transition">
+        <div className="bg-white p-2.5 sm:p-3 rounded-lg border border-slate-200 shadow-xs hover:border-slate-300 transition">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider truncate">
+            <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider truncate">
               Reste à Recouvrer
             </span>
-            <span className="p-1.5 sm:p-2 rounded-lg bg-rose-50 text-rose-600 shrink-0">
-              <CreditCard className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <span className="p-1 rounded-md bg-rose-50 text-rose-600 shrink-0">
+              <CreditCard className="w-3.5 h-3.5" />
             </span>
           </div>
-          <div className="text-base sm:text-2xl font-extrabold text-rose-700 font-mono mt-1.5 sm:mt-2 truncate">
+          <div className="text-sm sm:text-lg font-bold text-rose-700 font-mono mt-0.5 truncate">
             {formatCurrency(stats.total_impaye)}
           </div>
-          <div className="text-[10px] sm:text-[11px] text-rose-600 font-medium mt-1 truncate">
+          <div className="text-[10px] text-rose-600 font-medium mt-0.5 truncate">
             Solde clients à relancer
           </div>
         </div>
@@ -209,14 +209,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         {/* BLs & Retours en attente de facturation */}
         <div
           onClick={onOpenBatchInvoicing}
-          className="bg-amber-50/70 p-3 sm:p-4 rounded-xl border border-amber-200 shadow-xs hover:border-amber-300 cursor-pointer transition"
+          className="bg-amber-50/70 p-2.5 sm:p-3 rounded-lg border border-amber-200 shadow-xs hover:border-amber-300 cursor-pointer transition"
         >
           <div className="flex items-center justify-between">
-            <span className="text-[10px] sm:text-xs font-semibold text-amber-900 uppercase tracking-wider truncate">
+            <span className="text-[10px] font-semibold text-amber-900 uppercase tracking-wider truncate">
               À Facturer
             </span>
-            <span className="p-1.5 sm:p-2 rounded-lg bg-amber-100 text-amber-800 shrink-0">
-              <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <span className="p-1 rounded-md bg-amber-100 text-amber-800 shrink-0">
+              <Clock className="w-3.5 h-3.5" />
             </span>
           </div>
           <div className="text-sm sm:text-xl font-extrabold text-amber-950 font-mono mt-1.5 sm:mt-2 truncate">

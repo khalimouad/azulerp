@@ -658,7 +658,7 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-100 flex flex-col font-sans text-slate-900">
+    <div className="h-screen flex flex-col overflow-hidden bg-slate-100 font-sans text-slate-900">
       <ReferenceDataLists />
       {/* Global Database Progress Modal */}
       <DatabaseProgressModal
@@ -686,44 +686,46 @@ export default function Home() {
       />
 
       {/* Top Application Header */}
-      <Header
-        currentTab={currentTab}
-        currentUser={currentUser}
-        onLogout={handleLogout}
-        onLockScreen={() => setIsScreenLocked(true)}
-        onOpenUserManagement={() => setIsUserManagementOpen(true)}
-        onOpenNewBl={() => {
-          setPreSelectedClientId(undefined);
-          navigateTo('create-bl');
-        }}
-        onOpenNewFacture={() => {
-          setPreSelectedClientId(undefined);
-          navigateTo('create-facture');
-        }}
-        onOpenNewClient={() => {
-          setClientToEdit(null);
-          navigateTo('create-client');
-        }}
-        onOpenNewProduit={() => {
-          setProduitToEdit(null);
-          navigateTo('create-produit');
-        }}
-        onDataReload={reloadData}
-        globalSearch={globalSearch}
-        setGlobalSearch={setGlobalSearch}
-        selectedYear={selectedYear}
-        setSelectedYear={setSelectedYear}
-        mobileMenuOpen={mobileMenuOpen}
-        setMobileMenuOpen={setMobileMenuOpen}
-        onNavigateTab={navigateTo}
-        blEnAttenteCount={stats.bl_en_attente_count}
-        brEnAttenteCount={stats.br_en_attente_count}
-        stockAlertsCount={stats.stock_alerts_count}
-        supplierAlertsCount={supplierAlertsCount}
-      />
+      <div className="shrink-0 z-30">
+        <Header
+          currentTab={currentTab}
+          currentUser={currentUser}
+          onLogout={handleLogout}
+          onLockScreen={() => setIsScreenLocked(true)}
+          onOpenUserManagement={() => setIsUserManagementOpen(true)}
+          onOpenNewBl={() => {
+            setPreSelectedClientId(undefined);
+            navigateTo('create-bl');
+          }}
+          onOpenNewFacture={() => {
+            setPreSelectedClientId(undefined);
+            navigateTo('create-facture');
+          }}
+          onOpenNewClient={() => {
+            setClientToEdit(null);
+            navigateTo('create-client');
+          }}
+          onOpenNewProduit={() => {
+            setProduitToEdit(null);
+            navigateTo('create-produit');
+          }}
+          onDataReload={reloadData}
+          globalSearch={globalSearch}
+          setGlobalSearch={setGlobalSearch}
+          selectedYear={selectedYear}
+          setSelectedYear={setSelectedYear}
+          mobileMenuOpen={mobileMenuOpen}
+          setMobileMenuOpen={setMobileMenuOpen}
+          onNavigateTab={navigateTo}
+          blEnAttenteCount={stats.bl_en_attente_count}
+          brEnAttenteCount={stats.br_en_attente_count}
+          stockAlertsCount={stats.stock_alerts_count}
+          supplierAlertsCount={supplierAlertsCount}
+        />
+      </div>
 
       {/* Main Layout Area: Left Docked AI Assistant (Copilot) + Main Viewport */}
-      <div className="flex-1 flex flex-col lg:flex-row">
+      <div className="flex-1 flex flex-col lg:flex-row min-h-0 overflow-hidden relative">
         {/* Left Docked AI Assistant (Gemini 3.8 Copilot) */}
         <AiSidebarCopilot
           onDataChanged={reloadData}
@@ -733,7 +735,7 @@ export default function Home() {
         />
 
         {/* Viewport Content */}
-        <main className={`flex-1 p-3 sm:p-5 lg:p-6 w-full mx-auto overflow-x-hidden pb-28 lg:pb-8 transition-[max-width] duration-300 ${sidebarCollapsed ? 'max-w-none' : 'max-w-[1720px]'}`}>
+        <main className={`flex-1 h-full overflow-y-auto min-h-0 p-3 sm:p-4 lg:p-5 w-full mx-auto pb-24 lg:pb-8 transition-[max-width] duration-300 ${sidebarCollapsed ? 'max-w-none' : 'max-w-[1720px]'}`}>
           {/* 1. DASHBOARD */}
           {currentTab === 'dashboard' && (
             <DashboardView
@@ -1238,15 +1240,38 @@ export default function Home() {
             />
           )}
 
-          {/* COMPTABILITÉ GÉNÉRALE & FISCALITÉ MAROCAINE (PCGM) */}
-          {currentTab === 'accounting' && (
+          {/* COMPTABILITÉ GÉNÉRALE & FISCALITÉ MAROCAINE (PCGM) - MULTIPAGE */}
+          {(currentTab === 'accounting' ||
+            currentTab === 'accounting-journal' ||
+            currentTab === 'accounting-balance' ||
+            currentTab === 'accounting-cpc' ||
+            currentTab === 'accounting-fiscalite' ||
+            currentTab === 'accounting-assets' ||
+            currentTab === 'accounting-pcgm' ||
+            currentTab === 'accounting-export') && (
             <AccountingView
+              initialTab={
+                currentTab === 'accounting-balance'
+                  ? 'BALANCE'
+                  : currentTab === 'accounting-cpc'
+                  ? 'SYNTHESE'
+                  : currentTab === 'accounting-fiscalite'
+                  ? 'FISCALITE'
+                  : currentTab === 'accounting-assets'
+                  ? 'IMMOBILISATIONS'
+                  : currentTab === 'accounting-pcgm'
+                  ? 'PCGM'
+                  : currentTab === 'accounting-export'
+                  ? 'EXPORT'
+                  : 'JOURNAL'
+              }
               entries={journalEntries}
               accounts={chartOfAccounts}
               journals={accountingJournals}
               assets={fixedAssets}
               factures={factures}
               reglements={reglements}
+              onNavigateTab={navigateTo}
               onRefresh={reloadCoreData}
               onCreateEntry={() => {
                 setJournalEntryToEdit(null);

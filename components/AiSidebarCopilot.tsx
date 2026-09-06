@@ -323,7 +323,7 @@ Je suis connecté à votre base Neon en direct pour répondre à vos questions e
   if (collapsed) {
     return (
       <aside
-        className="hidden lg:flex flex-col items-center justify-between py-3 px-1.5 w-[58px] bg-slate-950 border-r border-slate-800/80 shrink-0 select-none h-[calc(100vh-57px)] sticky top-[57px] z-20"
+        className="hidden lg:flex flex-col items-center justify-between py-3 px-1.5 w-[58px] bg-slate-950 border-r border-slate-800/80 shrink-0 select-none h-full z-20"
         title="Ouvrir le Copilot IA"
       >
         <div className="flex flex-col items-center gap-3">
@@ -355,7 +355,14 @@ Je suis connecté à votre base Neon en direct pour répondre à vos questions e
 
   // Expanded Left Copilot Sidebar (~330px width)
   return (
-    <aside className="w-full sm:w-[330px] lg:w-[330px] bg-slate-950 border-r border-slate-800/80 flex flex-col shrink-0 select-none h-auto lg:h-[calc(100vh-57px)] lg:sticky top-[57px] z-20 overflow-hidden shadow-xl shadow-slate-950/30">
+    <>
+      {/* Mobile Backdrop Overlay */}
+      <div
+        onClick={() => setCollapsed(true)}
+        className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-40 lg:hidden"
+      />
+
+      <aside className="fixed inset-y-0 left-0 z-50 w-[310px] sm:w-[330px] lg:static lg:z-10 lg:w-[330px] h-full bg-slate-950 border-r border-slate-800/80 flex flex-col shrink-0 select-none overflow-hidden shadow-2xl">
       {/* 1. Header Bar */}
       <div className="px-3.5 py-2.5 bg-slate-900/90 border-b border-slate-800/80 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2 min-w-0">
@@ -671,5 +678,6 @@ Je suis connecté à votre base Neon en direct pour répondre à vos questions e
         </div>
       </div>
     </aside>
+    </>
   );
 };

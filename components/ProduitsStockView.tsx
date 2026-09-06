@@ -159,32 +159,32 @@ export const ProduitsStockView: React.FC<ProduitsStockViewProps> = ({
       {activeTab === 'CATALOG' ? (
         <>
           {/* Global Inventory Valuation & KPIs Bar */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs">
-            <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100">
-              <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block">Articles Référencés</span>
-              <span className="text-base font-bold text-slate-900 mt-0.5 block">{produits.length} références</span>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-2.5 bg-white p-2 sm:p-2.5 rounded-lg border border-slate-200 shadow-xs">
+            <div className="p-2 rounded-md bg-slate-50 border border-slate-100">
+              <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider block">Articles Référencés</span>
+              <span className="text-sm sm:text-base font-bold text-slate-900 mt-0.5 block">{produits.length} références</span>
             </div>
-            <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100">
-              <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block">Unités en Stock</span>
-              <span className="text-base font-mono font-bold text-slate-900 mt-0.5 block">
+            <div className="p-2 rounded-md bg-slate-50 border border-slate-100">
+              <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider block">Unités en Stock</span>
+              <span className="text-sm sm:text-base font-mono font-bold text-slate-900 mt-0.5 block">
                 {totalStockUnits.toLocaleString('fr-FR', { maximumFractionDigits: 1 })}
               </span>
             </div>
-            <div className="p-2.5 rounded-lg bg-emerald-50/70 border border-emerald-100">
-              <span className="text-[11px] font-bold text-emerald-800 uppercase tracking-wider block flex items-center gap-1">
-                <TrendingUp className="w-3.5 h-3.5 text-emerald-600" />
+            <div className="p-2 rounded-md bg-emerald-50/70 border border-emerald-100">
+              <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider block flex items-center gap-1">
+                <TrendingUp className="w-3 h-3 text-emerald-600" />
                 Valorisation Stock (Coût Réel)
               </span>
-              <span className="text-base font-mono font-extrabold text-emerald-700 mt-0.5 block">
+              <span className="text-sm sm:text-base font-mono font-extrabold text-emerald-700 mt-0.5 block">
                 {formatCurrency(totalStockValuation)}
               </span>
             </div>
-            <div className="p-2.5 rounded-lg bg-rose-50/70 border border-rose-100">
-              <span className="text-[11px] font-bold text-rose-800 uppercase tracking-wider block flex items-center gap-1">
-                <AlertTriangle className="w-3.5 h-3.5 text-rose-600" />
+            <div className="p-2 rounded-md bg-rose-50/70 border border-rose-100">
+              <span className="text-[10px] font-bold text-rose-800 uppercase tracking-wider block flex items-center gap-1">
+                <AlertTriangle className="w-3 h-3 text-rose-600" />
                 Alertes Rupture / Réappro
               </span>
-              <span className="text-base font-mono font-bold text-rose-700 mt-0.5 block">
+              <span className="text-sm sm:text-base font-mono font-bold text-rose-700 mt-0.5 block">
                 {produits.filter((p) => p.stock_actuel <= p.stock_min).length} articles
               </span>
             </div>

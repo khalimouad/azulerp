@@ -63,6 +63,8 @@ interface AccountingViewProps {
   assets?: FixedAsset[];
   factures?: Facture[];
   reglements?: Reglement[];
+  initialTab?: AccountingTab;
+  onNavigateTab?: (tab: string) => void;
   onRefresh?: () => void;
   onCreateEntry?: () => void;
   onEditEntry?: (entry: JournalEntry) => void;
@@ -77,13 +79,37 @@ export function AccountingView({
   assets = [],
   factures = [],
   reglements = [],
+  initialTab = 'JOURNAL',
+  onNavigateTab,
   onRefresh,
   onCreateEntry,
   onEditEntry,
   onCreateAsset,
   onEditAsset,
 }: AccountingViewProps) {
-  const [currentTab, setCurrentTab] = useState<AccountingTab>('JOURNAL');
+  const [currentTab, setCurrentTab] = useState<AccountingTab>(initialTab || 'JOURNAL');
+
+  useEffect(() => {
+    if (initialTab && initialTab !== currentTab) {
+      setCurrentTab(initialTab);
+    }
+  }, [initialTab]);
+
+  const handleTabChange = (newTab: AccountingTab) => {
+    setCurrentTab(newTab);
+    if (onNavigateTab) {
+      const tabMap: Record<AccountingTab, string> = {
+        JOURNAL: 'accounting-journal',
+        PCGM: 'accounting-pcgm',
+        BALANCE: 'accounting-balance',
+        SYNTHESE: 'accounting-cpc',
+        FISCALITE: 'accounting-fiscalite',
+        IMMOBILISATIONS: 'accounting-assets',
+        EXPORT: 'accounting-export',
+      };
+      onNavigateTab(tabMap[newTab] || 'accounting');
+    }
+  };
   const [selectedJournal, setSelectedJournal] = useState<string>('ALL');
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [pcgmClasse, setPcgmClasse] = useState<number>(1);
@@ -285,88 +311,88 @@ export function AccountingView({
   };
 
   return (
-    <div className="space-y-6">
-      {/* Top Header Card */}
-      <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 border border-slate-800/80 rounded-2xl p-6 text-white shadow-xl relative overflow-hidden">
-        <div className="absolute right-0 top-0 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20"></div>
-
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <span className="px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded-full flex items-center gap-1">
+    <div className="space-y-4">
+      {/* Compact Top Header Strip */}
+      <div className="bg-slate-900 border border-slate-800 rounded-xl p-3 sm:p-3.5 text-white shadow-md relative overflow-hidden">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg bg-indigo-600/30 text-indigo-400 border border-indigo-500/30 flex items-center justify-center shrink-0">
+                <Scale className="w-4 h-4" />
+              </div>
+              <h1 className="text-base sm:text-lg font-bold tracking-tight text-white truncate">
+                Comptabilité Générale & Liasse Fiscale
+              </h1>
+              <span className="hidden sm:inline-flex px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 rounded-full items-center gap-1">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                Intégration Automatique Temps Réel
+                Temps Réel
               </span>
-              <span className="px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wider bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 rounded-full">
-                PCGM & LF 2026
+              <span className="hidden sm:inline-flex px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-indigo-500/15 text-indigo-300 border border-indigo-500/30 rounded-full">
+                PCGM 2026
               </span>
             </div>
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-white flex items-center gap-3">
-              <Scale className="w-8 h-8 text-indigo-400" />
-              Comptabilité Générale & Liasse Fiscale
-            </h1>
-            <p className="text-slate-400 text-sm mt-1">
-              Journaux auxiliaires, Grand Livre, Balance 6 colonnes, Bilan & CPC (CGNC) et télédéclarations DGI
+            <p className="text-slate-400 text-xs mt-0.5 truncate hidden sm:block">
+              Grand Livre, Balance 6 colonnes, Bilan & CPC (CGNC) et déclarations DGI
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={handleSyncOperational}
               disabled={isSyncing}
-              title="Vérifier et forcer la synchronisation manuelle des écritures historiques"
-              className="flex items-center gap-2 px-4 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 disabled:opacity-50 text-slate-200 rounded-xl font-medium transition text-sm"
+              title="Vérifier et forcer la synchronisation manuelle des écritures"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 disabled:opacity-50 text-slate-200 rounded-lg font-medium transition text-xs"
             >
-              <RefreshCw className={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`} />
-              Resynchroniser l'historique
+              <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin text-indigo-400' : ''}`} />
+              <span className="hidden sm:inline">Synchroniser</span>
             </button>
 
             <button
               onClick={() => (onCreateEntry ? onCreateEntry() : setShowEntryModal(true))}
-              className="flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-medium transition shadow-lg shadow-emerald-600/30 text-sm"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-semibold transition shadow-xs text-xs active:scale-95"
             >
-              <Plus className="w-4 h-4" />
-              Nouvelle Écriture
+              <Plus className="w-3.5 h-3.5" />
+              <span>+ Écriture</span>
             </button>
           </div>
         </div>
 
         {syncFeedback && (
-          <div className="mt-4 p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-emerald-300 text-sm flex items-center justify-between">
+          <div className="mt-2.5 p-2 bg-emerald-500/10 border border-emerald-500/30 rounded-lg text-emerald-300 text-xs flex items-center justify-between">
             <span>{syncFeedback}</span>
             <button onClick={() => setSyncFeedback(null)} className="text-emerald-400 hover:text-white">
-              <X className="w-4 h-4" />
+              <X className="w-3.5 h-3.5" />
             </button>
           </div>
         )}
 
-        {/* Global Key Figures */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6 pt-6 border-t border-slate-800">
-          <div className="bg-slate-800/50 backdrop-blur rounded-xl p-3 border border-slate-700/50">
-            <p className="text-xs text-slate-400 uppercase font-medium">Total Débit</p>
-            <p className="text-lg font-bold text-white mt-1">{formatCurrency(totalDebitAll)}</p>
+        {/* Compact Key Figures Strip */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2.5 pt-2.5 border-t border-slate-800/80">
+          <div className="bg-slate-800/40 rounded-lg p-2 border border-slate-800">
+            <p className="text-[10px] text-slate-400 uppercase font-semibold">Total Débit</p>
+            <p className="text-sm sm:text-base font-mono font-bold text-white mt-0.5">{formatCurrency(totalDebitAll)}</p>
           </div>
-          <div className="bg-slate-800/50 backdrop-blur rounded-xl p-3 border border-slate-700/50">
-            <p className="text-xs text-slate-400 uppercase font-medium">Total Crédit</p>
-            <p className="text-lg font-bold text-white mt-1">{formatCurrency(totalCreditAll)}</p>
+          <div className="bg-slate-800/40 rounded-lg p-2 border border-slate-800">
+            <p className="text-[10px] text-slate-400 uppercase font-semibold">Total Crédit</p>
+            <p className="text-sm sm:text-base font-mono font-bold text-white mt-0.5">{formatCurrency(totalCreditAll)}</p>
           </div>
-          <div className="bg-slate-800/50 backdrop-blur rounded-xl p-3 border border-slate-700/50">
-            <p className="text-xs text-slate-400 uppercase font-medium">Équilibre Comptable</p>
-            <p className={`text-lg font-bold mt-1 flex items-center gap-1 ${ecartBalance === 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+          <div className="bg-slate-800/40 rounded-lg p-2 border border-slate-800">
+            <p className="text-[10px] text-slate-400 uppercase font-semibold">Équilibre Comptable</p>
+            <p className={`text-sm sm:text-base font-mono font-bold mt-0.5 flex items-center gap-1 ${ecartBalance === 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
               {ecartBalance === 0 ? (
                 <>
-                  <CheckCircle2 className="w-4 h-4" /> Équilibré (0.00 DH)
+                  <CheckCircle2 className="w-3.5 h-3.5 shrink-0" /> Équilibré (0.00)
                 </>
               ) : (
                 <>
-                  <AlertCircle className="w-4 h-4" /> Écart : {formatCurrency(ecartBalance)}
+                  <AlertCircle className="w-3.5 h-3.5 shrink-0" /> Écart : {formatCurrency(ecartBalance)}
                 </>
               )}
             </p>
           </div>
-          <div className="bg-slate-800/50 backdrop-blur rounded-xl p-3 border border-slate-700/50">
-            <p className="text-xs text-slate-400 uppercase font-medium">Résultat Net Provisoire</p>
-            <p className={`text-lg font-bold mt-1 ${cpc.resultat_net >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+          <div className="bg-slate-800/40 rounded-lg p-2 border border-slate-800">
+            <p className="text-[10px] text-slate-400 uppercase font-semibold">Résultat Net Provisoire</p>
+            <p className={`text-sm sm:text-base font-mono font-bold mt-0.5 ${cpc.resultat_net >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
               {formatCurrency(cpc.resultat_net)}
             </p>
           </div>
@@ -374,29 +400,29 @@ export function AccountingView({
       </div>
 
       {/* Navigation Tabs */}
-      <div className="flex border-b border-slate-200 dark:border-slate-800 overflow-x-auto gap-2 pb-1">
+      <div className="flex border-b border-slate-200 dark:border-slate-800 overflow-x-auto gap-1.5 pb-1 no-scrollbar">
         {[
           { id: 'JOURNAL', label: 'Journal & Grand Livre', icon: BookOpen },
-          { id: 'PCGM', label: 'Plan Comptable (PCGM)', icon: Layers },
           { id: 'BALANCE', label: 'Balance Générale (6 Col)', icon: Scale },
           { id: 'SYNTHESE', label: 'Bilan & CPC (CGNC)', icon: FileSpreadsheet },
-          { id: 'FISCALITE', label: 'SIMPL-TVA & SIMPL-IS', icon: Building },
+          { id: 'FISCALITE', label: 'SIMPL-TVA & IS', icon: Building },
           { id: 'IMMOBILISATIONS', label: 'Immobilisations', icon: TrendingUp },
-          { id: 'EXPORT', label: 'Export Fichier FEC / CSV', icon: Download },
+          { id: 'PCGM', label: 'Plan PCGM', icon: Layers },
+          { id: 'EXPORT', label: 'Export FEC / CSV', icon: Download },
         ].map(tab => {
           const Icon = tab.icon;
           const isActive = currentTab === tab.id;
           return (
             <button
               key={tab.id}
-              onClick={() => setCurrentTab(tab.id as AccountingTab)}
-              className={`flex items-center gap-2 px-4 py-3 rounded-xl font-medium text-sm transition-all whitespace-nowrap ${
+              onClick={() => handleTabChange(tab.id as AccountingTab)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-semibold text-xs transition-all whitespace-nowrap ${
                 isActive
-                  ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20'
-                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60'
+                  ? 'bg-indigo-600 text-white shadow-xs'
+                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800'
               }`}
             >
-              <Icon className="w-4 h-4" />
+              <Icon className="w-3.5 h-3.5" />
               {tab.label}
             </button>
           );

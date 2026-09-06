@@ -665,45 +665,45 @@ export const FournisseursView: React.FC<FournisseursViewProps> = ({
       {/* ========================================================================= */}
       {/* KEY KPIS / RECONCILIATION SUMMARY TILES */}
       {/* ========================================================================= */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs">
-          <div className="text-[11px] font-bold uppercase text-slate-500">Total Achats Facturés (TTC)</div>
-          <div className="text-xl font-mono font-black text-slate-900 mt-1">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-2.5">
+        <div className="bg-white p-2 sm:p-2.5 rounded-lg border border-slate-200 shadow-xs">
+          <div className="text-[10px] font-bold uppercase text-slate-500">Achats Facturés (TTC)</div>
+          <div className="text-sm sm:text-base font-mono font-bold text-slate-900 mt-0.5">
             {formatCurrency(globalStats.totalAchats)}
           </div>
-          <div className="text-[11px] text-slate-500 mt-0.5">
-            {facturesFournisseurs.length} factures d'achat enregistrées
+          <div className="text-[10px] text-slate-400 mt-0.5 truncate">
+            {facturesFournisseurs.length} factures d'achat
           </div>
         </div>
 
-        <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs">
-          <div className="text-[11px] font-bold uppercase text-slate-500">Total Règlements Émis</div>
-          <div className="text-xl font-mono font-black text-emerald-700 mt-1">
+        <div className="bg-white p-2 sm:p-2.5 rounded-lg border border-slate-200 shadow-xs">
+          <div className="text-[10px] font-bold uppercase text-slate-500">Règlements Émis</div>
+          <div className="text-sm sm:text-base font-mono font-bold text-emerald-700 mt-0.5">
             {formatCurrency(globalStats.totalPaye)}
           </div>
-          <div className="text-[11px] text-slate-500 mt-0.5">
-            {paiementsFournisseurs.length} paiements enregistrés
+          <div className="text-[10px] text-slate-400 mt-0.5 truncate">
+            {paiementsFournisseurs.length} paiements émis
           </div>
         </div>
 
-        <div className="bg-white p-3.5 rounded-xl border border-rose-200 bg-rose-50/20 shadow-xs">
-          <div className="text-[11px] font-bold uppercase text-rose-800">Solde Net Dû aux Fournisseurs</div>
-          <div className="text-xl font-mono font-black text-rose-700 mt-1">
+        <div className="bg-white p-2 sm:p-2.5 rounded-lg border border-rose-200 bg-rose-50/20 shadow-xs">
+          <div className="text-[10px] font-bold uppercase text-rose-800">Solde Dû Fournisseurs</div>
+          <div className="text-sm sm:text-base font-mono font-bold text-rose-700 mt-0.5">
             {formatCurrency(globalStats.soldeDu)}
           </div>
-          <div className="text-[11px] text-rose-600 mt-0.5 font-medium">
+          <div className="text-[10px] text-rose-600 mt-0.5 font-medium truncate">
             Engagements à régler
           </div>
         </div>
 
-        <div className="bg-white p-3.5 rounded-xl border border-amber-200 bg-amber-50/20 shadow-xs">
-          <div className="text-[11px] font-bold uppercase text-amber-800">Chèques en Circulation</div>
-          <div className="text-xl font-mono font-black text-amber-700 mt-1">
+        <div className="bg-white p-2 sm:p-2.5 rounded-lg border border-amber-200 bg-amber-50/20 shadow-xs">
+          <div className="text-[10px] font-bold uppercase text-amber-800">Chèques en Circulation</div>
+          <div className="text-sm sm:text-base font-mono font-bold text-amber-700 mt-0.5">
             {formatCurrency(globalStats.montantChequesAttente)}
           </div>
-          <div className="text-[11px] text-amber-800 mt-0.5 font-semibold flex items-center gap-1">
-            <Clock className="w-3 h-3" />
-            {globalStats.chequesEnAttenteCount} chèques en attente d'encaissement
+          <div className="text-[10px] text-amber-800 mt-0.5 font-semibold flex items-center gap-1 truncate">
+            <Clock className="w-3 h-3 shrink-0" />
+            <span>{globalStats.chequesEnAttenteCount} chèques en attente</span>
           </div>
         </div>
       </div>
