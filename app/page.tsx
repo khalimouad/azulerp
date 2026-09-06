@@ -79,7 +79,7 @@ import {
   Famille,
 } from '@/lib/types';
 import { Header } from '@/components/Header';
-import { Sidebar } from '@/components/Sidebar';
+import { AiSidebarCopilot } from '@/components/AiSidebarCopilot';
 import { DashboardView } from '@/components/DashboardView';
 import { FacturesView } from '@/components/FacturesView';
 import { BonsLivraisonView } from '@/components/BonsLivraisonView';
@@ -93,7 +93,6 @@ import { ReglementsView } from '@/components/ReglementsView';
 import { EtatsRapportsView } from '@/components/EtatsRapportsView';
 import { SqliteConsoleView } from '@/components/SqliteConsoleView';
 import { AiDatabaseCopilotView } from '@/components/AiDatabaseCopilotView';
-import { GeminiFloatingChat } from '@/components/GeminiFloatingChat';
 import { ReferenceDataLists } from '@/components/ReferenceDataLists';
 import { CompanySettingsView } from '@/components/CompanySettingsView';
 import { PosView } from '@/components/PosView';
@@ -716,33 +715,29 @@ export default function Home() {
         setSelectedYear={setSelectedYear}
         mobileMenuOpen={mobileMenuOpen}
         setMobileMenuOpen={setMobileMenuOpen}
+        onNavigateTab={navigateTo}
+        blEnAttenteCount={stats.bl_en_attente_count}
+        brEnAttenteCount={stats.br_en_attente_count}
+        stockAlertsCount={stats.stock_alerts_count}
+        supplierAlertsCount={supplierAlertsCount}
+        currentUser={currentUser}
+        onLogout={handleLogout}
+        onLockScreen={() => setIsScreenLocked(true)}
+        onOpenUserManagement={() => setIsUserManagementOpen(true)}
       />
 
-      {/* Main Layout Area */}
+      {/* Main Layout Area: Left Docked AI Assistant (Copilot) + Main Viewport */}
       <div className="flex-1 flex flex-col lg:flex-row">
-        {/* Sidebar Navigation */}
-        <Sidebar
-          currentTab={currentTab}
-          setCurrentTab={(tab) => {
-            setPreviousTab(currentTab);
-            setCurrentTab(tab);
-          }}
-          blEnAttenteCount={stats.bl_en_attente_count}
-          brEnAttenteCount={stats.br_en_attente_count}
-          stockAlertsCount={stats.stock_alerts_count}
-          supplierAlertsCount={supplierAlertsCount}
-          mobileOpen={mobileMenuOpen}
-          setMobileOpen={setMobileMenuOpen}
+        {/* Left Docked AI Assistant (Gemini 3.8 Copilot) */}
+        <AiSidebarCopilot
+          onDataChanged={reloadData}
+          onNavigateTab={navigateTo}
           collapsed={sidebarCollapsed}
           setCollapsed={setSidebarCollapsed}
-          currentUser={currentUser}
-          onLogout={handleLogout}
-          onLockScreen={() => setIsScreenLocked(true)}
-          onOpenUserManagement={() => setIsUserManagementOpen(true)}
         />
 
         {/* Viewport Content */}
-        <main className={`flex-1 p-3 sm:p-6 lg:p-7 w-full mx-auto overflow-x-hidden pb-28 lg:pb-7 transition-[max-width] duration-300 ${sidebarCollapsed ? 'max-w-none' : 'max-w-[1600px]'}`}>
+        <main className={`flex-1 p-3 sm:p-5 lg:p-6 w-full mx-auto overflow-x-hidden pb-28 lg:pb-8 transition-[max-width] duration-300 ${sidebarCollapsed ? 'max-w-none' : 'max-w-[1720px]'}`}>
           {/* 1. DASHBOARD */}
           {currentTab === 'dashboard' && (
             <DashboardView
@@ -1944,9 +1939,6 @@ export default function Home() {
           <span className="text-[10px] leading-tight">Menu</span>
         </button>
       </nav>
-
-      {/* Global Floating Gemini Assistant (Messenger Style across all pages) */}
-      <GeminiFloatingChat onDataChanged={reloadCoreData} onNavigateTab={navigateTo} />
     </div>
   );
 }
