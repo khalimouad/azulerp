@@ -1753,7 +1753,6 @@ export default function Home() {
                 type="button"
                 onClick={() => {
                   setMobileSpeedDialOpen(false);
-                  setDevisToEdit(null);
                   navigateTo('create-devis');
                 }}
                 className="flex items-center gap-2.5 p-3 rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700/60 text-left transition active:scale-95 cursor-pointer"
