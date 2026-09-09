@@ -188,10 +188,10 @@ export function ERPDataTable<T extends Record<string, any>>({
   // Master Selection Helpers
   const isAllPageSelected =
     paginatedData.length > 0 &&
-    paginatedData.every((item) => selectedIds.includes(item[idKey]));
+    paginatedData.every((item) => selectedIds.includes(item[idKey] as any));
 
   const toggleSelectAllPage = () => {
-    const pageIds = paginatedData.map((item) => item[idKey]);
+    const pageIds = paginatedData.map((item) => item[idKey] as any as (string | number));
     if (isAllPageSelected) {
       updateSelectedIds(selectedIds.filter((id) => !pageIds.includes(id)));
     } else {
@@ -216,7 +216,7 @@ export function ERPDataTable<T extends Record<string, any>>({
   // CSV Export
   const handleExportCSV = () => {
     const exportItems = selectedIds.length > 0
-      ? data.filter((item) => selectedIds.includes(item[idKey]))
+      ? data.filter((item) => selectedIds.includes(item[idKey] as any))
       : sortedData;
 
     const headers = columns.map((col) => `"${col.header.replace(/"/g, '""')}"`);
@@ -417,7 +417,7 @@ export function ERPDataTable<T extends Record<string, any>>({
                 </tr>
               ) : (
                 paginatedData.map((item, rowIdx) => {
-                  const id = item[idKey];
+                  const id = item[idKey] as any as (string | number);
                   const isSelected = selectedIds.includes(id);
                   const isCurrent = selectedRowId !== undefined && selectedRowId === id;
 
