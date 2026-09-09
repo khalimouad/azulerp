@@ -5,20 +5,26 @@ import { CheckSquare } from 'lucide-react';
 
 export interface TableBulkActionBarProps {
   selectedCount: number;
+  totalCount?: number;
   itemLabel?: string;
   onClearSelection: () => void;
-  children: React.ReactNode;
+  actions?: React.ReactNode;
+  children?: React.ReactNode;
   className?: string;
 }
 
 export const TableBulkActionBar: React.FC<TableBulkActionBarProps> = ({
   selectedCount,
+  totalCount,
   itemLabel = 'élément(s)',
   onClearSelection,
+  actions,
   children,
   className = '',
 }) => {
   if (selectedCount <= 0) return null;
+
+  const content = children || actions;
 
   return (
     <div className={`flex flex-wrap items-center justify-between gap-3 px-3.5 py-2 bg-blue-50 border border-blue-200 rounded-lg text-xs animate-in fade-in slide-in-from-top-1 shadow-2xs ${className}`}>
@@ -30,7 +36,7 @@ export const TableBulkActionBar: React.FC<TableBulkActionBarProps> = ({
       </div>
 
       <div className="flex items-center gap-1.5 flex-wrap">
-        {children}
+        {content}
 
         <button
           type="button"
