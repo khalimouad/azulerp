@@ -11,6 +11,8 @@ export interface SortableThProps {
   onSort?: (key: string) => void;
   align?: 'left' | 'center' | 'right';
   className?: string;
+  width?: string;
+  minWidth?: string;
   style?: React.CSSProperties;
   title?: string;
   children?: React.ReactNode;
@@ -24,6 +26,8 @@ export const SortableTh: React.FC<SortableThProps> = ({
   onSort,
   align = 'left',
   className = '',
+  width = '',
+  minWidth = '',
   style,
   title,
   children,
@@ -41,7 +45,7 @@ export const SortableTh: React.FC<SortableThProps> = ({
   return (
     <th
       style={style}
-      className={`py-2.5 px-3 uppercase text-[11px] font-bold tracking-wider select-none ${
+      className={`py-2.5 px-3 uppercase text-[11px] font-bold tracking-wider select-none ${width} ${minWidth} ${
         isSortable
           ? 'cursor-pointer hover:bg-slate-800 transition-colors'
           : ''
