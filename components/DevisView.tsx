@@ -6,7 +6,9 @@ import { formatCurrency, formatDate, getCurrentYearDateRange, toNumeric } from '
 import { TablePagination } from '@/components/TablePagination';
 import { DateRangeFilter } from '@/components/DateRangeFilter';
 import { generateDevisPdf } from '@/lib/pdf-generator';
-import { Plus, Printer, Trash2, Eye, FileSpreadsheet, Search, SlidersHorizontal, X } from 'lucide-react';
+import { Plus, Printer, Trash2, Eye, FileSpreadsheet, Search, SlidersHorizontal, X, Download } from 'lucide-react';
+import { SortableTh } from '@/components/SortableTh';
+import { TableBulkActionBar } from '@/components/TableBulkActionBar';
 
 interface DevisViewProps {
   devisList: Devis[];
@@ -30,6 +32,20 @@ export const DevisView: React.FC<DevisViewProps> = ({
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
+  // Sorting & Bulk selection states
+  const [sortKey, setSortKey] = useState<string>('numero');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
+  const [selectedDevisIds, setSelectedDevisIds] = useState<number[]>([]);
+
+  const handleSort = (key: string) => {
+    if (sortKey === key) {
+      setSortDir((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortKey(key);
+      setSortDir('asc');
+    }
+  };
+
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery, filterStartDate, filterEndDate]);
@@ -46,13 +62,76 @@ export const DevisView: React.FC<DevisViewProps> = ({
         if (!matchNum && !matchClient) return false;
       }
       return true;
-    }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime() || b.id - a.id);
-  }, [devisList, searchQuery, filterStartDate, filterEndDate]);
+    }).sort((a, b) => {
+      let comparison = 0;
+      if (sortKey === 'numero') {
+        comparison = (a.numero || '').localeCompare(b.numero || '', undefined, { numeric: true });
+      } else if (sortKey === 'date') {
+        comparison = new Date(a.date).getTime() - new Date(b.date).getTime();
+      } else if (sortKey === 'date_validite') {
+        comparison = new Date(a.date_validite || '').getTime() - new Date(b.date_validite || '').getTime();
+      } else if (sortKey === 'client_nom') {
+        comparison = (a.client_nom || '').localeCompare(b.client_nom || '', 'fr', { sensitivity: 'base' });
+      } else if (sortKey === 'total_ht') {
+        comparison = toNumeric(a.total_ht) - toNumeric(b.total_ht);
+      } else if (sortKey === 'total_tva') {
+        comparison = toNumeric(a.total_tva) - toNumeric(b.total_tva);
+      } else if (sortKey === 'total_ttc') {
+        comparison = toNumeric(a.total_ttc) - toNumeric(b.total_ttc);
+      } else if (sortKey === 'statut') {
+        comparison = (a.statut || '').localeCompare(b.statut || '');
+      } else {
+        comparison = new Date(a.date).getTime() - new Date(b.date).getTime();
+      }
+      return sortDir === 'asc' ? comparison : -comparison;
+    });
+  }, [devisList, searchQuery, filterStartDate, filterEndDate, sortKey, sortDir]);
 
   const paginatedDevis = useMemo(() => {
     const start = (currentPage - 1) * pageSize;
     return filteredDevis.slice(start, start + pageSize);
   }, [filteredDevis, currentPage, pageSize]);
+
+  const toggleSelectAll = () => {
+    if (selectedDevisIds.length === paginatedDevis.length && paginatedDevis.length > 0) {
+      setSelectedDevisIds([]);
+    } else {
+      setSelectedDevisIds(paginatedDevis.map((d) => d.id));
+    }
+  };
+
+  const toggleSelectDevis = (id: number) => {
+    setSelectedDevisIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
+  const exportSelectedToCsv = () => {
+    const listToExport = selectedDevisIds.length > 0
+      ? devisList.filter((d) => selectedDevisIds.includes(d.id))
+      : filteredDevis;
+
+    if (listToExport.length === 0) return;
+    const headers = ['N° Devis', 'Date', 'Validité', 'Client / Prospect', 'Total HT', 'Total TVA', 'Total TTC', 'Statut'];
+    const rows = listToExport.map((d) => [
+      d.numero,
+      d.date,
+      d.date_validite || '',
+      `"${(d.client_nom || '').replace(/"/g, '""')}"`,
+      toNumeric(d.total_ht).toFixed(2),
+      toNumeric(d.total_tva).toFixed(2),
+      toNumeric(d.total_ttc).toFixed(2),
+      d.statut || 'En attente',
+    ]);
+    const csvContent = 'data:text/csv;charset=utf-8,\uFEFF' + [headers.join(';'), ...rows.map((r) => r.join(';'))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `devis_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   const totals = useMemo(() => filteredDevis.reduce(
     (acc, devis) => {
@@ -344,111 +423,210 @@ export const DevisView: React.FC<DevisViewProps> = ({
       {/* ========================================================================= */}
       {/* 5. DESKTOP TABLE (hidden md:block) */}
       {/* ========================================================================= */}
-      <div className="hidden md:block bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs border-collapse">
-            <thead>
-              <tr className="bg-indigo-900 text-white font-semibold divide-x divide-indigo-800">
-                <th className="py-2.5 px-3 min-w-[110px]">N° Devis</th>
-                <th className="py-2.5 px-3 min-w-[95px]">Date</th>
-                <th className="py-2.5 px-3 min-w-[100px]">Validité</th>
-                <th className="py-2.5 px-3 min-w-[200px]">Client / Prospect</th>
-                <th className="py-2.5 px-3 text-right min-w-[100px]">Total HT</th>
-                <th className="py-2.5 px-3 text-right min-w-[90px]">Total TVA</th>
-                <th className="py-2.5 px-3 text-right min-w-[110px] font-bold">Total TTC</th>
-                <th className="py-2.5 px-3 text-center min-w-[90px]">Statut</th>
-                <th className="py-2.5 px-3 text-center min-w-[90px]">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-200">
-              {filteredDevis.length === 0 ? (
-                <tr>
-                  <td colSpan={9} className="py-12 text-center text-slate-400">
-                    Aucun devis enregistré.
-                  </td>
+      <div className="hidden md:block space-y-2">
+        {/* Bulk Action Bar */}
+        <TableBulkActionBar
+          selectedCount={selectedDevisIds.length}
+          itemLabel="devis"
+          onClearSelection={() => setSelectedDevisIds([])}
+        >
+          <button
+            type="button"
+            onClick={exportSelectedToCsv}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-md font-semibold text-slate-700 bg-white hover:bg-slate-100 border border-slate-300 shadow-2xs transition"
+          >
+            <Download className="w-3.5 h-3.5 text-blue-600" />
+            <span>Exporter CSV ({selectedDevisIds.length})</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              if (confirm(`Supprimer les ${selectedDevisIds.length} devis sélectionnés ?`)) {
+                selectedDevisIds.forEach((id) => onDeleteDevis(id));
+                setSelectedDevisIds([]);
+              }
+            }}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-md font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 shadow-2xs transition"
+          >
+            <Trash2 className="w-3.5 h-3.5 text-rose-600" />
+            <span>Supprimer ({selectedDevisIds.length})</span>
+          </button>
+        </TableBulkActionBar>
+
+        <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-[11px] uppercase tracking-wider sticky top-0 z-10">
+                  <th className="py-2.5 px-2.5 text-center w-10">
+                    <input
+                      type="checkbox"
+                      checked={paginatedDevis.length > 0 && selectedDevisIds.length === paginatedDevis.length}
+                      onChange={toggleSelectAll}
+                      className="rounded border-slate-400 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                      title="Sélectionner tous les devis affichés"
+                    />
+                  </th>
+                  <SortableTh label="N° Devis" sortKey="numero" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} className="min-w-[110px]" />
+                  <SortableTh label="Date" sortKey="date" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} className="min-w-[95px]" />
+                  <SortableTh label="Validité" sortKey="date_validite" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} className="min-w-[100px]" />
+                  <SortableTh label="Client / Prospect" sortKey="client_nom" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} className="min-w-[200px]" />
+                  <SortableTh label="Total HT" sortKey="total_ht" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} align="right" className="min-w-[100px]" />
+                  <SortableTh label="Total TVA" sortKey="total_tva" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} align="right" className="min-w-[90px]" />
+                  <SortableTh label="Total TTC" sortKey="total_ttc" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} align="right" className="min-w-[110px]" />
+                  <SortableTh label="Statut" sortKey="statut" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} align="center" className="min-w-[90px]" />
+                  <th className="py-2.5 px-3 text-center min-w-[90px]">Actions</th>
                 </tr>
-              ) : (
-                paginatedDevis.map((devis) => (
-                  <tr key={devis.id} className="hover:bg-indigo-50/50 transition divide-x divide-slate-100 even:bg-slate-50/40">
-                    <td className="py-2 px-3 font-mono font-semibold text-indigo-900">
-                      {devis.numero}
-                    </td>
-                    <td className="py-2 px-3 text-slate-600 whitespace-nowrap">
-                      {formatDate(devis.date)}
-                    </td>
-                    <td className="py-2 px-3 text-slate-500 whitespace-nowrap">
-                      {formatDate(devis.date_validite)}
-                    </td>
-                    <td className="py-2 px-3 text-slate-900 font-medium">
-                      {devis.client_nom}
-                    </td>
-                    <td className="py-2 px-3 text-right font-mono text-slate-700">
-                      {formatCurrency(devis.total_ht, false)}
-                    </td>
-                    <td className="py-2 px-3 text-right font-mono text-slate-600">
-                      {formatCurrency(devis.total_tva, false)}
-                    </td>
-                    <td className="py-2 px-3 text-right font-mono font-bold text-slate-950 bg-slate-100/50">
-                      {formatCurrency(devis.total_ttc, false)}
-                    </td>
-                    <td className="py-2 px-3 text-center">
-                      <span
-                        className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                          devis.statut === 'Accepté'
-                            ? 'bg-emerald-100 text-emerald-800'
-                            : devis.statut === 'Refusé'
-                            ? 'bg-rose-100 text-rose-800'
-                            : 'bg-indigo-100 text-indigo-800'
-                        }`}
-                      >
-                        {devis.statut}
-                      </span>
-                    </td>
-                    <td className="py-1.5 px-2 text-center">
-                      <div className="flex items-center justify-center gap-1">
-                        <button
-                          onClick={() => onViewDevis(devis)}
-                          className="p-1 hover:bg-slate-200 text-slate-600 hover:text-indigo-600 rounded transition"
-                          title="Aperçu Devis"
-                        >
-                          <Eye className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          onClick={() => generateDevisPdf(devis, company)}
-                          className="p-1 hover:bg-slate-200 text-slate-600 hover:text-emerald-600 rounded transition"
-                          title="Télécharger PDF Devis"
-                        >
-                          <Printer className="w-3.5 h-3.5" />
-                        </button>
+                {/* Search & quick filter row */}
+                <tr className="bg-slate-800 text-slate-200 divide-x divide-slate-700">
+                  <th className="p-1 text-center">
+                    <button
+                      type="button"
+                      onClick={exportSelectedToCsv}
+                      className="text-slate-400 hover:text-white p-0.5"
+                      title="Exporter CSV"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                    </button>
+                  </th>
+                  <th className="p-1" colSpan={4}>
+                    <input
+                      type="text"
+                      placeholder="Recherche rapide devis (N° devis, client)..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full px-2 py-1 text-[11px] bg-white text-slate-900 rounded border border-slate-300 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                  </th>
+                  <th className="p-1" colSpan={5}>
+                    <div className="flex items-center justify-between text-[11px] text-slate-300 px-2 font-normal">
+                      <span>{filteredDevis.length} devis trouvés</span>
+                      {(searchQuery || filterStartDate || filterEndDate) && (
                         <button
                           onClick={() => {
-                            if (confirm(`Supprimer définitivement le devis ${devis.numero} ?`)) {
-                              onDeleteDevis(devis.id);
-                            }
+                            setSearchQuery('');
+                            setFilterStartDate('');
+                            setFilterEndDate('');
                           }}
-                          className="p-1 hover:bg-rose-100 text-slate-400 hover:text-rose-600 rounded transition"
-                          title="Supprimer"
+                          className="text-xs text-yellow-300 hover:underline"
                         >
-                          <Trash2 className="w-3.5 h-3.5" />
+                          Effacer recherche
                         </button>
-                      </div>
+                      )}
+                    </div>
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-200">
+                {filteredDevis.length === 0 ? (
+                  <tr>
+                    <td colSpan={10} className="py-12 text-center text-slate-400">
+                      Aucun devis enregistré.
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-            <tfoot>
-              <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-xs">
-                <td colSpan={4} className="py-2.5 px-3 text-right uppercase tracking-wider">
-                  Cumul Filtre ({filteredDevis.length} devis) :
-                </td>
-                <td className="py-2.5 px-3 text-right font-mono">{formatCurrency(totals.totalHt, false)}</td>
-                <td className="py-2.5 px-3 text-right font-mono">{formatCurrency(totals.totalTva, false)}</td>
-                <td className="py-2.5 px-3 text-right font-mono text-emerald-400 bg-slate-950 font-extrabold">{formatCurrency(totals.totalTtc, false)}</td>
-                <td colSpan={2} className="py-2.5 px-3 text-center text-slate-400">MAD (DH)</td>
-              </tr>
-            </tfoot>
-          </table>
+                ) : (
+                  paginatedDevis.map((devis) => {
+                    const isSelected = selectedDevisIds.includes(devis.id);
+
+                    return (
+                      <tr
+                        key={devis.id}
+                        onClick={() => onViewDevis(devis)}
+                        className={`hover:bg-blue-50/60 transition divide-x divide-slate-100 cursor-pointer ${
+                          isSelected
+                            ? 'bg-blue-50/90 font-medium border-l-4 border-l-blue-600'
+                            : 'even:bg-slate-50/50'
+                        }`}
+                      >
+                        <td className="py-2 px-2.5 text-center" onClick={(e) => e.stopPropagation()}>
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => toggleSelectDevis(devis.id)}
+                            className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                          />
+                        </td>
+                        <td className="py-2 px-3 font-mono font-semibold text-slate-900">
+                          {devis.numero}
+                        </td>
+                        <td className="py-2 px-3 text-slate-600 whitespace-nowrap font-mono">
+                          {formatDate(devis.date)}
+                        </td>
+                        <td className="py-2 px-3 text-slate-500 whitespace-nowrap font-mono">
+                          {formatDate(devis.date_validite)}
+                        </td>
+                        <td className="py-2 px-3 text-slate-900 font-medium">
+                          {devis.client_nom}
+                        </td>
+                        <td className="py-2 px-3 text-right font-mono text-slate-700">
+                          {formatCurrency(devis.total_ht, false)}
+                        </td>
+                        <td className="py-2 px-3 text-right font-mono text-slate-600">
+                          {formatCurrency(devis.total_tva, false)}
+                        </td>
+                        <td className="py-2 px-3 text-right font-mono font-bold text-slate-950 bg-slate-100/50">
+                          {formatCurrency(devis.total_ttc, false)}
+                        </td>
+                        <td className="py-2 px-3 text-center">
+                          <span
+                            className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                              devis.statut === 'Accepté'
+                                ? 'bg-emerald-100 text-emerald-800'
+                                : devis.statut === 'Refusé'
+                                ? 'bg-rose-100 text-rose-800'
+                                : 'bg-blue-100 text-blue-800'
+                            }`}
+                          >
+                            {devis.statut}
+                          </span>
+                        </td>
+                        <td className="py-1.5 px-2 text-center" onClick={(e) => e.stopPropagation()}>
+                          <div className="flex items-center justify-center gap-1">
+                            <button
+                              onClick={() => onViewDevis(devis)}
+                              className="p-1 hover:bg-slate-200 text-slate-600 hover:text-blue-600 rounded transition"
+                              title="Aperçu Devis"
+                            >
+                              <Eye className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={() => generateDevisPdf(devis, company)}
+                              className="p-1 hover:bg-slate-200 text-slate-600 hover:text-emerald-600 rounded transition"
+                              title="Télécharger PDF Devis"
+                            >
+                              <Printer className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={() => {
+                                if (confirm(`Supprimer définitivement le devis ${devis.numero} ?`)) {
+                                  onDeleteDevis(devis.id);
+                                }
+                              }}
+                              className="p-1 hover:bg-rose-100 text-slate-400 hover:text-rose-600 rounded transition"
+                              title="Supprimer"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+              <tfoot>
+                <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-xs">
+                  <td colSpan={5} className="py-2.5 px-3 text-right uppercase tracking-wider">
+                    Cumul Filtre ({filteredDevis.length} devis) :
+                  </td>
+                  <td className="py-2.5 px-3 text-right font-mono">{formatCurrency(totals.totalHt, false)}</td>
+                  <td className="py-2.5 px-3 text-right font-mono">{formatCurrency(totals.totalTva, false)}</td>
+                  <td className="py-2.5 px-3 text-right font-mono text-emerald-400 bg-slate-950 font-extrabold">{formatCurrency(totals.totalTtc, false)}</td>
+                  <td colSpan={2} className="py-2.5 px-3 text-center text-slate-400">MAD (DH)</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
         </div>
       </div>
 

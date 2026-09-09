@@ -23,7 +23,10 @@ import {
   Search,
   SlidersHorizontal,
   X,
+  Download,
 } from 'lucide-react';
+import { SortableTh } from '@/components/SortableTh';
+import { TableBulkActionBar } from '@/components/TableBulkActionBar';
 
 interface BonsRetourViewProps {
   bonsRetour: BonRetour[];
@@ -52,6 +55,19 @@ export const BonsRetourView: React.FC<BonsRetourViewProps> = ({
   const [filterEndDate, setFilterEndDate] = useState(() => getCurrentYearDateRange().end);
   const [selectedBrIds, setSelectedBrIds] = useState<number[]>([]);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
+
+  // Sorting state
+  const [sortKey, setSortKey] = useState<string>('numero');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
+
+  const handleSort = (key: string) => {
+    if (sortKey === key) {
+      setSortDir((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortKey(key);
+      setSortDir('asc');
+    }
+  };
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -87,13 +103,33 @@ export const BonsRetourView: React.FC<BonsRetourViewProps> = ({
         if (!matchNum && !matchClient && !matchDate && !matchMotif && !matchFacture) return false;
       }
       return true;
-    }).sort((a, b) =>
-      compareDocumentNumbersDesc(a.numero, b.numero) ||
-      (a.client_nom || '').localeCompare(b.client_nom || '', 'fr', { sensitivity: 'base' }) ||
-      new Date(b.date).getTime() - new Date(a.date).getTime() ||
-      b.id - a.id
-    );
-  }, [safeBrs, filterStatut, searchQuery, filterStartDate, filterEndDate]);
+    }).sort((a, b) => {
+      let comparison = 0;
+      if (sortKey === 'numero') {
+        comparison = compareDocumentNumbersDesc(a.numero, b.numero);
+        return sortDir === 'asc' ? -comparison : comparison;
+      } else if (sortKey === 'date') {
+        comparison = new Date(a.date).getTime() - new Date(b.date).getTime();
+      } else if (sortKey === 'client_nom') {
+        comparison = (a.client_nom || '').localeCompare(b.client_nom || '', 'fr', { sensitivity: 'base' });
+      } else if (sortKey === 'motif') {
+        comparison = (a.motif || '').localeCompare(b.motif || '');
+      } else if (sortKey === 'total_ht') {
+        comparison = toNumeric(a.total_ht) - toNumeric(b.total_ht);
+      } else if (sortKey === 'total_tva') {
+        comparison = toNumeric(a.total_tva) - toNumeric(b.total_tva);
+      } else if (sortKey === 'total_ttc') {
+        comparison = toNumeric(a.total_ttc) - toNumeric(b.total_ttc);
+      } else if (sortKey === 'etat') {
+        comparison = (a.etat || '').localeCompare(b.etat || '');
+      } else if (sortKey === 'facture_numero') {
+        comparison = (a.facture_numero || '').localeCompare(b.facture_numero || '');
+      } else {
+        comparison = compareDocumentNumbersDesc(a.numero, b.numero);
+      }
+      return sortDir === 'asc' ? comparison : -comparison;
+    });
+  }, [safeBrs, filterStatut, searchQuery, filterStartDate, filterEndDate, sortKey, sortDir]);
 
   const paginatedBrs = useMemo(() => {
     const start = (currentPage - 1) * pageSize;
@@ -115,6 +151,34 @@ export const BonsRetourView: React.FC<BonsRetourViewProps> = ({
     } else {
       setSelectedBrIds(validUninvoiced);
     }
+  };
+
+  const exportSelectedToCsv = () => {
+    const listToExport = selectedBrIds.length > 0
+      ? safeBrs.filter((b) => selectedBrIds.includes(b.id))
+      : filteredBrs;
+
+    if (listToExport.length === 0) return;
+    const headers = ['N° BR', 'Date', 'Client', 'Motif', 'Total HT (-)', 'Total TVA (-)', 'Total TTC (-)', 'État Document', 'Facture'];
+    const rows = listToExport.map((b) => [
+      b.numero,
+      b.date,
+      `"${(b.client_nom || '').replace(/"/g, '""')}"`,
+      `"${(b.motif || '').replace(/"/g, '""')}"`,
+      (-toNumeric(b.total_ht)).toFixed(2),
+      (-toNumeric(b.total_tva)).toFixed(2),
+      (-toNumeric(b.total_ttc)).toFixed(2),
+      b.etat || 'Validé',
+      b.facture_numero || (b.facture_id ? 'Déduit' : 'En attente'),
+    ]);
+    const csvContent = 'data:text/csv;charset=utf-8,\uFEFF' + [headers.join(';'), ...rows.map((r) => r.join(';'))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `bons_retour_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const selectedBrsObjects = useMemo(() => {
@@ -691,276 +755,361 @@ export const BonsRetourView: React.FC<BonsRetourViewProps> = ({
       {/* ========================================================================= */}
       {/* 5. DESKTOP TABLE (hidden on mobile - hidden md:block) */}
       {/* ========================================================================= */}
-      <div className="hidden md:block bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs border-collapse">
-            <thead>
-              <tr className="bg-slate-900 text-white font-semibold divide-x divide-slate-800">
-                <th className="py-2.5 px-3 w-10 text-center">
-                  <button
-                    onClick={toggleSelectAll}
-                    className="text-white hover:text-rose-200 transition"
-                    title="Sélectionner tous les BR validés en attente"
-                  >
-                    {selectedBrIds.length > 0 &&
-                    selectedBrIds.length === filteredBrs.filter((b) => b.etat !== 'Brouillon' && b.etat !== 'Annulé' && !b.facture_id && !b.facture_numero).length ? (
-                      <CheckSquare className="w-4 h-4" />
-                    ) : (
-                      <Square className="w-4 h-4" />
-                    )}
-                  </button>
-                </th>
-                <th className="py-2.5 px-3 min-w-[100px]">N° BR</th>
-                <th className="py-2.5 px-3 min-w-[90px]">Date</th>
-                <th className="py-2.5 px-3 min-w-[180px]">Client / Société</th>
-                <th className="py-2.5 px-3 min-w-[150px]">Motif du Retour</th>
-                <th className="py-2.5 px-3 text-right min-w-[90px]">Total HT (-)</th>
-                <th className="py-2.5 px-3 text-right min-w-[80px]">TVA (-)</th>
-                <th className="py-2.5 px-3 text-right min-w-[100px] font-bold text-rose-300">Total TTC (-)</th>
-                <th className="py-2.5 px-3 text-center min-w-[100px]">État Document</th>
-                <th className="py-2.5 px-3 text-center min-w-[110px]">Facturation</th>
-                <th className="py-2.5 px-3 text-center min-w-[140px]">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-200">
-              {filteredBrs.length === 0 ? (
-                <tr>
-                  <td colSpan={11} className="py-12 text-center text-slate-400 text-sm">
-                    Aucun Bon de Retour trouvé.
+      <div className="hidden md:block space-y-2">
+        {/* Bulk Action Bar */}
+        <TableBulkActionBar
+          selectedCount={selectedBrIds.length}
+          itemLabel="bon de retour"
+          onClearSelection={() => setSelectedBrIds([])}
+        >
+          <button
+            type="button"
+            onClick={() => onBatchInvoiceSelected(selectedBrIds)}
+            disabled={!isSingleClientSelected}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md font-bold transition shadow-2xs ${
+              isSingleClientSelected
+                ? 'bg-rose-600 hover:bg-rose-700 text-white'
+                : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+            }`}
+            title={
+              !isSingleClientSelected
+                ? 'Tous les BR doivent être du même client'
+                : 'Déduire les BR sélectionnés dans une Facture'
+            }
+          >
+            <FileText className="w-3.5 h-3.5" />
+            <span>Déduire en lot ({selectedBrIds.length})</span>
+          </button>
+          <button
+            type="button"
+            onClick={exportSelectedToCsv}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-md font-semibold text-slate-700 bg-white hover:bg-slate-100 border border-slate-300 shadow-2xs transition"
+          >
+            <Download className="w-3.5 h-3.5 text-blue-600" />
+            <span>Exporter CSV ({selectedBrIds.length})</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              if (confirm(`Supprimer les ${selectedBrIds.length} bons de retour sélectionnés ?`)) {
+                selectedBrIds.forEach((id) => onDeleteBr(id));
+                setSelectedBrIds([]);
+              }
+            }}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-md font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 shadow-2xs transition"
+          >
+            <Trash2 className="w-3.5 h-3.5 text-rose-600" />
+            <span>Supprimer ({selectedBrIds.length})</span>
+          </button>
+        </TableBulkActionBar>
+
+        <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-[11px] uppercase tracking-wider sticky top-0 z-10">
+                  <th className="py-2.5 px-2.5 text-center w-10">
+                    <input
+                      type="checkbox"
+                      checked={
+                        selectedBrIds.length > 0 &&
+                        selectedBrIds.length ===
+                          filteredBrs.filter(
+                            (b) => b.etat !== 'Brouillon' && b.etat !== 'Annulé' && !b.facture_id && !b.facture_numero
+                          ).length
+                      }
+                      onChange={toggleSelectAll}
+                      className="rounded border-slate-400 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                      title="Sélectionner tous les BR validés en attente"
+                    />
+                  </th>
+                  <SortableTh label="N° BR" sortKey="numero" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} className="min-w-[100px]" />
+                  <SortableTh label="Date" sortKey="date" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} className="min-w-[90px]" />
+                  <SortableTh label="Client / Société" sortKey="client_nom" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} className="min-w-[180px]" />
+                  <SortableTh label="Motif du Retour" sortKey="motif" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} className="min-w-[150px]" />
+                  <SortableTh label="Total HT (-)" sortKey="total_ht" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} align="right" className="min-w-[90px]" />
+                  <SortableTh label="TVA (-)" sortKey="total_tva" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} align="right" className="min-w-[80px]" />
+                  <SortableTh label="Total TTC (-)" sortKey="total_ttc" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} align="right" className="min-w-[100px] text-rose-300" />
+                  <SortableTh label="État Document" sortKey="etat" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} align="center" className="min-w-[100px]" />
+                  <SortableTh label="Facturation" sortKey="facture_numero" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} align="center" className="min-w-[110px]" />
+                  <th className="py-2.5 px-3 text-center min-w-[140px]">Actions</th>
+                </tr>
+                {/* Search & quick filter row */}
+                <tr className="bg-slate-800 text-slate-200 divide-x divide-slate-700">
+                  <th className="p-1 text-center">
+                    <button
+                      type="button"
+                      onClick={exportSelectedToCsv}
+                      className="text-slate-400 hover:text-white p-0.5"
+                      title="Exporter CSV"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                    </button>
+                  </th>
+                  <th className="p-1" colSpan={4}>
+                    <input
+                      type="text"
+                      placeholder="Recherche rapide (N° BR, client, motif, date)..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full px-2 py-1 text-[11px] bg-white text-slate-900 rounded border border-slate-300 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                  </th>
+                  <th className="p-1" colSpan={6}>
+                    <div className="flex items-center justify-between text-[11px] text-slate-300 px-2 font-normal">
+                      <span>{filteredBrs.length} BRs trouvés</span>
+                      {(searchQuery || filterStartDate || filterEndDate) && (
+                        <button
+                          onClick={() => {
+                            setSearchQuery('');
+                            setFilterStartDate('');
+                            setFilterEndDate('');
+                          }}
+                          className="text-xs text-yellow-300 hover:underline"
+                        >
+                          Effacer recherche
+                        </button>
+                      )}
+                    </div>
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-200">
+                {filteredBrs.length === 0 ? (
+                  <tr>
+                    <td colSpan={11} className="py-12 text-center text-slate-400 text-sm">
+                      Aucun Bon de Retour trouvé.
+                    </td>
+                  </tr>
+                ) : (
+                  paginatedBrs.map((br) => {
+                    const isSelected = selectedBrIds.includes(br.id);
+                    const etat: DocumentState = br.etat || 'Validé';
+                    const isBrouillon = etat === 'Brouillon';
+                    const isAnnule = etat === 'Annulé';
+                    const isValide = !isBrouillon && !isAnnule;
+                    const isInvoiced = Boolean(br.facture_id || br.facture_numero);
+                    const isAttente = isValide && !isInvoiced;
+
+                    return (
+                      <tr
+                        key={br.id}
+                        onClick={(event) => {
+                          if (event.target instanceof Element && event.target.closest('button, input, a, select')) return;
+                          onViewBr(br);
+                        }}
+                        onKeyDown={(event) => {
+                          if (event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault();
+                            onViewBr(br);
+                          }
+                        }}
+                        tabIndex={0}
+                        role="button"
+                        title="Ouvrir l’aperçu du bon de retour"
+                        className={`cursor-pointer hover:bg-rose-50/40 transition focus:outline-none focus:ring-2 focus:ring-inset focus:ring-rose-500 divide-x divide-slate-100 ${
+                          isSelected
+                            ? 'bg-rose-50/90 font-medium border-l-4 border-l-rose-600'
+                            : isAnnule
+                            ? 'bg-rose-50/30 opacity-75'
+                            : isBrouillon
+                            ? 'bg-slate-50/70'
+                            : 'even:bg-slate-50/50'
+                        }`}
+                      >
+                        <td className="py-2 px-2.5 text-center" onClick={(e) => e.stopPropagation()}>
+                          {isAttente ? (
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={() => toggleSelectBr(br.id)}
+                              className="rounded border-slate-300 text-rose-600 focus:ring-rose-500 cursor-pointer"
+                            />
+                          ) : (
+                            <span className="text-slate-300">-</span>
+                          )}
+                        </td>
+                        <td className="py-2 px-3 font-mono font-semibold text-slate-900">
+                          <span className={isAnnule ? 'line-through text-slate-400' : ''}>{br.numero}</span>
+                        </td>
+                        <td className="py-2 px-3 text-slate-600 whitespace-nowrap font-mono">
+                          {formatDate(br.date)}
+                        </td>
+                        <td className="py-2 px-3 text-slate-900 font-medium">
+                          {br.client_nom}
+                        </td>
+                        <td className="py-2 px-3 text-slate-600 text-xs italic">
+                          {br.motif || 'Retour standard'}
+                        </td>
+                        <td className="py-2 px-3 text-right font-mono text-rose-700">
+                          -{formatCurrency(br.total_ht, false)}
+                        </td>
+                        <td className="py-2 px-3 text-right font-mono text-rose-600">
+                          -{formatCurrency(br.total_tva, false)}
+                        </td>
+                        <td className="py-2 px-3 text-right font-mono font-bold text-rose-800 bg-rose-50/50">
+                          -{formatCurrency(br.total_ttc, false)}
+                        </td>
+                        <td className="py-2 px-3 text-center">
+                          {isValide && (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                              ✓ Validé
+                            </span>
+                          )}
+                          {isBrouillon && (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-300">
+                              ✎ Brouillon
+                            </span>
+                          )}
+                          {isAnnule && (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-rose-100 text-rose-800 border border-rose-300">
+                              ✗ Annulé
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-2 px-3 text-center">
+                          {isValide ? (
+                            isInvoiced ? (
+                              <span className="font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                                {br.facture_numero ? br.facture_numero : 'Déduit'}
+                              </span>
+                            ) : (
+                              <span className="text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 text-[11px]">
+                                ⏳ En attente déduction
+                              </span>
+                            )
+                          ) : (
+                            <span className="text-slate-500 italic text-[11px]">{isAnnule ? 'Annulé' : 'À valider'}</span>
+                          )}
+                        </td>
+                        <td className="py-1.5 px-2 text-center" onClick={(e) => e.stopPropagation()}>
+                          <div className="flex items-center justify-center gap-1">
+                            {/* 1. If Brouillon: allow Edit, Validate, and Cancel */}
+                            {isBrouillon && (
+                              <>
+                                {onEditBr && (
+                                  <button
+                                    onClick={() => onEditBr(br)}
+                                    className="p-1 hover:bg-blue-100 text-blue-700 rounded transition"
+                                    title="Modifier le BR Brouillon"
+                                  >
+                                    <Edit className="w-3.5 h-3.5" />
+                                  </button>
+                                )}
+                                {onUpdateBrState && (
+                                  <button
+                                    onClick={() => {
+                                      onUpdateBrState(br.id, 'Validé');
+                                    }}
+                                    className="p-1 hover:bg-emerald-100 text-emerald-700 rounded transition"
+                                    title="Valider le BR (Réintégration stock)"
+                                  >
+                                    <CheckCircle2 className="w-3.5 h-3.5" />
+                                  </button>
+                                )}
+                                {onUpdateBrState && (
+                                  <button
+                                    onClick={() => {
+                                      onUpdateBrState(br.id, 'Annulé');
+                                    }}
+                                    className="p-1 hover:bg-rose-100 text-rose-700 rounded transition"
+                                    title="Annuler le BR"
+                                  >
+                                    <Ban className="w-3.5 h-3.5" />
+                                  </button>
+                                )}
+                              </>
+                            )}
+
+                            {/* 2. If Validé: allow Annuler (reverts stock reintegration) */}
+                            {isValide && (
+                              <>
+                                {onUpdateBrState && (
+                                  <button
+                                    onClick={() => {
+                                      onUpdateBrState(br.id, 'Annulé');
+                                    }}
+                                    className="p-1 hover:bg-amber-100 text-amber-700 rounded transition"
+                                    title="Annuler le BR"
+                                  >
+                                    <Ban className="w-3.5 h-3.5" />
+                                  </button>
+                                )}
+                              </>
+                            )}
+
+                            {/* 3. If Annulé: allow Set to Draft to Edit! */}
+                            {isAnnule && (
+                              <>
+                                {onUpdateBrState && (
+                                  <button
+                                    onClick={() => {
+                                      onUpdateBrState(br.id, 'Brouillon');
+                                    }}
+                                    className="flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 rounded transition"
+                                    title="Remettre en brouillon pour modifier"
+                                  >
+                                    <RotateCcw className="w-3 h-3" />
+                                    <span>Brouillon</span>
+                                  </button>
+                                )}
+                              </>
+                            )}
+
+                            {/* Preview & Print */}
+                            <button
+                              onClick={() => onViewBr(br)}
+                              className="p-1 hover:bg-slate-200 text-slate-600 hover:text-rose-600 rounded transition"
+                              title="Aperçu Bon de Retour"
+                            >
+                              <Eye className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={() => generateBrPdf(br, company)}
+                              className="p-1 hover:bg-slate-200 text-slate-600 hover:text-rose-600 rounded transition"
+                              title="Télécharger PDF BR"
+                            >
+                              <Printer className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={() => {
+                                if (confirm(`Supprimer définitivement le bon de retour ${br.numero} ?`)) {
+                                  onDeleteBr(br.id);
+                                }
+                              }}
+                              className="p-1 hover:bg-rose-100 text-slate-400 hover:text-rose-600 rounded transition"
+                              title="Supprimer BR"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+              <tfoot>
+                <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-xs">
+                  <td colSpan={5} className="py-2.5 px-3 text-right uppercase tracking-wider">
+                    Total Déductions BR ({filteredBrs.length} retours • {totalLines} lignes) :
+                  </td>
+                  <td className="py-2.5 px-3 text-right font-mono text-rose-300">
+                    -{formatCurrency(totals.totalHt, false)}
+                  </td>
+                  <td className="py-2.5 px-3 text-right font-mono text-rose-300">
+                    -{formatCurrency(totals.totalTva, false)}
+                  </td>
+                  <td className="py-2.5 px-3 text-right font-mono text-rose-400 bg-slate-950 font-extrabold">
+                    -{formatCurrency(totals.totalTtc, false)}
+                  </td>
+                  <td colSpan={3} className="py-2.5 px-3 text-center text-slate-400">
+                    MAD (DH)
                   </td>
                 </tr>
-              ) : (
-                paginatedBrs.map((br) => {
-                  const isSelected = selectedBrIds.includes(br.id);
-                  const etat: DocumentState = br.etat || 'Validé';
-                  const isBrouillon = etat === 'Brouillon';
-                  const isAnnule = etat === 'Annulé';
-                  const isValide = !isBrouillon && !isAnnule;
-                  const isInvoiced = Boolean(br.facture_id || br.facture_numero);
-                  const isAttente = isValide && !isInvoiced;
-
-                  return (
-                    <tr
-                      key={br.id}
-                      onClick={(event) => {
-                        if (event.target instanceof Element && event.target.closest('button, input, a, select')) return;
-                        onViewBr(br);
-                      }}
-                      onKeyDown={(event) => {
-                        if (event.key === 'Enter' || event.key === ' ') {
-                          event.preventDefault();
-                          onViewBr(br);
-                        }
-                      }}
-                      tabIndex={0}
-                      role="button"
-                      title="Ouvrir l’aperçu du bon de retour"
-                      className={`cursor-pointer hover:bg-rose-50/40 transition focus:outline-none focus:ring-2 focus:ring-inset focus:ring-rose-500 divide-x divide-slate-100 ${
-                        isAnnule
-                          ? 'bg-rose-50/30 opacity-75'
-                          : isBrouillon
-                          ? 'bg-slate-50/70'
-                          : isSelected
-                          ? 'bg-rose-50 font-medium'
-                          : 'even:bg-slate-50/50'
-                      }`}
-                    >
-                      <td className="py-2 px-3 text-center">
-                        {isAttente ? (
-                          <button
-                            onClick={() => toggleSelectBr(br.id)}
-                            className="text-rose-600 hover:text-rose-800 transition"
-                          >
-                            {isSelected ? (
-                              <CheckSquare className="w-4 h-4 text-rose-600" />
-                            ) : (
-                              <Square className="w-4 h-4 text-slate-400" />
-                            )}
-                          </button>
-                        ) : (
-                          <span className="text-slate-300">-</span>
-                        )}
-                      </td>
-                      <td className="py-2 px-3 font-mono font-semibold text-slate-900">
-                        <span className={isAnnule ? 'line-through text-slate-400' : ''}>{br.numero}</span>
-                      </td>
-                      <td className="py-2 px-3 text-slate-600 whitespace-nowrap">
-                        {formatDate(br.date)}
-                      </td>
-                      <td className="py-2 px-3 text-slate-900 font-medium">
-                        {br.client_nom}
-                      </td>
-                      <td className="py-2 px-3 text-slate-600 text-xs italic">
-                        {br.motif || 'Retour standard'}
-                      </td>
-                      <td className="py-2 px-3 text-right font-mono text-rose-700">
-                        -{formatCurrency(br.total_ht, false)}
-                      </td>
-                      <td className="py-2 px-3 text-right font-mono text-rose-600">
-                        -{formatCurrency(br.total_tva, false)}
-                      </td>
-                      <td className="py-2 px-3 text-right font-mono font-bold text-rose-800 bg-rose-50/50">
-                        -{formatCurrency(br.total_ttc, false)}
-                      </td>
-                      <td className="py-2 px-3 text-center">
-                        {isValide && (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-800 border border-emerald-300">
-                            ✓ Validé
-                          </span>
-                        )}
-                        {isBrouillon && (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-300">
-                            ✎ Brouillon
-                          </span>
-                        )}
-                        {isAnnule && (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-rose-100 text-rose-800 border border-rose-300">
-                            ✗ Annulé
-                          </span>
-                        )}
-                      </td>
-                      <td className="py-2 px-3 text-center">
-                        {isValide ? (
-                          isInvoiced ? (
-                            <span className="font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                              {br.facture_numero ? br.facture_numero : 'Déduit'}
-                            </span>
-                          ) : (
-                            <span className="text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 text-[11px]">
-                              ⏳ En attente déduction
-                            </span>
-                          )
-                        ) : (
-                          <span className="text-slate-500 italic text-[11px]">{isAnnule ? 'Annulé' : 'À valider'}</span>
-                        )}
-                      </td>
-                      <td className="py-1.5 px-2 text-center">
-                        <div className="flex items-center justify-center gap-1">
-                          {/* 1. If Brouillon: allow Edit, Validate, and Cancel */}
-                          {isBrouillon && (
-                            <>
-                              {onEditBr && (
-                                <button
-                                  onClick={() => onEditBr(br)}
-                                  className="p-1 hover:bg-blue-100 text-blue-700 rounded transition"
-                                  title="Modifier le BR Brouillon"
-                                >
-                                  <Edit className="w-3.5 h-3.5" />
-                                </button>
-                              )}
-                              {onUpdateBrState && (
-                                <button
-                                  onClick={() => {
-                                    onUpdateBrState(br.id, 'Validé');
-                                  }}
-                                  className="p-1 hover:bg-emerald-100 text-emerald-700 rounded transition"
-                                  title="Valider le BR (Réintégration stock)"
-                                >
-                                  <CheckCircle2 className="w-3.5 h-3.5" />
-                                </button>
-                              )}
-                              {onUpdateBrState && (
-                                <button
-                                  onClick={() => {
-                                    onUpdateBrState(br.id, 'Annulé');
-                                  }}
-                                  className="p-1 hover:bg-rose-100 text-rose-700 rounded transition"
-                                  title="Annuler le BR"
-                                >
-                                  <Ban className="w-3.5 h-3.5" />
-                                </button>
-                              )}
-                            </>
-                          )}
-
-                          {/* 2. If Validé: allow Annuler (reverts stock reintegration) */}
-                          {isValide && (
-                            <>
-                              {onUpdateBrState && (
-                                <button
-                                  onClick={() => {
-                                    onUpdateBrState(br.id, 'Annulé');
-                                  }}
-                                  className="p-1 hover:bg-amber-100 text-amber-700 rounded transition"
-                                  title="Annuler le BR"
-                                >
-                                  <Ban className="w-3.5 h-3.5" />
-                                </button>
-                              )}
-                            </>
-                          )}
-
-                          {/* 3. If Annulé: allow Set to Draft to Edit! */}
-                          {isAnnule && (
-                            <>
-                              {onUpdateBrState && (
-                                <button
-                                  onClick={() => {
-                                    onUpdateBrState(br.id, 'Brouillon');
-                                  }}
-                                  className="flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 rounded transition"
-                                  title="Remettre en brouillon pour modifier"
-                                >
-                                  <RotateCcw className="w-3 h-3" />
-                                  <span>Brouillon</span>
-                                </button>
-                              )}
-                            </>
-                          )}
-
-                          {/* Preview & Print */}
-                          <button
-                            onClick={() => onViewBr(br)}
-                            className="p-1 hover:bg-slate-200 text-slate-600 hover:text-rose-600 rounded transition"
-                            title="Aperçu Bon de Retour"
-                          >
-                            <Eye className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            onClick={() => generateBrPdf(br, company)}
-                            className="p-1 hover:bg-slate-200 text-slate-600 hover:text-rose-600 rounded transition"
-                            title="Télécharger PDF BR"
-                          >
-                            <Printer className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            onClick={() => {
-                              if (confirm(`Supprimer définitivement le bon de retour ${br.numero} ?`)) {
-                                onDeleteBr(br.id);
-                              }
-                            }}
-                            className="p-1 hover:bg-rose-100 text-slate-400 hover:text-rose-600 rounded transition"
-                            title="Supprimer BR"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-            <tfoot>
-              <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-xs">
-                <td colSpan={5} className="py-2.5 px-3 text-right uppercase tracking-wider">
-                  Total Déductions BR ({filteredBrs.length} retours • {totalLines} lignes) :
-                </td>
-                <td className="py-2.5 px-3 text-right font-mono text-rose-300">
-                  -{formatCurrency(totals.totalHt, false)}
-                </td>
-                <td className="py-2.5 px-3 text-right font-mono text-rose-300">
-                  -{formatCurrency(totals.totalTva, false)}
-                </td>
-                <td className="py-2.5 px-3 text-right font-mono text-rose-400 bg-slate-950 font-extrabold">
-                  -{formatCurrency(totals.totalTtc, false)}
-                </td>
-                <td colSpan={3} className="py-2.5 px-3 text-center text-slate-400">
-                  MAD (DH)
-                </td>
-              </tr>
-            </tfoot>
-          </table>
+              </tfoot>
+            </table>
+          </div>
         </div>
       </div>
 

@@ -26,7 +26,10 @@ import {
   Search,
   SlidersHorizontal,
   X,
+  Download,
 } from 'lucide-react';
+import { SortableTh } from '@/components/SortableTh';
+import { TableBulkActionBar } from '@/components/TableBulkActionBar';
 
 interface BonsLivraisonViewProps {
   bonsLivraison: BonLivraison[];
@@ -60,6 +63,19 @@ export const BonsLivraisonView: React.FC<BonsLivraisonViewProps> = ({
   const [selectedBlIds, setSelectedBlIds] = useState<number[]>([]);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
 
+  // Sorting state
+  const [sortKey, setSortKey] = useState<string>('numero');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
+
+  const handleSort = (key: string) => {
+    if (sortKey === key) {
+      setSortDir((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortKey(key);
+      setSortDir('asc');
+    }
+  };
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -91,13 +107,31 @@ export const BonsLivraisonView: React.FC<BonsLivraisonViewProps> = ({
         if (!matchNum && !matchClient && !matchDate && !matchFacture) return false;
       }
       return true;
-    }).sort((a, b) =>
-      compareDocumentNumbersDesc(a.numero, b.numero) ||
-      (a.client_nom || '').localeCompare(b.client_nom || '', 'fr', { sensitivity: 'base' }) ||
-      new Date(b.date).getTime() - new Date(a.date).getTime() ||
-      b.id - a.id
-    );
-  }, [bonsLivraison, filterStatut, searchQuery, filterStartDate, filterEndDate]);
+    }).sort((a, b) => {
+      let comparison = 0;
+      if (sortKey === 'numero') {
+        comparison = compareDocumentNumbersDesc(a.numero, b.numero);
+        return sortDir === 'asc' ? -comparison : comparison;
+      } else if (sortKey === 'date') {
+        comparison = new Date(a.date).getTime() - new Date(b.date).getTime();
+      } else if (sortKey === 'client_nom') {
+        comparison = (a.client_nom || '').localeCompare(b.client_nom || '', 'fr', { sensitivity: 'base' });
+      } else if (sortKey === 'total_ht') {
+        comparison = toNumeric(a.total_ht) - toNumeric(b.total_ht);
+      } else if (sortKey === 'total_tva') {
+        comparison = toNumeric(a.total_tva) - toNumeric(b.total_tva);
+      } else if (sortKey === 'total_ttc') {
+        comparison = toNumeric(a.total_ttc) - toNumeric(b.total_ttc);
+      } else if (sortKey === 'etat') {
+        comparison = (a.etat || '').localeCompare(b.etat || '');
+      } else if (sortKey === 'facture_numero') {
+        comparison = (a.facture_numero || '').localeCompare(b.facture_numero || '');
+      } else {
+        comparison = compareDocumentNumbersDesc(a.numero, b.numero);
+      }
+      return sortDir === 'asc' ? comparison : -comparison;
+    });
+  }, [bonsLivraison, filterStatut, searchQuery, filterStartDate, filterEndDate, sortKey, sortDir]);
 
   const paginatedBls = useMemo(() => {
     const start = (currentPage - 1) * pageSize;
@@ -119,6 +153,33 @@ export const BonsLivraisonView: React.FC<BonsLivraisonViewProps> = ({
     } else {
       setSelectedBlIds(validUninvoiced);
     }
+  };
+
+  const exportSelectedToCsv = () => {
+    const listToExport = selectedBlIds.length > 0
+      ? bonsLivraison.filter((b) => selectedBlIds.includes(b.id))
+      : filteredBls;
+
+    if (listToExport.length === 0) return;
+    const headers = ['N° BL', 'Date', 'Client', 'Total HT', 'Total TVA', 'Total TTC', 'État Document', 'Facture'];
+    const rows = listToExport.map((b) => [
+      b.numero,
+      b.date,
+      `"${(b.client_nom || '').replace(/"/g, '""')}"`,
+      toNumeric(b.total_ht).toFixed(2),
+      toNumeric(b.total_tva).toFixed(2),
+      toNumeric(b.total_ttc).toFixed(2),
+      b.etat || 'Validé',
+      b.facture_numero || (b.facture_id ? 'Facturé' : 'En attente'),
+    ]);
+    const csvContent = 'data:text/csv;charset=utf-8,\uFEFF' + [headers.join(';'), ...rows.map((r) => r.join(';'))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `bons_livraison_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const selectedBlsObjects = useMemo(() => {
@@ -778,282 +839,368 @@ export const BonsLivraisonView: React.FC<BonsLivraisonViewProps> = ({
       {/* ========================================================================= */}
       {/* 2. DESKTOP TABLE (hidden on mobile - hidden md:block) */}
       {/* ========================================================================= */}
-      <div className="hidden md:block bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs border-collapse">
-            <thead>
-              <tr className="bg-emerald-800 text-white font-semibold divide-x divide-emerald-700">
-                <th className="py-2.5 px-3 w-10 text-center">
-                  <button
-                    onClick={toggleSelectAll}
-                    className="text-white hover:text-emerald-200 transition"
-                    title="Sélectionner tous les BL validés en attente"
-                  >
-                    {selectedBlIds.length > 0 &&
-                    selectedBlIds.length === filteredBls.filter((b) => b.etat !== 'Brouillon' && b.etat !== 'Annulé' && !b.facture_id && !b.facture_numero).length ? (
-                      <CheckSquare className="w-4 h-4" />
-                    ) : (
-                      <Square className="w-4 h-4" />
-                    )}
-                  </button>
-                </th>
-                <th className="py-2.5 px-3 min-w-[100px]">N° BL</th>
-                <th className="py-2.5 px-3 min-w-[90px]">Date</th>
-                <th className="py-2.5 px-3 min-w-[180px]">Client / Société</th>
-                <th className="py-2.5 px-3 text-right min-w-[90px]">Total HT</th>
-                <th className="py-2.5 px-3 text-right min-w-[80px]">TVA</th>
-                <th className="py-2.5 px-3 text-right min-w-[100px] font-bold">Total TTC</th>
-                <th className="py-2.5 px-3 text-center min-w-[100px]">État Document</th>
-                <th className="py-2.5 px-3 text-center min-w-[110px]">Facturation</th>
-                <th className="py-2.5 px-3 text-center min-w-[140px]">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-200">
-              {isLoading ? (
-                <tr>
-                  <td colSpan={10} className="py-16 text-center text-slate-500">
-                    <div className="flex flex-col items-center justify-center gap-2">
-                      <Loader2 className="w-7 h-7 text-emerald-600 animate-spin" />
-                      <span className="text-sm font-medium text-slate-700">Chargement des bons de livraison à la demande...</span>
-                      <span className="text-xs text-slate-400">Récupération optimisée des pièces</span>
-                    </div>
-                  </td>
-                </tr>
-              ) : filteredBls.length === 0 ? (
-                <tr>
-                  <td colSpan={10} className="py-12 text-center text-slate-400 text-sm">
-                    Aucun Bon de Livraison trouvé.
-                  </td>
-                </tr>
-              ) : (
-                paginatedBls.map((bl) => {
-                  const isSelected = selectedBlIds.includes(bl.id);
-                  const etat: DocumentState = bl.etat || 'Validé';
-                  const isBrouillon = etat === 'Brouillon';
-                  const isAnnule = etat === 'Annulé';
-                  const isValide = !isBrouillon && !isAnnule;
-                  const isInvoiced = Boolean(bl.facture_id || bl.facture_numero);
-                  const isAttente = isValide && !isInvoiced;
+      <div className="hidden md:block space-y-2">
+        {/* Bulk Action Bar */}
+        <TableBulkActionBar
+          selectedCount={selectedBlIds.length}
+          itemLabel="bon de livraison"
+          onClearSelection={() => setSelectedBlIds([])}
+        >
+          <button
+            type="button"
+            onClick={() => onBatchInvoiceSelected(selectedBlIds)}
+            disabled={!isSingleClientSelected}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md font-bold transition shadow-2xs ${
+              isSingleClientSelected
+                ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+            }`}
+            title={
+              !isSingleClientSelected
+                ? 'Tous les BL doivent être du même client'
+                : 'Convertir les BL sélectionnés en une seule Facture'
+            }
+          >
+            <FileText className="w-3.5 h-3.5" />
+            <span>Facturer en lot ({selectedBlIds.length})</span>
+          </button>
+          <button
+            type="button"
+            onClick={exportSelectedToCsv}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-md font-semibold text-slate-700 bg-white hover:bg-slate-100 border border-slate-300 shadow-2xs transition"
+          >
+            <Download className="w-3.5 h-3.5 text-blue-600" />
+            <span>Exporter CSV ({selectedBlIds.length})</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              if (confirm(`Supprimer les ${selectedBlIds.length} bons de livraison sélectionnés ?`)) {
+                selectedBlIds.forEach((id) => onDeleteBl(id));
+                setSelectedBlIds([]);
+              }
+            }}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-md font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 shadow-2xs transition"
+          >
+            <Trash2 className="w-3.5 h-3.5 text-rose-600" />
+            <span>Supprimer ({selectedBlIds.length})</span>
+          </button>
+        </TableBulkActionBar>
 
-                  return (
-                    <tr
-                      key={bl.id}
-                      onClick={(event) => {
-                        if (event.target instanceof Element && event.target.closest('button, input, a, select')) return;
-                        onViewBl(bl);
-                      }}
-                      onKeyDown={(event) => {
-                        if (event.key === 'Enter' || event.key === ' ') {
-                          event.preventDefault();
-                          onViewBl(bl);
-                        }
-                      }}
-                      tabIndex={0}
-                      role="button"
-                      title="Ouvrir l’aperçu du bon de livraison"
-                      className={`cursor-pointer hover:bg-emerald-50/50 transition focus:outline-none focus:ring-2 focus:ring-inset focus:ring-emerald-500 divide-x divide-slate-100 ${
-                        isAnnule
-                          ? 'bg-rose-50/30 opacity-75'
-                          : isBrouillon
-                          ? 'bg-slate-50/70'
-                          : isSelected
-                          ? 'bg-indigo-50 font-medium'
-                          : 'even:bg-slate-50/50'
-                      }`}
+        <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs border-collapse">
+              <thead>
+                {/* Enterprise Slate-900 unified header */}
+                <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-[11px] uppercase tracking-wider sticky top-0 z-10">
+                  <th className="py-2.5 px-2.5 text-center w-10">
+                    <input
+                      type="checkbox"
+                      checked={
+                        selectedBlIds.length > 0 &&
+                        selectedBlIds.length ===
+                          filteredBls.filter(
+                            (b) => b.etat !== 'Brouillon' && b.etat !== 'Annulé' && !b.facture_id && !b.facture_numero
+                          ).length
+                      }
+                      onChange={toggleSelectAll}
+                      className="rounded border-slate-400 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                      title="Sélectionner tous les BL validés en attente"
+                    />
+                  </th>
+                  <SortableTh label="N° BL" sortKey="numero" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} className="min-w-[100px]" />
+                  <SortableTh label="Date" sortKey="date" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} className="min-w-[90px]" />
+                  <SortableTh label="Client / Société" sortKey="client_nom" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} className="min-w-[180px]" />
+                  <SortableTh label="Total HT" sortKey="total_ht" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} align="right" className="min-w-[90px]" />
+                  <SortableTh label="TVA" sortKey="total_tva" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} align="right" className="min-w-[80px]" />
+                  <SortableTh label="Total TTC" sortKey="total_ttc" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} align="right" className="min-w-[100px]" />
+                  <SortableTh label="État Document" sortKey="etat" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} align="center" className="min-w-[100px]" />
+                  <SortableTh label="Facturation" sortKey="facture_numero" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} align="center" className="min-w-[110px]" />
+                  <th className="py-2.5 px-3 text-center min-w-[140px]">Actions</th>
+                </tr>
+                {/* Search & quick filter row */}
+                <tr className="bg-slate-800 text-slate-200 divide-x divide-slate-700">
+                  <th className="p-1 text-center">
+                    <button
+                      type="button"
+                      onClick={exportSelectedToCsv}
+                      className="text-slate-400 hover:text-white p-0.5"
+                      title="Exporter CSV"
                     >
-                      <td className="py-2 px-3 text-center">
-                        {isAttente ? (
-                          <button
-                            onClick={() => toggleSelectBl(bl.id)}
-                            className="text-indigo-600 hover:text-indigo-800 transition"
-                          >
-                            {isSelected ? (
-                              <CheckSquare className="w-4 h-4 text-indigo-600" />
-                            ) : (
-                              <Square className="w-4 h-4 text-slate-400" />
-                            )}
-                          </button>
-                        ) : (
-                          <span className="text-slate-300">-</span>
-                        )}
-                      </td>
-                      <td className="py-2 px-3 font-mono font-semibold text-slate-900">
-                        <span className={isAnnule ? 'line-through text-slate-400' : ''}>{bl.numero}</span>
-                      </td>
-                      <td className="py-2 px-3 text-slate-600 whitespace-nowrap">
-                        {formatDate(bl.date)}
-                      </td>
-                      <td className="py-2 px-3 text-slate-900 font-medium">
-                        {bl.client_nom}
-                      </td>
-                      <td className="py-2 px-3 text-right font-mono text-slate-700">
-                        {formatCurrency(bl.total_ht, false)}
-                      </td>
-                      <td className="py-2 px-3 text-right font-mono text-slate-600">
-                        {formatCurrency(bl.total_tva, false)}
-                      </td>
-                      <td className="py-2 px-3 text-right font-mono font-bold text-slate-950 bg-slate-100/50">
-                        {formatCurrency(bl.total_ttc, false)}
-                      </td>
-                      <td className="py-2 px-3 text-center">
-                        {isValide && (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-800 border border-emerald-300">
-                            ✓ Validé
-                          </span>
-                        )}
-                        {isBrouillon && (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-300">
-                            ✎ Brouillon
-                          </span>
-                        )}
-                        {isAnnule && (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-rose-100 text-rose-800 border border-rose-300">
-                            ✗ Annulé
-                          </span>
-                        )}
-                      </td>
-                      <td className="py-2 px-3 text-center">
-                        {isValide ? (
-                          isInvoiced ? (
-                            <span className="font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                              {bl.facture_numero ? bl.facture_numero : 'Facturé'}
-                            </span>
+                      <Download className="w-3.5 h-3.5" />
+                    </button>
+                  </th>
+                  <th className="p-1" colSpan={3}>
+                    <input
+                      type="text"
+                      placeholder="Recherche rapide (N° BL, client, date)..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full px-2 py-1 text-[11px] bg-white text-slate-900 rounded border border-slate-300 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                  </th>
+                  <th className="p-1" colSpan={6}>
+                    <div className="flex items-center justify-between text-[11px] text-slate-300 px-2 font-normal">
+                      <span>{filteredBls.length} BLs trouvés</span>
+                      {(searchQuery || filterStartDate || filterEndDate) && (
+                        <button
+                          onClick={() => {
+                            setSearchQuery('');
+                            setFilterStartDate('');
+                            setFilterEndDate('');
+                          }}
+                          className="text-xs text-yellow-300 hover:underline"
+                        >
+                          Effacer recherche
+                        </button>
+                      )}
+                    </div>
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-200">
+                {isLoading ? (
+                  <tr>
+                    <td colSpan={10} className="py-16 text-center text-slate-500">
+                      <div className="flex flex-col items-center justify-center gap-2">
+                        <Loader2 className="w-7 h-7 text-blue-600 animate-spin" />
+                        <span className="text-sm font-medium text-slate-700">Chargement des bons de livraison à la demande...</span>
+                        <span className="text-xs text-slate-400">Récupération optimisée des pièces</span>
+                      </div>
+                    </td>
+                  </tr>
+                ) : filteredBls.length === 0 ? (
+                  <tr>
+                    <td colSpan={10} className="py-12 text-center text-slate-400 text-sm">
+                      Aucun Bon de Livraison trouvé.
+                    </td>
+                  </tr>
+                ) : (
+                  paginatedBls.map((bl) => {
+                    const isSelected = selectedBlIds.includes(bl.id);
+                    const etat: DocumentState = bl.etat || 'Validé';
+                    const isBrouillon = etat === 'Brouillon';
+                    const isAnnule = etat === 'Annulé';
+                    const isValide = !isBrouillon && !isAnnule;
+                    const isInvoiced = Boolean(bl.facture_id || bl.facture_numero);
+                    const isAttente = isValide && !isInvoiced;
+
+                    return (
+                      <tr
+                        key={bl.id}
+                        onClick={(event) => {
+                          if (event.target instanceof Element && event.target.closest('button, input, a, select')) return;
+                          onViewBl(bl);
+                        }}
+                        onKeyDown={(event) => {
+                          if (event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault();
+                            onViewBl(bl);
+                          }
+                        }}
+                        tabIndex={0}
+                        role="button"
+                        title="Ouvrir l’aperçu du bon de livraison"
+                        className={`cursor-pointer hover:bg-blue-50/60 transition focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 divide-x divide-slate-100 ${
+                          isSelected
+                            ? 'bg-blue-50/90 font-medium border-l-4 border-l-blue-600'
+                            : isAnnule
+                            ? 'bg-rose-50/30 opacity-75'
+                            : isBrouillon
+                            ? 'bg-slate-50/70'
+                            : 'even:bg-slate-50/50'
+                        }`}
+                      >
+                        <td className="py-2 px-2.5 text-center" onClick={(e) => e.stopPropagation()}>
+                          {isAttente ? (
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={() => toggleSelectBl(bl.id)}
+                              className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                            />
                           ) : (
-                            <span className="text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 text-[11px]">
-                              ⏳ En attente
-                            </span>
-                          )
-                        ) : (
-                          <span className="text-slate-500 italic text-[11px]">{isAnnule ? 'Annulé' : 'À valider'}</span>
-                        )}
-                      </td>
-                      <td className="py-1.5 px-2 text-center">
-                        <div className="flex items-center justify-center gap-1">
-                          {/* 1. If Brouillon: allow Edit and Validate directly */}
-                          {isBrouillon && (
-                            <>
-                              {onEditBl && (
-                                <button
-                                  onClick={() => onEditBl(bl)}
-                                  className="p-1 hover:bg-blue-100 text-blue-700 rounded transition"
-                                  title="Modifier le Brouillon"
-                                >
-                                  <Edit className="w-3.5 h-3.5" />
-                                </button>
-                              )}
-                              {onUpdateBlState && (
-                                <button
-                                  onClick={() => {
-                                    onUpdateBlState(bl.id, 'Validé');
-                                  }}
-                                  className="p-1 hover:bg-emerald-100 text-emerald-700 rounded transition"
-                                  title="Valider le BL (Déstockage)"
-                                >
-                                  <CheckCircle2 className="w-3.5 h-3.5" />
-                                </button>
-                              )}
-                              {onUpdateBlState && (
-                                <button
-                                  onClick={() => {
-                                    onUpdateBlState(bl.id, 'Annulé');
-                                  }}
-                                  className="p-1 hover:bg-rose-100 text-rose-700 rounded transition"
-                                  title="Annuler le BL"
-                                >
-                                  <Ban className="w-3.5 h-3.5" />
-                                </button>
-                              )}
-                            </>
+                            <span className="text-slate-300">-</span>
                           )}
-
-                          {/* 2. If Validé: allow Annuler (reverts stock) */}
+                        </td>
+                        <td className="py-2 px-3 font-mono font-semibold text-slate-900">
+                          <span className={isAnnule ? 'line-through text-slate-400' : ''}>{bl.numero}</span>
+                        </td>
+                        <td className="py-2 px-3 text-slate-600 whitespace-nowrap font-mono">
+                          {formatDate(bl.date)}
+                        </td>
+                        <td className="py-2 px-3 text-slate-900 font-medium">
+                          {bl.client_nom}
+                        </td>
+                        <td className="py-2 px-3 text-right font-mono text-slate-700">
+                          {formatCurrency(bl.total_ht, false)}
+                        </td>
+                        <td className="py-2 px-3 text-right font-mono text-slate-600">
+                          {formatCurrency(bl.total_tva, false)}
+                        </td>
+                        <td className="py-2 px-3 text-right font-mono font-bold text-slate-950 bg-slate-100/50">
+                          {formatCurrency(bl.total_ttc, false)}
+                        </td>
+                        <td className="py-2 px-3 text-center">
                           {isValide && (
-                            <>
-                              {onUpdateBlState && (
-                                <button
-                                  onClick={() => {
-                                    onUpdateBlState(bl.id, 'Annulé');
-                                  }}
-                                  className="p-1 hover:bg-amber-100 text-amber-700 rounded transition"
-                                  title="Annuler le BL (Réintégration stock)"
-                                >
-                                  <Ban className="w-3.5 h-3.5" />
-                                </button>
-                              )}
-                            </>
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                              ✓ Validé
+                            </span>
                           )}
-
-                          {/* 3. If Annulé: allow Set to Draft to Edit! */}
+                          {isBrouillon && (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-300">
+                              ✎ Brouillon
+                            </span>
+                          )}
                           {isAnnule && (
-                            <>
-                              {onUpdateBlState && (
-                                <button
-                                  onClick={() => {
-                                    onUpdateBlState(bl.id, 'Brouillon');
-                                  }}
-                                  className="flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 rounded transition"
-                                  title="Remettre en brouillon pour modifier"
-                                >
-                                  <RotateCcw className="w-3 h-3" />
-                                  <span>Brouillon</span>
-                                </button>
-                              )}
-                            </>
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-rose-100 text-rose-800 border border-rose-300">
+                              ✗ Annulé
+                            </span>
                           )}
+                        </td>
+                        <td className="py-2 px-3 text-center">
+                          {isValide ? (
+                            isInvoiced ? (
+                              <span className="font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                                {bl.facture_numero ? bl.facture_numero : 'Facturé'}
+                              </span>
+                            ) : (
+                              <span className="text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 text-[11px]">
+                                ⏳ En attente
+                              </span>
+                            )
+                          ) : (
+                            <span className="text-slate-500 italic text-[11px]">{isAnnule ? 'Annulé' : 'À valider'}</span>
+                          )}
+                        </td>
+                        <td className="py-1.5 px-2 text-center" onClick={(e) => e.stopPropagation()}>
+                          <div className="flex items-center justify-center gap-1">
+                            {/* 1. If Brouillon: allow Edit and Validate directly */}
+                            {isBrouillon && (
+                              <>
+                                {onEditBl && (
+                                  <button
+                                    onClick={() => onEditBl(bl)}
+                                    className="p-1 hover:bg-blue-100 text-blue-700 rounded transition"
+                                    title="Modifier le Brouillon"
+                                  >
+                                    <Edit className="w-3.5 h-3.5" />
+                                  </button>
+                                )}
+                                {onUpdateBlState && (
+                                  <button
+                                    onClick={() => {
+                                      onUpdateBlState(bl.id, 'Validé');
+                                    }}
+                                    className="p-1 hover:bg-emerald-100 text-emerald-700 rounded transition"
+                                    title="Valider le BL (Déstockage)"
+                                  >
+                                    <CheckCircle2 className="w-3.5 h-3.5" />
+                                  </button>
+                                )}
+                                {onUpdateBlState && (
+                                  <button
+                                    onClick={() => {
+                                      onUpdateBlState(bl.id, 'Annulé');
+                                    }}
+                                    className="p-1 hover:bg-rose-100 text-rose-700 rounded transition"
+                                    title="Annuler le BL"
+                                  >
+                                    <Ban className="w-3.5 h-3.5" />
+                                  </button>
+                                )}
+                              </>
+                            )}
 
-                          {/* Preview & Print */}
-                          <button
-                            onClick={() => onViewBl(bl)}
-                            className="p-1 hover:bg-slate-200 text-slate-600 hover:text-emerald-600 rounded transition"
-                            title="Aperçu Bon de Livraison"
-                          >
-                            <Eye className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            onClick={() => generateBlPdf(bl, company)}
-                            className="p-1 hover:bg-slate-200 text-slate-600 hover:text-emerald-600 rounded transition"
-                            title="Télécharger PDF BL"
-                          >
-                            <Printer className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            onClick={() => {
-                              if (confirm(`Supprimer définitivement le bon de livraison ${bl.numero} ?`)) {
-                                onDeleteBl(bl.id);
-                              }
-                            }}
-                            className="p-1 hover:bg-rose-100 text-slate-400 hover:text-rose-600 rounded transition"
-                            title="Supprimer BL"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-            <tfoot>
-              <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-xs">
-                <td colSpan={4} className="py-2.5 px-3 text-right uppercase tracking-wider">
-                  Total Sélection / Filtre ({filteredBls.length} BLs • {totalLines} lignes) :
-                </td>
-                <td className="py-2.5 px-3 text-right font-mono">
-                  {formatCurrency(totals.totalHt, false)}
-                </td>
-                <td className="py-2.5 px-3 text-right font-mono">
-                  {formatCurrency(totals.totalTva, false)}
-                </td>
-                <td className="py-2.5 px-3 text-right font-mono text-emerald-400 bg-slate-950 font-extrabold">
-                  {formatCurrency(totals.totalTtc, false)}
-                </td>
-                <td colSpan={3} className="py-2.5 px-3 text-center text-slate-400">
-                  MAD (DH)
-                </td>
-              </tr>
-            </tfoot>
-          </table>
+                            {/* 2. If Validé: allow Annuler (reverts stock) */}
+                            {isValide && (
+                              <>
+                                {onUpdateBlState && (
+                                  <button
+                                    onClick={() => {
+                                      onUpdateBlState(bl.id, 'Annulé');
+                                    }}
+                                    className="p-1 hover:bg-amber-100 text-amber-700 rounded transition"
+                                    title="Annuler le BL (Réintégration stock)"
+                                  >
+                                    <Ban className="w-3.5 h-3.5" />
+                                  </button>
+                                )}
+                              </>
+                            )}
+
+                            {/* 3. If Annulé: allow Set to Draft to Edit! */}
+                            {isAnnule && (
+                              <>
+                                {onUpdateBlState && (
+                                  <button
+                                    onClick={() => {
+                                      onUpdateBlState(bl.id, 'Brouillon');
+                                    }}
+                                    className="flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 rounded transition"
+                                    title="Remettre en brouillon pour modifier"
+                                  >
+                                    <RotateCcw className="w-3 h-3" />
+                                    <span>Brouillon</span>
+                                  </button>
+                                )}
+                              </>
+                            )}
+
+                            {/* Preview & Print */}
+                            <button
+                              onClick={() => onViewBl(bl)}
+                              className="p-1 hover:bg-slate-200 text-slate-600 hover:text-emerald-600 rounded transition"
+                              title="Aperçu Bon de Livraison"
+                            >
+                              <Eye className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={() => generateBlPdf(bl, company)}
+                              className="p-1 hover:bg-slate-200 text-slate-600 hover:text-emerald-600 rounded transition"
+                              title="Télécharger PDF BL"
+                            >
+                              <Printer className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={() => {
+                                if (confirm(`Supprimer définitivement le bon de livraison ${bl.numero} ?`)) {
+                                  onDeleteBl(bl.id);
+                                }
+                              }}
+                              className="p-1 hover:bg-rose-100 text-slate-400 hover:text-rose-600 rounded transition"
+                              title="Supprimer BL"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+              <tfoot>
+                <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-xs">
+                  <td colSpan={4} className="py-2.5 px-3 text-right uppercase tracking-wider">
+                    Total Sélection / Filtre ({filteredBls.length} BLs • {totalLines} lignes) :
+                  </td>
+                  <td className="py-2.5 px-3 text-right font-mono">
+                    {formatCurrency(totals.totalHt, false)}
+                  </td>
+                  <td className="py-2.5 px-3 text-right font-mono">
+                    {formatCurrency(totals.totalTva, false)}
+                  </td>
+                  <td className="py-2.5 px-3 text-right font-mono text-emerald-400 bg-slate-950 font-extrabold">
+                    {formatCurrency(totals.totalTtc, false)}
+                  </td>
+                  <td colSpan={3} className="py-2.5 px-3 text-center text-slate-400">
+                    MAD (DH)
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
         </div>
       </div>
 

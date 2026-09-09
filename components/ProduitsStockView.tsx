@@ -4,7 +4,9 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { Produit, StockMouvement } from '@/lib/types';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { TablePagination } from '@/components/TablePagination';
-import { Plus, Search, Package, AlertTriangle, ArrowUpDown, History, Edit, Trash2, ArrowUpRight, ArrowDownLeft, DollarSign, TrendingUp } from 'lucide-react';
+import { Plus, Search, Package, AlertTriangle, ArrowUpDown, History, Edit, Trash2, ArrowUpRight, ArrowDownLeft, DollarSign, TrendingUp, Download } from 'lucide-react';
+import { SortableTh } from '@/components/SortableTh';
+import { TableBulkActionBar } from '@/components/TableBulkActionBar';
 
 interface ProduitsStockViewProps {
   produits: Produit[];
@@ -27,6 +29,20 @@ export const ProduitsStockView: React.FC<ProduitsStockViewProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedGroupe, setSelectedGroupe] = useState<string>('ALL');
   const [filterAlertsOnly, setFilterAlertsOnly] = useState(false);
+
+  // Sorting & Bulk selection states
+  const [sortKey, setSortKey] = useState<string>('code');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
+  const [selectedProduitIds, setSelectedProduitIds] = useState<number[]>([]);
+
+  const handleSort = (key: string) => {
+    if (sortKey === key) {
+      setSortDir((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortKey(key);
+      setSortDir('asc');
+    }
+  };
 
   // Pagination for catalog & movements
   const [currentProdPage, setCurrentProdPage] = useState(1);
@@ -72,13 +88,88 @@ export const ProduitsStockView: React.FC<ProduitsStockViewProps> = ({
         if (!matchLib && !matchCode && !matchFam) return false;
       }
       return true;
+    }).sort((a, b) => {
+      let comparison = 0;
+      if (sortKey === 'code') {
+        comparison = (a.code || '').localeCompare(b.code || '', undefined, { numeric: true });
+      } else if (sortKey === 'libelle') {
+        comparison = (a.libelle || '').localeCompare(b.libelle || '', 'fr', { sensitivity: 'base' });
+      } else if (sortKey === 'groupe') {
+        comparison = (a.groupe || '').localeCompare(b.groupe || '');
+      } else if (sortKey === 'famille') {
+        comparison = (a.famille || '').localeCompare(b.famille || '');
+      } else if (sortKey === 'taux_tva') {
+        comparison = Number(a.taux_tva || 0) - Number(b.taux_tva || 0);
+      } else if (sortKey === 'prix_ht') {
+        comparison = Number(a.prix_ht || 0) - Number(b.prix_ht || 0);
+      } else if (sortKey === 'prix_achat') {
+        const costA = Number(a.prix_achat_ht || a.prix_achat || 0);
+        const costB = Number(b.prix_achat_ht || b.prix_achat || 0);
+        comparison = costA - costB;
+      } else if (sortKey === 'stock_actuel') {
+        comparison = Number(a.stock_actuel || 0) - Number(b.stock_actuel || 0);
+      } else if (sortKey === 'valorisation') {
+        const valA = Number(a.stock_actuel || 0) * Number(a.prix_achat_ht || a.prix_achat || a.prix_ht || 0);
+        const valB = Number(b.stock_actuel || 0) * Number(b.prix_achat_ht || b.prix_achat || b.prix_ht || 0);
+        comparison = valA - valB;
+      } else {
+        comparison = (a.code || '').localeCompare(b.code || '');
+      }
+      return sortDir === 'asc' ? comparison : -comparison;
     });
-  }, [produits, selectedGroupe, filterAlertsOnly, searchQuery]);
+  }, [produits, selectedGroupe, filterAlertsOnly, searchQuery, sortKey, sortDir]);
 
   const paginatedProduits = useMemo(() => {
     const start = (currentProdPage - 1) * prodPageSize;
     return filteredProduits.slice(start, start + prodPageSize);
   }, [filteredProduits, currentProdPage, prodPageSize]);
+
+  const toggleSelectAll = () => {
+    if (selectedProduitIds.length === paginatedProduits.length && paginatedProduits.length > 0) {
+      setSelectedProduitIds([]);
+    } else {
+      setSelectedProduitIds(paginatedProduits.map((p) => p.id));
+    }
+  };
+
+  const toggleSelectProduit = (id: number) => {
+    setSelectedProduitIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
+  const exportSelectedToCsv = () => {
+    const listToExport = selectedProduitIds.length > 0
+      ? produits.filter((p) => selectedProduitIds.includes(p.id))
+      : filteredProduits;
+
+    if (listToExport.length === 0) return;
+    const headers = ['Code', 'Libellé', 'Groupe', 'Famille', 'Unité', 'TVA %', 'P.U Vente HT', 'Coût Achat HT', 'Stock Actuel', 'Valorisation HT'];
+    const rows = listToExport.map((p) => {
+      const unitCost = Number(p.prix_achat_ht || p.prix_achat || 0);
+      const val = (Number(p.stock_actuel) || 0) * (unitCost || Number(p.prix_ht) || 0);
+      return [
+        p.code,
+        `"${(p.libelle || '').replace(/"/g, '""')}"`,
+        `"${p.groupe || ''}"`,
+        `"${p.famille || ''}"`,
+        p.unite || 'U',
+        p.taux_tva,
+        Number(p.prix_ht || 0).toFixed(2),
+        unitCost.toFixed(2),
+        Number(p.stock_actuel || 0).toFixed(2),
+        val.toFixed(2),
+      ];
+    });
+    const csvContent = 'data:text/csv;charset=utf-8,\uFEFF' + [headers.join(';'), ...rows.map((r) => r.join(';'))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `catalogue_produits_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   const paginatedMouvements = useMemo(() => {
     const start = (currentMvtPage - 1) * mvtPageSize;
@@ -369,41 +460,86 @@ export const ProduitsStockView: React.FC<ProduitsStockViewProps> = ({
           {/* ========================================================================= */}
           {/* DESKTOP PRODUCT TABLE (hidden md:block) */}
           {/* ========================================================================= */}
+          {/* ========================================================================= */}
+          {/* DESKTOP PRODUCT TABLE (hidden md:block) */}
+          {/* ========================================================================= */}
           <div className="hidden md:block bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
+            {/* Bulk Selection Bar */}
+            <TableBulkActionBar
+              selectedCount={selectedProduitIds.length}
+              totalCount={filteredProduits.length}
+              onClearSelection={() => setSelectedProduitIds([])}
+              actions={
+                <button
+                  onClick={exportSelectedToCsv}
+                  className="px-2.5 py-1 text-xs font-semibold bg-white text-slate-700 hover:bg-slate-100 rounded border border-slate-300 flex items-center gap-1.5 shadow-xs transition"
+                >
+                  <Download className="w-3.5 h-3.5 text-blue-600" />
+                  Exporter CSV ({selectedProduitIds.length})
+                </button>
+              }
+            />
+
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="bg-blue-700 text-white font-semibold divide-x divide-blue-600">
-                    <th className="py-2.5 px-3 min-w-[90px]">Code</th>
-                    <th className="py-2.5 px-3 min-w-[200px]">Libellé</th>
-                    <th className="py-2.5 px-3 min-w-[110px]">Groupe</th>
-                    <th className="py-2.5 px-3 min-w-[100px]">Famille</th>
-                    <th className="py-2.5 px-3 text-center min-w-[50px]">U M</th>
-                    <th className="py-2.5 px-3 text-center min-w-[70px]">TVA</th>
-                    <th className="py-2.5 px-3 text-right min-w-[90px]">P.U Vente HT</th>
-                    <th className="py-2.5 px-3 text-right min-w-[100px] text-amber-200">Coût Revient/Achat</th>
-                    <th className="py-2.5 px-3 text-right min-w-[100px] font-bold">Qté Stock</th>
-                    <th className="py-2.5 px-3 text-right min-w-[110px] text-emerald-200 font-bold">Valorisation HT</th>
-                    <th className="py-2.5 px-3 text-center min-w-[100px]">Actions</th>
+                  <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-[11px] uppercase tracking-wider sticky top-0 z-10 shadow-xs">
+                    <th className="py-2.5 px-3 text-center w-10">
+                      <input
+                        type="checkbox"
+                        checked={
+                          paginatedProduits.length > 0 &&
+                          paginatedProduits.every((p) => selectedProduitIds.includes(p.id))
+                        }
+                        onChange={toggleSelectAll}
+                        className="rounded border-slate-400 text-blue-600 focus:ring-blue-500 w-3.5 h-3.5 cursor-pointer align-middle"
+                        title="Tout sélectionner / désélectionner sur cette page"
+                      />
+                    </th>
+                    <SortableTh label="Code" sortKey="code" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} width="w-24" />
+                    <SortableTh label="Libellé" sortKey="libelle" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} minWidth="min-w-[200px]" />
+                    <SortableTh label="Groupe" sortKey="groupe" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} width="w-28" />
+                    <SortableTh label="Famille" sortKey="famille" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} width="w-28" />
+                    <SortableTh label="U M" sortKey="unite" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} align="center" width="w-14" />
+                    <SortableTh label="TVA" sortKey="taux_tva" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} align="center" width="w-16" />
+                    <SortableTh label="P.U Vente HT" sortKey="prix_ht" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} align="right" width="w-28" />
+                    <SortableTh label="Coût Achat" sortKey="prix_achat_ht" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} align="right" width="w-28" />
+                    <SortableTh label="Qté Stock" sortKey="stock_actuel" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} align="right" width="w-28" />
+                    <SortableTh label="Valorisation HT" sortKey="stock_valeur" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} align="right" width="w-32" />
+                    <th className="py-2.5 px-3 text-center w-24">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200">
                   {filteredProduits.length === 0 ? (
                     <tr>
-                      <td colSpan={11} className="py-12 text-center text-slate-400 text-sm">
+                      <td colSpan={12} className="py-12 text-center text-slate-400 text-sm">
                         Aucun produit trouvé.
                       </td>
                     </tr>
                   ) : (
                     paginatedProduits.map((p) => {
                       const isLowStock = p.stock_actuel <= p.stock_min;
+                      const isSelected = selectedProduitIds.includes(p.id);
+                      const valHt = p.stock_actuel * Number(p.prix_achat_ht || p.prix_achat || p.prix_ht || 0);
 
                       return (
                         <tr
                           key={p.id}
-                          className="hover:bg-blue-50/50 transition divide-x divide-slate-100 even:bg-slate-50/40"
+                          className={`transition-colors divide-x divide-slate-100 ${
+                            isSelected
+                              ? 'bg-blue-50/90 font-medium border-l-4 border-l-blue-600'
+                              : 'hover:bg-blue-50/50 even:bg-slate-50/40'
+                          }`}
                         >
-                          <td className="py-2 px-3 font-mono font-semibold text-slate-700">
+                          <td className="py-2 px-3 text-center">
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={() => toggleSelectProduit(p.id)}
+                              className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 w-3.5 h-3.5 cursor-pointer align-middle"
+                            />
+                          </td>
+                          <td className="py-2 px-3 font-mono font-semibold text-slate-800">
                             {p.code}
                           </td>
                           <td className="py-2 px-3 text-slate-900 font-semibold">
@@ -451,10 +587,7 @@ export const ProduitsStockView: React.FC<ProduitsStockViewProps> = ({
                             </span>
                           </td>
                           <td className="py-2 px-3 text-right font-mono font-bold text-emerald-700 bg-emerald-50/30">
-                            {formatCurrency(
-                              p.stock_actuel * Number(p.prix_achat_ht || p.prix_achat || p.prix_ht || 0),
-                              false
-                            )}
+                            {formatCurrency(valHt, false)}
                           </td>
                           <td className="py-1.5 px-2 text-center">
                             <div className="flex items-center justify-center gap-1">
@@ -490,6 +623,33 @@ export const ProduitsStockView: React.FC<ProduitsStockViewProps> = ({
                     })
                   )}
                 </tbody>
+                {filteredProduits.length > 0 && (
+                  <tfoot>
+                    <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-xs">
+                      <td colSpan={9} className="py-2 px-3 text-right uppercase tracking-wider text-slate-300">
+                        Total {filteredProduits.length} Articles :
+                      </td>
+                      <td className="py-2 px-3 text-right font-mono text-white">
+                        {filteredProduits
+                          .reduce((acc, p) => acc + (p.stock_actuel || 0), 0)
+                          .toLocaleString('fr-FR', { minimumFractionDigits: 2 })}
+                      </td>
+                      <td className="py-2 px-3 text-right font-mono text-emerald-300">
+                        {formatCurrency(
+                          filteredProduits.reduce(
+                            (acc, p) =>
+                              acc +
+                              p.stock_actuel *
+                                Number(p.prix_achat_ht || p.prix_achat || p.prix_ht || 0),
+                            0
+                          ),
+                          false
+                        )}
+                      </td>
+                      <td></td>
+                    </tr>
+                  </tfoot>
+                )}
               </table>
             </div>
           </div>
@@ -556,18 +716,19 @@ export const ProduitsStockView: React.FC<ProduitsStockViewProps> = ({
 
           {/* Desktop Movements Table (hidden md:block) */}
           <div className="hidden md:block bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
-            <div className="p-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">
+            <div className="p-3 bg-slate-900 border-b border-slate-800 flex items-center justify-between text-white">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-200">
                 Journal des Mouvements de Stock
               </h3>
+              <span className="text-xs text-slate-400 font-mono">{stockMouvements.length} mouvements</span>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="bg-slate-800 text-white font-semibold divide-x divide-slate-700">
+                  <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-[11px] uppercase tracking-wider sticky top-0 z-10 shadow-xs">
                     <th className="py-2.5 px-3">Date</th>
                     <th className="py-2.5 px-3">Produit</th>
-                    <th className="py-2.5 px-3">Type</th>
+                    <th className="py-2.5 px-3 text-center">Type</th>
                     <th className="py-2.5 px-3 text-right">Quantité</th>
                     <th className="py-2.5 px-3">Réf Document</th>
                     <th className="py-2.5 px-3">Motif</th>
@@ -583,10 +744,10 @@ export const ProduitsStockView: React.FC<ProduitsStockViewProps> = ({
                     </tr>
                   ) : (
                     paginatedMouvements.map((m) => (
-                      <tr key={m.id} className="hover:bg-slate-50 transition divide-x divide-slate-100">
-                        <td className="py-2 px-3 text-slate-600">{formatDate(m.date)}</td>
+                      <tr key={m.id} className="hover:bg-blue-50/50 transition divide-x divide-slate-100 even:bg-slate-50/40">
+                        <td className="py-2 px-3 font-mono text-slate-600">{formatDate(m.date)}</td>
                         <td className="py-2 px-3 font-semibold text-slate-900">{m.produit_nom}</td>
-                        <td className="py-2 px-3">
+                        <td className="py-2 px-3 text-center">
                           <span
                             className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold ${
                               m.type === 'ENTREE'

@@ -26,7 +26,12 @@ import {
   SlidersHorizontal,
   Search,
   X,
+  CheckSquare,
+  Square,
+  Download,
 } from 'lucide-react';
+import { SortableTh } from '@/components/SortableTh';
+import { TableBulkActionBar } from '@/components/TableBulkActionBar';
 
 interface FacturesViewProps {
   factures: Facture[];
@@ -67,6 +72,20 @@ export const FacturesView: React.FC<FacturesViewProps> = ({
   const [showMobileKpiDetails, setShowMobileKpiDetails] = useState(false);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
 
+  // Sorting & Bulk selection states
+  const [sortKey, setSortKey] = useState<string>('numero');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
+  const [selectedFactureIds, setSelectedFactureIds] = useState<number[]>([]);
+
+  const handleSort = (key: string) => {
+    if (sortKey === key) {
+      setSortDir((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortKey(key);
+      setSortDir('asc');
+    }
+  };
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -100,18 +119,85 @@ export const FacturesView: React.FC<FacturesViewProps> = ({
       if (filterSociete && !f.client_nom.toLowerCase().includes(filterSociete.toLowerCase())) return false;
 
       return true;
-    }).sort((a, b) =>
-      compareDocumentNumbersDesc(a.numero, b.numero) ||
-      (a.client_nom || '').localeCompare(b.client_nom || '', 'fr', { sensitivity: 'base' }) ||
-      new Date(b.date).getTime() - new Date(a.date).getTime() ||
-      b.id - a.id
-    );
-  }, [factures, filterEtat, filterStatutPaiement, filterNum, filterDate, filterStartDate, filterEndDate, filterSociete]);
+    }).sort((a, b) => {
+      let comparison = 0;
+      if (sortKey === 'numero') {
+        comparison = compareDocumentNumbersDesc(a.numero, b.numero);
+        return sortDir === 'asc' ? -comparison : comparison;
+      } else if (sortKey === 'date') {
+        comparison = new Date(a.date).getTime() - new Date(b.date).getTime();
+      } else if (sortKey === 'client_nom') {
+        comparison = (a.client_nom || '').localeCompare(b.client_nom || '', 'fr', { sensitivity: 'base' });
+      } else if (sortKey === 'total_ht') {
+        comparison = toNumeric(a.total_ht) - toNumeric(b.total_ht);
+      } else if (sortKey === 'tva_20') {
+        comparison = toNumeric(a.tva_20) - toNumeric(b.tva_20);
+      } else if (sortKey === 'tva_10') {
+        comparison = toNumeric(a.tva_10) - toNumeric(b.tva_10);
+      } else if (sortKey === 'total_tva') {
+        comparison = toNumeric(a.total_tva) - toNumeric(b.total_tva);
+      } else if (sortKey === 'total_ttc') {
+        comparison = toNumeric(a.total_ttc) - toNumeric(b.total_ttc);
+      } else if (sortKey === 'reste_a_payer') {
+        comparison = toNumeric(a.reste_a_payer) - toNumeric(b.reste_a_payer);
+      } else if (sortKey === 'montant_regle') {
+        comparison = toNumeric(a.montant_regle) - toNumeric(b.montant_regle);
+      } else if (sortKey === 'etat') {
+        comparison = (a.etat || '').localeCompare(b.etat || '');
+      } else {
+        comparison = compareDocumentNumbersDesc(a.numero, b.numero);
+      }
+      return sortDir === 'asc' ? comparison : -comparison;
+    });
+  }, [factures, filterEtat, filterStatutPaiement, filterNum, filterDate, filterStartDate, filterEndDate, filterSociete, sortKey, sortDir]);
 
   const paginatedFactures = useMemo(() => {
     const start = (currentPage - 1) * pageSize;
     return filteredFactures.slice(start, start + pageSize);
   }, [filteredFactures, currentPage, pageSize]);
+
+  const toggleSelectAll = () => {
+    if (selectedFactureIds.length === paginatedFactures.length && paginatedFactures.length > 0) {
+      setSelectedFactureIds([]);
+    } else {
+      setSelectedFactureIds(paginatedFactures.map((f) => f.id));
+    }
+  };
+
+  const toggleSelectRow = (id: number) => {
+    setSelectedFactureIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
+  const exportSelectedToCsv = () => {
+    const listToExport = selectedFactureIds.length > 0
+      ? factures.filter((f) => selectedFactureIds.includes(f.id))
+      : filteredFactures;
+
+    if (listToExport.length === 0) return;
+    const headers = ['N° Facture', 'Date', 'Client', 'Total HT', 'Total TVA', 'Total TTC', 'Montant Réglé', 'Reste à payer', 'État', 'Statut Paiement'];
+    const rows = listToExport.map((f) => [
+      f.numero,
+      f.date,
+      `"${(f.client_nom || '').replace(/"/g, '""')}"`,
+      toNumeric(f.total_ht).toFixed(2),
+      toNumeric(f.total_tva).toFixed(2),
+      toNumeric(f.total_ttc).toFixed(2),
+      toNumeric(f.montant_regle).toFixed(2),
+      toNumeric(f.reste_a_payer).toFixed(2),
+      f.etat || 'Validé',
+      f.statut_paiement || 'Non réglé',
+    ]);
+    const csvContent = 'data:text/csv;charset=utf-8,\uFEFF' + [headers.join(';'), ...rows.map((r) => r.join(';'))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `factures_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   // Totals calculations
   const totals = useMemo(() => {
@@ -779,349 +865,406 @@ export const FacturesView: React.FC<FacturesViewProps> = ({
       {/* ========================================================================= */}
       {/* 2. DESKTOP TABLE (hidden on mobile - hidden md:block) */}
       {/* ========================================================================= */}
-      <div className="hidden md:block bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs border-collapse">
-            <thead>
-              {/* Header row with WinDev Blue style */}
-              <tr className="bg-blue-700 text-white font-semibold divide-x divide-blue-600">
-                <th className="py-2.5 px-3 min-w-[110px]">N° Facture</th>
-                <th className="py-2.5 px-3 min-w-[95px]">Date</th>
-                <th className="py-2.5 px-3 min-w-[180px]">Société / Client</th>
-                <th className="py-2.5 px-3 text-right min-w-[90px]">Total HT</th>
-                <th className="py-2.5 px-3 text-right min-w-[80px]">TVA 20%</th>
-                <th className="py-2.5 px-3 text-right min-w-[80px]">TVA 10%</th>
-                <th className="py-2.5 px-3 text-right min-w-[90px]">Total TVA</th>
-                <th className="py-2.5 px-3 text-right min-w-[105px] font-bold">Total TTC</th>
-                <th className="py-2.5 px-3 text-right min-w-[95px]">Reste à payer</th>
-                <th className="py-2.5 px-3 text-right min-w-[90px]">Mtr réglé</th>
-                <th className="py-2.5 px-3 text-center min-w-[95px]">État</th>
-                <th className="py-2.5 px-2 text-center w-10" title="Statut paiement">P</th>
-                <th className="py-2.5 px-3 text-center min-w-[140px]">Actions</th>
-              </tr>
-              {/* Search inputs row directly under header */}
-              <tr className="bg-blue-800/90 text-slate-800 divide-x divide-blue-700">
-                <th className="p-1">
-                  <input
-                    type="text"
-                    placeholder="Filtrer N°..."
-                    value={filterNum}
-                    onChange={(e) => setFilterNum(e.target.value)}
-                    className="w-full px-2 py-1 text-[11px] bg-white rounded border border-blue-300 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  />
-                </th>
-                <th className="p-1">
-                  <input
-                    type="text"
-                    placeholder="YYYY-MM"
-                    value={filterDate}
-                    onChange={(e) => setFilterDate(e.target.value)}
-                    className="w-full px-2 py-1 text-[11px] bg-white rounded border border-blue-300 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  />
-                </th>
-                <th className="p-1">
-                  <input
-                    type="text"
-                    placeholder="Société..."
-                    value={filterSociete}
-                    onChange={(e) => setFilterSociete(e.target.value)}
-                    className="w-full px-2 py-1 text-[11px] bg-white rounded border border-blue-300 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  />
-                </th>
-                <th className="p-1" colSpan={10}>
-                  <div className="flex items-center justify-between text-[11px] text-blue-100 px-2 font-normal">
-                    <span>{filteredFactures.length} factures affichées</span>
-                    {(filterNum || filterDate || filterSociete || filterStartDate || filterEndDate) && (
-                      <button
-                        onClick={() => {
-                          setFilterNum('');
-                          setFilterDate('');
-                          setFilterSociete('');
-                          setFilterStartDate('');
-                          setFilterEndDate('');
-                        }}
-                        className="text-xs text-yellow-300 hover:underline"
-                      >
-                        Effacer filtres
-                      </button>
-                    )}
-                  </div>
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-200">
-              {isLoading ? (
-                <tr>
-                  <td colSpan={13} className="py-16 text-center text-slate-500">
-                    <div className="flex flex-col items-center justify-center gap-2">
-                      <Loader2 className="w-7 h-7 text-blue-600 animate-spin" />
-                      <span className="text-sm font-medium text-slate-700">Chargement des factures à la demande...</span>
-                      <span className="text-xs text-slate-400">Récupération optimisée des pièces</span>
-                    </div>
-                  </td>
-                </tr>
-              ) : filteredFactures.length === 0 ? (
-                <tr>
-                  <td colSpan={13} className="py-12 text-center text-slate-400 text-sm">
-                    Aucune facture ne correspond aux critères de recherche.
-                  </td>
-                </tr>
-              ) : (
-                paginatedFactures.map((facture) => {
-                  const isSelected = selectedFactureId === facture.id;
-                  const etat: DocumentState = facture.etat || 'Validé';
-                  const isValide = etat === 'Validé';
-                  const isBrouillon = etat === 'Brouillon';
-                  const isAnnule = etat === 'Annulé';
-                  const isSolde = facture.statut_paiement === 'Soldé';
-                  const isPartiel = facture.statut_paiement === 'Partiel';
-                  // A cancellation/draft must never detach an invoice that already has money recorded.
-                  const isUnpaid = toNumeric(facture.montant_regle) <= 0.009;
+      <div className="hidden md:block space-y-2">
+        {/* Bulk Action Bar */}
+        <TableBulkActionBar
+          selectedCount={selectedFactureIds.length}
+          itemLabel="facture"
+          onClearSelection={() => setSelectedFactureIds([])}
+        >
+          <button
+            type="button"
+            onClick={exportSelectedToCsv}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-md font-semibold text-slate-700 bg-white hover:bg-slate-100 border border-slate-300 shadow-2xs transition"
+          >
+            <Download className="w-3.5 h-3.5 text-blue-600" />
+            <span>Exporter CSV ({selectedFactureIds.length})</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              if (confirm(`Supprimer les ${selectedFactureIds.length} factures sélectionnées ?`)) {
+                selectedFactureIds.forEach((id) => onDeleteFacture(id));
+                setSelectedFactureIds([]);
+              }
+            }}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-md font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 shadow-2xs transition"
+          >
+            <Trash2 className="w-3.5 h-3.5 text-rose-600" />
+            <span>Supprimer ({selectedFactureIds.length})</span>
+          </button>
+        </TableBulkActionBar>
 
-                  return (
-                    <tr
-                      key={facture.id}
-                      onClick={() => {
-                        setSelectedFactureId(facture.id);
-                        onViewFacture(facture);
-                      }}
-                      onKeyDown={(event) => {
-                        if (event.key === 'Enter' || event.key === ' ') {
-                          event.preventDefault();
+        <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs border-collapse">
+              <thead>
+                {/* Enterprise Slate-900 unified header */}
+                <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-[11px] uppercase tracking-wider sticky top-0 z-10">
+                  <th className="py-2.5 px-2.5 text-center w-10">
+                    <input
+                      type="checkbox"
+                      checked={paginatedFactures.length > 0 && selectedFactureIds.length === paginatedFactures.length}
+                      onChange={toggleSelectAll}
+                      className="rounded border-slate-400 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                      title="Sélectionner toutes les factures affichées"
+                    />
+                  </th>
+                  <SortableTh label="N° Facture" sortKey="numero" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} className="min-w-[110px]" />
+                  <SortableTh label="Date" sortKey="date" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} className="min-w-[95px]" />
+                  <SortableTh label="Société / Client" sortKey="client_nom" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} className="min-w-[180px]" />
+                  <SortableTh label="Total HT" sortKey="total_ht" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} align="right" className="min-w-[90px]" />
+                  <SortableTh label="TVA 20%" sortKey="tva_20" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} align="right" className="min-w-[80px]" />
+                  <SortableTh label="TVA 10%" sortKey="tva_10" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} align="right" className="min-w-[80px]" />
+                  <SortableTh label="Total TVA" sortKey="total_tva" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} align="right" className="min-w-[90px]" />
+                  <SortableTh label="Total TTC" sortKey="total_ttc" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} align="right" className="min-w-[105px]" />
+                  <SortableTh label="Reste à payer" sortKey="reste_a_payer" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} align="right" className="min-w-[95px]" />
+                  <SortableTh label="Mtr réglé" sortKey="montant_regle" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} align="right" className="min-w-[90px]" />
+                  <SortableTh label="État" sortKey="etat" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} align="center" className="min-w-[95px]" />
+                  <th className="py-2.5 px-2 text-center w-10" title="Statut paiement">P</th>
+                  <th className="py-2.5 px-3 text-center min-w-[140px]">Actions</th>
+                </tr>
+                {/* Search & Quick filter inputs row directly under header */}
+                <tr className="bg-slate-800 text-slate-200 divide-x divide-slate-700">
+                  <th className="p-1 text-center">
+                    <button
+                      type="button"
+                      onClick={exportSelectedToCsv}
+                      className="text-slate-400 hover:text-white p-0.5"
+                      title="Exporter CSV"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                    </button>
+                  </th>
+                  <th className="p-1">
+                    <input
+                      type="text"
+                      placeholder="Filtrer N°..."
+                      value={filterNum}
+                      onChange={(e) => setFilterNum(e.target.value)}
+                      className="w-full px-2 py-1 text-[11px] bg-white text-slate-900 rounded border border-slate-300 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                  </th>
+                  <th className="p-1">
+                    <input
+                      type="text"
+                      placeholder="YYYY-MM"
+                      value={filterDate}
+                      onChange={(e) => setFilterDate(e.target.value)}
+                      className="w-full px-2 py-1 text-[11px] bg-white text-slate-900 rounded border border-slate-300 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                  </th>
+                  <th className="p-1">
+                    <input
+                      type="text"
+                      placeholder="Société..."
+                      value={filterSociete}
+                      onChange={(e) => setFilterSociete(e.target.value)}
+                      className="w-full px-2 py-1 text-[11px] bg-white text-slate-900 rounded border border-slate-300 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                  </th>
+                  <th className="p-1" colSpan={10}>
+                    <div className="flex items-center justify-between text-[11px] text-slate-300 px-2 font-normal">
+                      <span>{filteredFactures.length} factures trouvées</span>
+                      {(filterNum || filterDate || filterSociete || filterStartDate || filterEndDate) && (
+                        <button
+                          onClick={() => {
+                            setFilterNum('');
+                            setFilterDate('');
+                            setFilterSociete('');
+                            setFilterStartDate('');
+                            setFilterEndDate('');
+                          }}
+                          className="text-xs text-yellow-300 hover:underline"
+                        >
+                          Effacer filtres
+                        </button>
+                      )}
+                    </div>
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-200">
+                {isLoading ? (
+                  <tr>
+                    <td colSpan={14} className="py-16 text-center text-slate-500">
+                      <div className="flex flex-col items-center justify-center gap-2">
+                        <Loader2 className="w-7 h-7 text-blue-600 animate-spin" />
+                        <span className="text-sm font-medium text-slate-700">Chargement des factures à la demande...</span>
+                        <span className="text-xs text-slate-400">Récupération optimisée des pièces</span>
+                      </div>
+                    </td>
+                  </tr>
+                ) : filteredFactures.length === 0 ? (
+                  <tr>
+                    <td colSpan={14} className="py-12 text-center text-slate-400 text-sm">
+                      Aucune facture ne correspond aux critères de recherche.
+                    </td>
+                  </tr>
+                ) : (
+                  paginatedFactures.map((facture) => {
+                    const isSelected = selectedFactureId === facture.id;
+                    const isRowChecked = selectedFactureIds.includes(facture.id);
+                    const etat: DocumentState = facture.etat || 'Validé';
+                    const isValide = etat === 'Validé';
+                    const isBrouillon = etat === 'Brouillon';
+                    const isAnnule = etat === 'Annulé';
+                    const isSolde = facture.statut_paiement === 'Soldé';
+                    const isPartiel = facture.statut_paiement === 'Partiel';
+                    const isUnpaid = toNumeric(facture.montant_regle) <= 0.009;
+
+                    return (
+                      <tr
+                        key={facture.id}
+                        onClick={() => {
                           setSelectedFactureId(facture.id);
                           onViewFacture(facture);
-                        }
-                      }}
-                      tabIndex={0}
-                      role="button"
-                      title="Ouvrir l’aperçu de la facture"
-                      className={`cursor-pointer transition hover:bg-blue-50/70 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 divide-x divide-slate-100 ${
-                        isAnnule
-                          ? 'bg-rose-50/30 opacity-75'
-                          : isBrouillon
-                          ? 'bg-slate-50/70'
-                          : isSelected
-                          ? 'bg-blue-100/70 font-medium'
-                          : 'even:bg-slate-50/60'
-                      }`}
-                    >
-                      <td className="py-2 px-3 font-mono font-semibold text-slate-800">
-                        <span className={isAnnule ? 'line-through text-slate-400' : ''}>{facture.numero}</span>
-                        {facture.bl_associes && facture.bl_associes.length > 0 && (
-                          <span className="block text-[10px] text-indigo-600 font-sans">
-                            {facture.bl_associes.length} BLs liés
-                          </span>
-                        )}
-                      </td>
-                      <td className="py-2 px-3 text-slate-600 whitespace-nowrap">
-                        {formatDate(facture.date)}
-                      </td>
-                      <td className="py-2 px-3 text-slate-900 font-medium">
-                        {facture.client_nom}
-                      </td>
-                      <td className="py-2 px-3 text-right font-mono text-slate-700">
-                        {formatCurrency(facture.total_ht, false)}
-                      </td>
-                      <td className="py-2 px-3 text-right font-mono text-slate-600">
-                        {facture.tva_20 > 0 ? formatCurrency(facture.tva_20, false) : '0.00'}
-                      </td>
-                      <td className="py-2 px-3 text-right font-mono text-slate-600">
-                        {facture.tva_10 > 0 ? formatCurrency(facture.tva_10, false) : '0.00'}
-                      </td>
-                      <td className="py-2 px-3 text-right font-mono text-slate-700">
-                        {formatCurrency(facture.total_tva, false)}
-                      </td>
-                      <td className="py-2 px-3 text-right font-mono font-bold text-slate-950 bg-slate-100/50">
-                        {formatCurrency(facture.total_ttc, false)}
-                      </td>
-                      <td className="py-2 px-3 text-right font-mono font-medium text-rose-700">
-                        {formatCurrency(facture.reste_a_payer, false)}
-                      </td>
-                      <td className="py-2 px-3 text-right font-mono text-emerald-700">
-                        {formatCurrency(facture.montant_regle, false)}
-                      </td>
-                      <td className="py-2 px-3 text-center">
-                        {isValide && (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-800 border border-emerald-300">
-                            ✓ Validé
-                          </span>
-                        )}
-                        {isBrouillon && (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-300">
-                            ✎ Brouillon
-                          </span>
-                        )}
-                        {isAnnule && (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-rose-100 text-rose-800 border border-rose-300">
-                            ✗ Annulé
-                          </span>
-                        )}
-                      </td>
-                      {/* Status indicator square */}
-                      <td className="py-2 px-2 text-center">
-                        {isValide ? (
-                          <span
-                            className={`inline-block w-3.5 h-3.5 rounded-xs shadow-xs ${
-                              isSolde
-                                ? 'bg-emerald-500'
-                                : isPartiel
-                                ? 'bg-fuchsia-500'
-                                : 'bg-rose-600'
-                            }`}
-                            title={`Statut paiement: ${facture.statut_paiement}`}
+                        }}
+                        onKeyDown={(event) => {
+                          if (event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault();
+                            setSelectedFactureId(facture.id);
+                            onViewFacture(facture);
+                          }
+                        }}
+                        tabIndex={0}
+                        role="button"
+                        title="Ouvrir l’aperçu de la facture"
+                        className={`cursor-pointer transition hover:bg-blue-50/70 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 divide-x divide-slate-100 ${
+                          isRowChecked
+                            ? 'bg-blue-50/90 font-medium border-l-4 border-l-blue-600'
+                            : isAnnule
+                            ? 'bg-rose-50/30 opacity-75'
+                            : isBrouillon
+                            ? 'bg-slate-50/70'
+                            : isSelected
+                            ? 'bg-blue-100/70 font-medium'
+                            : 'even:bg-slate-50/50'
+                        }`}
+                      >
+                        <td className="py-2 px-2.5 text-center" onClick={(e) => e.stopPropagation()}>
+                          <input
+                            type="checkbox"
+                            checked={isRowChecked}
+                            onChange={() => toggleSelectRow(facture.id)}
+                            className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
                           />
-                        ) : (
-                          <span className="text-slate-300">-</span>
-                        )}
-                      </td>
-                      {/* Action buttons */}
-                      <td className="py-1.5 px-2 text-center" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-center justify-center gap-1">
-                          {/* 1. If Brouillon: allow Edit, Validate, and Cancel */}
-                          {isBrouillon && (
-                            <>
-                              {onEditFacture && (
-                                <button
-                                  onClick={() => onEditFacture(facture)}
-                                  className="p-1 hover:bg-blue-100 text-blue-700 rounded transition"
-                                  title="Modifier le Brouillon"
-                                >
-                                  <Edit className="w-3.5 h-3.5" />
-                                </button>
-                              )}
-                              {onUpdateFactureState && (
-                                <button
-                                  onClick={() => {
-                                    onUpdateFactureState(facture.id, 'Validé');
-                                  }}
-                                  className="p-1 hover:bg-emerald-100 text-emerald-700 rounded transition"
-                                  title="Valider la Facture"
-                                >
-                                  <CheckCircle2 className="w-3.5 h-3.5" />
-                                </button>
-                              )}
-                              {isUnpaid && onUpdateFactureState && (
-                                <button
-                                  onClick={() => {
-                                    onUpdateFactureState(facture.id, 'Annulé');
-                                  }}
-                                  className="p-1 hover:bg-rose-100 text-rose-700 rounded transition"
-                                  title="Annuler la Facture"
-                                >
-                                  <Ban className="w-3.5 h-3.5" />
-                                </button>
-                              )}
-                            </>
+                        </td>
+                        <td className="py-2 px-3 font-mono font-semibold text-slate-800">
+                          <span className={isAnnule ? 'line-through text-slate-400' : ''}>{facture.numero}</span>
+                          {facture.bl_associes && facture.bl_associes.length > 0 && (
+                            <span className="block text-[10px] text-indigo-600 font-sans">
+                              {facture.bl_associes.length} BLs liés
+                            </span>
                           )}
-
-                          {/* 2. A validated invoice can be cancelled only before any payment is recorded. */}
+                        </td>
+                        <td className="py-2 px-3 text-slate-600 whitespace-nowrap font-mono">
+                          {formatDate(facture.date)}
+                        </td>
+                        <td className="py-2 px-3 text-slate-900 font-medium">
+                          {facture.client_nom}
+                        </td>
+                        <td className="py-2 px-3 text-right font-mono text-slate-700">
+                          {formatCurrency(facture.total_ht, false)}
+                        </td>
+                        <td className="py-2 px-3 text-right font-mono text-slate-600">
+                          {facture.tva_20 > 0 ? formatCurrency(facture.tva_20, false) : '0.00'}
+                        </td>
+                        <td className="py-2 px-3 text-right font-mono text-slate-600">
+                          {facture.tva_10 > 0 ? formatCurrency(facture.tva_10, false) : '0.00'}
+                        </td>
+                        <td className="py-2 px-3 text-right font-mono text-slate-700">
+                          {formatCurrency(facture.total_tva, false)}
+                        </td>
+                        <td className="py-2 px-3 text-right font-mono font-bold text-slate-950 bg-slate-100/50">
+                          {formatCurrency(facture.total_ttc, false)}
+                        </td>
+                        <td className="py-2 px-3 text-right font-mono font-medium text-rose-700">
+                          {formatCurrency(facture.reste_a_payer, false)}
+                        </td>
+                        <td className="py-2 px-3 text-right font-mono text-emerald-700">
+                          {formatCurrency(facture.montant_regle, false)}
+                        </td>
+                        <td className="py-2 px-3 text-center">
                           {isValide && (
-                            <>
-                              {isUnpaid && onUpdateFactureState && (
-                                <button
-                                  onClick={() => {
-                                    onUpdateFactureState(facture.id, 'Annulé');
-                                  }}
-                                  className="p-1 hover:bg-amber-100 text-amber-700 rounded transition"
-                                  title="Annuler la Facture (Libération des BLs/BRs)"
-                                >
-                                  <Ban className="w-3.5 h-3.5" />
-                                </button>
-                              )}
-                              <button
-                                onClick={() => onOpenPaymentModal(facture)}
-                                className="p-1 hover:bg-slate-200 text-slate-600 hover:text-indigo-600 rounded transition"
-                                title="Enregistrer un règlement"
-                              >
-                                <CreditCard className="w-3.5 h-3.5" />
-                              </button>
-                            </>
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                              ✓ Validé
+                            </span>
                           )}
-
-                          {/* 3. An unpaid cancellation can be restored as a draft, like a BL. */}
+                          {isBrouillon && (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-300">
+                              ✎ Brouillon
+                            </span>
+                          )}
                           {isAnnule && (
-                            <>
-                              {isUnpaid && onUpdateFactureState && (
-                                <button
-                                  onClick={() => {
-                                    onUpdateFactureState(facture.id, 'Brouillon');
-                                  }}
-                                  className="flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 rounded transition"
-                                  title="Remettre en brouillon pour modifier"
-                                >
-                                  <RotateCcw className="w-3 h-3" />
-                                  <span>Brouillon</span>
-                                </button>
-                              )}
-                            </>
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-rose-100 text-rose-800 border border-rose-300">
+                              ✗ Annulé
+                            </span>
                           )}
+                        </td>
+                        {/* Status indicator square */}
+                        <td className="py-2 px-2 text-center">
+                          {isValide ? (
+                            <span
+                              className={`inline-block w-3.5 h-3.5 rounded-xs shadow-xs ${
+                                isSolde
+                                  ? 'bg-emerald-500'
+                                  : isPartiel
+                                  ? 'bg-fuchsia-500'
+                                  : 'bg-rose-600'
+                              }`}
+                              title={`Statut paiement: ${facture.statut_paiement}`}
+                            />
+                          ) : (
+                            <span className="text-slate-300">-</span>
+                          )}
+                        </td>
+                        {/* Action buttons */}
+                        <td className="py-1.5 px-2 text-center" onClick={(e) => e.stopPropagation()}>
+                          <div className="flex items-center justify-center gap-1">
+                            {isBrouillon && (
+                              <>
+                                {onEditFacture && (
+                                  <button
+                                    onClick={() => onEditFacture(facture)}
+                                    className="p-1 hover:bg-blue-100 text-blue-700 rounded transition"
+                                    title="Modifier le Brouillon"
+                                  >
+                                    <Edit className="w-3.5 h-3.5" />
+                                  </button>
+                                )}
+                                {onUpdateFactureState && (
+                                  <button
+                                    onClick={() => {
+                                      onUpdateFactureState(facture.id, 'Validé');
+                                    }}
+                                    className="p-1 hover:bg-emerald-100 text-emerald-700 rounded transition"
+                                    title="Valider la Facture"
+                                  >
+                                    <CheckCircle2 className="w-3.5 h-3.5" />
+                                  </button>
+                                )}
+                                {isUnpaid && onUpdateFactureState && (
+                                  <button
+                                    onClick={() => {
+                                      onUpdateFactureState(facture.id, 'Annulé');
+                                    }}
+                                    className="p-1 hover:bg-rose-100 text-rose-700 rounded transition"
+                                    title="Annuler la Facture"
+                                  >
+                                    <Ban className="w-3.5 h-3.5" />
+                                  </button>
+                                )}
+                              </>
+                            )}
 
-                          {/* Preview & Print */}
-                          <button
-                            onClick={() => onViewFacture(facture)}
-                            className="p-1 hover:bg-slate-200 text-slate-600 hover:text-blue-600 rounded transition"
-                            title="Aperçu document"
-                          >
-                            <Eye className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            onClick={() => generateFacturePdf(facture, company)}
-                            className="p-1 hover:bg-slate-200 text-slate-600 hover:text-emerald-600 rounded transition"
-                            title="Télécharger PDF"
-                          >
-                            <Printer className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            onClick={() => {
-                              if (confirm(`Voulez-vous supprimer définitivement la facture ${facture.numero} ?`)) {
-                                onDeleteFacture(facture.id);
-                              }
-                            }}
-                            className="p-1 hover:bg-rose-100 text-slate-400 hover:text-rose-600 rounded transition"
-                            title="Supprimer définitivement"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-            {/* Table Footer with Summary Bar matching WinDev screenshot */}
-            <tfoot>
-              <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-xs">
-                <td colSpan={3} className="py-2.5 px-3 text-right uppercase tracking-wider">
-                  Cumul Sélection ({filteredFactures.length} Factures • {totalLines} lignes) :
-                </td>
-                <td className="py-2.5 px-3 text-right font-mono">
-                  {formatCurrency(totals.totalHt, false)}
-                </td>
-                <td className="py-2.5 px-3 text-right font-mono">
-                  {formatCurrency(totals.tva20, false)}
-                </td>
-                <td className="py-2.5 px-3 text-right font-mono">
-                  {formatCurrency(totals.tva10, false)}
-                </td>
-                <td className="py-2.5 px-3 text-right font-mono">
-                  {formatCurrency(totals.totalTva, false)}
-                </td>
-                <td className="py-2.5 px-3 text-right font-mono text-emerald-400 bg-slate-950 font-extrabold">
-                  {formatCurrency(totals.totalTtc, false)}
-                </td>
-                <td className="py-2.5 px-3 text-right font-mono text-rose-400">
-                  {formatCurrency(totals.restePayer, false)}
-                </td>
-                <td className="py-2.5 px-3 text-right font-mono text-emerald-300">
-                  {formatCurrency(totals.montantRegle, false)}
-                </td>
-                <td colSpan={3} className="py-2.5 px-2 text-center text-[11px] font-normal text-slate-400">
-                  MAD (DH)
-                </td>
-              </tr>
-            </tfoot>
-          </table>
+                            {isValide && (
+                              <>
+                                {isUnpaid && onUpdateFactureState && (
+                                  <button
+                                    onClick={() => {
+                                      onUpdateFactureState(facture.id, 'Annulé');
+                                    }}
+                                    className="p-1 hover:bg-amber-100 text-amber-700 rounded transition"
+                                    title="Annuler la Facture (Libération des BLs/BRs)"
+                                  >
+                                    <Ban className="w-3.5 h-3.5" />
+                                  </button>
+                                )}
+                                <button
+                                  onClick={() => onOpenPaymentModal(facture)}
+                                  className="p-1 hover:bg-slate-200 text-slate-600 hover:text-indigo-600 rounded transition"
+                                  title="Enregistrer un règlement"
+                                >
+                                  <CreditCard className="w-3.5 h-3.5" />
+                                </button>
+                              </>
+                            )}
+
+                            {isAnnule && (
+                              <>
+                                {isUnpaid && onUpdateFactureState && (
+                                  <button
+                                    onClick={() => {
+                                      onUpdateFactureState(facture.id, 'Brouillon');
+                                    }}
+                                    className="flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 rounded transition"
+                                    title="Remettre en brouillon pour modifier"
+                                  >
+                                    <RotateCcw className="w-3 h-3" />
+                                    <span>Brouillon</span>
+                                  </button>
+                                )}
+                              </>
+                            )}
+
+                            {/* Preview & Print */}
+                            <button
+                              onClick={() => onViewFacture(facture)}
+                              className="p-1 hover:bg-slate-200 text-slate-600 hover:text-blue-600 rounded transition"
+                              title="Aperçu document"
+                            >
+                              <Eye className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={() => generateFacturePdf(facture, company)}
+                              className="p-1 hover:bg-slate-200 text-slate-600 hover:text-emerald-600 rounded transition"
+                              title="Télécharger PDF"
+                            >
+                              <Printer className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={() => {
+                                if (confirm(`Voulez-vous supprimer définitivement la facture ${facture.numero} ?`)) {
+                                  onDeleteFacture(facture.id);
+                                }
+                              }}
+                              className="p-1 hover:bg-rose-100 text-slate-400 hover:text-rose-600 rounded transition"
+                              title="Supprimer définitivement"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+              {/* Table Footer with Summary Bar */}
+              <tfoot>
+                <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-xs">
+                  <td colSpan={4} className="py-2.5 px-3 text-right uppercase tracking-wider">
+                    Cumul Sélection ({filteredFactures.length} Factures • {totalLines} lignes) :
+                  </td>
+                  <td className="py-2.5 px-3 text-right font-mono">
+                    {formatCurrency(totals.totalHt, false)}
+                  </td>
+                  <td className="py-2.5 px-3 text-right font-mono">
+                    {formatCurrency(totals.tva20, false)}
+                  </td>
+                  <td className="py-2.5 px-3 text-right font-mono">
+                    {formatCurrency(totals.tva10, false)}
+                  </td>
+                  <td className="py-2.5 px-3 text-right font-mono">
+                    {formatCurrency(totals.totalTva, false)}
+                  </td>
+                  <td className="py-2.5 px-3 text-right font-mono text-emerald-400 bg-slate-950 font-extrabold">
+                    {formatCurrency(totals.totalTtc, false)}
+                  </td>
+                  <td className="py-2.5 px-3 text-right font-mono text-rose-400">
+                    {formatCurrency(totals.restePayer, false)}
+                  </td>
+                  <td className="py-2.5 px-3 text-right font-mono text-emerald-300">
+                    {formatCurrency(totals.montantRegle, false)}
+                  </td>
+                  <td colSpan={3} className="py-2.5 px-2 text-center text-[11px] font-normal text-slate-400">
+                    MAD (DH)
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
         </div>
       </div>
 

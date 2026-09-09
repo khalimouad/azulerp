@@ -483,19 +483,19 @@ export function AccountingView({
           </div>
 
           {/* Journal Entries List Table */}
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
+          <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-xs">
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
+              <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 text-xs font-semibold uppercase">
-                    <th className="py-3.5 px-4">Date</th>
-                    <th className="py-3.5 px-4">Journal</th>
-                    <th className="py-3.5 px-4">N° Pièce / Réf</th>
-                    <th className="py-3.5 px-4">Libellé de l'Écriture</th>
-                    <th className="py-3.5 px-4">Imputations Comptables (Débit / Crédit)</th>
-                    <th className="py-3.5 px-4 text-right">Débit (DH)</th>
-                    <th className="py-3.5 px-4 text-right">Crédit (DH)</th>
-                    <th className="py-3.5 px-4 text-center">Actions</th>
+                  <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-[11px] uppercase tracking-wider sticky top-0 z-10 shadow-xs">
+                    <th className="py-2.5 px-3">Date</th>
+                    <th className="py-2.5 px-3">Journal</th>
+                    <th className="py-2.5 px-3">N° Pièce / Réf</th>
+                    <th className="py-2.5 px-3">Libellé de l'Écriture</th>
+                    <th className="py-2.5 px-3">Imputations Comptables (Débit / Crédit)</th>
+                    <th className="py-2.5 px-3 text-right">Débit (DH)</th>
+                    <th className="py-2.5 px-3 text-right">Crédit (DH)</th>
+                    <th className="py-2.5 px-3 text-center">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80">
@@ -641,15 +641,15 @@ export function AccountingView({
             </div>
           </div>
 
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
-            <table className="w-full text-left text-sm">
+          <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-xs">
+            <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 text-xs font-semibold uppercase">
-                  <th className="py-3.5 px-4 w-32">N° Compte</th>
-                  <th className="py-3.5 px-4">Intitulé Officiel (Français)</th>
-                  <th className="py-3.5 px-4 text-right font-arabic">الاسم المحاسبي (العربية)</th>
-                  <th className="py-3.5 px-4">Classe</th>
-                  <th className="py-3.5 px-4">Type</th>
+                <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-[11px] uppercase tracking-wider sticky top-0 z-10 shadow-xs">
+                  <th className="py-2.5 px-3 w-28">N° Compte</th>
+                  <th className="py-2.5 px-3">Intitulé Officiel (Français)</th>
+                  <th className="py-2.5 px-3 text-right font-arabic">الاسم المحاسبي (العربية)</th>
+                  <th className="py-2.5 px-3">Classe</th>
+                  <th className="py-2.5 px-3">Type</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80">
@@ -699,16 +699,16 @@ export function AccountingView({
             </button>
           </div>
 
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
-            <table className="w-full text-left text-sm">
+          <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-xs">
+            <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 text-xs font-semibold uppercase">
-                  <th className="py-3.5 px-4 w-28">N° Compte</th>
-                  <th className="py-3.5 px-4">Intitulé du Compte</th>
-                  <th className="py-3.5 px-4 text-right">Cumul Débit</th>
-                  <th className="py-3.5 px-4 text-right">Cumul Crédit</th>
-                  <th className="py-3.5 px-4 text-right">Solde Débiteur</th>
-                  <th className="py-3.5 px-4 text-right">Solde Créditeur</th>
+                <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-[11px] uppercase tracking-wider sticky top-0 z-10 shadow-xs">
+                  <th className="py-2.5 px-3 w-28">N° Compte</th>
+                  <th className="py-2.5 px-3">Intitulé du Compte</th>
+                  <th className="py-2.5 px-3 text-right">Cumul Débit</th>
+                  <th className="py-2.5 px-3 text-right">Cumul Crédit</th>
+                  <th className="py-2.5 px-3 text-right">Solde Débiteur</th>
+                  <th className="py-2.5 px-3 text-right">Solde Créditeur</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80">
@@ -1002,19 +1002,19 @@ export function AccountingView({
             </button>
           </div>
 
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
-            <table className="w-full text-left text-sm">
+          <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-xs">
+            <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 text-xs font-semibold uppercase">
-                  <th className="py-3.5 px-4">Code</th>
-                  <th className="py-3.5 px-4">Désignation</th>
-                  <th className="py-3.5 px-4">Date Acq.</th>
-                  <th className="py-3.5 px-4 text-right">Valeur d'Acquisition</th>
-                  <th className="py-3.5 px-4 text-center">Durée / Taux</th>
-                  <th className="py-3.5 px-4 text-right">Amort. Cumulés</th>
-                  <th className="py-3.5 px-4 text-right">VNA (Valeur Nette)</th>
-                  <th className="py-3.5 px-4 text-center">Statut</th>
-                  <th className="py-3.5 px-4 text-center">Actions</th>
+                <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-[11px] uppercase tracking-wider sticky top-0 z-10 shadow-xs">
+                  <th className="py-2.5 px-3">Code</th>
+                  <th className="py-2.5 px-3">Désignation</th>
+                  <th className="py-2.5 px-3">Date Acq.</th>
+                  <th className="py-2.5 px-3 text-right">Valeur d'Acquisition</th>
+                  <th className="py-2.5 px-3 text-center">Durée / Taux</th>
+                  <th className="py-2.5 px-3 text-right">Amort. Cumulés</th>
+                  <th className="py-2.5 px-3 text-right">VNA (Valeur Nette)</th>
+                  <th className="py-2.5 px-3 text-center">Statut</th>
+                  <th className="py-2.5 px-3 text-center">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80">

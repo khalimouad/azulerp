@@ -4,6 +4,8 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { Client, BonLivraison, Facture, Produit, ClientTarif } from '@/lib/types';
 import { formatCurrency } from '@/lib/utils';
 import { TablePagination } from '@/components/TablePagination';
+import { SortableTh } from '@/components/SortableTh';
+import { TableBulkActionBar } from '@/components/TableBulkActionBar';
 import {
   fetchClientTarifs,
   saveClientTarif,
@@ -27,7 +29,8 @@ import {
   Sparkles,
   ArrowRight,
   UserCheck,
-  AlertCircle
+  AlertCircle,
+  Download
 } from 'lucide-react';
 
 interface ClientsViewProps {
@@ -140,9 +143,39 @@ export const ClientsView: React.FC<ClientsViewProps> = ({
     return safeClients.find((c) => c && c.id === selectedClientId) || null;
   }, [safeClients, selectedClientId]);
 
-  // Filtered clients list with comprehensive search across all fields
+  // Sorting and Multi-Select state for clients table
+  const [sortKey, setSortKey] = useState<string>('nom');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
+  const [selectedClientIds, setSelectedClientIds] = useState<number[]>([]);
+
+  const handleSort = (key: string) => {
+    if (sortKey === key) {
+      setSortDir((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortKey(key);
+      setSortDir('asc');
+    }
+  };
+
+  // Client stats calculations
+  const clientStats = useMemo(() => {
+    const map = new Map<number, { blCount: number; pendingBlCount: number; totalFacture: number; unpaidFacture: number }>();
+    for (const c of safeClients) {
+      if (!c) continue;
+      const clientBls = safeBls.filter((b) => b && b.client_id === c.id);
+      const clientFactures = safeFactures.filter((f) => f && f.client_id === c.id);
+      const blCount = clientBls.length;
+      const pendingBlCount = clientBls.filter((b) => b && b.statut === 'En attente').length;
+      const totalFacture = clientFactures.reduce((sum, f) => sum + (f?.total_ttc || 0), 0);
+      const unpaidFacture = clientFactures.reduce((sum, f) => sum + (f?.reste_a_payer || 0), 0);
+      map.set(c.id, { blCount, pendingBlCount, totalFacture, unpaidFacture });
+    }
+    return map;
+  }, [safeClients, safeBls, safeFactures]);
+
+  // Filtered clients list with comprehensive search across all fields and dynamic sorting
   const filteredClients = useMemo(() => {
-    return safeClients.filter((c) => {
+    const list = safeClients.filter((c) => {
       if (!c) return false;
       // Global search bar
       if (searchQuery) {
@@ -168,28 +201,82 @@ export const ClientsView: React.FC<ClientsViewProps> = ({
 
       return true;
     });
-  }, [safeClients, searchQuery, searchSociete, searchVille, searchIce]);
+
+    list.sort((a, b) => {
+      let vA: any = '';
+      let vB: any = '';
+      if (sortKey === 'code') {
+        vA = a.code || '';
+        vB = b.code || '';
+      } else if (sortKey === 'nom') {
+        vA = a.nom || '';
+        vB = b.nom || '';
+      } else if (sortKey === 'ville') {
+        vA = a.ville || '';
+        vB = b.ville || '';
+      } else if (sortKey === 'ice') {
+        vA = a.ice || '';
+        vB = b.ice || '';
+      } else if (sortKey === 'solde') {
+        vA = clientStats.get(a.id)?.unpaidFacture || 0;
+        vB = clientStats.get(b.id)?.unpaidFacture || 0;
+      }
+      if (typeof vA === 'number' && typeof vB === 'number') {
+        return sortDir === 'asc' ? vA - vB : vB - vA;
+      }
+      return sortDir === 'asc'
+        ? String(vA).localeCompare(String(vB), 'fr', { numeric: true })
+        : String(vB).localeCompare(String(vA), 'fr', { numeric: true });
+    });
+
+    return list;
+  }, [safeClients, searchQuery, searchSociete, searchVille, searchIce, sortKey, sortDir, clientStats]);
 
   const paginatedClients = useMemo(() => {
     const start = (currentPage - 1) * pageSize;
     return filteredClients.slice(start, start + pageSize);
   }, [filteredClients, currentPage, pageSize]);
 
-  // Client stats calculations
-  const clientStats = useMemo(() => {
-    const map = new Map<number, { blCount: number; pendingBlCount: number; totalFacture: number; unpaidFacture: number }>();
-    for (const c of safeClients) {
-      if (!c) continue;
-      const clientBls = safeBls.filter((b) => b && b.client_id === c.id);
-      const clientFactures = safeFactures.filter((f) => f && f.client_id === c.id);
-      const blCount = clientBls.length;
-      const pendingBlCount = clientBls.filter((b) => b && b.statut === 'En attente').length;
-      const totalFacture = clientFactures.reduce((sum, f) => sum + (f?.total_ttc || 0), 0);
-      const unpaidFacture = clientFactures.reduce((sum, f) => sum + (f?.reste_a_payer || 0), 0);
-      map.set(c.id, { blCount, pendingBlCount, totalFacture, unpaidFacture });
+  const toggleSelectAll = () => {
+    const pageIds = paginatedClients.map((c) => c.id);
+    const allSelected = pageIds.length > 0 && pageIds.every((id) => selectedClientIds.includes(id));
+    if (allSelected) {
+      setSelectedClientIds((prev) => prev.filter((id) => !pageIds.includes(id)));
+    } else {
+      setSelectedClientIds((prev) => Array.from(new Set([...prev, ...pageIds])));
     }
-    return map;
-  }, [safeClients, safeBls, safeFactures]);
+  };
+
+  const toggleSelectRow = (id: number) => {
+    setSelectedClientIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
+  const exportSelectedToCsv = () => {
+    const toExport = safeClients.filter((c) => selectedClientIds.includes(c.id));
+    if (toExport.length === 0) return;
+    const headers = ['Code', 'Nom / Raison Sociale', 'Interlocuteur', 'Ville', 'Adresse', 'Téléphone', 'Email', 'ICE', 'Solde Dû'];
+    const rows = toExport.map((c) => [
+      `"${c.code || ''}"`,
+      `"${c.nom.replace(/"/g, '""')}"`,
+      `"${(c.interlocuteur || '').replace(/"/g, '""')}"`,
+      `"${(c.ville || '').replace(/"/g, '""')}"`,
+      `"${(c.adresse || '').replace(/"/g, '""')}"`,
+      `"${c.telephone || c.mobile || ''}"`,
+      `"${c.email || ''}"`,
+      `"${c.ice || ''}"`,
+      `"${(clientStats.get(c.id)?.unpaidFacture || 0).toFixed(2)}"`,
+    ]);
+    const csvContent = 'data:text/csv;charset=utf-8,\uFEFF' + [headers.join(';'), ...rows.map((r) => r.join(';'))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `clients_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   // Filtered client pricelist (search inside product grid)
   const filteredClientTarifs = useMemo(() => {
@@ -545,50 +632,89 @@ export const ClientsView: React.FC<ClientsViewProps> = ({
               )}
             </div>
 
+            {/* Bulk Selection Bar */}
+            <TableBulkActionBar
+              selectedCount={selectedClientIds.length}
+              totalCount={filteredClients.length}
+              onClearSelection={() => setSelectedClientIds([])}
+              actions={
+                <button
+                  onClick={exportSelectedToCsv}
+                  className="px-2.5 py-1 text-xs font-semibold bg-white text-slate-700 hover:bg-slate-100 rounded border border-slate-300 flex items-center gap-1.5 shadow-xs transition"
+                >
+                  <Download className="w-3.5 h-3.5 text-blue-600" />
+                  Exporter CSV ({selectedClientIds.length})
+                </button>
+              }
+            />
+
             {/* Desktop Customers Table (hidden md:block) */}
             <div className="hidden md:block flex-1 overflow-y-auto">
               <table className="w-full text-left text-xs border-collapse">
-                <thead className="sticky top-0 bg-blue-700 text-white z-10">
-                  <tr className="divide-x divide-blue-600 font-semibold text-[11px]">
-                    <th className="py-2 px-2.5 w-16">Code</th>
-                    <th className="py-2 px-2.5">Client / Société</th>
-                    <th className="py-2 px-2">Ville</th>
-                    <th className="py-2 px-2.5 font-mono">ICE</th>
-                    <th className="py-2 px-2.5 text-right">Solde Dû</th>
-                    <th className="py-2 px-2 text-center w-16">Actions</th>
+                <thead className="sticky top-0 bg-slate-900 text-white z-10 shadow-xs">
+                  <tr className="divide-x divide-slate-800 font-bold text-[11px] uppercase tracking-wider">
+                    <th className="py-2.5 px-2.5 text-center w-10">
+                      <input
+                        type="checkbox"
+                        checked={
+                          paginatedClients.length > 0 &&
+                          paginatedClients.every((c) => selectedClientIds.includes(c.id))
+                        }
+                        onChange={toggleSelectAll}
+                        className="rounded border-slate-400 text-blue-600 focus:ring-blue-500 w-3.5 h-3.5 cursor-pointer align-middle"
+                        title="Tout sélectionner / désélectionner sur cette page"
+                      />
+                    </th>
+                    <SortableTh label="Code" sortKey="code" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} width="w-20" />
+                    <SortableTh label="Client / Société" sortKey="nom" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} minWidth="min-w-[150px]" />
+                    <SortableTh label="Ville" sortKey="ville" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} width="w-24" />
+                    <SortableTh label="ICE" sortKey="ice" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} width="w-28" />
+                    <SortableTh label="Solde Dû" sortKey="solde" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} align="right" width="w-28" />
+                    <th className="py-2.5 px-2 text-center w-16">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200">
                   {filteredClients.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="py-12 text-center text-slate-400">
+                      <td colSpan={7} className="py-12 text-center text-slate-400">
                         Aucun client ne correspond à votre recherche.
                       </td>
                     </tr>
                   ) : (
                     paginatedClients.map((client) => {
                       const stats = clientStats.get(client.id) || { blCount: 0, pendingBlCount: 0, totalFacture: 0, unpaidFacture: 0 };
-                      const isSelected = selectedClientId === client.id;
+                      const isCurrentClient = selectedClientId === client.id;
+                      const isChecked = selectedClientIds.includes(client.id);
 
                       return (
                         <tr
                           key={client.id}
                           onClick={() => setSelectedClientId(client.id)}
-                          className={`cursor-pointer transition divide-x divide-slate-100 ${
-                            isSelected
+                          className={`cursor-pointer transition-colors divide-x divide-slate-100 ${
+                            isCurrentClient
                               ? 'bg-blue-50/90 border-l-4 border-l-blue-600 font-medium'
-                              : 'hover:bg-slate-50/80 even:bg-slate-50/40'
+                              : isChecked
+                              ? 'bg-blue-50/50'
+                              : 'hover:bg-blue-50/40 even:bg-slate-50/40'
                           }`}
                         >
+                          <td className="py-2 px-2.5 text-center" onClick={(e) => e.stopPropagation()}>
+                            <input
+                              type="checkbox"
+                              checked={isChecked}
+                              onChange={() => toggleSelectRow(client.id)}
+                              className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 w-3.5 h-3.5 cursor-pointer align-middle"
+                            />
+                          </td>
                           <td className="py-2 px-2.5 font-mono text-[11px] text-slate-600 font-semibold">
                             {client.code || `CL${String(client.id).padStart(3, '0')}`}
                           </td>
                           <td className="py-2 px-2.5">
                             <div className="font-semibold text-slate-900 flex items-center gap-1.5">
                               {client.nom}
-                              {isSelected && (
+                              {isCurrentClient && (
                                 <span className="inline-flex items-center px-1.5 py-0.2 rounded text-[9px] font-bold bg-blue-600 text-white">
-                                  Sélectionné
+                                  Actif
                                 </span>
                               )}
                             </div>
@@ -631,6 +757,25 @@ export const ClientsView: React.FC<ClientsViewProps> = ({
                     })
                   )}
                 </tbody>
+                {filteredClients.length > 0 && (
+                  <tfoot>
+                    <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-xs">
+                      <td colSpan={5} className="py-2 px-2.5 text-right uppercase tracking-wider text-slate-300">
+                        Total Solde Dû :
+                      </td>
+                      <td className="py-2 px-2.5 text-right font-mono text-rose-300">
+                        {formatCurrency(
+                          filteredClients.reduce(
+                            (sum, c) => sum + (clientStats.get(c.id)?.unpaidFacture || 0),
+                            0
+                          ),
+                          false
+                        )}
+                      </td>
+                      <td></td>
+                    </tr>
+                  </tfoot>
+                )}
               </table>
             </div>
 
@@ -787,15 +932,15 @@ export const ClientsView: React.FC<ClientsViewProps> = ({
                 </div>
               ) : (
                 <table className="w-full text-left text-xs border-collapse">
-                  <thead className="sticky top-0 bg-emerald-800 text-white z-10">
-                    <tr className="divide-x divide-emerald-700 font-semibold text-[11px]">
-                      <th className="py-2 px-2.5 w-16">Code</th>
-                      <th className="py-2 px-2.5">Article / Produit</th>
-                      <th className="py-2 px-2 text-right">Prix Cat. HT</th>
-                      <th className="py-2 px-2.5 text-right font-bold text-amber-200">Prix Client HT</th>
-                      <th className="py-2 px-2 text-center w-16">Remise %</th>
-                      <th className="py-2 px-2.5">Conditions / Notes</th>
-                      <th className="py-2 px-2 text-center w-14">Action</th>
+                  <thead className="sticky top-0 bg-slate-900 text-white z-10 shadow-xs">
+                    <tr className="divide-x divide-slate-800 font-bold text-[11px] uppercase tracking-wider">
+                      <th className="py-2.5 px-2.5 w-16">Code</th>
+                      <th className="py-2.5 px-2.5">Article / Produit</th>
+                      <th className="py-2.5 px-2 text-right">Prix Cat. HT</th>
+                      <th className="py-2.5 px-2.5 text-right font-bold text-amber-200">Prix Client HT</th>
+                      <th className="py-2.5 px-2 text-center w-16">Remise %</th>
+                      <th className="py-2.5 px-2.5">Conditions / Notes</th>
+                      <th className="py-2.5 px-2 text-center w-14">Action</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-200">

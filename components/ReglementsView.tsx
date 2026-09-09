@@ -3,8 +3,10 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { Reglement } from '@/lib/types';
 import { formatCurrency, formatDate, getCurrentYearDateRange, toNumeric } from '@/lib/utils';
-import { Plus, Search, Trash2, Pencil, SlidersHorizontal, X, CreditCard } from 'lucide-react';
+import { Plus, Search, Trash2, Pencil, SlidersHorizontal, X, CreditCard, Download } from 'lucide-react';
 import { DateRangeFilter } from '@/components/DateRangeFilter';
+import { SortableTh } from '@/components/SortableTh';
+import { TableBulkActionBar } from '@/components/TableBulkActionBar';
 
 interface ReglementsViewProps {
   reglements: Reglement[];
@@ -26,8 +28,22 @@ export const ReglementsView: React.FC<ReglementsViewProps> = ({
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 100;
 
+  // Sorting and selection
+  const [sortKey, setSortKey] = useState<string>('date');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
+  const [selectedReglementIds, setSelectedReglementIds] = useState<number[]>([]);
+
+  const handleSort = (key: string) => {
+    if (sortKey === key) {
+      setSortDir((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortKey(key);
+      setSortDir('asc');
+    }
+  };
+
   const filtered = useMemo(() => {
-    return reglements.filter((r) => {
+    const list = reglements.filter((r) => {
       const paymentDate = r.date ? r.date.slice(0, 10) : '';
       if (filterStartDate && paymentDate < filterStartDate) return false;
       if (filterEndDate && paymentDate > filterEndDate) return false;
@@ -39,8 +55,41 @@ export const ReglementsView: React.FC<ReglementsViewProps> = ({
         String(r.reference_paiement || '').toLowerCase().includes(q) ||
         String(r.banque || '').toLowerCase().includes(q)
       );
-    }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime() || b.id - a.id);
-  }, [reglements, search, filterStartDate, filterEndDate]);
+    });
+
+    list.sort((a, b) => {
+      let vA: any = '';
+      let vB: any = '';
+      if (sortKey === 'date') {
+        vA = new Date(a.date).getTime() || 0;
+        vB = new Date(b.date).getTime() || 0;
+      } else if (sortKey === 'client_nom') {
+        vA = a.client_nom || '';
+        vB = b.client_nom || '';
+      } else if (sortKey === 'piece_numero') {
+        vA = a.facture_numero || a.piece_numero || '';
+        vB = b.facture_numero || b.piece_numero || '';
+      } else if (sortKey === 'montant') {
+        vA = toNumeric(a.montant);
+        vB = toNumeric(b.montant);
+      } else if (sortKey === 'mode') {
+        vA = a.mode || a.mode_reglement || '';
+        vB = b.mode || b.mode_reglement || '';
+      } else if (sortKey === 'banque') {
+        vA = a.banque || '';
+        vB = b.banque || '';
+      }
+
+      if (typeof vA === 'number' && typeof vB === 'number') {
+        return sortDir === 'asc' ? vA - vB : vB - vA;
+      }
+      return sortDir === 'asc'
+        ? String(vA).localeCompare(String(vB), 'fr', { numeric: true })
+        : String(vB).localeCompare(String(vA), 'fr', { numeric: true });
+    });
+
+    return list;
+  }, [reglements, search, filterStartDate, filterEndDate, sortKey, sortDir]);
 
   const totalEncaisse = useMemo(() => {
     return filtered.reduce((sum, r) => sum + toNumeric(r.montant), 0);
@@ -59,6 +108,45 @@ export const ReglementsView: React.FC<ReglementsViewProps> = ({
   useEffect(() => {
     if (currentPage > totalPages) setCurrentPage(totalPages);
   }, [currentPage, totalPages]);
+
+  const toggleSelectAll = () => {
+    const pageIds = paginatedReglements.map((r) => r.id);
+    const allSelected = pageIds.length > 0 && pageIds.every((id) => selectedReglementIds.includes(id));
+    if (allSelected) {
+      setSelectedReglementIds((prev) => prev.filter((id) => !pageIds.includes(id)));
+    } else {
+      setSelectedReglementIds((prev) => Array.from(new Set([...prev, ...pageIds])));
+    }
+  };
+
+  const toggleSelectRow = (id: number) => {
+    setSelectedReglementIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
+  const exportSelectedToCsv = () => {
+    const toExport = reglements.filter((r) => selectedReglementIds.includes(r.id));
+    if (toExport.length === 0) return;
+    const headers = ['Date', 'Client', 'Pièce Rattachée', 'Montant', 'Mode', 'Banque', 'Référence'];
+    const rows = toExport.map((r) => [
+      `"${r.date ? r.date.slice(0, 10) : ''}"`,
+      `"${(r.client_nom || '').replace(/"/g, '""')}"`,
+      `"${(r.facture_numero || r.piece_numero || '').replace(/"/g, '""')}"`,
+      `"${toNumeric(r.montant).toFixed(2)}"`,
+      `"${(r.mode || r.mode_reglement || '').replace(/"/g, '""')}"`,
+      `"${(r.banque || '').replace(/"/g, '""')}"`,
+      `"${(r.reference_paiement || '').replace(/"/g, '""')}"`,
+    ]);
+    const csvContent = 'data:text/csv;charset=utf-8,\uFEFF' + [headers.join(';'), ...rows.map((row) => row.join(';'))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `reglements_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   return (
     <div className="space-y-4">
@@ -349,95 +437,141 @@ export const ReglementsView: React.FC<ReglementsViewProps> = ({
       {/* 5. DESKTOP TABLE (hidden md:block) */}
       {/* ========================================================================= */}
       <div className="hidden md:block bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
+        {/* Bulk Action Bar */}
+        <TableBulkActionBar
+          selectedCount={selectedReglementIds.length}
+          totalCount={filtered.length}
+          onClearSelection={() => setSelectedReglementIds([])}
+          actions={
+            <button
+              onClick={exportSelectedToCsv}
+              className="px-2.5 py-1 text-xs font-semibold bg-white text-slate-700 hover:bg-slate-100 rounded border border-slate-300 flex items-center gap-1.5 shadow-xs transition"
+            >
+              <Download className="w-3.5 h-3.5 text-emerald-600" />
+              Exporter CSV ({selectedReglementIds.length})
+            </button>
+          }
+        />
+
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs border-collapse">
             <thead>
-              <tr className="bg-slate-800 text-white font-semibold divide-x divide-slate-700">
-                <th className="py-2.5 px-3">Date</th>
-                <th className="py-2.5 px-3">Client / Débiteur</th>
-                <th className="py-2.5 px-3">Pièce Rattachée</th>
-                <th className="py-2.5 px-3 text-right">Montant Encaissé</th>
-                <th className="py-2.5 px-3">Mode</th>
-                <th className="py-2.5 px-3">Banque & Réf</th>
-                <th className="py-2.5 px-3 text-center">Action</th>
+              <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-[11px] uppercase tracking-wider sticky top-0 z-10 shadow-xs">
+                <th className="py-2.5 px-3 text-center w-10">
+                  <input
+                    type="checkbox"
+                    checked={
+                      paginatedReglements.length > 0 &&
+                      paginatedReglements.every((r) => selectedReglementIds.includes(r.id))
+                    }
+                    onChange={toggleSelectAll}
+                    className="rounded border-slate-400 text-emerald-600 focus:ring-emerald-500 w-3.5 h-3.5 cursor-pointer align-middle"
+                    title="Tout sélectionner / désélectionner sur cette page"
+                  />
+                </th>
+                <SortableTh label="Date" sortKey="date" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} width="w-28" />
+                <SortableTh label="Client / Débiteur" sortKey="client_nom" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} minWidth="min-w-[180px]" />
+                <SortableTh label="Pièce Rattachée" sortKey="piece_numero" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} width="w-48" />
+                <SortableTh label="Montant Encaissé" sortKey="montant" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} align="right" width="w-36" />
+                <SortableTh label="Mode" sortKey="mode" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} width="w-28" />
+                <SortableTh label="Banque & Réf" sortKey="banque" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} minWidth="min-w-[150px]" />
+                <th className="py-2.5 px-3 text-center w-20">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200">
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-400">
+                  <td colSpan={8} className="py-12 text-center text-slate-400">
                     Aucun règlement enregistré.
                   </td>
                 </tr>
               ) : (
-                paginatedReglements.map((r) => (
-                  <tr
-                    key={r.id}
-                    onClick={(event) => {
-                      if (event.target instanceof Element && event.target.closest('button, input, a, select')) return;
-                      onEditReglement(r);
-                    }}
-                    onKeyDown={(event) => {
-                      if (event.key === 'Enter' || event.key === ' ') {
-                        event.preventDefault();
+                paginatedReglements.map((r) => {
+                  const isSelected = selectedReglementIds.includes(r.id);
+
+                  return (
+                    <tr
+                      key={r.id}
+                      onClick={(event) => {
+                        if (event.target instanceof Element && event.target.closest('button, input, a, select')) return;
                         onEditReglement(r);
-                      }
-                    }}
-                    tabIndex={0}
-                    role="button"
-                    title="Ouvrir la fiche de cet encaissement"
-                    className="cursor-pointer hover:bg-slate-100 transition focus:outline-none focus:ring-2 focus:ring-inset focus:ring-emerald-500 divide-x divide-slate-100 even:bg-slate-50/40"
-                  >
-                    <td className="py-2 px-3 text-slate-600 whitespace-nowrap">{formatDate(r.date)}</td>
-                    <td className="py-2 px-3 font-semibold text-slate-900">{r.client_nom}</td>
-                    <td className="py-2 px-3 font-mono text-blue-700 font-medium">
-                      {r.facture_numero || r.piece_numero || 'Règlement compte client'}
-                    </td>
-                    <td className="py-2 px-3 text-right font-mono font-bold text-emerald-700">
-                      {formatCurrency(r.montant)}
-                    </td>
-                    <td className="py-2 px-3">
-                      <span className="px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-800">
-                        {r.mode || r.mode_reglement || 'Virement'}
-                      </span>
-                    </td>
-                    <td className="py-2 px-3 text-slate-600">
-                      {r.banque ? `${r.banque} ` : ''}
-                      {r.reference_paiement ? `(N° ${r.reference_paiement})` : ''}
-                    </td>
-                    <td className="py-1.5 px-2 text-center">
-                      <button
-                        type="button"
-                        onClick={() => onEditReglement(r)}
-                        className="p-1 hover:bg-blue-100 text-slate-400 hover:text-blue-700 rounded transition"
-                        title="Modifier l’encaissement"
-                        aria-label={`Modifier l’encaissement de ${r.client_nom}`}
-                      >
-                        <Pencil className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (confirm(`Supprimer ce règlement de ${formatCurrency(r.montant)} ?`)) {
-                            onDeleteReglement(r.id);
-                          }
-                        }}
-                        className="p-1 hover:bg-rose-100 text-slate-400 hover:text-rose-600 rounded transition"
-                        title="Supprimer"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </td>
-                  </tr>
-                ))
+                      }}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                          event.preventDefault();
+                          onEditReglement(r);
+                        }
+                      }}
+                      tabIndex={0}
+                      role="button"
+                      title="Ouvrir la fiche de cet encaissement"
+                      className={`cursor-pointer transition-colors focus:outline-none divide-x divide-slate-100 ${
+                        isSelected
+                          ? 'bg-blue-50/90 font-medium border-l-4 border-l-emerald-600'
+                          : 'hover:bg-emerald-50/40 even:bg-slate-50/40'
+                      }`}
+                    >
+                      <td className="py-2 px-3 text-center" onClick={(e) => e.stopPropagation()}>
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => toggleSelectRow(r.id)}
+                          className="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 w-3.5 h-3.5 cursor-pointer align-middle"
+                        />
+                      </td>
+                      <td className="py-2 px-3 text-slate-600 font-mono whitespace-nowrap">{formatDate(r.date)}</td>
+                      <td className="py-2 px-3 font-semibold text-slate-900">{r.client_nom}</td>
+                      <td className="py-2 px-3 font-mono text-blue-700 font-medium">
+                        {r.facture_numero || r.piece_numero || 'Règlement compte client'}
+                      </td>
+                      <td className="py-2 px-3 text-right font-mono font-bold text-emerald-700">
+                        {formatCurrency(r.montant)}
+                      </td>
+                      <td className="py-2 px-3">
+                        <span className="px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-800">
+                          {r.mode || r.mode_reglement || 'Virement'}
+                        </span>
+                      </td>
+                      <td className="py-2 px-3 text-slate-600">
+                        {r.banque ? `${r.banque} ` : ''}
+                        {r.reference_paiement ? `(N° ${r.reference_paiement})` : ''}
+                      </td>
+                      <td className="py-1.5 px-2 text-center" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center justify-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => onEditReglement(r)}
+                            className="p-1 hover:bg-blue-100 text-slate-400 hover:text-blue-700 rounded transition"
+                            title="Modifier l’encaissement"
+                            aria-label={`Modifier l’encaissement de ${r.client_nom}`}
+                          >
+                            <Pencil className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (confirm(`Supprimer ce règlement de ${formatCurrency(r.montant)} ?`)) {
+                                onDeleteReglement(r.id);
+                              }
+                            }}
+                            className="p-1 hover:bg-rose-100 text-slate-400 hover:text-rose-600 rounded transition"
+                            title="Supprimer"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
             <tfoot>
               <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-xs">
-                <td colSpan={3} className="py-2.5 px-3 text-right uppercase">
+                <td colSpan={4} className="py-2.5 px-3 text-right uppercase tracking-wider text-slate-300">
                   Total Général Règlements :
                 </td>
-                <td className="py-2.5 px-3 text-right font-mono text-emerald-400">
+                <td className="py-2.5 px-3 text-right font-mono text-emerald-300">
                   {formatCurrency(totalEncaisse)}
                 </td>
                 <td colSpan={3} className="py-2.5 px-3" />
