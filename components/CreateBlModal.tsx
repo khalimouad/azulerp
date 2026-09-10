@@ -265,13 +265,13 @@ export const CreateBlModal: React.FC<CreateBlModalProps> = ({
             <div className="border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="bg-slate-800 text-white font-semibold divide-x divide-slate-700">
-                    <th className="p-2 min-w-[200px]">Article / Désignation</th>
-                    <th className="p-2 text-right min-w-[80px]">Quantité</th>
-                    <th className="p-2 text-right min-w-[90px]">P.U. HT</th>
-                    <th className="p-2 text-center min-w-[70px]">TVA</th>
-                    <th className="p-2 text-right min-w-[100px]">Total HT</th>
-                    <th className="p-2 text-center w-10" />
+                  <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-[11px] uppercase tracking-wider sticky top-0 z-10 shadow-xs">
+                    <th className="py-2.5 px-3 min-w-[200px]">Article / Désignation</th>
+                    <th className="py-2.5 px-3 text-right min-w-[80px]">Quantité</th>
+                    <th className="py-2.5 px-3 text-right min-w-[90px]">P.U. HT</th>
+                    <th className="py-2.5 px-3 text-center min-w-[70px]">TVA</th>
+                    <th className="py-2.5 px-3 text-right min-w-[100px]">Total HT</th>
+                    <th className="py-2.5 px-3 text-center w-10" />
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200">

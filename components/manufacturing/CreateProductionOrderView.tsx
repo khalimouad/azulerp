@@ -392,44 +392,46 @@ export const CreateProductionOrderView: React.FC<CreateProductionOrderViewProps>
             </div>
 
             <div className="p-5 overflow-x-auto">
-              <table className="w-full text-left text-xs border-collapse">
-                <thead>
-                  <tr className="border-b border-slate-200 text-slate-500 uppercase tracking-wider font-semibold">
-                    <th className="pb-3">Composant / Matière</th>
-                    <th className="pb-3">Quantité Requise</th>
-                    <th className="pb-3">Stock Actuel</th>
-                    <th className="pb-3">Disponibilité</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {stockCheck?.alertes.map((item, idx) => (
-                    <tr key={idx} className="hover:bg-slate-50/80">
-                      <td className="py-2.5 font-semibold text-slate-900">
-                        {item.produit_nom}
-                      </td>
-                      <td className="py-2.5 text-blue-700 font-bold">
-                        {item.quantite_requise.toFixed(2)}
-                      </td>
-                      <td className="py-2.5 font-medium text-slate-700">
-                        {item.stock_actuel.toFixed(2)}
-                      </td>
-                      <td className="py-2.5">
-                        {item.statut === 'suffisant' ? (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
-                            <Check className="w-3 h-3" />
-                            OK
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200">
-                            <AlertTriangle className="w-3 h-3" />
-                            Manque {item.manquant.toFixed(2)}
-                          </span>
-                        )}
-                      </td>
+              <div className="border border-slate-200 rounded-xl overflow-hidden shadow-xs">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-[11px] uppercase tracking-wider sticky top-0 z-10 shadow-xs">
+                      <th className="py-2.5 px-3">Composant / Matière</th>
+                      <th className="py-2.5 px-3">Quantité Requise</th>
+                      <th className="py-2.5 px-3">Stock Actuel</th>
+                      <th className="py-2.5 px-3">Disponibilité</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {stockCheck?.alertes.map((item, idx) => (
+                      <tr key={idx} className="hover:bg-slate-50/80">
+                        <td className="py-2.5 px-3 font-semibold text-slate-900">
+                          {item.produit_nom}
+                        </td>
+                        <td className="py-2.5 px-3 text-blue-700 font-bold">
+                          {item.quantite_requise.toFixed(2)}
+                        </td>
+                        <td className="py-2.5 px-3 font-medium text-slate-700">
+                          {item.stock_actuel.toFixed(2)}
+                        </td>
+                        <td className="py-2.5 px-3">
+                          {item.statut === 'suffisant' ? (
+                            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                              <Check className="w-3 h-3" />
+                              OK
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200">
+                              <AlertTriangle className="w-3 h-3" />
+                              Manque {item.manquant.toFixed(2)}
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         </div>

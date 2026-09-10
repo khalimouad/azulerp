@@ -851,7 +851,7 @@ export const FournisseursView: React.FC<FournisseursViewProps> = ({
           <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="bg-slate-800 text-white font-semibold divide-x divide-slate-700">
+                <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-[11px] uppercase tracking-wider sticky top-0 z-10 shadow-xs">
                   <th className="py-2.5 px-3 min-w-[70px]">Code</th>
                   <th className="py-2.5 px-3 min-w-[200px]">Raison Sociale</th>
                   <th className="py-2.5 px-3 min-w-[130px]">Contact</th>
@@ -1111,7 +1111,7 @@ export const FournisseursView: React.FC<FournisseursViewProps> = ({
           <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="bg-indigo-900 text-white font-semibold divide-x divide-indigo-800">
+                <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-[11px] uppercase tracking-wider sticky top-0 z-10 shadow-xs">
                   <th className="py-2.5 px-3">N° Facture</th>
                   <th className="py-2.5 px-3">Fournisseur</th>
                   <th className="py-2.5 px-3">Date Facture</th>
@@ -1361,7 +1361,7 @@ export const FournisseursView: React.FC<FournisseursViewProps> = ({
           <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="bg-emerald-900 text-white font-semibold divide-x divide-emerald-800">
+                <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-[11px] uppercase tracking-wider sticky top-0 z-10 shadow-xs">
                   <th className="py-2.5 px-3">Date Paiement</th>
                   <th className="py-2.5 px-3">Fournisseur</th>
                   <th className="py-2.5 px-3">Facture Liée</th>
@@ -1455,7 +1455,7 @@ export const FournisseursView: React.FC<FournisseursViewProps> = ({
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="bg-amber-800 text-white font-semibold divide-x divide-amber-700">
+                  <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-[11px] uppercase tracking-wider sticky top-0 z-10 shadow-xs">
                     <th className="py-2.5 px-3">Compte à Rebours</th>
                     <th className="py-2.5 px-3">Fournisseur Bénéficiaire</th>
                     <th className="py-2.5 px-3">N° Chèque / Traite</th>
@@ -1550,7 +1550,7 @@ export const FournisseursView: React.FC<FournisseursViewProps> = ({
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="bg-slate-900 text-white font-semibold divide-x divide-slate-800">
+                  <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-[11px] uppercase tracking-wider sticky top-0 z-10 shadow-xs">
                     <th className="py-2.5 px-3">Fournisseur</th>
                     <th className="py-2.5 px-3">ICE</th>
                     <th className="py-2.5 px-3 text-right">Total Factures TTC</th>
@@ -1683,14 +1683,14 @@ export const FournisseursView: React.FC<FournisseursViewProps> = ({
               <div className="border border-slate-200 rounded-lg overflow-hidden">
                 <table className="w-full text-left text-xs border-collapse">
                   <thead>
-                    <tr className="bg-slate-800 text-white divide-x divide-slate-700 font-semibold">
-                      <th className="py-2 px-3">Date</th>
-                      <th className="py-2 px-3">Type</th>
-                      <th className="py-2 px-3">N° Pièce / Réf</th>
-                      <th className="py-2 px-3">Désignation</th>
-                      <th className="py-2 px-3 text-right text-rose-300">Débit (Achat)</th>
-                      <th className="py-2 px-3 text-right text-emerald-300">Crédit (Règlement)</th>
-                      <th className="py-2 px-3 text-right">Solde Cumulé</th>
+                    <tr className="bg-slate-900 text-white divide-x divide-slate-800 font-bold uppercase tracking-wider text-[11px] sticky top-0 z-10 shadow-xs">
+                      <th className="py-2.5 px-3">Date</th>
+                      <th className="py-2.5 px-3">Type</th>
+                      <th className="py-2.5 px-3">N° Pièce / Réf</th>
+                      <th className="py-2.5 px-3">Désignation</th>
+                      <th className="py-2.5 px-3 text-right text-rose-300">Débit (Achat)</th>
+                      <th className="py-2.5 px-3 text-right text-emerald-300">Crédit (Règlement)</th>
+                      <th className="py-2.5 px-3 text-right">Solde Cumulé</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-200">

@@ -682,17 +682,18 @@ export const CreateBomView: React.FC<CreateBomViewProps> = ({
         </div>
 
         <div className="p-5 overflow-x-auto">
-          <table className="w-full text-left text-xs border-collapse min-w-[700px]">
-            <thead>
-              <tr className="border-b border-slate-200 text-slate-500 uppercase tracking-wider font-semibold">
-                <th className="pb-3 w-[40%]">Article du Catalogue (Produit / Matière)</th>
-                <th className="pb-3 w-[15%]">Quantité</th>
-                <th className="pb-3 w-[12%]">Unité</th>
-                <th className="pb-3 w-[15%]">Coût Unitaire HT (DH)</th>
-                <th className="pb-3 w-[13%] text-right">Total HT (DH)</th>
-                <th className="pb-3 w-[5%] text-center">Action</th>
-              </tr>
-            </thead>
+          <div className="border border-slate-200 rounded-xl overflow-hidden shadow-xs">
+            <table className="w-full text-left text-xs border-collapse min-w-[700px]">
+              <thead>
+                <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-[11px] uppercase tracking-wider sticky top-0 z-10 shadow-xs">
+                  <th className="py-2.5 px-3 w-[40%]">Article du Catalogue (Produit / Matière)</th>
+                  <th className="py-2.5 px-3 w-[15%]">Quantité</th>
+                  <th className="py-2.5 px-3 w-[12%]">Unité</th>
+                  <th className="py-2.5 px-3 w-[15%]">Coût Unitaire HT (DH)</th>
+                  <th className="py-2.5 px-3 w-[13%] text-right">Total HT (DH)</th>
+                  <th className="py-2.5 px-3 w-[5%] text-center">Action</th>
+                </tr>
+              </thead>
             <tbody className="divide-y divide-slate-100">
               {inputs.map((inp, idx) => {
                 const prod = inp.produit_id ? productsById.get(Number(inp.produit_id)) : null;
@@ -789,6 +790,7 @@ export const CreateBomView: React.FC<CreateBomViewProps> = ({
           </table>
         </div>
       </div>
+      </div>
 
       {/* SECTION 3: Extrants, Produits Finis & Coproduits / Déchets */}
       <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
@@ -833,18 +835,19 @@ export const CreateBomView: React.FC<CreateBomViewProps> = ({
         </div>
 
         <div className="p-5 overflow-x-auto">
-          <table className="w-full text-left text-xs border-collapse min-w-[700px]">
-            <thead>
-              <tr className="border-b border-slate-200 text-slate-500 uppercase tracking-wider font-semibold">
-                <th className="pb-3 w-[36%]">Article Extrant (Produit Fini ou Déchet)</th>
-                <th className="pb-3 w-[15%]">Type d'Extrant</th>
-                <th className="pb-3 w-[13%]">Quantité Produite</th>
-                <th className="pb-3 w-[10%]">Unité</th>
-                <th className="pb-3 w-[12%] text-right">% Imputation Coût</th>
-                <th className="pb-3 w-[10%] text-right">Coût Est. / Unité</th>
-                <th className="pb-3 w-[4%] text-center">Action</th>
-              </tr>
-            </thead>
+          <div className="border border-slate-200 rounded-xl overflow-hidden shadow-xs">
+            <table className="w-full text-left text-xs border-collapse min-w-[700px]">
+              <thead>
+                <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-[11px] uppercase tracking-wider sticky top-0 z-10 shadow-xs">
+                  <th className="py-2.5 px-3 w-[36%]">Article Extrant (Produit Fini ou Déchet)</th>
+                  <th className="py-2.5 px-3 w-[15%]">Type d'Extrant</th>
+                  <th className="py-2.5 px-3 w-[13%]">Quantité Produite</th>
+                  <th className="py-2.5 px-3 w-[10%]">Unité</th>
+                  <th className="py-2.5 px-3 w-[12%] text-right">% Imputation Coût</th>
+                  <th className="py-2.5 px-3 w-[10%] text-right">Coût Est. / Unité</th>
+                  <th className="py-2.5 px-3 w-[4%] text-center">Action</th>
+                </tr>
+              </thead>
             <tbody className="divide-y divide-slate-100">
               {outputs.map((out, idx) => {
                 const prod = out.produit_id ? productsById.get(Number(out.produit_id)) : null;
@@ -1014,6 +1017,7 @@ export const CreateBomView: React.FC<CreateBomViewProps> = ({
               </tr>
             </tfoot>
           </table>
+        </div>
 
           {totalAllocationPct !== 100 && totalFinishedQty > 0 && (
             <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-center gap-2 text-xs text-amber-800">

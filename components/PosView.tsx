@@ -2354,9 +2354,9 @@ export const PosView: React.FC<PosViewProps> = ({
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold">
-                <tr>
+            <table className="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-[11px] uppercase tracking-wider sticky top-0 z-10 shadow-xs">
                   <th className="py-2.5 px-3">N° Ticket</th>
                   <th className="py-2.5 px-3">Date & Heure</th>
                   <th className="py-2.5 px-3">Table</th>
@@ -2564,9 +2564,9 @@ export const PosView: React.FC<PosViewProps> = ({
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold">
-                <tr>
+            <table className="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-[11px] uppercase tracking-wider sticky top-0 z-10 shadow-xs">
                   <th className="py-2.5 px-3">Session</th>
                   <th className="py-2.5 px-3">Service</th>
                   <th className="py-2.5 px-3">Ouverture</th>

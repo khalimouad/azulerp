@@ -886,17 +886,17 @@ export const EtatsRapportsView: React.FC<EtatsRapportsViewProps> = ({
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="bg-slate-900 text-white font-semibold divide-x divide-slate-800">
-                    <th className="p-3 whitespace-nowrap">N° Facture</th>
-                    <th className="p-3 whitespace-nowrap">Date Facture</th>
-                    <th className="p-3 whitespace-nowrap">Client / Customer</th>
-                    <th className="p-3 whitespace-nowrap">Produit / Désignation</th>
-                    <th className="p-3 text-right whitespace-nowrap">Prix Unit. HT</th>
-                    <th className="p-3 text-right whitespace-nowrap">Quantité</th>
-                    <th className="p-3 text-right whitespace-nowrap">Total HT</th>
-                    <th className="p-3 text-center whitespace-nowrap">Type TVA</th>
-                    <th className="p-3 text-right whitespace-nowrap">Montant TVA</th>
-                    <th className="p-3 text-right whitespace-nowrap">Total TTC</th>
+                  <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-[11px] uppercase tracking-wider sticky top-0 z-10 shadow-xs">
+                    <th className="py-2.5 px-3 whitespace-nowrap">N° Facture</th>
+                    <th className="py-2.5 px-3 whitespace-nowrap">Date Facture</th>
+                    <th className="py-2.5 px-3 whitespace-nowrap">Client / Customer</th>
+                    <th className="py-2.5 px-3 whitespace-nowrap">Produit / Désignation</th>
+                    <th className="py-2.5 px-3 text-right whitespace-nowrap">Prix Unit. HT</th>
+                    <th className="py-2.5 px-3 text-right whitespace-nowrap">Quantité</th>
+                    <th className="py-2.5 px-3 text-right whitespace-nowrap">Total HT</th>
+                    <th className="py-2.5 px-3 text-center whitespace-nowrap">Type TVA</th>
+                    <th className="py-2.5 px-3 text-right whitespace-nowrap">Montant TVA</th>
+                    <th className="py-2.5 px-3 text-right whitespace-nowrap">Total TTC</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200">
@@ -1187,16 +1187,16 @@ export const EtatsRapportsView: React.FC<EtatsRapportsViewProps> = ({
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="bg-slate-900 text-white font-semibold divide-x divide-slate-800">
-                    <th className="p-3">N° BL</th>
-                    <th className="p-3">Date</th>
-                    <th className="p-3">Client / Raison Sociale</th>
-                    <th className="p-3">ICE Client</th>
-                    <th className="p-3 text-center">Statut Facturation</th>
-                    <th className="p-3 text-right">Montant HT</th>
-                    <th className="p-3 text-right">Total TTC</th>
-                    <th className="p-3">N° Facture</th>
-                    <th className="p-3 text-center">Actions</th>
+                  <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-[11px] uppercase tracking-wider sticky top-0 z-10 shadow-xs">
+                    <th className="py-2.5 px-3">N° BL</th>
+                    <th className="py-2.5 px-3">Date</th>
+                    <th className="py-2.5 px-3">Client / Raison Sociale</th>
+                    <th className="py-2.5 px-3">ICE Client</th>
+                    <th className="py-2.5 px-3 text-center">Statut Facturation</th>
+                    <th className="py-2.5 px-3 text-right">Montant HT</th>
+                    <th className="py-2.5 px-3 text-right">Total TTC</th>
+                    <th className="py-2.5 px-3">N° Facture</th>
+                    <th className="py-2.5 px-3 text-center">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200">
@@ -1365,17 +1365,17 @@ export const EtatsRapportsView: React.FC<EtatsRapportsViewProps> = ({
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="bg-slate-900 text-white font-semibold divide-x divide-slate-800">
-                    <th className="p-3">N° Facture</th>
-                    <th className="p-3">Date</th>
-                    <th className="p-3">Client</th>
-                    <th className="p-3 text-right">Total HT</th>
-                    <th className="p-3 text-right">TVA 20%</th>
-                    <th className="p-3 text-right">TVA 10%</th>
-                    <th className="p-3 text-right">Total TVA</th>
-                    <th className="p-3 text-right">Total TTC</th>
-                    <th className="p-3 text-right">Réglé</th>
-                    <th className="p-3 text-right">Reste</th>
+                  <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-[11px] uppercase tracking-wider sticky top-0 z-10 shadow-xs">
+                    <th className="py-2.5 px-3">N° Facture</th>
+                    <th className="py-2.5 px-3">Date</th>
+                    <th className="py-2.5 px-3">Client</th>
+                    <th className="py-2.5 px-3 text-right">Total HT</th>
+                    <th className="py-2.5 px-3 text-right">TVA 20%</th>
+                    <th className="py-2.5 px-3 text-right">TVA 10%</th>
+                    <th className="py-2.5 px-3 text-right">Total TVA</th>
+                    <th className="py-2.5 px-3 text-right">Total TTC</th>
+                    <th className="py-2.5 px-3 text-right">Réglé</th>
+                    <th className="py-2.5 px-3 text-right">Reste</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200">
@@ -1453,11 +1453,11 @@ export const EtatsRapportsView: React.FC<EtatsRapportsViewProps> = ({
           <div className="overflow-x-auto border border-slate-200 rounded-xl">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="bg-slate-900 text-white font-semibold">
-                  <th className="p-3">Taux de Taxe Applicable</th>
-                  <th className="p-3 text-right">Base Imposable HT (DH)</th>
-                  <th className="p-3 text-right">Montant Taxe Exigible (DH)</th>
-                  <th className="p-3 text-right">Total TTC Imposé (DH)</th>
+                <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-[11px] uppercase tracking-wider sticky top-0 z-10 shadow-xs">
+                  <th className="py-2.5 px-3">Taux de Taxe Applicable</th>
+                  <th className="py-2.5 px-3 text-right">Base Imposable HT (DH)</th>
+                  <th className="py-2.5 px-3 text-right">Montant Taxe Exigible (DH)</th>
+                  <th className="py-2.5 px-3 text-right">Total TTC Imposé (DH)</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
@@ -1515,14 +1515,14 @@ export const EtatsRapportsView: React.FC<EtatsRapportsViewProps> = ({
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="bg-slate-900 text-white font-semibold divide-x divide-slate-800">
-                  <th className="p-3">Code</th>
-                  <th className="p-3">Client / Raison Sociale</th>
-                  <th className="p-3">ICE</th>
-                  <th className="p-3 text-center">Nbr Factures</th>
-                  <th className="p-3 text-right">Total Facturé (TTC)</th>
-                  <th className="p-3 text-right">Total Encaissé</th>
-                  <th className="p-3 text-right">Solde Dû (Reste à Payer)</th>
+                <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-[11px] uppercase tracking-wider sticky top-0 z-10 shadow-xs">
+                  <th className="py-2.5 px-3">Code</th>
+                  <th className="py-2.5 px-3">Client / Raison Sociale</th>
+                  <th className="py-2.5 px-3">ICE</th>
+                  <th className="py-2.5 px-3 text-center">Nbr Factures</th>
+                  <th className="py-2.5 px-3 text-right">Total Facturé (TTC)</th>
+                  <th className="py-2.5 px-3 text-right">Total Encaissé</th>
+                  <th className="py-2.5 px-3 text-right">Solde Dû (Reste à Payer)</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
@@ -1587,11 +1587,11 @@ export const EtatsRapportsView: React.FC<EtatsRapportsViewProps> = ({
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="bg-slate-900 text-white font-semibold divide-x divide-slate-800">
-                  <th className="p-3">Groupe / Famille</th>
-                  <th className="p-3 text-right">Quantités Vendues</th>
-                  <th className="p-3 text-right">Chiffre d'Affaires HT (DH)</th>
-                  <th className="p-3 text-right">Part du Chiffre d'Affaires</th>
+                <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-[11px] uppercase tracking-wider sticky top-0 z-10 shadow-xs">
+                  <th className="py-2.5 px-3">Groupe / Famille</th>
+                  <th className="py-2.5 px-3 text-right">Quantités Vendues</th>
+                  <th className="py-2.5 px-3 text-right">Chiffre d'Affaires HT (DH)</th>
+                  <th className="py-2.5 px-3 text-right">Part du Chiffre d'Affaires</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">

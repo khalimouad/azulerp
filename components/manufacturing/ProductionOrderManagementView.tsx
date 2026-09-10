@@ -295,18 +295,18 @@ export function ProductionOrderManagementView({
 
       {/* Orders Table */}
       <div className="p-6 pt-2">
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-xs">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-xs">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="bg-slate-50/80 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800 text-slate-500 font-bold uppercase tracking-wider">
-                  <th className="p-3.5">Numéro & Date</th>
-                  <th className="p-3.5">Produit Fini / Formule</th>
-                  <th className="p-3.5 text-center">Quantité Cible</th>
-                  <th className="p-3.5 text-right">Coût Total</th>
-                  <th className="p-3.5 text-center">Statut</th>
-                  <th className="p-3.5 text-center">Impact Stocks</th>
-                  <th className="p-3.5 text-right">Actions</th>
+                <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-[11px] uppercase tracking-wider sticky top-0 z-10 shadow-xs">
+                  <th className="py-2.5 px-3">Numéro & Date</th>
+                  <th className="py-2.5 px-3">Produit Fini / Formule</th>
+                  <th className="py-2.5 px-3 text-center">Quantité Cible</th>
+                  <th className="py-2.5 px-3 text-right">Coût Total</th>
+                  <th className="py-2.5 px-3 text-center">Statut</th>
+                  <th className="py-2.5 px-3 text-center">Impact Stocks</th>
+                  <th className="py-2.5 px-3 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">

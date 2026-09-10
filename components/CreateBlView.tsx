@@ -449,16 +449,16 @@ export const CreateBlView: React.FC<CreateBlViewProps> = ({
           <div className="overflow-x-auto border border-slate-200 rounded-xl">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="bg-slate-900 text-white font-semibold divide-x divide-slate-800">
-                  <th className="p-3 w-10 text-center">#</th>
-                  <th className="p-3 min-w-[260px]">Article / Référence Catalogue</th>
-                  <th className="p-3 min-w-[200px]">Désignation sur le BL</th>
-                  <th className="p-3 w-24 text-right">Qté</th>
-                  <th className="p-3 w-28 text-right">P.U. HT (DH)</th>
-                  <th className="p-3 w-20 text-center">TVA %</th>
-                  <th className="p-3 w-20 text-center">Rem %</th>
-                  <th className="p-3 w-32 text-right font-bold">Total HT</th>
-                  <th className="p-3 w-12 text-center"></th>
+                <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-[11px] uppercase tracking-wider sticky top-0 z-10 shadow-xs">
+                  <th className="py-2.5 px-3 w-10 text-center">#</th>
+                  <th className="py-2.5 px-3 min-w-[260px]">Article / Référence Catalogue</th>
+                  <th className="py-2.5 px-3 min-w-[200px]">Désignation sur le BL</th>
+                  <th className="py-2.5 px-3 w-24 text-right">Qté</th>
+                  <th className="py-2.5 px-3 w-28 text-right">P.U. HT (DH)</th>
+                  <th className="py-2.5 px-3 w-20 text-center">TVA %</th>
+                  <th className="py-2.5 px-3 w-20 text-center">Rem %</th>
+                  <th className="py-2.5 px-3 w-32 text-right font-bold">Total HT</th>
+                  <th className="py-2.5 px-3 w-12 text-center"></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">

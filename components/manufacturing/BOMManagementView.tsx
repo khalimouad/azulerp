@@ -308,19 +308,19 @@ export function BOMManagementView({
       </div>
 
       {/* BOMs Table View */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden">
+      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs border-collapse">
             <thead>
-              <tr className="bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 uppercase tracking-wider font-semibold">
-                <th className="p-3.5">Code & Version</th>
-                <th className="p-3.5">Nomenclature & Produit Principal</th>
-                <th className="p-3.5">Intrants (Matières) ➔ Extrants</th>
-                <th className="p-3.5 text-center">Rendement</th>
-                <th className="p-3.5 text-right">Coût Matières</th>
-                <th className="p-3.5 text-right">Coût Revient Unitaire</th>
-                <th className="p-3.5 text-center">Statut</th>
-                <th className="p-3.5 text-right">Actions</th>
+              <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-[11px] uppercase tracking-wider sticky top-0 z-10 shadow-xs">
+                <th className="py-2.5 px-3">Code & Version</th>
+                <th className="py-2.5 px-3">Nomenclature & Produit Principal</th>
+                <th className="py-2.5 px-3">Intrants (Matières) ➔ Extrants</th>
+                <th className="py-2.5 px-3 text-center">Rendement</th>
+                <th className="py-2.5 px-3 text-right">Coût Matières</th>
+                <th className="py-2.5 px-3 text-right">Coût Revient Unitaire</th>
+                <th className="py-2.5 px-3 text-center">Statut</th>
+                <th className="py-2.5 px-3 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -584,28 +584,28 @@ export function BOMManagementView({
                   Intrants & Matières Premières Consommées
                 </h4>
                 <div className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
-                  <table className="w-full text-xs text-left">
-                    <thead className="bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 text-slate-500 font-semibold">
-                      <tr>
-                        <th className="p-2.5">Matière</th>
-                        <th className="p-2.5">Quantité</th>
-                        <th className="p-2.5 text-right">Coût Unitaire</th>
-                        <th className="p-2.5 text-right">Coût Total</th>
+                  <table className="w-full text-xs text-left border-collapse">
+                    <thead>
+                      <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-[11px] uppercase tracking-wider sticky top-0 z-10 shadow-xs">
+                        <th className="py-2.5 px-3">Matière</th>
+                        <th className="py-2.5 px-3">Quantité</th>
+                        <th className="py-2.5 px-3 text-right">Coût Unitaire</th>
+                        <th className="py-2.5 px-3 text-right">Coût Total</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                       {(previewBom.inputs || previewBom.composants || []).map((inp, idx) => (
-                        <tr key={idx}>
-                          <td className="p-2.5 font-semibold text-slate-900 dark:text-white">
+                        <tr key={idx} className="divide-x divide-slate-100 dark:divide-slate-800">
+                          <td className="py-2.5 px-3 font-semibold text-slate-900 dark:text-white">
                             {inp.produit_nom}
                           </td>
-                          <td className="p-2.5 text-blue-700 font-bold">
+                          <td className="py-2.5 px-3 text-blue-700 font-bold">
                             {inp.quantite} {inp.unite}
                           </td>
-                          <td className="p-2.5 text-right font-mono">
+                          <td className="py-2.5 px-3 text-right font-mono">
                             {formatCurrency(inp.cout_unitaire)}
                           </td>
-                          <td className="p-2.5 text-right font-mono font-bold text-slate-900 dark:text-white">
+                          <td className="py-2.5 px-3 text-right font-mono font-bold text-slate-900 dark:text-white">
                             {formatCurrency(inp.cout_total)}
                           </td>
                         </tr>
@@ -621,13 +621,13 @@ export function BOMManagementView({
                   Extrants (Produits Finis, Coproduits & Déchets)
                 </h4>
                 <div className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
-                  <table className="w-full text-xs text-left">
-                    <thead className="bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 text-slate-500 font-semibold">
-                      <tr>
-                        <th className="p-2.5">Extrant</th>
-                        <th className="p-2.5">Type</th>
-                        <th className="p-2.5">Quantité</th>
-                        <th className="p-2.5 text-right">% Imputation</th>
+                  <table className="w-full text-xs text-left border-collapse">
+                    <thead>
+                      <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-[11px] uppercase tracking-wider sticky top-0 z-10 shadow-xs">
+                        <th className="py-2.5 px-3">Extrant</th>
+                        <th className="py-2.5 px-3">Type</th>
+                        <th className="py-2.5 px-3">Quantité</th>
+                        <th className="py-2.5 px-3 text-right">% Imputation</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -640,11 +640,11 @@ export function BOMManagementView({
                           pourcentage_repartition: 100,
                         },
                       ]).map((out, idx) => (
-                        <tr key={idx}>
-                          <td className="p-2.5 font-bold text-slate-900 dark:text-white">
+                        <tr key={idx} className="divide-x divide-slate-100 dark:divide-slate-800">
+                          <td className="py-2.5 px-3 font-bold text-slate-900 dark:text-white">
                             {out.produit_nom}
                           </td>
-                          <td className="p-2.5">
+                          <td className="py-2.5 px-3">
                             <span
                               className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
                                 out.est_dechet
@@ -655,10 +655,10 @@ export function BOMManagementView({
                               {out.est_dechet ? 'Déchet / Rebut' : 'Produit Fini'}
                             </span>
                           </td>
-                          <td className="p-2.5 font-bold text-slate-800 dark:text-slate-200">
+                          <td className="py-2.5 px-3 font-bold text-slate-800 dark:text-slate-200">
                             {out.quantite} {out.unite}
                           </td>
-                          <td className="p-2.5 text-right font-mono">
+                          <td className="py-2.5 px-3 text-right font-mono">
                             {out.pourcentage_repartition ?? (out.est_dechet ? 0 : 100)}%
                           </td>
                         </tr>

@@ -402,7 +402,7 @@ export const CreateBonRetourView: React.FC<CreateBonRetourViewProps> = ({
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="bg-slate-900 text-white font-semibold divide-x divide-slate-800">
+                <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-[11px] uppercase tracking-wider sticky top-0 z-10 shadow-xs">
                   <th className="py-2.5 px-3 w-10 text-center">#</th>
                   <th className="py-2.5 px-3 min-w-[240px]">Article Catalogue</th>
                   <th className="py-2.5 px-3 min-w-[200px]">Désignation sur le BR</th>

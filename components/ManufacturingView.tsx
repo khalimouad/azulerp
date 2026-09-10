@@ -317,21 +317,22 @@ export function ManufacturingView({
           </div>
 
           {/* OF Table */}
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
-            <table className="w-full text-left text-sm">
-              <thead>
-                <tr className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 text-xs font-semibold uppercase">
-                  <th className="py-3.5 px-4">N° Ordre</th>
-                  <th className="py-3.5 px-4">Produit à Fabriquer</th>
-                  <th className="py-3.5 px-4">Nomenclature (BOM)</th>
-                  <th className="py-3.5 px-4 text-center">Quantité</th>
-                  <th className="py-3.5 px-4 text-right">Coût Unitaire</th>
-                  <th className="py-3.5 px-4 text-right">Coût Total</th>
-                  <th className="py-3.5 px-4 text-center">Statut</th>
-                  <th className="py-3.5 px-4 text-center">Comptabilité</th>
-                  <th className="py-3.5 px-4 text-center">Actions</th>
-                </tr>
-              </thead>
+          <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-xs">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-[11px] uppercase tracking-wider sticky top-0 z-10 shadow-xs">
+                    <th className="py-2.5 px-3">N° Ordre</th>
+                    <th className="py-2.5 px-3">Produit à Fabriquer</th>
+                    <th className="py-2.5 px-3">Nomenclature (BOM)</th>
+                    <th className="py-2.5 px-3 text-center">Quantité</th>
+                    <th className="py-2.5 px-3 text-right">Coût Unitaire</th>
+                    <th className="py-2.5 px-3 text-right">Coût Total</th>
+                    <th className="py-2.5 px-3 text-center">Statut</th>
+                    <th className="py-2.5 px-3 text-center">Comptabilité</th>
+                    <th className="py-2.5 px-3 text-center">Actions</th>
+                  </tr>
+                </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80">
                 {filteredOrders.length === 0 ? (
                   <tr>
@@ -413,7 +414,8 @@ export function ManufacturingView({
             </table>
           </div>
         </div>
-      )}
+      </div>
+    )}
 
       {/* TAB 2: NOMENCLATURES (BOM) */}
       {currentTab === 'BOM' && (

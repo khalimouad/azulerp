@@ -314,20 +314,21 @@ export function HumanResourcesView({
           </div>
 
           {/* Employees Table */}
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
-            <table className="w-full text-left text-sm">
-              <thead>
-                <tr className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 text-xs font-semibold uppercase">
-                  <th className="py-3.5 px-4">Matricule</th>
-                  <th className="py-3.5 px-4">Collaborateur</th>
-                  <th className="py-3.5 px-4">CIN / N° CNSS</th>
-                  <th className="py-3.5 px-4">Poste & Département</th>
-                  <th className="py-3.5 px-4">Date Embauche</th>
-                  <th className="py-3.5 px-4 text-right">Salaire Base</th>
-                  <th className="py-3.5 px-4 text-center">Régime</th>
-                  <th className="py-3.5 px-4 text-center">Actions</th>
-                </tr>
-              </thead>
+          <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-xs">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-[11px] uppercase tracking-wider sticky top-0 z-10 shadow-xs">
+                    <th className="py-2.5 px-3">Matricule</th>
+                    <th className="py-2.5 px-3">Collaborateur</th>
+                    <th className="py-2.5 px-3">CIN / N° CNSS</th>
+                    <th className="py-2.5 px-3">Poste & Département</th>
+                    <th className="py-2.5 px-3">Date Embauche</th>
+                    <th className="py-2.5 px-3 text-right">Salaire Base</th>
+                    <th className="py-2.5 px-3 text-center">Régime</th>
+                    <th className="py-2.5 px-3 text-center">Actions</th>
+                  </tr>
+                </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80">
                 {filteredEmployees.length === 0 ? (
                   <tr>
@@ -405,7 +406,8 @@ export function HumanResourcesView({
             </table>
           </div>
         </div>
-      )}
+      </div>
+    )}
 
       {/* TAB 2: PAYROLL */}
       {currentTab === 'PAYROLL' && (
@@ -443,21 +445,22 @@ export function HumanResourcesView({
           </div>
 
           {/* Payroll Slips Table */}
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
-            <table className="w-full text-left text-sm">
-              <thead>
-                <tr className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 text-xs font-semibold uppercase">
-                  <th className="py-3.5 px-4">Matricule</th>
-                  <th className="py-3.5 px-4">Salarié</th>
-                  <th className="py-3.5 px-4 text-right">Salaire Brut</th>
-                  <th className="py-3.5 px-4 text-right">CNSS + AMO</th>
-                  <th className="py-3.5 px-4 text-right">IR Net</th>
-                  <th className="py-3.5 px-4 text-right">Net à Payer</th>
-                  <th className="py-3.5 px-4 text-right">Charges Patronales</th>
-                  <th className="py-3.5 px-4 text-center">Comptabilité</th>
-                  <th className="py-3.5 px-4 text-center">Actions</th>
-                </tr>
-              </thead>
+          <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-xs">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-[11px] uppercase tracking-wider sticky top-0 z-10 shadow-xs">
+                    <th className="py-2.5 px-3">Matricule</th>
+                    <th className="py-2.5 px-3">Salarié</th>
+                    <th className="py-2.5 px-3 text-right">Salaire Brut</th>
+                    <th className="py-2.5 px-3 text-right">CNSS + AMO</th>
+                    <th className="py-2.5 px-3 text-right">IR Net</th>
+                    <th className="py-2.5 px-3 text-right">Net à Payer</th>
+                    <th className="py-2.5 px-3 text-right">Charges Patronales</th>
+                    <th className="py-2.5 px-3 text-center">Comptabilité</th>
+                    <th className="py-2.5 px-3 text-center">Actions</th>
+                  </tr>
+                </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80">
                 {currentPayrolls.length === 0 ? (
                   <tr>
@@ -535,7 +538,8 @@ export function HumanResourcesView({
             </table>
           </div>
         </div>
-      )}
+      </div>
+    )}
 
       {/* TAB 3: LEAVES */}
       {currentTab === 'LEAVES' && (
@@ -554,20 +558,21 @@ export function HumanResourcesView({
             </button>
           </div>
 
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
-            <table className="w-full text-left text-sm">
-              <thead>
-                <tr className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 text-xs font-semibold uppercase">
-                  <th className="py-3.5 px-4">Employé</th>
-                  <th className="py-3.5 px-4">Type de Congé</th>
-                  <th className="py-3.5 px-4">Date Début</th>
-                  <th className="py-3.5 px-4">Date Fin</th>
-                  <th className="py-3.5 px-4 text-center">Durée</th>
-                  <th className="py-3.5 px-4">Motif</th>
-                  <th className="py-3.5 px-4 text-center">Statut</th>
-                  <th className="py-3.5 px-4 text-center">Actions</th>
-                </tr>
-              </thead>
+          <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-xs">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-[11px] uppercase tracking-wider sticky top-0 z-10 shadow-xs">
+                    <th className="py-2.5 px-3">Employé</th>
+                    <th className="py-2.5 px-3">Type de Congé</th>
+                    <th className="py-2.5 px-3">Date Début</th>
+                    <th className="py-2.5 px-3">Date Fin</th>
+                    <th className="py-2.5 px-3 text-center">Durée</th>
+                    <th className="py-2.5 px-3">Motif</th>
+                    <th className="py-2.5 px-3 text-center">Statut</th>
+                    <th className="py-2.5 px-3 text-center">Actions</th>
+                  </tr>
+                </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80">
                 {leaves.length === 0 ? (
                   <tr>
@@ -658,7 +663,8 @@ export function HumanResourcesView({
             </table>
           </div>
         </div>
-      )}
+      </div>
+    )}
 
       {/* MODAL: NOUVEAU COLLABORATEUR */}
       {showEmployeeModal && (
