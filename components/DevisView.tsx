@@ -457,13 +457,13 @@ export const DevisView: React.FC<DevisViewProps> = ({
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-[11px] uppercase tracking-wider sticky top-0 z-10">
-                  <th className="py-2.5 px-2.5 text-center w-10">
+                <tr className="bg-slate-50 text-slate-700 font-semibold text-xs divide-x divide-slate-200 border-b border-slate-200 sticky top-0 z-10 shadow-2xs">
+                  <th className="py-2.5 px-2.5 text-center w-10 bg-slate-50 border-r border-slate-200">
                     <input
                       type="checkbox"
                       checked={paginatedDevis.length > 0 && selectedDevisIds.length === paginatedDevis.length}
                       onChange={toggleSelectAll}
-                      className="rounded border-slate-400 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                      className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
                       title="Sélectionner tous les devis affichés"
                     />
                   </th>
@@ -475,31 +475,31 @@ export const DevisView: React.FC<DevisViewProps> = ({
                   <SortableTh label="Total TVA" sortKey="total_tva" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} align="right" className="min-w-[90px]" />
                   <SortableTh label="Total TTC" sortKey="total_ttc" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} align="right" className="min-w-[110px]" />
                   <SortableTh label="Statut" sortKey="statut" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} align="center" className="min-w-[90px]" />
-                  <th className="py-2.5 px-3 text-center min-w-[90px]">Actions</th>
+                  <th className="py-2.5 px-3 text-center min-w-[90px] bg-slate-50 font-semibold text-xs text-slate-700">Actions</th>
                 </tr>
                 {/* Search & quick filter row */}
-                <tr className="bg-slate-800 text-slate-200 divide-x divide-slate-700">
-                  <th className="p-1 text-center">
+                <tr className="bg-slate-50/70 text-slate-600 divide-x divide-slate-200 border-b border-slate-200">
+                  <th className="p-1.5 text-center">
                     <button
                       type="button"
                       onClick={exportSelectedToCsv}
-                      className="text-slate-400 hover:text-white p-0.5"
+                      className="text-slate-400 hover:text-slate-700 p-0.5 cursor-pointer"
                       title="Exporter CSV"
                     >
                       <Download className="w-3.5 h-3.5" />
                     </button>
                   </th>
-                  <th className="p-1" colSpan={4}>
+                  <th className="p-1.5" colSpan={4}>
                     <input
                       type="text"
                       placeholder="Recherche rapide devis (N° devis, client)..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full px-2 py-1 text-[11px] bg-white text-slate-900 rounded border border-slate-300 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      className="w-full px-2 py-1 text-xs bg-white text-slate-800 rounded-lg border border-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500 shadow-2xs"
                     />
                   </th>
-                  <th className="p-1" colSpan={5}>
-                    <div className="flex items-center justify-between text-[11px] text-slate-300 px-2 font-normal">
+                  <th className="p-1.5" colSpan={5}>
+                    <div className="flex items-center justify-between text-xs text-slate-500 px-2 font-normal">
                       <span>{filteredDevis.length} devis trouvés</span>
                       {(searchQuery || filterStartDate || filterEndDate) && (
                         <button
@@ -508,7 +508,7 @@ export const DevisView: React.FC<DevisViewProps> = ({
                             setFilterStartDate('');
                             setFilterEndDate('');
                           }}
-                          className="text-xs text-yellow-300 hover:underline"
+                          className="text-xs text-blue-600 hover:text-blue-800 underline cursor-pointer"
                         >
                           Effacer recherche
                         </button>
@@ -517,7 +517,7 @@ export const DevisView: React.FC<DevisViewProps> = ({
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-200">
+              <tbody className="divide-y divide-slate-200 text-slate-700">
                 {filteredDevis.length === 0 ? (
                   <tr>
                     <td colSpan={10} className="py-12 text-center text-slate-400">
@@ -532,13 +532,13 @@ export const DevisView: React.FC<DevisViewProps> = ({
                       <tr
                         key={devis.id}
                         onClick={() => onViewDevis(devis)}
-                        className={`hover:bg-blue-50/60 transition divide-x divide-slate-100 cursor-pointer ${
+                        className={`transition divide-x divide-slate-200 border-b border-slate-200 cursor-pointer ${
                           isSelected
-                            ? 'bg-blue-50/90 font-medium border-l-4 border-l-blue-600'
-                            : 'even:bg-slate-50/50'
+                            ? 'bg-blue-50/90 font-medium'
+                            : 'bg-white hover:bg-slate-50/80'
                         }`}
                       >
-                        <td className="py-2 px-2.5 text-center" onClick={(e) => e.stopPropagation()}>
+                        <td className="py-2.5 px-2.5 text-center" onClick={(e) => e.stopPropagation()}>
                           <input
                             type="checkbox"
                             checked={isSelected}
@@ -546,8 +546,10 @@ export const DevisView: React.FC<DevisViewProps> = ({
                             className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
                           />
                         </td>
-                        <td className="py-2 px-3 font-mono font-semibold text-slate-900">
-                          {devis.numero}
+                        <td className="py-2.5 px-3 font-mono text-xs">
+                          <span className="text-blue-600 hover:text-blue-800 underline font-medium">
+                            {devis.numero}
+                          </span>
                         </td>
                         <td className="py-2 px-3 text-slate-600 whitespace-nowrap font-mono">
                           {formatDate(devis.date)}
@@ -615,14 +617,14 @@ export const DevisView: React.FC<DevisViewProps> = ({
                 )}
               </tbody>
               <tfoot>
-                <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-xs">
-                  <td colSpan={5} className="py-2.5 px-3 text-right uppercase tracking-wider">
+                <tr className="bg-slate-50 text-slate-900 font-bold divide-x divide-slate-200 border-t-2 border-slate-300 text-xs">
+                  <td colSpan={5} className="py-2.5 px-3 text-right uppercase tracking-wider text-slate-700">
                     Cumul Filtre ({filteredDevis.length} devis) :
                   </td>
                   <td className="py-2.5 px-3 text-right font-mono">{formatCurrency(totals.totalHt, false)}</td>
                   <td className="py-2.5 px-3 text-right font-mono">{formatCurrency(totals.totalTva, false)}</td>
-                  <td className="py-2.5 px-3 text-right font-mono text-emerald-400 bg-slate-950 font-extrabold">{formatCurrency(totals.totalTtc, false)}</td>
-                  <td colSpan={2} className="py-2.5 px-3 text-center text-slate-400">MAD (DH)</td>
+                  <td className="py-2.5 px-3 text-right font-mono text-emerald-700 font-extrabold">{formatCurrency(totals.totalTtc, false)}</td>
+                  <td colSpan={2} className="py-2.5 px-3 text-center text-slate-500">MAD (DH)</td>
                 </tr>
               </tfoot>
             </table>

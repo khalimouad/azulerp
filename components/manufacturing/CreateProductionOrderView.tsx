@@ -395,16 +395,16 @@ export const CreateProductionOrderView: React.FC<CreateProductionOrderViewProps>
               <div className="border border-slate-200 rounded-xl overflow-hidden shadow-xs">
                 <table className="w-full text-left text-xs border-collapse">
                   <thead>
-                    <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-[11px] uppercase tracking-wider sticky top-0 z-10 shadow-xs">
+                    <tr className="bg-slate-50 text-slate-700 font-semibold divide-x divide-slate-200 border-b border-slate-200 text-xs sticky top-0 z-10">
                       <th className="py-2.5 px-3">Composant / Matière</th>
                       <th className="py-2.5 px-3">Quantité Requise</th>
                       <th className="py-2.5 px-3">Stock Actuel</th>
                       <th className="py-2.5 px-3">Disponibilité</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100">
+                  <tbody className="divide-y divide-slate-200">
                     {stockCheck?.alertes.map((item, idx) => (
-                      <tr key={idx} className="hover:bg-slate-50/80">
+                      <tr key={idx} className="hover:bg-blue-50/40 transition divide-x divide-slate-200 border-b border-slate-200">
                         <td className="py-2.5 px-3 font-semibold text-slate-900">
                           {item.produit_nom}
                         </td>

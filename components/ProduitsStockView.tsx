@@ -27,7 +27,11 @@ export const ProduitsStockView: React.FC<ProduitsStockViewProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<'CATALOG' | 'MOUVEMENTS'>('CATALOG');
   const [searchQuery, setSearchQuery] = useState('');
+  const [filterCode, setFilterCode] = useState('');
+  const [filterLibelle, setFilterLibelle] = useState('');
   const [selectedGroupe, setSelectedGroupe] = useState<string>('ALL');
+  const [selectedFamille, setSelectedFamille] = useState<string>('ALL');
+  const [stockStatus, setStockStatus] = useState<'ALL' | 'IN_STOCK' | 'ALERT'>('ALL');
   const [filterAlertsOnly, setFilterAlertsOnly] = useState(false);
 
   // Sorting & Bulk selection states
@@ -53,13 +57,22 @@ export const ProduitsStockView: React.FC<ProduitsStockViewProps> = ({
   // Reset page when filters change
   useEffect(() => {
     setCurrentProdPage(1);
-  }, [searchQuery, selectedGroupe, filterAlertsOnly]);
+  }, [searchQuery, filterCode, filterLibelle, selectedGroupe, selectedFamille, stockStatus, filterAlertsOnly]);
 
   // Unique groups from products
   const groupes = useMemo(() => {
     const set = new Set<string>();
     produits.forEach((p) => {
       if (p.groupe) set.add(p.groupe);
+    });
+    return Array.from(set);
+  }, [produits]);
+
+  // Unique families from products
+  const familles = useMemo(() => {
+    const set = new Set<string>();
+    produits.forEach((p) => {
+      if (p.famille) set.add(p.famille);
     });
     return Array.from(set);
   }, [produits]);
@@ -79,9 +92,14 @@ export const ProduitsStockView: React.FC<ProduitsStockViewProps> = ({
   const filteredProduits = useMemo(() => {
     return produits.filter((p) => {
       if (selectedGroupe !== 'ALL' && p.groupe !== selectedGroupe) return false;
+      if (selectedFamille !== 'ALL' && p.famille !== selectedFamille) return false;
+      if (stockStatus === 'ALERT' && p.stock_actuel > p.stock_min) return false;
+      if (stockStatus === 'IN_STOCK' && p.stock_actuel <= 0) return false;
       if (filterAlertsOnly && p.stock_actuel > p.stock_min) return false;
+      if (filterCode.trim() && !p.code.toLowerCase().includes(filterCode.toLowerCase().trim())) return false;
+      if (filterLibelle.trim() && !p.libelle.toLowerCase().includes(filterLibelle.toLowerCase().trim())) return false;
       if (searchQuery) {
-        const q = searchQuery.toLowerCase();
+        const q = searchQuery.toLowerCase().trim();
         const matchLib = p.libelle.toLowerCase().includes(q);
         const matchCode = p.code.toLowerCase().includes(q);
         const matchFam = p.famille?.toLowerCase().includes(q);
@@ -214,35 +232,62 @@ export const ProduitsStockView: React.FC<ProduitsStockViewProps> = ({
         </div>
       </div>
 
-      {/* Desktop Top Header (hidden sm:flex) */}
-      <div className="hidden sm:flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
-        <div>
-          <h2 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
-            <Package className="w-5 h-5 text-blue-600" />
-            Produits & Gestion des Stocks
-            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
-              {produits.length} articles
-            </span>
-          </h2>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Catalogue articles, tarifs HT, taux TVA (10% et 20%), unités de mesure et inventaire en temps réel
-          </p>
+      {/* Top Header & AeroTrack Sub-Navigation */}
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 shrink-0">
+              <Package className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight flex items-center gap-2">
+                Inventaire & Catalogue Articles
+                <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+                  {produits.length} articles
+                </span>
+              </h2>
+              <p className="text-xs text-slate-500">
+                Gestion d'inventaire, valorisation en temps réel, tarifs HT et traçabilité des stocks
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={onOpenNewProduit}
+              className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg bg-blue-600 hover:bg-blue-700 text-white shadow-xs transition active:scale-95 cursor-pointer"
+            >
+              <Plus className="w-4 h-4" />
+              <span>+ Ajouter un Produit</span>
+            </button>
+          </div>
         </div>
 
+        {/* AeroTrack Sub-Navigation Pills */}
         <div className="flex items-center gap-2">
           <button
-            onClick={() => setActiveTab(activeTab === 'CATALOG' ? 'MOUVEMENTS' : 'CATALOG')}
-            className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition"
+            type="button"
+            onClick={() => setActiveTab('MOUVEMENTS')}
+            className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs transition cursor-pointer ${
+              activeTab === 'MOUVEMENTS'
+                ? 'bg-white border border-slate-300 text-slate-900 shadow-xs font-semibold'
+                : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100 font-medium'
+            }`}
           >
-            <History className="w-3.5 h-3.5" />
-            {activeTab === 'CATALOG' ? 'Historique Mouvements' : 'Catalogue Produits'}
+            <History className="w-3.5 h-3.5 text-slate-400" />
+            <span>Historique des Mouvements</span>
           </button>
           <button
-            onClick={onOpenNewProduit}
-            className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg bg-blue-600 hover:bg-blue-700 text-white shadow-xs transition active:scale-95"
+            type="button"
+            onClick={() => setActiveTab('CATALOG')}
+            className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs transition cursor-pointer ${
+              activeTab === 'CATALOG'
+                ? 'bg-white border border-slate-300 text-slate-900 shadow-xs font-semibold'
+                : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100 font-medium'
+            }`}
           >
-            <Plus className="w-4 h-4" />
-            + Ajouter un Produit
+            <Package className="w-3.5 h-3.5 text-slate-700" />
+            <span>Inventaire en Stock</span>
           </button>
         </div>
       </div>
@@ -250,18 +295,18 @@ export const ProduitsStockView: React.FC<ProduitsStockViewProps> = ({
       {activeTab === 'CATALOG' ? (
         <>
           {/* Global Inventory Valuation & KPIs Bar */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-2.5 bg-white p-2 sm:p-2.5 rounded-lg border border-slate-200 shadow-xs">
-            <div className="p-2 rounded-md bg-slate-50 border border-slate-100">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-2.5 bg-white p-2.5 rounded-xl border border-slate-200 shadow-2xs">
+            <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100">
               <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider block">Articles Référencés</span>
               <span className="text-sm sm:text-base font-bold text-slate-900 mt-0.5 block">{produits.length} références</span>
             </div>
-            <div className="p-2 rounded-md bg-slate-50 border border-slate-100">
+            <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100">
               <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider block">Unités en Stock</span>
               <span className="text-sm sm:text-base font-mono font-bold text-slate-900 mt-0.5 block">
                 {totalStockUnits.toLocaleString('fr-FR', { maximumFractionDigits: 1 })}
               </span>
             </div>
-            <div className="p-2 rounded-md bg-emerald-50/70 border border-emerald-100">
+            <div className="p-2.5 rounded-lg bg-emerald-50/70 border border-emerald-100">
               <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider block flex items-center gap-1">
                 <TrendingUp className="w-3 h-3 text-emerald-600" />
                 Valorisation Stock (Coût Réel)
@@ -270,7 +315,7 @@ export const ProduitsStockView: React.FC<ProduitsStockViewProps> = ({
                 {formatCurrency(totalStockValuation)}
               </span>
             </div>
-            <div className="p-2 rounded-md bg-rose-50/70 border border-rose-100">
+            <div className="p-2.5 rounded-lg bg-rose-50/70 border border-rose-100">
               <span className="text-[10px] font-bold text-rose-800 uppercase tracking-wider block flex items-center gap-1">
                 <AlertTriangle className="w-3 h-3 text-rose-600" />
                 Alertes Rupture / Réappro
@@ -281,57 +326,60 @@ export const ProduitsStockView: React.FC<ProduitsStockViewProps> = ({
             </div>
           </div>
 
-          {/* Group and Filter Bar */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-            {/* Group pills */}
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs no-scrollbar">
-              <button
-                onClick={() => setSelectedGroupe('ALL')}
-                className={`px-3 py-1.5 rounded-lg font-medium transition whitespace-nowrap ${
-                  selectedGroupe === 'ALL'
-                    ? 'bg-slate-900 text-white shadow-xs'
-                    : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
-                }`}
-              >
-                Tous les groupes ({produits.length})
-              </button>
+          {/* AeroTrack Filter Toolbar Row */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 bg-white p-2.5 rounded-xl border border-slate-200 shadow-2xs">
+            <input
+              type="text"
+              placeholder="Code..."
+              value={filterCode}
+              onChange={(e) => setFilterCode(e.target.value)}
+              className="h-9 px-3 text-xs bg-white text-slate-800 rounded-lg border border-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 shadow-2xs"
+            />
+            <input
+              type="text"
+              placeholder="Libellé / Désignation..."
+              value={filterLibelle}
+              onChange={(e) => setFilterLibelle(e.target.value)}
+              className="h-9 px-3 text-xs bg-white text-slate-800 rounded-lg border border-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 shadow-2xs"
+            />
+            <select
+              value={selectedGroupe}
+              onChange={(e) => setSelectedGroupe(e.target.value)}
+              className="h-9 px-2.5 text-xs bg-white text-slate-700 rounded-lg border border-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500 shadow-2xs cursor-pointer"
+            >
+              <option value="ALL">Tous les Groupes</option>
               {groupes.map((grp) => (
-                <button
-                  key={grp}
-                  onClick={() => setSelectedGroupe(grp)}
-                  className={`px-3 py-1.5 rounded-lg font-medium transition whitespace-nowrap ${
-                    selectedGroupe === grp
-                      ? 'bg-blue-600 text-white shadow-xs font-semibold'
-                      : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
-                  }`}
-                >
-                  {grp}
-                </button>
+                <option key={grp} value={grp}>{grp}</option>
               ))}
-              <button
-                onClick={() => setFilterAlertsOnly(!filterAlertsOnly)}
-                className={`px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1.5 whitespace-nowrap ${
-                  filterAlertsOnly
-                    ? 'bg-rose-600 text-white shadow-xs'
-                    : 'bg-white text-rose-700 hover:bg-rose-50 border border-rose-200'
-                }`}
-              >
-                <AlertTriangle className="w-3.5 h-3.5" />
-                Alertes stock bas ({produits.filter((p) => p.stock_actuel <= p.stock_min).length})
-              </button>
-            </div>
-
-            <div className="w-full md:w-64">
-              <div className="relative">
-                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  placeholder="Rechercher produit, code, famille..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 text-xs bg-white text-slate-800 rounded-xl md:rounded-lg border border-slate-200 md:border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-xs"
-                />
-              </div>
+            </select>
+            <select
+              value={selectedFamille}
+              onChange={(e) => setSelectedFamille(e.target.value)}
+              className="h-9 px-2.5 text-xs bg-white text-slate-700 rounded-lg border border-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500 shadow-2xs cursor-pointer"
+            >
+              <option value="ALL">Toutes les Familles</option>
+              {familles.map((fam) => (
+                <option key={fam} value={fam}>{fam}</option>
+              ))}
+            </select>
+            <select
+              value={stockStatus}
+              onChange={(e) => setStockStatus(e.target.value as any)}
+              className="h-9 px-2.5 text-xs bg-white text-slate-700 rounded-lg border border-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500 shadow-2xs cursor-pointer"
+            >
+              <option value="ALL">Tous les États</option>
+              <option value="IN_STOCK">En Stock uniquement</option>
+              <option value="ALERT">Alerte Stock Bas ({produits.filter((p) => p.stock_actuel <= p.stock_min).length})</option>
+            </select>
+            <div className="relative">
+              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <input
+                type="text"
+                placeholder="Recherche globale..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full h-9 pl-8 pr-3 text-xs bg-white text-slate-800 rounded-lg border border-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500 shadow-2xs"
+              />
             </div>
           </div>
 
@@ -482,9 +530,9 @@ export const ProduitsStockView: React.FC<ProduitsStockViewProps> = ({
 
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
-                <thead>
-                  <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-[11px] uppercase tracking-wider sticky top-0 z-10 shadow-xs">
-                    <th className="py-2.5 px-3 text-center w-10">
+                <thead className="sticky top-0 z-10 bg-slate-50 text-slate-700 font-semibold text-xs divide-x divide-slate-200 border-b border-slate-200 select-none shadow-2xs">
+                  <tr>
+                    <th className="py-2.5 px-3 text-center w-10 bg-slate-50 border-r border-slate-200">
                       <input
                         type="checkbox"
                         checked={
@@ -492,7 +540,7 @@ export const ProduitsStockView: React.FC<ProduitsStockViewProps> = ({
                           paginatedProduits.every((p) => selectedProduitIds.includes(p.id))
                         }
                         onChange={toggleSelectAll}
-                        className="rounded border-slate-400 text-blue-600 focus:ring-blue-500 w-3.5 h-3.5 cursor-pointer align-middle"
+                        className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 w-3.5 h-3.5 cursor-pointer align-middle"
                         title="Tout sélectionner / désélectionner sur cette page"
                       />
                     </th>
@@ -506,10 +554,10 @@ export const ProduitsStockView: React.FC<ProduitsStockViewProps> = ({
                     <SortableTh label="Coût Achat" sortKey="prix_achat_ht" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} align="right" width="w-28" />
                     <SortableTh label="Qté Stock" sortKey="stock_actuel" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} align="right" width="w-28" />
                     <SortableTh label="Valorisation HT" sortKey="stock_valeur" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} align="right" width="w-32" />
-                    <th className="py-2.5 px-3 text-center w-24">Actions</th>
+                    <th className="py-2.5 px-3 text-center w-24 bg-slate-50 font-semibold text-xs text-slate-700">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-200">
+                <tbody className="divide-y divide-slate-200 text-slate-700">
                   {filteredProduits.length === 0 ? (
                     <tr>
                       <td colSpan={12} className="py-12 text-center text-slate-400 text-sm">
@@ -525,13 +573,13 @@ export const ProduitsStockView: React.FC<ProduitsStockViewProps> = ({
                       return (
                         <tr
                           key={p.id}
-                          className={`transition-colors divide-x divide-slate-100 ${
+                          className={`transition-colors divide-x divide-slate-200 border-b border-slate-200 ${
                             isSelected
-                              ? 'bg-blue-50/90 font-medium border-l-4 border-l-blue-600'
-                              : 'hover:bg-blue-50/50 even:bg-slate-50/40'
+                              ? 'bg-blue-50/90 font-medium'
+                              : 'bg-white hover:bg-slate-50/80'
                           }`}
                         >
-                          <td className="py-2 px-3 text-center">
+                          <td className="py-2.5 px-3 text-center">
                             <input
                               type="checkbox"
                               checked={isSelected}
@@ -539,24 +587,31 @@ export const ProduitsStockView: React.FC<ProduitsStockViewProps> = ({
                               className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 w-3.5 h-3.5 cursor-pointer align-middle"
                             />
                           </td>
-                          <td className="py-2 px-3 font-mono font-semibold text-slate-800">
-                            {p.code}
+                          <td className="py-2.5 px-3 font-mono text-xs">
+                            <button
+                              type="button"
+                              onClick={() => onOpenEditProduit(p)}
+                              className="text-blue-600 hover:text-blue-800 underline font-medium cursor-pointer transition text-left"
+                              title={`Modifier ${p.libelle}`}
+                            >
+                              {p.code}
+                            </button>
                           </td>
-                          <td className="py-2 px-3 text-slate-900 font-semibold">
+                          <td className="py-2.5 px-3 text-slate-800 font-medium">
                             {p.libelle}
                           </td>
-                          <td className="py-2 px-3 text-slate-600">
+                          <td className="py-2.5 px-3 text-slate-600">
                             <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-700 text-[11px] font-medium">
                               {p.groupe || 'GENERAL'}
                             </span>
                           </td>
-                          <td className="py-2 px-3 text-slate-600">
+                          <td className="py-2.5 px-3 text-slate-600">
                             {p.famille || '-'}
                           </td>
-                          <td className="py-2 px-3 text-center font-bold text-slate-700">
+                          <td className="py-2.5 px-3 text-center font-bold text-slate-700">
                             {p.unite || 'U'}
                           </td>
-                          <td className="py-2 px-3 text-center font-medium text-slate-700">
+                          <td className="py-2.5 px-3 text-center font-medium text-slate-700">
                             <span
                               className={`px-1.5 py-0.5 rounded text-[11px] font-semibold ${
                                 p.taux_tva === 20
@@ -569,13 +624,13 @@ export const ProduitsStockView: React.FC<ProduitsStockViewProps> = ({
                               {p.taux_tva}%
                             </span>
                           </td>
-                          <td className="py-2 px-3 text-right font-mono font-bold text-slate-900">
+                          <td className="py-2.5 px-3 text-right font-mono font-bold text-slate-900">
                             {formatCurrency(p.prix_ht, false)}
                           </td>
-                          <td className="py-2 px-3 text-right font-mono text-amber-700 font-semibold bg-amber-50/30">
+                          <td className="py-2.5 px-3 text-right font-mono text-slate-600">
                             {formatCurrency(p.prix_achat_ht || p.prix_achat || 0, false)}
                           </td>
-                          <td className="py-2 px-3 text-right font-mono font-bold">
+                          <td className="py-2.5 px-3 text-right font-mono font-bold">
                             <span
                               className={`px-2 py-0.5 rounded ${
                                 isLowStock
@@ -586,21 +641,21 @@ export const ProduitsStockView: React.FC<ProduitsStockViewProps> = ({
                               {p.stock_actuel.toLocaleString('fr-FR', { minimumFractionDigits: 2 })}
                             </span>
                           </td>
-                          <td className="py-2 px-3 text-right font-mono font-bold text-emerald-700 bg-emerald-50/30">
+                          <td className="py-2.5 px-3 text-right font-mono font-bold text-emerald-700">
                             {formatCurrency(valHt, false)}
                           </td>
                           <td className="py-1.5 px-2 text-center">
                             <div className="flex items-center justify-center gap-1">
                               <button
                                 onClick={() => onOpenStockAdjust(p)}
-                                className="p-1 hover:bg-slate-200 text-slate-600 hover:text-blue-600 rounded transition"
+                                className="p-1 hover:bg-slate-100 text-slate-500 hover:text-blue-600 rounded transition cursor-pointer"
                                 title="Ajuster le stock / Entrée"
                               >
                                 <Package className="w-3.5 h-3.5" />
                               </button>
                               <button
                                 onClick={() => onOpenEditProduit(p)}
-                                className="p-1 hover:bg-slate-200 text-slate-600 hover:text-indigo-600 rounded transition"
+                                className="p-1 hover:bg-slate-100 text-slate-500 hover:text-indigo-600 rounded transition cursor-pointer"
                                 title="Modifier"
                               >
                                 <Edit className="w-3.5 h-3.5" />
@@ -611,7 +666,7 @@ export const ProduitsStockView: React.FC<ProduitsStockViewProps> = ({
                                     onDeleteProduit(p.id);
                                   }
                                 }}
-                                className="p-1 hover:bg-rose-100 text-slate-400 hover:text-rose-600 rounded transition"
+                                className="p-1 hover:bg-rose-50 text-slate-400 hover:text-rose-600 rounded transition cursor-pointer"
                                 title="Supprimer"
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
@@ -625,16 +680,16 @@ export const ProduitsStockView: React.FC<ProduitsStockViewProps> = ({
                 </tbody>
                 {filteredProduits.length > 0 && (
                   <tfoot>
-                    <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-xs">
-                      <td colSpan={9} className="py-2 px-3 text-right uppercase tracking-wider text-slate-300">
+                    <tr className="bg-slate-50 text-slate-900 font-bold divide-x divide-slate-200 border-t-2 border-slate-300 text-xs">
+                      <td colSpan={9} className="py-2 px-3 text-right uppercase tracking-wider text-slate-700">
                         Total {filteredProduits.length} Articles :
                       </td>
-                      <td className="py-2 px-3 text-right font-mono text-white">
+                      <td className="py-2 px-3 text-right font-mono text-slate-900">
                         {filteredProduits
                           .reduce((acc, p) => acc + (p.stock_actuel || 0), 0)
                           .toLocaleString('fr-FR', { minimumFractionDigits: 2 })}
                       </td>
-                      <td className="py-2 px-3 text-right font-mono text-emerald-300">
+                      <td className="py-2 px-3 text-right font-mono text-emerald-700">
                         {formatCurrency(
                           filteredProduits.reduce(
                             (acc, p) =>
@@ -716,16 +771,17 @@ export const ProduitsStockView: React.FC<ProduitsStockViewProps> = ({
 
           {/* Desktop Movements Table (hidden md:block) */}
           <div className="hidden md:block bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
-            <div className="p-3 bg-slate-900 border-b border-slate-800 flex items-center justify-between text-white">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-200">
+            <div className="p-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between text-slate-800">
+              <h3 className="text-xs font-semibold text-slate-800 flex items-center gap-2">
+                <History className="w-4 h-4 text-slate-500" />
                 Journal des Mouvements de Stock
               </h3>
-              <span className="text-xs text-slate-400 font-mono">{stockMouvements.length} mouvements</span>
+              <span className="text-xs text-slate-500 font-mono">{stockMouvements.length} mouvements</span>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
-                <thead>
-                  <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-[11px] uppercase tracking-wider sticky top-0 z-10 shadow-xs">
+                <thead className="sticky top-0 z-10 bg-slate-50 text-slate-700 font-semibold text-xs divide-x divide-slate-200 border-b border-slate-200 select-none shadow-2xs">
+                  <tr>
                     <th className="py-2.5 px-3">Date</th>
                     <th className="py-2.5 px-3">Produit</th>
                     <th className="py-2.5 px-3 text-center">Type</th>
@@ -735,7 +791,7 @@ export const ProduitsStockView: React.FC<ProduitsStockViewProps> = ({
                     <th className="py-2.5 px-3 text-right">Stock Après</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-200">
+                <tbody className="divide-y divide-slate-200 text-slate-700">
                   {stockMouvements.length === 0 ? (
                     <tr>
                       <td colSpan={7} className="py-12 text-center text-slate-400">
@@ -744,17 +800,17 @@ export const ProduitsStockView: React.FC<ProduitsStockViewProps> = ({
                     </tr>
                   ) : (
                     paginatedMouvements.map((m) => (
-                      <tr key={m.id} className="hover:bg-blue-50/50 transition divide-x divide-slate-100 even:bg-slate-50/40">
-                        <td className="py-2 px-3 font-mono text-slate-600">{formatDate(m.date)}</td>
-                        <td className="py-2 px-3 font-semibold text-slate-900">{m.produit_nom}</td>
-                        <td className="py-2 px-3 text-center">
+                      <tr key={m.id} className="divide-x divide-slate-200 border-b border-slate-200 bg-white hover:bg-slate-50/80 transition">
+                        <td className="py-2.5 px-3 font-mono text-slate-600">{formatDate(m.date)}</td>
+                        <td className="py-2.5 px-3 font-semibold text-slate-900">{m.produit_nom}</td>
+                        <td className="py-2.5 px-3 text-center">
                           <span
                             className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold ${
                               m.type === 'ENTREE'
-                                ? 'bg-emerald-100 text-emerald-800'
+                                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                                 : m.type === 'SORTIE_BL'
-                                ? 'bg-rose-100 text-rose-800'
-                                : 'bg-amber-100 text-amber-800'
+                                ? 'bg-rose-50 text-rose-700 border border-rose-200'
+                                : 'bg-amber-50 text-amber-700 border border-amber-200'
                             }`}
                           >
                             {m.type === 'ENTREE' ? (
@@ -766,15 +822,15 @@ export const ProduitsStockView: React.FC<ProduitsStockViewProps> = ({
                           </span>
                         </td>
                         <td
-                          className={`py-2 px-3 text-right font-mono font-bold ${
+                          className={`py-2.5 px-3 text-right font-mono font-bold ${
                             m.quantite > 0 ? 'text-emerald-700' : 'text-rose-700'
                           }`}
                         >
                           {m.quantite > 0 ? `+${m.quantite}` : m.quantite}
                         </td>
-                        <td className="py-2 px-3 font-mono text-slate-700">{m.reference_doc || '-'}</td>
-                        <td className="py-2 px-3 text-slate-600">{m.motif}</td>
-                        <td className="py-2 px-3 text-right font-mono font-bold text-slate-900">
+                        <td className="py-2.5 px-3 font-mono text-blue-600 font-medium">{m.reference_doc || '-'}</td>
+                        <td className="py-2.5 px-3 text-slate-600">{m.motif}</td>
+                        <td className="py-2.5 px-3 text-right font-mono font-bold text-slate-900">
                           {m.stock_apres}
                         </td>
                       </tr>

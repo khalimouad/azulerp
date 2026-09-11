@@ -2356,7 +2356,7 @@ export const PosView: React.FC<PosViewProps> = ({
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-[11px] uppercase tracking-wider sticky top-0 z-10 shadow-xs">
+                <tr className="bg-slate-50 text-slate-700 font-semibold divide-x divide-slate-200 border-b border-slate-200 text-xs sticky top-0 z-10">
                   <th className="py-2.5 px-3">N° Ticket</th>
                   <th className="py-2.5 px-3">Date & Heure</th>
                   <th className="py-2.5 px-3">Table</th>
@@ -2367,7 +2367,7 @@ export const PosView: React.FC<PosViewProps> = ({
                   <th className="py-2.5 px-3 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-slate-200">
                 {sales
                   .filter(
                     (s) =>
@@ -2376,8 +2376,8 @@ export const PosView: React.FC<PosViewProps> = ({
                       s.table_numero?.toLowerCase().includes(salesSearch.toLowerCase())
                   )
                   .map((sale) => (
-                    <tr key={sale.id} className="hover:bg-slate-50 transition">
-                      <td className="py-2.5 px-3 font-bold text-slate-900">{sale.numero_ticket}</td>
+                    <tr key={sale.id} className="hover:bg-blue-50/40 transition divide-x divide-slate-200 border-b border-slate-200">
+                      <td className="py-2.5 px-3 font-mono font-medium text-blue-600 hover:text-blue-800 underline cursor-pointer" onClick={() => setSelectedSale(sale)}>{sale.numero_ticket}</td>
                       <td className="py-2.5 px-3 text-slate-500">{sale.date_vente}</td>
                       <td className="py-2.5 px-3 font-medium text-slate-800">{sale.table_numero}</td>
                       <td className="py-2.5 px-3 text-slate-600">{sale.nb_couverts}</td>
@@ -2566,7 +2566,7 @@ export const PosView: React.FC<PosViewProps> = ({
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-[11px] uppercase tracking-wider sticky top-0 z-10 shadow-xs">
+                <tr className="bg-slate-50 text-slate-700 font-semibold divide-x divide-slate-200 border-b border-slate-200 text-xs sticky top-0 z-10">
                   <th className="py-2.5 px-3">Session</th>
                   <th className="py-2.5 px-3">Service</th>
                   <th className="py-2.5 px-3">Ouverture</th>
@@ -2578,10 +2578,10 @@ export const PosView: React.FC<PosViewProps> = ({
                   <th className="py-2.5 px-3 text-center">Statut</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-slate-200">
                 {sessions.map((sess) => (
-                  <tr key={sess.id} className="hover:bg-slate-50 transition">
-                    <td className="py-2.5 px-3 font-bold text-slate-900">{sess.numero_session}</td>
+                  <tr key={sess.id} className="hover:bg-blue-50/40 transition divide-x divide-slate-200 border-b border-slate-200">
+                    <td className="py-2.5 px-3 font-mono font-medium text-blue-600">{sess.numero_session}</td>
                     <td className="py-2.5 px-3 text-slate-700">{sess.service}</td>
                     <td className="py-2.5 px-3 text-slate-500">{sess.date_ouverture}</td>
                     <td className="py-2.5 px-3 text-slate-700">{sess.fond_caisse_ouverture.toFixed(2)} DH</td>

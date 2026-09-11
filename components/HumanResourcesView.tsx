@@ -318,7 +318,7 @@ export function HumanResourcesView({
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-[11px] uppercase tracking-wider sticky top-0 z-10 shadow-xs">
+                  <tr className="bg-slate-50 text-slate-700 font-semibold divide-x divide-slate-200 border-b border-slate-200 text-xs sticky top-0 z-10">
                     <th className="py-2.5 px-3">Matricule</th>
                     <th className="py-2.5 px-3">Collaborateur</th>
                     <th className="py-2.5 px-3">CIN / N° CNSS</th>
@@ -329,7 +329,7 @@ export function HumanResourcesView({
                     <th className="py-2.5 px-3 text-center">Actions</th>
                   </tr>
                 </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80">
+              <tbody className="divide-y divide-slate-200">
                 {filteredEmployees.length === 0 ? (
                   <tr>
                     <td colSpan={8} className="py-10 text-center text-slate-400">
@@ -338,8 +338,8 @@ export function HumanResourcesView({
                   </tr>
                 ) : (
                   filteredEmployees.map(emp => (
-                    <tr key={emp.id || emp.matricule} className="hover:bg-slate-50/70 dark:hover:bg-slate-800/40">
-                      <td className="py-3.5 px-4 font-mono font-bold text-teal-600 dark:text-teal-400 text-xs">
+                    <tr key={emp.id || emp.matricule} className="hover:bg-blue-50/40 transition divide-x divide-slate-200 border-b border-slate-200">
+                      <td className="py-2.5 px-3 font-mono font-medium text-blue-600 hover:text-blue-800 underline cursor-pointer text-xs" onClick={() => onEditEmployee && onEditEmployee(emp)}>
                         {emp.matricule}
                       </td>
                       <td className="py-3.5 px-4">
@@ -449,7 +449,7 @@ export function HumanResourcesView({
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-[11px] uppercase tracking-wider sticky top-0 z-10 shadow-xs">
+                  <tr className="bg-slate-50 text-slate-700 font-semibold divide-x divide-slate-200 border-b border-slate-200 text-xs sticky top-0 z-10">
                     <th className="py-2.5 px-3">Matricule</th>
                     <th className="py-2.5 px-3">Salarié</th>
                     <th className="py-2.5 px-3 text-right">Salaire Brut</th>
@@ -461,7 +461,7 @@ export function HumanResourcesView({
                     <th className="py-2.5 px-3 text-center">Actions</th>
                   </tr>
                 </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80">
+              <tbody className="divide-y divide-slate-200">
                 {currentPayrolls.length === 0 ? (
                   <tr>
                     <td colSpan={9} className="py-12 text-center text-slate-400">
@@ -472,8 +472,8 @@ export function HumanResourcesView({
                   </tr>
                 ) : (
                   currentPayrolls.map(slip => (
-                    <tr key={slip.id || slip.matricule} className="hover:bg-slate-50/70 dark:hover:bg-slate-800/40">
-                      <td className="py-3.5 px-4 font-mono font-bold text-teal-600 dark:text-teal-400 text-xs">
+                    <tr key={slip.id || slip.matricule} className="hover:bg-blue-50/40 transition divide-x divide-slate-200 border-b border-slate-200">
+                      <td className="py-2.5 px-3 font-mono font-medium text-blue-600 text-xs">
                         {slip.matricule}
                       </td>
                       <td className="py-3.5 px-4 font-bold text-slate-900 dark:text-white">
@@ -562,7 +562,7 @@ export function HumanResourcesView({
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-[11px] uppercase tracking-wider sticky top-0 z-10 shadow-xs">
+                  <tr className="bg-slate-50 text-slate-700 font-semibold divide-x divide-slate-200 border-b border-slate-200 text-xs sticky top-0 z-10">
                     <th className="py-2.5 px-3">Employé</th>
                     <th className="py-2.5 px-3">Type de Congé</th>
                     <th className="py-2.5 px-3">Date Début</th>
@@ -573,7 +573,7 @@ export function HumanResourcesView({
                     <th className="py-2.5 px-3 text-center">Actions</th>
                   </tr>
                 </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80">
+              <tbody className="divide-y divide-slate-200">
                 {leaves.length === 0 ? (
                   <tr>
                     <td colSpan={8} className="py-8 text-center text-slate-400">
@@ -582,7 +582,7 @@ export function HumanResourcesView({
                   </tr>
                 ) : (
                   leaves.map(l => (
-                    <tr key={l.id}>
+                    <tr key={l.id} className="hover:bg-blue-50/40 transition divide-x divide-slate-200 border-b border-slate-200">
                       <td className="py-3 px-4 font-bold text-slate-900 dark:text-white">{l.employee_name}</td>
                       <td className="py-3 px-4 capitalize">{l.type}</td>
                       <td className="py-3 px-4">{formatDate(l.date_debut)}</td>

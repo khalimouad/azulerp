@@ -256,7 +256,7 @@ export const CreateFactureModal: React.FC<CreateFactureModalProps> = ({
             <div className="border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-[11px] uppercase tracking-wider sticky top-0 z-10 shadow-xs">
+                  <tr className="bg-slate-50 text-slate-700 font-semibold divide-x divide-slate-200 border-b border-slate-200 text-xs sticky top-0 z-10">
                     <th className="py-2.5 px-3 min-w-[200px]">Article</th>
                     <th className="py-2.5 px-3 text-right min-w-[80px]">Quantité</th>
                     <th className="py-2.5 px-3 text-right min-w-[90px]">P.U. HT</th>
@@ -267,7 +267,7 @@ export const CreateFactureModal: React.FC<CreateFactureModalProps> = ({
                 </thead>
                 <tbody className="divide-y divide-slate-200">
                   {lignes.map((line, idx) => (
-                    <tr key={idx} className="divide-x divide-slate-100 bg-white">
+                    <tr key={idx} className="divide-x divide-slate-200 border-b border-slate-200 bg-white hover:bg-blue-50/30">
                       <td className="p-1.5">
                         <ProductSearchSelect
                           products={sortedProduits}

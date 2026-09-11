@@ -456,7 +456,7 @@ export const ReglementsView: React.FC<ReglementsViewProps> = ({
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs border-collapse">
             <thead>
-              <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-[11px] uppercase tracking-wider sticky top-0 z-10 shadow-xs">
+              <tr className="bg-slate-50 text-slate-700 font-semibold divide-x divide-slate-200 border-b border-slate-200 text-xs sticky top-0 z-10">
                 <th className="py-2.5 px-3 text-center w-10">
                   <input
                     type="checkbox"
@@ -505,10 +505,10 @@ export const ReglementsView: React.FC<ReglementsViewProps> = ({
                       tabIndex={0}
                       role="button"
                       title="Ouvrir la fiche de cet encaissement"
-                      className={`cursor-pointer transition-colors focus:outline-none divide-x divide-slate-100 ${
+                      className={`cursor-pointer transition-colors focus:outline-none divide-x divide-slate-200 border-b border-slate-200 ${
                         isSelected
-                          ? 'bg-blue-50/90 font-medium border-l-4 border-l-emerald-600'
-                          : 'hover:bg-emerald-50/40 even:bg-slate-50/40'
+                          ? 'bg-blue-50/90 font-medium'
+                          : 'hover:bg-blue-50/40 even:bg-slate-50/30'
                       }`}
                     >
                       <td className="py-2 px-3 text-center" onClick={(e) => e.stopPropagation()}>
@@ -521,7 +521,7 @@ export const ReglementsView: React.FC<ReglementsViewProps> = ({
                       </td>
                       <td className="py-2 px-3 text-slate-600 font-mono whitespace-nowrap">{formatDate(r.date)}</td>
                       <td className="py-2 px-3 font-semibold text-slate-900">{r.client_nom}</td>
-                      <td className="py-2 px-3 font-mono text-blue-700 font-medium">
+                      <td className="py-2 px-3 font-mono text-blue-600 hover:text-blue-800 underline font-medium">
                         {r.facture_numero || r.piece_numero || 'Règlement compte client'}
                       </td>
                       <td className="py-2 px-3 text-right font-mono font-bold text-emerald-700">
@@ -567,11 +567,11 @@ export const ReglementsView: React.FC<ReglementsViewProps> = ({
               )}
             </tbody>
             <tfoot>
-              <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-xs">
-                <td colSpan={4} className="py-2.5 px-3 text-right uppercase tracking-wider text-slate-300">
+              <tr className="bg-slate-50 text-slate-900 font-bold divide-x divide-slate-200 border-t-2 border-slate-300 text-xs">
+                <td colSpan={4} className="py-2.5 px-3 text-right uppercase tracking-wider text-slate-700">
                   Total Général Règlements :
                 </td>
-                <td className="py-2.5 px-3 text-right font-mono text-emerald-300">
+                <td className="py-2.5 px-3 text-right font-mono text-emerald-700">
                   {formatCurrency(totalEncaisse)}
                 </td>
                 <td colSpan={3} className="py-2.5 px-3" />

@@ -487,7 +487,7 @@ export function AccountingView({
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-[11px] uppercase tracking-wider sticky top-0 z-10 shadow-xs">
+                  <tr className="bg-slate-50 text-slate-700 font-semibold divide-x divide-slate-200 border-b border-slate-200 text-xs sticky top-0 z-10">
                     <th className="py-2.5 px-3">Date</th>
                     <th className="py-2.5 px-3">Journal</th>
                     <th className="py-2.5 px-3">N° Pièce / Réf</th>
@@ -498,7 +498,7 @@ export function AccountingView({
                     <th className="py-2.5 px-3 text-center">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80">
+                <tbody className="divide-y divide-slate-200">
                   {filteredEntries.length === 0 ? (
                     <tr>
                       <td colSpan={8} className="py-12 text-center text-slate-400">
@@ -509,21 +509,24 @@ export function AccountingView({
                     </tr>
                   ) : (
                     filteredEntries.map(entry => (
-                      <tr key={entry.id || entry.numero} className="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition">
-                        <td className="py-3.5 px-4 text-xs font-medium text-slate-600 dark:text-slate-400 whitespace-nowrap">
+                      <tr key={entry.id || entry.numero} className="hover:bg-blue-50/40 transition divide-x divide-slate-200 border-b border-slate-200">
+                        <td className="py-2.5 px-3 text-xs font-medium text-slate-600 whitespace-nowrap">
                           {formatDate(entry.date)}
                         </td>
-                        <td className="py-3.5 px-4">
-                          <span className="px-2.5 py-1 text-xs font-bold rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800">
+                        <td className="py-2.5 px-3">
+                          <span className="px-2 py-0.5 text-xs font-bold rounded bg-slate-100 text-slate-700">
                             {entry.journal_code}
                           </span>
                         </td>
-                        <td className="py-3.5 px-4 whitespace-nowrap">
-                          <span className="font-mono text-xs font-semibold text-slate-900 dark:text-white">
+                        <td className="py-2.5 px-3 whitespace-nowrap">
+                          <span
+                            onClick={() => onEditEntry && onEditEntry(entry)}
+                            className="font-mono text-xs font-medium text-blue-600 hover:text-blue-800 underline cursor-pointer"
+                          >
                             {entry.numero}
                           </span>
                           {entry.reference && (
-                            <span className="block text-xs text-slate-400 font-mono">
+                            <span className="block text-[11px] text-slate-400 font-mono">
                               Réf: {entry.reference}
                             </span>
                           )}
@@ -641,10 +644,10 @@ export function AccountingView({
             </div>
           </div>
 
-          <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-xs">
+          <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-xs">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-[11px] uppercase tracking-wider sticky top-0 z-10 shadow-xs">
+                <tr className="bg-slate-50 text-slate-700 font-semibold divide-x divide-slate-200 border-b border-slate-200 text-xs sticky top-0 z-10">
                   <th className="py-2.5 px-3 w-28">N° Compte</th>
                   <th className="py-2.5 px-3">Intitulé Officiel (Français)</th>
                   <th className="py-2.5 px-3 text-right font-arabic">الاسم المحاسبي (العربية)</th>
@@ -652,10 +655,10 @@ export function AccountingView({
                   <th className="py-2.5 px-3">Type</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80">
+              <tbody className="divide-y divide-slate-200">
                 {filteredAccounts.map(acc => (
-                  <tr key={acc.code} className="hover:bg-slate-50/70 dark:hover:bg-slate-800/40">
-                    <td className="py-3 px-4 font-mono font-bold text-indigo-600 dark:text-indigo-400">
+                  <tr key={acc.code} className="hover:bg-blue-50/40 transition divide-x divide-slate-200 border-b border-slate-200">
+                    <td className="py-2.5 px-3 font-mono font-medium text-blue-600">
                       {acc.code}
                     </td>
                     <td className="py-3 px-4 font-medium text-slate-900 dark:text-white">
@@ -699,10 +702,10 @@ export function AccountingView({
             </button>
           </div>
 
-          <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-xs">
+          <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-xs">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-[11px] uppercase tracking-wider sticky top-0 z-10 shadow-xs">
+                <tr className="bg-slate-50 text-slate-700 font-semibold divide-x divide-slate-200 border-b border-slate-200 text-xs sticky top-0 z-10">
                   <th className="py-2.5 px-3 w-28">N° Compte</th>
                   <th className="py-2.5 px-3">Intitulé du Compte</th>
                   <th className="py-2.5 px-3 text-right">Cumul Débit</th>
@@ -711,45 +714,45 @@ export function AccountingView({
                   <th className="py-2.5 px-3 text-right">Solde Créditeur</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80">
+              <tbody className="divide-y divide-slate-200">
                 {balanceList.map(b => (
-                  <tr key={b.code} className="hover:bg-slate-50/70 dark:hover:bg-slate-800/40">
-                    <td className="py-3 px-4 font-mono font-bold text-indigo-600 dark:text-indigo-400">
+                  <tr key={b.code} className="hover:bg-blue-50/40 transition divide-x divide-slate-200 border-b border-slate-200">
+                    <td className="py-2.5 px-3 font-mono font-medium text-blue-600">
                       {b.code}
                     </td>
-                    <td className="py-3 px-4 font-medium text-slate-900 dark:text-white">
+                    <td className="py-2.5 px-3 font-medium text-slate-900">
                       {b.libelle}
                     </td>
-                    <td className="py-3 px-4 text-right font-mono text-slate-900 dark:text-white">
+                    <td className="py-2.5 px-3 text-right font-mono text-slate-900">
                       {b.total_debit > 0 ? formatCurrency(b.total_debit) : '-'}
                     </td>
-                    <td className="py-3 px-4 text-right font-mono text-slate-900 dark:text-white">
+                    <td className="py-2.5 px-3 text-right font-mono text-slate-900">
                       {b.total_credit > 0 ? formatCurrency(b.total_credit) : '-'}
                     </td>
-                    <td className="py-3 px-4 text-right font-mono font-bold text-emerald-600 dark:text-emerald-400">
+                    <td className="py-2.5 px-3 text-right font-mono font-bold text-emerald-700">
                       {b.solde_debit > 0 ? formatCurrency(b.solde_debit) : '-'}
                     </td>
-                    <td className="py-3 px-4 text-right font-mono font-bold text-indigo-600 dark:text-indigo-400">
+                    <td className="py-2.5 px-3 text-right font-mono font-bold text-blue-700">
                       {b.solde_credit > 0 ? formatCurrency(b.solde_credit) : '-'}
                     </td>
                   </tr>
                 ))}
               </tbody>
               <tfoot>
-                <tr className="bg-slate-100 dark:bg-slate-800/80 font-bold text-sm border-t-2 border-slate-300 dark:border-slate-700">
-                  <td colSpan={2} className="py-3.5 px-4 uppercase text-slate-700 dark:text-slate-300">
+                <tr className="bg-slate-50 font-bold text-xs divide-x divide-slate-200 border-t-2 border-slate-300">
+                  <td colSpan={2} className="py-2.5 px-3 uppercase text-slate-800">
                     TOTAUX GÉNÉRAUX DE LA BALANCE
                   </td>
-                  <td className="py-3.5 px-4 text-right font-mono text-slate-900 dark:text-white">
+                  <td className="py-2.5 px-3 text-right font-mono text-slate-900">
                     {formatCurrency(balanceList.reduce((s, b) => s + b.total_debit, 0))}
                   </td>
-                  <td className="py-3.5 px-4 text-right font-mono text-slate-900 dark:text-white">
+                  <td className="py-2.5 px-3 text-right font-mono text-slate-900">
                     {formatCurrency(balanceList.reduce((s, b) => s + b.total_credit, 0))}
                   </td>
-                  <td className="py-3.5 px-4 text-right font-mono text-emerald-600 dark:text-emerald-400">
+                  <td className="py-2.5 px-3 text-right font-mono text-emerald-700">
                     {formatCurrency(balanceList.reduce((s, b) => s + b.solde_debit, 0))}
                   </td>
-                  <td className="py-3.5 px-4 text-right font-mono text-indigo-600 dark:text-indigo-400">
+                  <td className="py-2.5 px-3 text-right font-mono text-blue-700">
                     {formatCurrency(balanceList.reduce((s, b) => s + b.solde_credit, 0))}
                   </td>
                 </tr>
@@ -1002,10 +1005,10 @@ export function AccountingView({
             </button>
           </div>
 
-          <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-xs">
+          <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-xs">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-[11px] uppercase tracking-wider sticky top-0 z-10 shadow-xs">
+                <tr className="bg-slate-50 text-slate-700 font-semibold divide-x divide-slate-200 border-b border-slate-200 text-xs sticky top-0 z-10">
                   <th className="py-2.5 px-3">Code</th>
                   <th className="py-2.5 px-3">Désignation</th>
                   <th className="py-2.5 px-3">Date Acq.</th>
@@ -1017,7 +1020,7 @@ export function AccountingView({
                   <th className="py-2.5 px-3 text-center">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80">
+              <tbody className="divide-y divide-slate-200">
                 {assets.length === 0 ? (
                   <tr>
                     <td colSpan={9} className="py-8 text-center text-slate-400">
@@ -1026,8 +1029,11 @@ export function AccountingView({
                   </tr>
                 ) : (
                   assets.map(asset => (
-                    <tr key={asset.id || asset.code} className="hover:bg-slate-50/70 dark:hover:bg-slate-800/40">
-                      <td className="py-3 px-4 font-mono font-bold text-indigo-600 dark:text-indigo-400">
+                    <tr key={asset.id || asset.code} className="hover:bg-blue-50/40 transition divide-x divide-slate-200 border-b border-slate-200">
+                      <td
+                        className="py-2.5 px-3 font-mono font-medium text-blue-600 hover:text-blue-800 underline cursor-pointer"
+                        onClick={() => onEditAsset && onEditAsset(asset)}
+                      >
                         {asset.code}
                       </td>
                       <td className="py-3 px-4 font-medium text-slate-900 dark:text-white">
@@ -1415,7 +1421,7 @@ export function AccountingView({
 
             <div className="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden">
               <table className="w-full text-left text-xs">
-                <thead className="bg-slate-50 dark:bg-slate-800 text-slate-500 uppercase font-semibold">
+                <thead className="bg-slate-50 text-slate-700 uppercase font-semibold text-xs border-b border-slate-200 divide-x divide-slate-200">
                   <tr>
                     <th className="p-2.5">Compte</th>
                     <th className="p-2.5">Libellé du compte</th>
@@ -1423,10 +1429,10 @@ export function AccountingView({
                     <th className="p-2.5 text-right">Crédit</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                <tbody className="divide-y divide-slate-200 divide-x divide-slate-100 bg-white">
                   {viewingEntry.lines?.map((line, i) => (
-                    <tr key={i}>
-                      <td className="p-2.5 font-mono font-bold text-indigo-600">{line.compte_code || line.account_code}</td>
+                    <tr key={i} className="hover:bg-slate-50/80">
+                      <td className="p-2.5 font-mono font-bold text-blue-600">{line.compte_code || line.account_code}</td>
                       <td className="p-2.5">{line.compte_libelle || line.account_label}</td>
                       <td className="p-2.5 text-right font-mono font-bold">{line.debit > 0 ? formatCurrency(line.debit) : '-'}</td>
                       <td className="p-2.5 text-right font-mono font-bold">{line.credit > 0 ? formatCurrency(line.credit) : '-'}</td>

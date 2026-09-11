@@ -886,7 +886,7 @@ export const EtatsRapportsView: React.FC<EtatsRapportsViewProps> = ({
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-[11px] uppercase tracking-wider sticky top-0 z-10 shadow-xs">
+                  <tr className="bg-slate-50 text-slate-700 font-semibold divide-x divide-slate-200 border-b border-slate-200 text-xs sticky top-0 z-10">
                     <th className="py-2.5 px-3 whitespace-nowrap">N° Facture</th>
                     <th className="py-2.5 px-3 whitespace-nowrap">Date Facture</th>
                     <th className="py-2.5 px-3 whitespace-nowrap">Client / Customer</th>
@@ -908,8 +908,8 @@ export const EtatsRapportsView: React.FC<EtatsRapportsViewProps> = ({
                     </tr>
                   ) : (
                     paginatedAccountantLines.map((line) => (
-                      <tr key={line.id} className="hover:bg-slate-50/80 transition">
-                        <td className="p-3 font-mono font-bold text-slate-900 whitespace-nowrap">
+                      <tr key={line.id} className="hover:bg-blue-50/40 transition divide-x divide-slate-200 border-b border-slate-200">
+                        <td className="p-3 font-mono font-medium text-blue-600 hover:text-blue-800 underline cursor-pointer whitespace-nowrap">
                           {line.facture_numero}
                         </td>
                         <td className="p-3 text-slate-600 whitespace-nowrap font-mono">
@@ -958,22 +958,22 @@ export const EtatsRapportsView: React.FC<EtatsRapportsViewProps> = ({
                 </tbody>
                 {accountantLines.length > 0 && (
                   <tfoot>
-                    <tr className="bg-slate-900 text-white font-bold">
-                      <td colSpan={4} className="p-3 text-right uppercase text-[11px]">
+                    <tr className="bg-slate-50 text-slate-900 font-bold divide-x divide-slate-200 border-t-2 border-slate-300">
+                      <td colSpan={4} className="p-3 text-right uppercase text-[11px] text-slate-700">
                         Totaux Lignes Comptables ({accountantLines.length} lignes) :
                       </td>
-                      <td className="p-3 text-right font-mono text-slate-300">-</td>
-                      <td className="p-3 text-right font-mono text-slate-200">
+                      <td className="p-3 text-right font-mono text-slate-400">-</td>
+                      <td className="p-3 text-right font-mono text-slate-700">
                         {comptableTotals.quantite_totale.toLocaleString('fr-FR')}
                       </td>
                       <td className="p-3 text-right font-mono">
                         {formatCurrency(comptableTotals.total_ht)}
                       </td>
-                      <td className="p-3 text-center text-slate-300">-</td>
-                      <td className="p-3 text-right font-mono text-indigo-300">
+                      <td className="p-3 text-center text-slate-400">-</td>
+                      <td className="p-3 text-right font-mono text-blue-700">
                         {formatCurrency(comptableTotals.total_tva)}
                       </td>
-                      <td className="p-3 text-right font-mono text-emerald-300">
+                      <td className="p-3 text-right font-mono text-slate-900 font-extrabold">
                         {formatCurrency(comptableTotals.total_ttc)}
                       </td>
                     </tr>
@@ -1187,7 +1187,7 @@ export const EtatsRapportsView: React.FC<EtatsRapportsViewProps> = ({
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-[11px] uppercase tracking-wider sticky top-0 z-10 shadow-xs">
+                  <tr className="bg-slate-50 text-slate-700 font-semibold divide-x divide-slate-200 border-b border-slate-200 text-xs sticky top-0 z-10">
                     <th className="py-2.5 px-3">N° BL</th>
                     <th className="py-2.5 px-3">Date</th>
                     <th className="py-2.5 px-3">Client / Raison Sociale</th>
@@ -1210,8 +1210,13 @@ export const EtatsRapportsView: React.FC<EtatsRapportsViewProps> = ({
                     paginatedBls.map((bl) => {
                       const isFacture = bl.statut === 'Facturé';
                       return (
-                        <tr key={bl.id} className="hover:bg-slate-50/80 transition">
-                          <td className="p-3 font-mono font-bold text-slate-900">{bl.numero}</td>
+                        <tr key={bl.id} className="hover:bg-blue-50/40 transition divide-x divide-slate-200 border-b border-slate-200">
+                          <td
+                            className="p-3 font-mono font-medium text-blue-600 hover:text-blue-800 underline cursor-pointer"
+                            onClick={() => onViewBl && onViewBl(bl)}
+                          >
+                            {bl.numero}
+                          </td>
                           <td className="p-3 text-slate-600">{formatDate(bl.date)}</td>
                           <td className="p-3 font-medium text-slate-900">{bl.client_nom}</td>
                           <td className="p-3 font-mono text-slate-500">{bl.client_ice || '-'}</td>
@@ -1280,14 +1285,14 @@ export const EtatsRapportsView: React.FC<EtatsRapportsViewProps> = ({
                 </tbody>
                 {filteredBonsLivraison.length > 0 && (
                   <tfoot>
-                    <tr className="bg-slate-900 text-white font-bold">
-                      <td colSpan={5} className="p-3 text-right uppercase text-[11px]">
+                    <tr className="bg-slate-50 text-slate-900 font-bold divide-x divide-slate-200 border-t-2 border-slate-300">
+                      <td colSpan={5} className="p-3 text-right uppercase text-[11px] text-slate-700">
                         Total des {filteredBonsLivraison.length} Bons de Livraison :
                       </td>
                       <td className="p-3 text-right font-mono">
                         {formatCurrency(filteredBonsLivraison.reduce((s, bl) => s + toNumeric(bl.total_ht), 0))}
                       </td>
-                      <td className="p-3 text-right font-mono text-emerald-400">
+                      <td className="p-3 text-right font-mono text-emerald-700">
                         {formatCurrency(filteredBonsLivraison.reduce((s, bl) => s + toNumeric(bl.total_ttc), 0))}
                       </td>
                       <td colSpan={2}></td>
@@ -1365,7 +1370,7 @@ export const EtatsRapportsView: React.FC<EtatsRapportsViewProps> = ({
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-[11px] uppercase tracking-wider sticky top-0 z-10 shadow-xs">
+                  <tr className="bg-slate-50 text-slate-700 font-semibold divide-x divide-slate-200 border-b border-slate-200 text-xs sticky top-0 z-10">
                     <th className="py-2.5 px-3">N° Facture</th>
                     <th className="py-2.5 px-3">Date</th>
                     <th className="py-2.5 px-3">Client</th>
@@ -1387,8 +1392,8 @@ export const EtatsRapportsView: React.FC<EtatsRapportsViewProps> = ({
                     </tr>
                   ) : (
                     paginatedFactures.map((f) => (
-                      <tr key={f.id} className="hover:bg-slate-50/80 transition">
-                        <td className="p-3 font-mono font-bold text-slate-900">{f.numero}</td>
+                      <tr key={f.id} className="hover:bg-blue-50/40 transition divide-x divide-slate-200 border-b border-slate-200">
+                        <td className="p-3 font-mono font-medium text-blue-600 hover:text-blue-800 underline cursor-pointer">{f.numero}</td>
                         <td className="p-3 text-slate-600">{formatDate(f.date)}</td>
                         <td className="p-3 font-medium text-slate-900">{f.client_nom}</td>
                         <td className="p-3 text-right font-mono">{formatCurrency(f.total_ht)}</td>
@@ -1404,17 +1409,17 @@ export const EtatsRapportsView: React.FC<EtatsRapportsViewProps> = ({
                 </tbody>
                 {filteredFactures.length > 0 && (
                   <tfoot>
-                    <tr className="bg-slate-900 text-white font-bold">
+                    <tr className="bg-slate-50 text-slate-900 font-bold divide-x divide-slate-200 border-t-2 border-slate-300">
                       <td colSpan={3} className="p-3 text-right uppercase text-[11px]">
                         Totaux Période ({filteredFactures.length} Factures) :
                       </td>
                       <td className="p-3 text-right font-mono">{formatCurrency(factureTotals.ht)}</td>
                       <td className="p-3 text-right font-mono">{formatCurrency(factureTotals.tva20)}</td>
                       <td className="p-3 text-right font-mono">{formatCurrency(factureTotals.tva10)}</td>
-                      <td className="p-3 text-right font-mono text-blue-300">{formatCurrency(factureTotals.tva)}</td>
-                      <td className="p-3 text-right font-mono text-emerald-300">{formatCurrency(factureTotals.ttc)}</td>
-                      <td className="p-3 text-right font-mono">{formatCurrency(factureTotals.regle)}</td>
-                      <td className="p-3 text-right font-mono text-red-400">{formatCurrency(factureTotals.reste)}</td>
+                      <td className="p-3 text-right font-mono text-blue-700">{formatCurrency(factureTotals.tva)}</td>
+                      <td className="p-3 text-right font-mono text-slate-900">{formatCurrency(factureTotals.ttc)}</td>
+                      <td className="p-3 text-right font-mono text-emerald-700">{formatCurrency(factureTotals.regle)}</td>
+                      <td className="p-3 text-right font-mono text-red-600">{formatCurrency(factureTotals.reste)}</td>
                     </tr>
                   </tfoot>
                 )}
@@ -1453,7 +1458,7 @@ export const EtatsRapportsView: React.FC<EtatsRapportsViewProps> = ({
           <div className="overflow-x-auto border border-slate-200 rounded-xl">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-[11px] uppercase tracking-wider sticky top-0 z-10 shadow-xs">
+                <tr className="bg-slate-50 text-slate-700 font-semibold divide-x divide-slate-200 border-b border-slate-200 text-xs sticky top-0 z-10">
                   <th className="py-2.5 px-3">Taux de Taxe Applicable</th>
                   <th className="py-2.5 px-3 text-right">Base Imposable HT (DH)</th>
                   <th className="py-2.5 px-3 text-right">Montant Taxe Exigible (DH)</th>
@@ -1461,7 +1466,7 @@ export const EtatsRapportsView: React.FC<EtatsRapportsViewProps> = ({
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
-                <tr>
+                <tr className="hover:bg-blue-50/40 transition divide-x divide-slate-200 border-b border-slate-200">
                   <td className="p-3 font-semibold text-slate-900">TVA au Taux Normal (20%)</td>
                   <td className="p-3 text-right font-mono font-bold">
                     {formatCurrency(taxBreakdown.get(20)?.baseHt || 0)}
@@ -1473,7 +1478,7 @@ export const EtatsRapportsView: React.FC<EtatsRapportsViewProps> = ({
                     {formatCurrency(taxBreakdown.get(20)?.ttc || 0)}
                   </td>
                 </tr>
-                <tr>
+                <tr className="hover:bg-blue-50/40 transition divide-x divide-slate-200 border-b border-slate-200">
                   <td className="p-3 font-semibold text-slate-900">TVA au Taux Intermédiaire (10%)</td>
                   <td className="p-3 text-right font-mono font-bold">
                     {formatCurrency(taxBreakdown.get(10)?.baseHt || 0)}
@@ -1487,13 +1492,13 @@ export const EtatsRapportsView: React.FC<EtatsRapportsViewProps> = ({
                 </tr>
               </tbody>
               <tfoot>
-                <tr className="bg-slate-900 text-white font-bold">
+                <tr className="bg-slate-50 text-slate-900 font-bold divide-x divide-slate-200 border-t-2 border-slate-300">
                   <td className="p-3 uppercase text-[11px]">Total TVA Collectée (Exigibilité Facturation)</td>
                   <td className="p-3 text-right font-mono">{formatCurrency(factureTotals.ht)}</td>
-                  <td className="p-3 text-right font-mono text-blue-300 text-sm">
+                  <td className="p-3 text-right font-mono text-blue-700 text-sm">
                     {formatCurrency(factureTotals.tva)}
                   </td>
-                  <td className="p-3 text-right font-mono text-emerald-300">{formatCurrency(factureTotals.ttc)}</td>
+                  <td className="p-3 text-right font-mono text-slate-900">{formatCurrency(factureTotals.ttc)}</td>
                 </tr>
               </tfoot>
             </table>
@@ -1515,7 +1520,7 @@ export const EtatsRapportsView: React.FC<EtatsRapportsViewProps> = ({
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-[11px] uppercase tracking-wider sticky top-0 z-10 shadow-xs">
+                <tr className="bg-slate-50 text-slate-700 font-semibold divide-x divide-slate-200 border-b border-slate-200 text-xs sticky top-0 z-10">
                   <th className="py-2.5 px-3">Code</th>
                   <th className="py-2.5 px-3">Client / Raison Sociale</th>
                   <th className="py-2.5 px-3">ICE</th>
@@ -1534,8 +1539,8 @@ export const EtatsRapportsView: React.FC<EtatsRapportsViewProps> = ({
                   </tr>
                 ) : (
                   paginatedClientBalances.map(({ client, count, totalTtc, totalRegle, reste }) => (
-                    <tr key={client.id} className="hover:bg-slate-50/80 transition">
-                      <td className="p-3 font-mono font-bold text-slate-900">{client.code}</td>
+                    <tr key={client.id} className="hover:bg-blue-50/40 transition divide-x divide-slate-200 border-b border-slate-200">
+                      <td className="p-3 font-mono font-medium text-blue-600 hover:text-blue-800 underline cursor-pointer">{client.code}</td>
                       <td className="p-3 font-medium text-slate-900">{client.nom}</td>
                       <td className="p-3 font-mono text-slate-500">{client.ice || '-'}</td>
                       <td className="p-3 text-center font-bold">{count}</td>
@@ -1550,12 +1555,12 @@ export const EtatsRapportsView: React.FC<EtatsRapportsViewProps> = ({
               </tbody>
               {clientBalances.length > 0 && (
                 <tfoot>
-                  <tr className="bg-slate-900 text-white font-bold">
+                  <tr className="bg-slate-50 text-slate-900 font-bold divide-x divide-slate-200 border-t-2 border-slate-300">
                     <td colSpan={3} className="p-3 text-right uppercase text-[11px]">Cumul filtré ({clientBalances.length} clients) :</td>
                     <td className="p-3 text-center font-mono">{clientBalanceTotals.invoices}</td>
                     <td className="p-3 text-right font-mono">{formatCurrency(clientBalanceTotals.billed)}</td>
-                    <td className="p-3 text-right font-mono text-emerald-300">{formatCurrency(clientBalanceTotals.paid)}</td>
-                    <td className="p-3 text-right font-mono text-red-300">{formatCurrency(clientBalanceTotals.due)}</td>
+                    <td className="p-3 text-right font-mono text-emerald-700">{formatCurrency(clientBalanceTotals.paid)}</td>
+                    <td className="p-3 text-right font-mono text-red-600">{formatCurrency(clientBalanceTotals.due)}</td>
                   </tr>
                 </tfoot>
               )}
@@ -1587,7 +1592,7 @@ export const EtatsRapportsView: React.FC<EtatsRapportsViewProps> = ({
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-[11px] uppercase tracking-wider sticky top-0 z-10 shadow-xs">
+                <tr className="bg-slate-50 text-slate-700 font-semibold divide-x divide-slate-200 border-b border-slate-200 text-xs sticky top-0 z-10">
                   <th className="py-2.5 px-3">Groupe / Famille</th>
                   <th className="py-2.5 px-3 text-right">Quantités Vendues</th>
                   <th className="py-2.5 px-3 text-right">Chiffre d'Affaires HT (DH)</th>
@@ -1605,7 +1610,7 @@ export const EtatsRapportsView: React.FC<EtatsRapportsViewProps> = ({
                   paginatedSalesByGroup.map((item) => {
                     const pct = factureTotals.ht > 0 ? (item.totalHt / factureTotals.ht) * 100 : 0;
                     return (
-                      <tr key={item.group} className="hover:bg-slate-50/80 transition">
+                      <tr key={item.group} className="hover:bg-blue-50/40 transition divide-x divide-slate-200 border-b border-slate-200">
                         <td className="p-3 font-bold text-slate-900">{item.group}</td>
                         <td className="p-3 text-right font-mono font-bold text-slate-800">
                           {item.count.toLocaleString('fr-FR')}
@@ -1623,17 +1628,8 @@ export const EtatsRapportsView: React.FC<EtatsRapportsViewProps> = ({
                                 className="bg-blue-600 h-full rounded-full"
                                 style={{ width: `${pct}%` }}
                               />
-            </div>
-            <TablePagination
-              currentPage={reportPages.GROUPES}
-              pageSize={reportPageSize}
-              totalItems={salesByGroup.length}
-              itemLabel="familles"
-              pageSizeOptions={REPORT_PAGE_SIZE_OPTIONS}
-              onPageChange={(page) => setReportPage('GROUPES', page)}
-              onPageSizeChange={changeReportPageSize}
-            />
-          </div>
+                            </div>
+                          </div>
                         </td>
                       </tr>
                     );
@@ -1642,16 +1638,25 @@ export const EtatsRapportsView: React.FC<EtatsRapportsViewProps> = ({
               </tbody>
               {salesByGroup.length > 0 && (
                 <tfoot>
-                  <tr className="bg-slate-900 text-white font-bold">
+                  <tr className="bg-slate-50 text-slate-900 font-bold divide-x divide-slate-200 border-t-2 border-slate-300">
                     <td className="p-3 text-right uppercase text-[11px]">Cumul filtré ({salesByGroup.length} familles) :</td>
                     <td className="p-3 text-right font-mono">{groupSalesTotals.quantity.toLocaleString('fr-FR', { maximumFractionDigits: 3 })}</td>
-                    <td className="p-3 text-right font-mono text-emerald-300">{formatCurrency(groupSalesTotals.totalHt)}</td>
+                    <td className="p-3 text-right font-mono text-emerald-700">{formatCurrency(groupSalesTotals.totalHt)}</td>
                     <td className="p-3 text-right font-mono">100,0%</td>
                   </tr>
                 </tfoot>
               )}
             </table>
           </div>
+          <TablePagination
+            currentPage={reportPages.GROUPES}
+            pageSize={reportPageSize}
+            totalItems={salesByGroup.length}
+            itemLabel="familles"
+            pageSizeOptions={REPORT_PAGE_SIZE_OPTIONS}
+            onPageChange={(page) => setReportPage('GROUPES', page)}
+            onPageSizeChange={changeReportPageSize}
+          />
         </div>
       )}
     </div>

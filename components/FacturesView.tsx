@@ -899,14 +899,14 @@ export const FacturesView: React.FC<FacturesViewProps> = ({
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                {/* Enterprise Slate-900 unified header */}
-                <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-[11px] uppercase tracking-wider sticky top-0 z-10">
-                  <th className="py-2.5 px-2.5 text-center w-10">
+                {/* AeroTrack Unified Enterprise Header */}
+                <tr className="bg-slate-50 text-slate-700 font-semibold text-xs divide-x divide-slate-200 border-b border-slate-200 sticky top-0 z-10 shadow-2xs">
+                  <th className="py-2.5 px-2.5 text-center w-10 bg-slate-50 border-r border-slate-200">
                     <input
                       type="checkbox"
                       checked={paginatedFactures.length > 0 && selectedFactureIds.length === paginatedFactures.length}
                       onChange={toggleSelectAll}
-                      className="rounded border-slate-400 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                      className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
                       title="Sélectionner toutes les factures affichées"
                     />
                   </th>
@@ -921,50 +921,50 @@ export const FacturesView: React.FC<FacturesViewProps> = ({
                   <SortableTh label="Reste à payer" sortKey="reste_a_payer" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} align="right" className="min-w-[95px]" />
                   <SortableTh label="Mtr réglé" sortKey="montant_regle" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} align="right" className="min-w-[90px]" />
                   <SortableTh label="État" sortKey="etat" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} align="center" className="min-w-[95px]" />
-                  <th className="py-2.5 px-2 text-center w-10" title="Statut paiement">P</th>
-                  <th className="py-2.5 px-3 text-center min-w-[140px]">Actions</th>
+                  <th className="py-2.5 px-2 text-center w-10 bg-slate-50 font-semibold text-xs text-slate-700 border-r border-slate-200" title="Statut paiement">P</th>
+                  <th className="py-2.5 px-3 text-center min-w-[140px] bg-slate-50 font-semibold text-xs text-slate-700">Actions</th>
                 </tr>
                 {/* Search & Quick filter inputs row directly under header */}
-                <tr className="bg-slate-800 text-slate-200 divide-x divide-slate-700">
-                  <th className="p-1 text-center">
+                <tr className="bg-slate-50/70 text-slate-600 divide-x divide-slate-200 border-b border-slate-200">
+                  <th className="p-1.5 text-center">
                     <button
                       type="button"
                       onClick={exportSelectedToCsv}
-                      className="text-slate-400 hover:text-white p-0.5"
+                      className="text-slate-400 hover:text-slate-700 p-0.5 cursor-pointer"
                       title="Exporter CSV"
                     >
                       <Download className="w-3.5 h-3.5" />
                     </button>
                   </th>
-                  <th className="p-1">
+                  <th className="p-1.5">
                     <input
                       type="text"
                       placeholder="Filtrer N°..."
                       value={filterNum}
                       onChange={(e) => setFilterNum(e.target.value)}
-                      className="w-full px-2 py-1 text-[11px] bg-white text-slate-900 rounded border border-slate-300 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      className="w-full px-2 py-1 text-xs bg-white text-slate-800 rounded-lg border border-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500 shadow-2xs"
                     />
                   </th>
-                  <th className="p-1">
+                  <th className="p-1.5">
                     <input
                       type="text"
                       placeholder="YYYY-MM"
                       value={filterDate}
                       onChange={(e) => setFilterDate(e.target.value)}
-                      className="w-full px-2 py-1 text-[11px] bg-white text-slate-900 rounded border border-slate-300 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      className="w-full px-2 py-1 text-xs bg-white text-slate-800 rounded-lg border border-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500 shadow-2xs"
                     />
                   </th>
-                  <th className="p-1">
+                  <th className="p-1.5">
                     <input
                       type="text"
                       placeholder="Société..."
                       value={filterSociete}
                       onChange={(e) => setFilterSociete(e.target.value)}
-                      className="w-full px-2 py-1 text-[11px] bg-white text-slate-900 rounded border border-slate-300 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      className="w-full px-2 py-1 text-xs bg-white text-slate-800 rounded-lg border border-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500 shadow-2xs"
                     />
                   </th>
-                  <th className="p-1" colSpan={10}>
-                    <div className="flex items-center justify-between text-[11px] text-slate-300 px-2 font-normal">
+                  <th className="p-1.5" colSpan={10}>
+                    <div className="flex items-center justify-between text-xs text-slate-500 px-2 font-normal">
                       <span>{filteredFactures.length} factures trouvées</span>
                       {(filterNum || filterDate || filterSociete || filterStartDate || filterEndDate) && (
                         <button
@@ -975,7 +975,7 @@ export const FacturesView: React.FC<FacturesViewProps> = ({
                             setFilterStartDate('');
                             setFilterEndDate('');
                           }}
-                          className="text-xs text-yellow-300 hover:underline"
+                          className="text-xs text-blue-600 hover:text-blue-800 underline cursor-pointer"
                         >
                           Effacer filtres
                         </button>
@@ -984,7 +984,7 @@ export const FacturesView: React.FC<FacturesViewProps> = ({
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-200">
+              <tbody className="divide-y divide-slate-200 text-slate-700">
                 {isLoading ? (
                   <tr>
                     <td colSpan={14} className="py-16 text-center text-slate-500">
@@ -1030,19 +1030,19 @@ export const FacturesView: React.FC<FacturesViewProps> = ({
                         tabIndex={0}
                         role="button"
                         title="Ouvrir l’aperçu de la facture"
-                        className={`cursor-pointer transition hover:bg-blue-50/70 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 divide-x divide-slate-100 ${
+                        className={`cursor-pointer transition divide-x divide-slate-200 border-b border-slate-200 ${
                           isRowChecked
-                            ? 'bg-blue-50/90 font-medium border-l-4 border-l-blue-600'
+                            ? 'bg-blue-50/90 font-medium'
                             : isAnnule
                             ? 'bg-rose-50/30 opacity-75'
                             : isBrouillon
                             ? 'bg-slate-50/70'
                             : isSelected
                             ? 'bg-blue-100/70 font-medium'
-                            : 'even:bg-slate-50/50'
+                            : 'bg-white hover:bg-slate-50/80'
                         }`}
                       >
-                        <td className="py-2 px-2.5 text-center" onClick={(e) => e.stopPropagation()}>
+                        <td className="py-2.5 px-2.5 text-center" onClick={(e) => e.stopPropagation()}>
                           <input
                             type="checkbox"
                             checked={isRowChecked}
@@ -1050,10 +1050,12 @@ export const FacturesView: React.FC<FacturesViewProps> = ({
                             className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
                           />
                         </td>
-                        <td className="py-2 px-3 font-mono font-semibold text-slate-800">
-                          <span className={isAnnule ? 'line-through text-slate-400' : ''}>{facture.numero}</span>
+                        <td className="py-2.5 px-3 font-mono text-xs">
+                          <span className={isAnnule ? 'line-through text-slate-400' : 'text-blue-600 hover:text-blue-800 underline font-medium'}>
+                            {facture.numero}
+                          </span>
                           {facture.bl_associes && facture.bl_associes.length > 0 && (
-                            <span className="block text-[10px] text-indigo-600 font-sans">
+                            <span className="block text-[10px] text-slate-500 font-sans">
                               {facture.bl_associes.length} BLs liés
                             </span>
                           )}
@@ -1233,8 +1235,8 @@ export const FacturesView: React.FC<FacturesViewProps> = ({
               </tbody>
               {/* Table Footer with Summary Bar */}
               <tfoot>
-                <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-xs">
-                  <td colSpan={4} className="py-2.5 px-3 text-right uppercase tracking-wider">
+                <tr className="bg-slate-50 text-slate-900 font-bold divide-x divide-slate-200 border-t-2 border-slate-300 text-xs">
+                  <td colSpan={4} className="py-2.5 px-3 text-right uppercase tracking-wider text-slate-700">
                     Cumul Sélection ({filteredFactures.length} Factures • {totalLines} lignes) :
                   </td>
                   <td className="py-2.5 px-3 text-right font-mono">
@@ -1249,16 +1251,16 @@ export const FacturesView: React.FC<FacturesViewProps> = ({
                   <td className="py-2.5 px-3 text-right font-mono">
                     {formatCurrency(totals.totalTva, false)}
                   </td>
-                  <td className="py-2.5 px-3 text-right font-mono text-emerald-400 bg-slate-950 font-extrabold">
+                  <td className="py-2.5 px-3 text-right font-mono text-emerald-700 font-extrabold">
                     {formatCurrency(totals.totalTtc, false)}
                   </td>
-                  <td className="py-2.5 px-3 text-right font-mono text-rose-400">
+                  <td className="py-2.5 px-3 text-right font-mono text-rose-600">
                     {formatCurrency(totals.restePayer, false)}
                   </td>
-                  <td className="py-2.5 px-3 text-right font-mono text-emerald-300">
+                  <td className="py-2.5 px-3 text-right font-mono text-emerald-700">
                     {formatCurrency(totals.montantRegle, false)}
                   </td>
-                  <td colSpan={3} className="py-2.5 px-2 text-center text-[11px] font-normal text-slate-400">
+                  <td colSpan={3} className="py-2.5 px-2 text-center text-[11px] font-normal text-slate-500">
                     MAD (DH)
                   </td>
                 </tr>

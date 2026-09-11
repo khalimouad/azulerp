@@ -45,26 +45,26 @@ export const SortableTh: React.FC<SortableThProps> = ({
   return (
     <th
       style={style}
-      className={`py-2.5 px-3 uppercase text-[11px] font-bold tracking-wider select-none ${width} ${minWidth} ${
+      className={`py-2.5 px-3 text-xs font-semibold text-slate-700 select-none tracking-normal border-r border-slate-200 bg-slate-50 transition-colors ${width} ${minWidth} ${
         isSortable
-          ? 'cursor-pointer hover:bg-slate-800 transition-colors'
+          ? 'cursor-pointer hover:bg-slate-100 hover:text-slate-900'
           : ''
-      } ${className}`}
+      } ${isSorted ? 'text-blue-700 bg-blue-50/40' : ''} ${className}`}
       onClick={() => isSortable && sortKey && onSort && onSort(sortKey)}
       title={title || (isSortable ? `Trier par ${label}` : undefined)}
     >
       <div className={`flex items-center gap-1.5 inline-flex w-full ${alignClass}`}>
-        <span>{children || label}</span>
+        <span className="truncate">{children || label}</span>
         {isSortable && (
-          <span className="text-slate-400 shrink-0">
+          <span className="shrink-0">
             {isSorted ? (
               currentSortDir === 'asc' ? (
-                <ArrowUp className="w-3.5 h-3.5 text-blue-400" />
+                <ArrowUp className="w-3.5 h-3.5 text-blue-600" />
               ) : (
-                <ArrowDown className="w-3.5 h-3.5 text-blue-400" />
+                <ArrowDown className="w-3.5 h-3.5 text-blue-600" />
               )
             ) : (
-              <ArrowUpDown className="w-3 h-3 opacity-30 hover:opacity-100" />
+              <ArrowUpDown className="w-3 h-3 text-slate-400 opacity-40 hover:opacity-100" />
             )}
           </span>
         )}

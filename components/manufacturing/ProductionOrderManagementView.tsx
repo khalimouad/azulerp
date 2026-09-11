@@ -299,7 +299,7 @@ export function ProductionOrderManagementView({
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-[11px] uppercase tracking-wider sticky top-0 z-10 shadow-xs">
+                <tr className="bg-slate-50 text-slate-700 font-semibold divide-x divide-slate-200 border-b border-slate-200 text-xs sticky top-0 z-10">
                   <th className="py-2.5 px-3">Numéro & Date</th>
                   <th className="py-2.5 px-3">Produit Fini / Formule</th>
                   <th className="py-2.5 px-3 text-center">Quantité Cible</th>
@@ -309,7 +309,7 @@ export function ProductionOrderManagementView({
                   <th className="py-2.5 px-3 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+              <tbody className="divide-y divide-slate-200">
                 {filteredOrders.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="p-8 text-center text-slate-400">
@@ -322,12 +322,18 @@ export function ProductionOrderManagementView({
                     const isEnCours = order.status === 'en_cours';
 
                     return (
-                      <tr key={order.id || order.numero} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition">
-                        <td className="p-3.5">
-                          <div className="font-bold text-slate-900 dark:text-white font-mono">
+                      <tr key={order.id || order.numero} className="hover:bg-blue-50/40 transition divide-x divide-slate-200 border-b border-slate-200">
+                        <td className="p-3">
+                          <div
+                            onClick={() => {
+                              if (onEditOrder) onEditOrder(order);
+                              else setViewingOrder(order);
+                            }}
+                            className="font-medium text-blue-600 hover:text-blue-800 underline font-mono cursor-pointer"
+                          >
                             {order.numero}
                           </div>
-                          <div className="text-[11px] text-slate-400 mt-0.5">
+                          <div className="text-[11px] text-slate-500 mt-0.5">
                             Lancé le {formatDate(order.date_lancement)}
                           </div>
                         </td>

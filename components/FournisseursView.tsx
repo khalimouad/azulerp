@@ -851,7 +851,7 @@ export const FournisseursView: React.FC<FournisseursViewProps> = ({
           <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-[11px] uppercase tracking-wider sticky top-0 z-10 shadow-xs">
+                <tr className="bg-slate-50 text-slate-700 font-semibold divide-x divide-slate-200 border-b border-slate-200 text-xs sticky top-0 z-10">
                   <th className="py-2.5 px-3 min-w-[70px]">Code</th>
                   <th className="py-2.5 px-3 min-w-[200px]">Raison Sociale</th>
                   <th className="py-2.5 px-3 min-w-[130px]">Contact</th>
@@ -872,8 +872,8 @@ export const FournisseursView: React.FC<FournisseursViewProps> = ({
                   </tr>
                 ) : (
                   filteredFournisseurs.map((f) => (
-                    <tr key={f.id} className="hover:bg-slate-50 transition divide-x divide-slate-100 even:bg-slate-50/40">
-                      <td className="py-2 px-3 font-mono text-slate-600 font-semibold">
+                    <tr key={f.id} className="hover:bg-blue-50/40 transition divide-x divide-slate-200 border-b border-slate-200 even:bg-slate-50/30">
+                      <td className="py-2 px-3 font-mono font-medium text-blue-600 hover:text-blue-800 underline cursor-pointer" onClick={() => onEditFournisseur(f)}>
                         {f.code || `FOUR-${f.id}`}
                       </td>
                       <td className="py-2 px-3 font-bold text-slate-900">
@@ -1111,7 +1111,7 @@ export const FournisseursView: React.FC<FournisseursViewProps> = ({
           <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-[11px] uppercase tracking-wider sticky top-0 z-10 shadow-xs">
+                <tr className="bg-slate-50 text-slate-700 font-semibold divide-x divide-slate-200 border-b border-slate-200 text-xs sticky top-0 z-10">
                   <th className="py-2.5 px-3">N° Facture</th>
                   <th className="py-2.5 px-3">Fournisseur</th>
                   <th className="py-2.5 px-3">Date Facture</th>
@@ -1135,8 +1135,8 @@ export const FournisseursView: React.FC<FournisseursViewProps> = ({
                   </tr>
                 ) : (
                   filteredFactures.map((f) => (
-                    <tr key={f.id} className="hover:bg-indigo-50/40 transition divide-x divide-slate-100 even:bg-slate-50/30">
-                      <td className="py-2 px-3 font-mono font-bold text-slate-900">{f.numero}</td>
+                    <tr key={f.id} className="hover:bg-blue-50/40 transition divide-x divide-slate-200 border-b border-slate-200 even:bg-slate-50/30">
+                      <td className="py-2 px-3 font-mono font-medium text-blue-600 hover:text-blue-800 underline cursor-pointer">{f.numero}</td>
                       <td className="py-2 px-3 font-semibold text-slate-900">{f.fournisseur_nom}</td>
                       <td className="py-2 px-3 text-slate-600">{formatDate(f.date_facture)}</td>
                       <td className="py-2 px-3 text-slate-600">{f.date_echeance ? formatDate(f.date_echeance) : '-'}</td>
@@ -1361,7 +1361,7 @@ export const FournisseursView: React.FC<FournisseursViewProps> = ({
           <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-[11px] uppercase tracking-wider sticky top-0 z-10 shadow-xs">
+                <tr className="bg-slate-50 text-slate-700 font-semibold divide-x divide-slate-200 border-b border-slate-200 text-xs sticky top-0 z-10">
                   <th className="py-2.5 px-3">Date Paiement</th>
                   <th className="py-2.5 px-3">Fournisseur</th>
                   <th className="py-2.5 px-3">Facture Liée</th>
@@ -1383,7 +1383,7 @@ export const FournisseursView: React.FC<FournisseursViewProps> = ({
                   </tr>
                 ) : (
                   filteredPaiements.map((p) => (
-                    <tr key={p.id} className="hover:bg-emerald-50/40 transition divide-x divide-slate-100 even:bg-slate-50/30">
+                    <tr key={p.id} className="hover:bg-blue-50/40 transition divide-x divide-slate-200 border-b border-slate-200 even:bg-slate-50/30">
                       <td className="py-2 px-3 text-slate-600">{formatDate(p.date_paiement)}</td>
                       <td className="py-2 px-3 font-semibold text-slate-900">{p.fournisseur_nom}</td>
                       <td className="py-2 px-3 font-mono text-slate-700">{p.facture_numero || 'Paiement Global / Acompte'}</td>
@@ -1455,7 +1455,7 @@ export const FournisseursView: React.FC<FournisseursViewProps> = ({
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-[11px] uppercase tracking-wider sticky top-0 z-10 shadow-xs">
+                  <tr className="bg-slate-50 text-slate-700 font-semibold divide-x divide-slate-200 border-b border-slate-200 text-xs sticky top-0 z-10">
                     <th className="py-2.5 px-3">Compte à Rebours</th>
                     <th className="py-2.5 px-3">Fournisseur Bénéficiaire</th>
                     <th className="py-2.5 px-3">N° Chèque / Traite</th>
@@ -1476,7 +1476,7 @@ export const FournisseursView: React.FC<FournisseursViewProps> = ({
                     </tr>
                   ) : (
                     chequeAlerts.map(({ paiement, jours_restants, est_imminent, est_en_retard }) => (
-                      <tr key={paiement.id} className="hover:bg-amber-50/50 transition divide-x divide-slate-100">
+                      <tr key={paiement.id} className="hover:bg-amber-50/50 transition divide-x divide-slate-200 border-b border-slate-200">
                         <td className="py-2.5 px-3">
                           {est_en_retard ? (
                             <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-black bg-rose-100 text-rose-800 border border-rose-300">
@@ -1550,7 +1550,7 @@ export const FournisseursView: React.FC<FournisseursViewProps> = ({
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-[11px] uppercase tracking-wider sticky top-0 z-10 shadow-xs">
+                  <tr className="bg-slate-50 text-slate-700 font-semibold divide-x divide-slate-200 border-b border-slate-200 text-xs sticky top-0 z-10">
                     <th className="py-2.5 px-3">Fournisseur</th>
                     <th className="py-2.5 px-3">ICE</th>
                     <th className="py-2.5 px-3 text-right">Total Factures TTC</th>
@@ -1572,7 +1572,7 @@ export const FournisseursView: React.FC<FournisseursViewProps> = ({
                     filteredReconciliations.map((r) => {
                       const soldeResiduel = r.solde_du - r.cheques_en_circulation_montant;
                       return (
-                        <tr key={r.fournisseur.id} className="hover:bg-blue-50/30 transition divide-x divide-slate-100">
+                        <tr key={r.fournisseur.id} className="hover:bg-blue-50/40 transition divide-x divide-slate-200 border-b border-slate-200">
                           <td className="py-2 px-3 font-bold text-slate-900">{r.fournisseur.nom}</td>
                           <td className="py-2 px-3 font-mono text-slate-600">{r.fournisseur.ice || '-'}</td>
                           <td className="py-2 px-3 text-right font-mono text-slate-800">
@@ -1683,13 +1683,13 @@ export const FournisseursView: React.FC<FournisseursViewProps> = ({
               <div className="border border-slate-200 rounded-lg overflow-hidden">
                 <table className="w-full text-left text-xs border-collapse">
                   <thead>
-                    <tr className="bg-slate-900 text-white divide-x divide-slate-800 font-bold uppercase tracking-wider text-[11px] sticky top-0 z-10 shadow-xs">
+                    <tr className="bg-slate-50 text-slate-700 divide-x divide-slate-200 border-b border-slate-200 font-semibold text-xs sticky top-0 z-10">
                       <th className="py-2.5 px-3">Date</th>
                       <th className="py-2.5 px-3">Type</th>
                       <th className="py-2.5 px-3">N° Pièce / Réf</th>
                       <th className="py-2.5 px-3">Désignation</th>
-                      <th className="py-2.5 px-3 text-right text-rose-300">Débit (Achat)</th>
-                      <th className="py-2.5 px-3 text-right text-emerald-300">Crédit (Règlement)</th>
+                      <th className="py-2.5 px-3 text-right text-rose-600">Débit (Achat)</th>
+                      <th className="py-2.5 px-3 text-right text-emerald-600">Crédit (Règlement)</th>
                       <th className="py-2.5 px-3 text-right">Solde Cumulé</th>
                     </tr>
                   </thead>
@@ -1702,7 +1702,7 @@ export const FournisseursView: React.FC<FournisseursViewProps> = ({
                       </tr>
                     ) : (
                       statementLedger.map((item, idx) => (
-                        <tr key={idx} className="hover:bg-slate-50 divide-x divide-slate-100">
+                        <tr key={idx} className="hover:bg-slate-50 divide-x divide-slate-200 border-b border-slate-200">
                           <td className="py-1.5 px-3 text-slate-600">{formatDate(item.date)}</td>
                           <td className="py-1.5 px-3">
                             <span

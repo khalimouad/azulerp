@@ -321,7 +321,7 @@ export function ManufacturingView({
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-[11px] uppercase tracking-wider sticky top-0 z-10 shadow-xs">
+                  <tr className="bg-slate-50 text-slate-700 font-semibold divide-x divide-slate-200 border-b border-slate-200 text-xs sticky top-0 z-10">
                     <th className="py-2.5 px-3">N° Ordre</th>
                     <th className="py-2.5 px-3">Produit à Fabriquer</th>
                     <th className="py-2.5 px-3">Nomenclature (BOM)</th>
@@ -333,7 +333,7 @@ export function ManufacturingView({
                     <th className="py-2.5 px-3 text-center">Actions</th>
                   </tr>
                 </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80">
+              <tbody className="divide-y divide-slate-200">
                 {filteredOrders.length === 0 ? (
                   <tr>
                     <td colSpan={9} className="py-12 text-center text-slate-400">
@@ -344,8 +344,8 @@ export function ManufacturingView({
                   </tr>
                 ) : (
                   filteredOrders.map(order => (
-                    <tr key={order.id || order.numero} className="hover:bg-slate-50/70 dark:hover:bg-slate-800/40">
-                      <td className="py-3.5 px-4 font-mono font-bold text-amber-600 dark:text-amber-400 text-xs">
+                    <tr key={order.id || order.numero} className="hover:bg-blue-50/40 transition divide-x divide-slate-200 border-b border-slate-200">
+                      <td className="py-2.5 px-3 font-mono font-medium text-blue-600 hover:text-blue-800 underline cursor-pointer text-xs">
                         {order.numero}
                         <span className="block font-normal text-slate-400">{formatDate(order.date_lancement)}</span>
                       </td>

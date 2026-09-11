@@ -312,7 +312,7 @@ export function BOMManagementView({
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs border-collapse">
             <thead>
-              <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-[11px] uppercase tracking-wider sticky top-0 z-10 shadow-xs">
+              <tr className="bg-slate-50 text-slate-700 font-semibold divide-x divide-slate-200 border-b border-slate-200 text-xs sticky top-0 z-10">
                 <th className="py-2.5 px-3">Code & Version</th>
                 <th className="py-2.5 px-3">Nomenclature & Produit Principal</th>
                 <th className="py-2.5 px-3">Intrants (Matières) ➔ Extrants</th>
@@ -323,7 +323,7 @@ export function BOMManagementView({
                 <th className="py-2.5 px-3 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+            <tbody className="divide-y divide-slate-200">
               {filteredBoms.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="p-12 text-center text-slate-400">
@@ -377,10 +377,13 @@ export function BOMManagementView({
                   return (
                     <tr
                       key={bom.id || bom.code}
-                      className="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors"
+                      className="hover:bg-blue-50/40 transition divide-x divide-slate-200 border-b border-slate-200"
                     >
-                      <td className="p-3.5">
-                        <div className="font-mono font-bold text-slate-900 dark:text-white">
+                      <td className="p-3">
+                        <div
+                          onClick={() => handleOpenEdit(bom)}
+                          className="font-mono font-medium text-blue-600 hover:text-blue-800 underline cursor-pointer"
+                        >
                           {bom.code}
                         </div>
                         <div className="text-[10px] text-slate-500 font-medium">
@@ -586,16 +589,16 @@ export function BOMManagementView({
                 <div className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
                   <table className="w-full text-xs text-left border-collapse">
                     <thead>
-                      <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-[11px] uppercase tracking-wider sticky top-0 z-10 shadow-xs">
+                      <tr className="bg-slate-50 text-slate-700 font-semibold divide-x divide-slate-200 border-b border-slate-200 text-xs sticky top-0 z-10">
                         <th className="py-2.5 px-3">Matière</th>
                         <th className="py-2.5 px-3">Quantité</th>
                         <th className="py-2.5 px-3 text-right">Coût Unitaire</th>
                         <th className="py-2.5 px-3 text-right">Coût Total</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                    <tbody className="divide-y divide-slate-200">
                       {(previewBom.inputs || previewBom.composants || []).map((inp, idx) => (
-                        <tr key={idx} className="divide-x divide-slate-100 dark:divide-slate-800">
+                        <tr key={idx} className="divide-x divide-slate-200 border-b border-slate-200 hover:bg-slate-50">
                           <td className="py-2.5 px-3 font-semibold text-slate-900 dark:text-white">
                             {inp.produit_nom}
                           </td>
@@ -623,14 +626,14 @@ export function BOMManagementView({
                 <div className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
                   <table className="w-full text-xs text-left border-collapse">
                     <thead>
-                      <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-[11px] uppercase tracking-wider sticky top-0 z-10 shadow-xs">
+                      <tr className="bg-slate-50 text-slate-700 font-semibold divide-x divide-slate-200 border-b border-slate-200 text-xs sticky top-0 z-10">
                         <th className="py-2.5 px-3">Extrant</th>
                         <th className="py-2.5 px-3">Type</th>
                         <th className="py-2.5 px-3">Quantité</th>
                         <th className="py-2.5 px-3 text-right">% Imputation</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                    <tbody className="divide-y divide-slate-200">
                       {(previewBom.outputs || [
                         {
                           produit_nom: previewBom.produit_fini_nom,
@@ -640,7 +643,7 @@ export function BOMManagementView({
                           pourcentage_repartition: 100,
                         },
                       ]).map((out, idx) => (
-                        <tr key={idx} className="divide-x divide-slate-100 dark:divide-slate-800">
+                        <tr key={idx} className="divide-x divide-slate-200 border-b border-slate-200 hover:bg-slate-50">
                           <td className="py-2.5 px-3 font-bold text-slate-900 dark:text-white">
                             {out.produit_nom}
                           </td>

@@ -449,7 +449,7 @@ export const CreateBlView: React.FC<CreateBlViewProps> = ({
           <div className="overflow-x-auto border border-slate-200 rounded-xl">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-[11px] uppercase tracking-wider sticky top-0 z-10 shadow-xs">
+                <tr className="bg-slate-50 text-slate-700 font-semibold divide-x divide-slate-200 border-b border-slate-200 text-xs sticky top-0 z-10">
                   <th className="py-2.5 px-3 w-10 text-center">#</th>
                   <th className="py-2.5 px-3 min-w-[260px]">Article / Référence Catalogue</th>
                   <th className="py-2.5 px-3 min-w-[200px]">Désignation sur le BL</th>
@@ -465,7 +465,7 @@ export const CreateBlView: React.FC<CreateBlViewProps> = ({
                 {lignes.map((l, index) => {
                   const currentProd = productsById.get(Number(l.produit_id));
                   return (
-                    <tr key={index} className="divide-x divide-slate-100 hover:bg-slate-50/70 transition">
+                    <tr key={index} className="divide-x divide-slate-200 border-b border-slate-200 hover:bg-blue-50/40 transition">
                       <td className="p-3 text-center text-slate-400 font-mono font-bold">
                         {index + 1}
                       </td>

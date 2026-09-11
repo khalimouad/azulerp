@@ -402,7 +402,7 @@ export const CreateBonRetourView: React.FC<CreateBonRetourViewProps> = ({
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-[11px] uppercase tracking-wider sticky top-0 z-10 shadow-xs">
+                <tr className="bg-slate-50 text-slate-700 font-semibold divide-x divide-slate-200 border-b border-slate-200 text-xs sticky top-0 z-10">
                   <th className="py-2.5 px-3 w-10 text-center">#</th>
                   <th className="py-2.5 px-3 min-w-[240px]">Article Catalogue</th>
                   <th className="py-2.5 px-3 min-w-[200px]">Désignation sur le BR</th>
@@ -422,7 +422,7 @@ export const CreateBonRetourView: React.FC<CreateBonRetourViewProps> = ({
                   const lineHt = q * p * (1 - rem / 100);
 
                   return (
-                    <tr key={idx} className="divide-x divide-slate-100 hover:bg-rose-50/30 transition">
+                    <tr key={idx} className="divide-x divide-slate-200 border-b border-slate-200 hover:bg-rose-50/30 transition">
                       <td className="py-2 px-3 text-center text-slate-400 font-mono font-bold">
                         {idx + 1}
                       </td>

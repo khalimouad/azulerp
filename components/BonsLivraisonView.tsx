@@ -891,9 +891,9 @@ export const BonsLivraisonView: React.FC<BonsLivraisonViewProps> = ({
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                {/* Enterprise Slate-900 unified header */}
-                <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-[11px] uppercase tracking-wider sticky top-0 z-10">
-                  <th className="py-2.5 px-2.5 text-center w-10">
+                {/* AeroTrack Unified Enterprise Header */}
+                <tr className="bg-slate-50 text-slate-700 font-semibold text-xs divide-x divide-slate-200 border-b border-slate-200 sticky top-0 z-10 shadow-2xs">
+                  <th className="py-2.5 px-2.5 text-center w-10 bg-slate-50 border-r border-slate-200">
                     <input
                       type="checkbox"
                       checked={
@@ -904,7 +904,7 @@ export const BonsLivraisonView: React.FC<BonsLivraisonViewProps> = ({
                           ).length
                       }
                       onChange={toggleSelectAll}
-                      className="rounded border-slate-400 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                      className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
                       title="Sélectionner tous les BL validés en attente"
                     />
                   </th>
@@ -916,31 +916,31 @@ export const BonsLivraisonView: React.FC<BonsLivraisonViewProps> = ({
                   <SortableTh label="Total TTC" sortKey="total_ttc" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} align="right" className="min-w-[100px]" />
                   <SortableTh label="État Document" sortKey="etat" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} align="center" className="min-w-[100px]" />
                   <SortableTh label="Facturation" sortKey="facture_numero" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} align="center" className="min-w-[110px]" />
-                  <th className="py-2.5 px-3 text-center min-w-[140px]">Actions</th>
+                  <th className="py-2.5 px-3 text-center min-w-[140px] bg-slate-50 font-semibold text-xs text-slate-700">Actions</th>
                 </tr>
                 {/* Search & quick filter row */}
-                <tr className="bg-slate-800 text-slate-200 divide-x divide-slate-700">
-                  <th className="p-1 text-center">
+                <tr className="bg-slate-50/70 text-slate-600 divide-x divide-slate-200 border-b border-slate-200">
+                  <th className="p-1.5 text-center">
                     <button
                       type="button"
                       onClick={exportSelectedToCsv}
-                      className="text-slate-400 hover:text-white p-0.5"
+                      className="text-slate-400 hover:text-slate-700 p-0.5 cursor-pointer"
                       title="Exporter CSV"
                     >
                       <Download className="w-3.5 h-3.5" />
                     </button>
                   </th>
-                  <th className="p-1" colSpan={3}>
+                  <th className="p-1.5" colSpan={3}>
                     <input
                       type="text"
                       placeholder="Recherche rapide (N° BL, client, date)..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full px-2 py-1 text-[11px] bg-white text-slate-900 rounded border border-slate-300 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      className="w-full px-2 py-1 text-xs bg-white text-slate-800 rounded-lg border border-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500 shadow-2xs"
                     />
                   </th>
-                  <th className="p-1" colSpan={6}>
-                    <div className="flex items-center justify-between text-[11px] text-slate-300 px-2 font-normal">
+                  <th className="p-1.5" colSpan={6}>
+                    <div className="flex items-center justify-between text-xs text-slate-500 px-2 font-normal">
                       <span>{filteredBls.length} BLs trouvés</span>
                       {(searchQuery || filterStartDate || filterEndDate) && (
                         <button
@@ -949,7 +949,7 @@ export const BonsLivraisonView: React.FC<BonsLivraisonViewProps> = ({
                             setFilterStartDate('');
                             setFilterEndDate('');
                           }}
-                          className="text-xs text-yellow-300 hover:underline"
+                          className="text-xs text-blue-600 hover:text-blue-800 underline cursor-pointer"
                         >
                           Effacer recherche
                         </button>
@@ -958,7 +958,7 @@ export const BonsLivraisonView: React.FC<BonsLivraisonViewProps> = ({
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-200">
+              <tbody className="divide-y divide-slate-200 text-slate-700">
                 {isLoading ? (
                   <tr>
                     <td colSpan={10} className="py-16 text-center text-slate-500">
@@ -1001,17 +1001,17 @@ export const BonsLivraisonView: React.FC<BonsLivraisonViewProps> = ({
                         tabIndex={0}
                         role="button"
                         title="Ouvrir l’aperçu du bon de livraison"
-                        className={`cursor-pointer hover:bg-blue-50/60 transition focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 divide-x divide-slate-100 ${
+                        className={`cursor-pointer transition divide-x divide-slate-200 border-b border-slate-200 ${
                           isSelected
-                            ? 'bg-blue-50/90 font-medium border-l-4 border-l-blue-600'
+                            ? 'bg-blue-50/90 font-medium'
                             : isAnnule
                             ? 'bg-rose-50/30 opacity-75'
                             : isBrouillon
                             ? 'bg-slate-50/70'
-                            : 'even:bg-slate-50/50'
+                            : 'bg-white hover:bg-slate-50/80'
                         }`}
                       >
-                        <td className="py-2 px-2.5 text-center" onClick={(e) => e.stopPropagation()}>
+                        <td className="py-2.5 px-2.5 text-center" onClick={(e) => e.stopPropagation()}>
                           {isAttente ? (
                             <input
                               type="checkbox"
@@ -1023,8 +1023,10 @@ export const BonsLivraisonView: React.FC<BonsLivraisonViewProps> = ({
                             <span className="text-slate-300">-</span>
                           )}
                         </td>
-                        <td className="py-2 px-3 font-mono font-semibold text-slate-900">
-                          <span className={isAnnule ? 'line-through text-slate-400' : ''}>{bl.numero}</span>
+                        <td className="py-2.5 px-3 font-mono text-xs">
+                          <span className={isAnnule ? 'line-through text-slate-400' : 'text-blue-600 hover:text-blue-800 underline font-medium'}>
+                            {bl.numero}
+                          </span>
                         </td>
                         <td className="py-2 px-3 text-slate-600 whitespace-nowrap font-mono">
                           {formatDate(bl.date)}
@@ -1181,8 +1183,8 @@ export const BonsLivraisonView: React.FC<BonsLivraisonViewProps> = ({
                 )}
               </tbody>
               <tfoot>
-                <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-xs">
-                  <td colSpan={4} className="py-2.5 px-3 text-right uppercase tracking-wider">
+                <tr className="bg-slate-50 text-slate-900 font-bold divide-x divide-slate-200 border-t-2 border-slate-300 text-xs">
+                  <td colSpan={4} className="py-2.5 px-3 text-right uppercase tracking-wider text-slate-700">
                     Total Sélection / Filtre ({filteredBls.length} BLs • {totalLines} lignes) :
                   </td>
                   <td className="py-2.5 px-3 text-right font-mono">
@@ -1191,10 +1193,10 @@ export const BonsLivraisonView: React.FC<BonsLivraisonViewProps> = ({
                   <td className="py-2.5 px-3 text-right font-mono">
                     {formatCurrency(totals.totalTva, false)}
                   </td>
-                  <td className="py-2.5 px-3 text-right font-mono text-emerald-400 bg-slate-950 font-extrabold">
+                  <td className="py-2.5 px-3 text-right font-mono text-emerald-700 font-extrabold">
                     {formatCurrency(totals.totalTtc, false)}
                   </td>
-                  <td colSpan={3} className="py-2.5 px-3 text-center text-slate-400">
+                  <td colSpan={3} className="py-2.5 px-3 text-center text-slate-500">
                     MAD (DH)
                   </td>
                 </tr>

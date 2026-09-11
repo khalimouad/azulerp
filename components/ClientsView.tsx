@@ -651,9 +651,9 @@ export const ClientsView: React.FC<ClientsViewProps> = ({
             {/* Desktop Customers Table (hidden md:block) */}
             <div className="hidden md:block flex-1 overflow-y-auto">
               <table className="w-full text-left text-xs border-collapse">
-                <thead className="sticky top-0 bg-slate-900 text-white z-10 shadow-xs">
-                  <tr className="divide-x divide-slate-800 font-bold text-[11px] uppercase tracking-wider">
-                    <th className="py-2.5 px-2.5 text-center w-10">
+                <thead className="sticky top-0 z-10 bg-slate-50 text-slate-700 font-semibold text-xs divide-x divide-slate-200 border-b border-slate-200 select-none shadow-2xs">
+                  <tr className="divide-x divide-slate-200 font-semibold text-xs text-slate-700">
+                    <th className="py-2.5 px-2.5 text-center w-10 bg-slate-50 border-r border-slate-200">
                       <input
                         type="checkbox"
                         checked={
@@ -661,7 +661,7 @@ export const ClientsView: React.FC<ClientsViewProps> = ({
                           paginatedClients.every((c) => selectedClientIds.includes(c.id))
                         }
                         onChange={toggleSelectAll}
-                        className="rounded border-slate-400 text-blue-600 focus:ring-blue-500 w-3.5 h-3.5 cursor-pointer align-middle"
+                        className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 w-3.5 h-3.5 cursor-pointer align-middle"
                         title="Tout sélectionner / désélectionner sur cette page"
                       />
                     </th>
@@ -670,10 +670,10 @@ export const ClientsView: React.FC<ClientsViewProps> = ({
                     <SortableTh label="Ville" sortKey="ville" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} width="w-24" />
                     <SortableTh label="ICE" sortKey="ice" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} width="w-28" />
                     <SortableTh label="Solde Dû" sortKey="solde" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} align="right" width="w-28" />
-                    <th className="py-2.5 px-2 text-center w-16">Actions</th>
+                    <th className="py-2.5 px-2 text-center w-16 bg-slate-50 font-semibold text-xs text-slate-700">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-200">
+                <tbody className="divide-y divide-slate-200 text-slate-700">
                   {filteredClients.length === 0 ? (
                     <tr>
                       <td colSpan={7} className="py-12 text-center text-slate-400">
@@ -690,15 +690,15 @@ export const ClientsView: React.FC<ClientsViewProps> = ({
                         <tr
                           key={client.id}
                           onClick={() => setSelectedClientId(client.id)}
-                          className={`cursor-pointer transition-colors divide-x divide-slate-100 ${
+                          className={`cursor-pointer transition-colors divide-x divide-slate-200 border-b border-slate-200 ${
                             isCurrentClient
-                              ? 'bg-blue-50/90 border-l-4 border-l-blue-600 font-medium'
+                              ? 'bg-blue-50/90 font-medium'
                               : isChecked
                               ? 'bg-blue-50/50'
-                              : 'hover:bg-blue-50/40 even:bg-slate-50/40'
+                              : 'bg-white hover:bg-slate-50/80'
                           }`}
                         >
-                          <td className="py-2 px-2.5 text-center" onClick={(e) => e.stopPropagation()}>
+                          <td className="py-2.5 px-2.5 text-center" onClick={(e) => e.stopPropagation()}>
                             <input
                               type="checkbox"
                               checked={isChecked}
@@ -706,8 +706,10 @@ export const ClientsView: React.FC<ClientsViewProps> = ({
                               className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 w-3.5 h-3.5 cursor-pointer align-middle"
                             />
                           </td>
-                          <td className="py-2 px-2.5 font-mono text-[11px] text-slate-600 font-semibold">
-                            {client.code || `CL${String(client.id).padStart(3, '0')}`}
+                          <td className="py-2.5 px-2.5 font-mono text-xs">
+                            <span className="text-blue-600 hover:text-blue-800 underline font-medium">
+                              {client.code || `CL${String(client.id).padStart(3, '0')}`}
+                            </span>
                           </td>
                           <td className="py-2 px-2.5">
                             <div className="font-semibold text-slate-900 flex items-center gap-1.5">
@@ -759,11 +761,11 @@ export const ClientsView: React.FC<ClientsViewProps> = ({
                 </tbody>
                 {filteredClients.length > 0 && (
                   <tfoot>
-                    <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-xs">
-                      <td colSpan={5} className="py-2 px-2.5 text-right uppercase tracking-wider text-slate-300">
+                    <tr className="bg-slate-50 text-slate-900 font-bold divide-x divide-slate-200 border-t-2 border-slate-300 text-xs">
+                      <td colSpan={5} className="py-2 px-2.5 text-right uppercase tracking-wider text-slate-700">
                         Total Solde Dû :
                       </td>
-                      <td className="py-2 px-2.5 text-right font-mono text-rose-300">
+                      <td className="py-2 px-2.5 text-right font-mono text-rose-600">
                         {formatCurrency(
                           filteredClients.reduce(
                             (sum, c) => sum + (clientStats.get(c.id)?.unpaidFacture || 0),
@@ -932,18 +934,18 @@ export const ClientsView: React.FC<ClientsViewProps> = ({
                 </div>
               ) : (
                 <table className="w-full text-left text-xs border-collapse">
-                  <thead className="sticky top-0 bg-slate-900 text-white z-10 shadow-xs">
-                    <tr className="divide-x divide-slate-800 font-bold text-[11px] uppercase tracking-wider">
+                  <thead className="sticky top-0 z-10 bg-slate-50 text-slate-700 font-semibold text-xs divide-x divide-slate-200 border-b border-slate-200 select-none shadow-2xs">
+                    <tr className="divide-x divide-slate-200 font-semibold text-xs text-slate-700">
                       <th className="py-2.5 px-2.5 w-16">Code</th>
                       <th className="py-2.5 px-2.5">Article / Produit</th>
                       <th className="py-2.5 px-2 text-right">Prix Cat. HT</th>
-                      <th className="py-2.5 px-2.5 text-right font-bold text-amber-200">Prix Client HT</th>
+                      <th className="py-2.5 px-2.5 text-right font-bold text-emerald-700">Prix Client HT</th>
                       <th className="py-2.5 px-2 text-center w-16">Remise %</th>
                       <th className="py-2.5 px-2.5">Conditions / Notes</th>
                       <th className="py-2.5 px-2 text-center w-14">Action</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-200">
+                  <tbody className="divide-y divide-slate-200 text-slate-700">
                     {filteredClientTarifs.map((tarif) => {
                       const standardPrice = tarif.prix_standard_ht || 0;
                       const customPrice = tarif.prix_special_ht;
@@ -951,8 +953,8 @@ export const ClientsView: React.FC<ClientsViewProps> = ({
                       const diffPct = standardPrice > 0 ? ((diff / standardPrice) * 100).toFixed(1) : 0;
 
                       return (
-                        <tr key={tarif.id} className="hover:bg-emerald-50/50 transition divide-x divide-slate-100 even:bg-slate-50/40">
-                          <td className="py-2 px-2.5 font-mono text-[11px] text-slate-600 font-semibold">
+                        <tr key={tarif.id} className="divide-x divide-slate-200 border-b border-slate-200 bg-white hover:bg-slate-50/80 transition">
+                          <td className="py-2.5 px-2.5 font-mono text-xs font-semibold text-blue-600">
                             {tarif.produit_code || '-'}
                           </td>
                           <td className="py-2 px-2.5">

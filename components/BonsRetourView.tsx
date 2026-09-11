@@ -807,8 +807,9 @@ export const BonsRetourView: React.FC<BonsRetourViewProps> = ({
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-[11px] uppercase tracking-wider sticky top-0 z-10">
-                  <th className="py-2.5 px-2.5 text-center w-10">
+                {/* AeroTrack Unified Enterprise Header */}
+                <tr className="bg-slate-50 text-slate-700 font-semibold text-xs divide-x divide-slate-200 border-b border-slate-200 sticky top-0 z-10 shadow-2xs">
+                  <th className="py-2.5 px-2.5 text-center w-10 bg-slate-50 border-r border-slate-200">
                     <input
                       type="checkbox"
                       checked={
@@ -819,7 +820,7 @@ export const BonsRetourView: React.FC<BonsRetourViewProps> = ({
                           ).length
                       }
                       onChange={toggleSelectAll}
-                      className="rounded border-slate-400 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                      className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
                       title="Sélectionner tous les BR validés en attente"
                     />
                   </th>
@@ -829,34 +830,34 @@ export const BonsRetourView: React.FC<BonsRetourViewProps> = ({
                   <SortableTh label="Motif du Retour" sortKey="motif" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} className="min-w-[150px]" />
                   <SortableTh label="Total HT (-)" sortKey="total_ht" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} align="right" className="min-w-[90px]" />
                   <SortableTh label="TVA (-)" sortKey="total_tva" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} align="right" className="min-w-[80px]" />
-                  <SortableTh label="Total TTC (-)" sortKey="total_ttc" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} align="right" className="min-w-[100px] text-rose-300" />
+                  <SortableTh label="Total TTC (-)" sortKey="total_ttc" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} align="right" className="min-w-[100px] text-rose-600 font-bold" />
                   <SortableTh label="État Document" sortKey="etat" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} align="center" className="min-w-[100px]" />
                   <SortableTh label="Facturation" sortKey="facture_numero" currentSortKey={sortKey} currentSortDir={sortDir} onSort={handleSort} align="center" className="min-w-[110px]" />
-                  <th className="py-2.5 px-3 text-center min-w-[140px]">Actions</th>
+                  <th className="py-2.5 px-3 text-center min-w-[140px] bg-slate-50 font-semibold text-xs text-slate-700">Actions</th>
                 </tr>
                 {/* Search & quick filter row */}
-                <tr className="bg-slate-800 text-slate-200 divide-x divide-slate-700">
-                  <th className="p-1 text-center">
+                <tr className="bg-slate-50/70 text-slate-600 divide-x divide-slate-200 border-b border-slate-200">
+                  <th className="p-1.5 text-center">
                     <button
                       type="button"
                       onClick={exportSelectedToCsv}
-                      className="text-slate-400 hover:text-white p-0.5"
+                      className="text-slate-400 hover:text-slate-700 p-0.5 cursor-pointer"
                       title="Exporter CSV"
                     >
                       <Download className="w-3.5 h-3.5" />
                     </button>
                   </th>
-                  <th className="p-1" colSpan={4}>
+                  <th className="p-1.5" colSpan={4}>
                     <input
                       type="text"
                       placeholder="Recherche rapide (N° BR, client, motif, date)..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full px-2 py-1 text-[11px] bg-white text-slate-900 rounded border border-slate-300 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      className="w-full px-2 py-1 text-xs bg-white text-slate-800 rounded-lg border border-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500 shadow-2xs"
                     />
                   </th>
-                  <th className="p-1" colSpan={6}>
-                    <div className="flex items-center justify-between text-[11px] text-slate-300 px-2 font-normal">
+                  <th className="p-1.5" colSpan={6}>
+                    <div className="flex items-center justify-between text-xs text-slate-500 px-2 font-normal">
                       <span>{filteredBrs.length} BRs trouvés</span>
                       {(searchQuery || filterStartDate || filterEndDate) && (
                         <button
@@ -865,7 +866,7 @@ export const BonsRetourView: React.FC<BonsRetourViewProps> = ({
                             setFilterStartDate('');
                             setFilterEndDate('');
                           }}
-                          className="text-xs text-yellow-300 hover:underline"
+                          className="text-xs text-blue-600 hover:text-blue-800 underline cursor-pointer"
                         >
                           Effacer recherche
                         </button>
@@ -874,7 +875,7 @@ export const BonsRetourView: React.FC<BonsRetourViewProps> = ({
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-200">
+              <tbody className="divide-y divide-slate-200 text-slate-700">
                 {filteredBrs.length === 0 ? (
                   <tr>
                     <td colSpan={11} className="py-12 text-center text-slate-400 text-sm">
@@ -907,17 +908,17 @@ export const BonsRetourView: React.FC<BonsRetourViewProps> = ({
                         tabIndex={0}
                         role="button"
                         title="Ouvrir l’aperçu du bon de retour"
-                        className={`cursor-pointer hover:bg-rose-50/40 transition focus:outline-none focus:ring-2 focus:ring-inset focus:ring-rose-500 divide-x divide-slate-100 ${
+                        className={`cursor-pointer transition divide-x divide-slate-200 border-b border-slate-200 ${
                           isSelected
-                            ? 'bg-rose-50/90 font-medium border-l-4 border-l-rose-600'
+                            ? 'bg-rose-50/80 font-medium'
                             : isAnnule
                             ? 'bg-rose-50/30 opacity-75'
                             : isBrouillon
                             ? 'bg-slate-50/70'
-                            : 'even:bg-slate-50/50'
+                            : 'bg-white hover:bg-slate-50/80'
                         }`}
                       >
-                        <td className="py-2 px-2.5 text-center" onClick={(e) => e.stopPropagation()}>
+                        <td className="py-2.5 px-2.5 text-center" onClick={(e) => e.stopPropagation()}>
                           {isAttente ? (
                             <input
                               type="checkbox"
@@ -929,10 +930,12 @@ export const BonsRetourView: React.FC<BonsRetourViewProps> = ({
                             <span className="text-slate-300">-</span>
                           )}
                         </td>
-                        <td className="py-2 px-3 font-mono font-semibold text-slate-900">
-                          <span className={isAnnule ? 'line-through text-slate-400' : ''}>{br.numero}</span>
+                        <td className="py-2.5 px-3 font-mono text-xs">
+                          <span className={isAnnule ? 'line-through text-slate-400' : 'text-blue-600 hover:text-blue-800 underline font-medium'}>
+                            {br.numero}
+                          </span>
                         </td>
-                        <td className="py-2 px-3 text-slate-600 whitespace-nowrap font-mono">
+                        <td className="py-2.5 px-3 text-slate-600 whitespace-nowrap font-mono">
                           {formatDate(br.date)}
                         </td>
                         <td className="py-2 px-3 text-slate-900 font-medium">
@@ -1090,20 +1093,20 @@ export const BonsRetourView: React.FC<BonsRetourViewProps> = ({
                 )}
               </tbody>
               <tfoot>
-                <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-xs">
-                  <td colSpan={5} className="py-2.5 px-3 text-right uppercase tracking-wider">
+                <tr className="bg-slate-50 text-slate-900 font-bold divide-x divide-slate-200 border-t-2 border-slate-300 text-xs">
+                  <td colSpan={5} className="py-2.5 px-3 text-right uppercase tracking-wider text-slate-700">
                     Total Déductions BR ({filteredBrs.length} retours • {totalLines} lignes) :
                   </td>
-                  <td className="py-2.5 px-3 text-right font-mono text-rose-300">
+                  <td className="py-2.5 px-3 text-right font-mono text-rose-600">
                     -{formatCurrency(totals.totalHt, false)}
                   </td>
-                  <td className="py-2.5 px-3 text-right font-mono text-rose-300">
+                  <td className="py-2.5 px-3 text-right font-mono text-rose-600">
                     -{formatCurrency(totals.totalTva, false)}
                   </td>
-                  <td className="py-2.5 px-3 text-right font-mono text-rose-400 bg-slate-950 font-extrabold">
+                  <td className="py-2.5 px-3 text-right font-mono text-rose-600 font-extrabold">
                     -{formatCurrency(totals.totalTtc, false)}
                   </td>
-                  <td colSpan={3} className="py-2.5 px-3 text-center text-slate-400">
+                  <td colSpan={3} className="py-2.5 px-3 text-center text-slate-500">
                     MAD (DH)
                   </td>
                 </tr>

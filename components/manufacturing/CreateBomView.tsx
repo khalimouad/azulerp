@@ -685,7 +685,7 @@ export const CreateBomView: React.FC<CreateBomViewProps> = ({
           <div className="border border-slate-200 rounded-xl overflow-hidden shadow-xs">
             <table className="w-full text-left text-xs border-collapse min-w-[700px]">
               <thead>
-                <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-[11px] uppercase tracking-wider sticky top-0 z-10 shadow-xs">
+                <tr className="bg-slate-50 text-slate-700 font-semibold divide-x divide-slate-200 border-b border-slate-200 text-xs sticky top-0 z-10">
                   <th className="py-2.5 px-3 w-[40%]">Article du Catalogue (Produit / Matière)</th>
                   <th className="py-2.5 px-3 w-[15%]">Quantité</th>
                   <th className="py-2.5 px-3 w-[12%]">Unité</th>
@@ -694,11 +694,11 @@ export const CreateBomView: React.FC<CreateBomViewProps> = ({
                   <th className="py-2.5 px-3 w-[5%] text-center">Action</th>
                 </tr>
               </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-slate-200">
               {inputs.map((inp, idx) => {
                 const prod = inp.produit_id ? productsById.get(Number(inp.produit_id)) : null;
                 return (
-                  <tr key={inp.id || idx} className="hover:bg-slate-50/80 transition-colors">
+                  <tr key={inp.id || idx} className="hover:bg-blue-50/40 transition divide-x divide-slate-200 border-b border-slate-200">
                     <td className="py-2.5 pr-3">
                       <div className="space-y-1">
                         <ProductSearchSelect
@@ -838,7 +838,7 @@ export const CreateBomView: React.FC<CreateBomViewProps> = ({
           <div className="border border-slate-200 rounded-xl overflow-hidden shadow-xs">
             <table className="w-full text-left text-xs border-collapse min-w-[700px]">
               <thead>
-                <tr className="bg-slate-900 text-white font-bold divide-x divide-slate-800 text-[11px] uppercase tracking-wider sticky top-0 z-10 shadow-xs">
+                <tr className="bg-slate-50 text-slate-700 font-semibold divide-x divide-slate-200 border-b border-slate-200 text-xs sticky top-0 z-10">
                   <th className="py-2.5 px-3 w-[36%]">Article Extrant (Produit Fini ou Déchet)</th>
                   <th className="py-2.5 px-3 w-[15%]">Type d'Extrant</th>
                   <th className="py-2.5 px-3 w-[13%]">Quantité Produite</th>
@@ -848,7 +848,7 @@ export const CreateBomView: React.FC<CreateBomViewProps> = ({
                   <th className="py-2.5 px-3 w-[4%] text-center">Action</th>
                 </tr>
               </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-slate-200">
               {outputs.map((out, idx) => {
                 const prod = out.produit_id ? productsById.get(Number(out.produit_id)) : null;
                 const share = (Number(out.pourcentage_repartition) || (out.est_dechet ? 0 : 100)) / 100;
@@ -858,8 +858,8 @@ export const CreateBomView: React.FC<CreateBomViewProps> = ({
                 return (
                   <tr
                     key={out.id || idx}
-                    className={`transition-colors ${
-                      out.est_dechet ? 'bg-amber-50/40 hover:bg-amber-50/70' : 'hover:bg-slate-50/80'
+                    className={`transition divide-x divide-slate-200 border-b border-slate-200 ${
+                      out.est_dechet ? 'bg-amber-50/40 hover:bg-amber-50/70' : 'hover:bg-blue-50/40'
                     }`}
                   >
                     <td className="py-2.5 pr-3">
