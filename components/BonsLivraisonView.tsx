@@ -231,10 +231,32 @@ export const BonsLivraisonView: React.FC<BonsLivraisonViewProps> = ({
     };
   }, [bonsLivraison]);
 
+  // Popovers for filters and dates
+  const [showFilterPopup, setShowFilterPopup] = useState(false);
+  const [showDatePopup, setShowDatePopup] = useState(false);
+  const filterPopoverRef = React.useRef<HTMLDivElement>(null);
+  const datePopoverRef = React.useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (filterPopoverRef.current && !filterPopoverRef.current.contains(e.target as Node)) {
+        setShowFilterPopup(false);
+      }
+      if (datePopoverRef.current && !datePopoverRef.current.contains(e.target as Node)) {
+        setShowDatePopup(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const hasActiveFilters = filterStatut !== 'ALL';
+  const hasActiveDateFilter = Boolean(filterStartDate || filterEndDate);
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-2.5">
       {/* ========================================================================= */}
-      {/* 1. TOP HEADER (Compact on mobile, full on desktop) */}
+      {/* 1. TOP HEADER (Compact on mobile, unified toolbar on desktop) */}
       {/* ========================================================================= */}
       {/* Mobile Top Header (sm:hidden) */}
       <div className="flex items-center justify-between gap-2 p-3 bg-white rounded-xl border border-slate-200 shadow-xs sm:hidden">
@@ -285,31 +307,161 @@ export const BonsLivraisonView: React.FC<BonsLivraisonViewProps> = ({
         </div>
       </div>
 
-      {/* Desktop Top Header (hidden sm:flex) */}
-      <div className="hidden sm:flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
-        <div>
-          <h2 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
-            <Truck className="w-5 h-5 text-emerald-600" />
-            Bons de Livraison (BL)
-            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-              {filteredBls.length} BL • {totalLines} lignes
-            </span>
-          </h2>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Gestion du cycle de vie en 3 états : Brouillon (Draft), Validé (déstocké), Annulé (restitué). Facturation fin de mois.
-          </p>
+      {/* Desktop Top Unified Toolbar (hidden sm:flex) */}
+      <div className="hidden sm:flex items-center justify-between gap-3 bg-white px-3.5 py-2 rounded-xl border border-slate-200 shadow-2xs">
+        {/* Left: Title + BL Count + Popup Filters */}
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <Truck className="w-5 h-5 text-emerald-600 shrink-0" />
+            <div className="flex items-center gap-2">
+              <h2 className="text-sm font-bold text-slate-900 tracking-tight whitespace-nowrap">
+                Bons de Livraison
+              </h2>
+              <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 whitespace-nowrap">
+                {filteredBls.length} BL
+              </span>
+            </div>
+          </div>
+
+          <div className="h-4 w-px bg-slate-200" />
+
+          {/* Popup Controls: Filtres & Date */}
+          <div className="flex items-center gap-2">
+            {/* 1. FILTERS POPUP BUTTON */}
+            <div className="relative" ref={filterPopoverRef}>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowFilterPopup((prev) => !prev);
+                  setShowDatePopup(false);
+                }}
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold rounded-lg border transition shadow-2xs ${
+                  hasActiveFilters
+                    ? 'bg-emerald-50 border-emerald-300 text-emerald-700'
+                    : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                }`}
+              >
+                <SlidersHorizontal className="w-3.5 h-3.5 text-slate-500" />
+                <span>État : {filterStatut === 'ALL' ? 'Tous' : filterStatut}</span>
+                {hasActiveFilters && (
+                  <span className="w-2 h-2 rounded-full bg-emerald-600" />
+                )}
+                <span className="text-[10px] text-slate-400">▾</span>
+              </button>
+
+              {/* Filters Popover Menu */}
+              {showFilterPopup && (
+                <div className="absolute left-0 mt-2 z-50 bg-white rounded-xl border border-slate-200 shadow-xl p-3.5 w-[280px] space-y-2 animate-in fade-in zoom-in-95 duration-150">
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                    <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                      <SlidersHorizontal className="w-3.5 h-3.5 text-emerald-600" />
+                      État du bon de livraison
+                    </span>
+                    {hasActiveFilters && (
+                      <button
+                        type="button"
+                        onClick={() => setFilterStatut('ALL')}
+                        className="text-[11px] text-rose-600 hover:text-rose-700 font-medium"
+                      >
+                        Réinitialiser
+                      </button>
+                    )}
+                  </div>
+                  <div className="space-y-1">
+                    {[
+                      { key: 'ALL', label: `Tous (${counts.all})` },
+                      { key: 'VALIDE', label: `Validés (${counts.valide})`, color: 'text-emerald-700' },
+                      { key: 'ATTENTE', label: `⏳ À facturer (${counts.attente})`, color: 'text-amber-700' },
+                      { key: 'BROUILLON', label: `Brouillons (${counts.brouillon})`, color: 'text-slate-700' },
+                      { key: 'ANNULE', label: `Annulés (${counts.annule})`, color: 'text-rose-700' },
+                    ].map((item) => (
+                      <button
+                        key={item.key}
+                        type="button"
+                        onClick={() => {
+                          setFilterStatut(item.key as any);
+                          setShowFilterPopup(false);
+                        }}
+                        className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-medium flex items-center justify-between transition ${
+                          filterStatut === item.key
+                            ? 'bg-emerald-50 text-emerald-800 font-bold'
+                            : 'hover:bg-slate-50 text-slate-700'
+                        }`}
+                      >
+                        <span className={item.color}>{item.label}</span>
+                        {filterStatut === item.key && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* 2. DATE POPUP BUTTON */}
+            <div className="relative" ref={datePopoverRef}>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowDatePopup((prev) => !prev);
+                  setShowFilterPopup(false);
+                }}
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold rounded-lg border transition shadow-2xs ${
+                  hasActiveDateFilter
+                    ? 'bg-emerald-50 border-emerald-300 text-emerald-700'
+                    : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                }`}
+              >
+                <span>Date / Période</span>
+                {hasActiveDateFilter && (
+                  <span className="w-2 h-2 rounded-full bg-emerald-600" />
+                )}
+                <span className="text-[10px] text-slate-400">▾</span>
+              </button>
+
+              {/* Date Popover Menu */}
+              {showDatePopup && (
+                <div className="absolute left-0 mt-2 z-50 bg-white rounded-xl border border-slate-200 shadow-xl p-3.5 w-auto min-w-[320px] animate-in fade-in zoom-in-95 duration-150">
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-2 mb-2.5">
+                    <span className="text-xs font-bold text-slate-800">Filtrer par date de livraison</span>
+                    {hasActiveDateFilter && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFilterStartDate('');
+                          setFilterEndDate('');
+                        }}
+                        className="text-[11px] text-rose-600 hover:text-rose-700 font-medium"
+                      >
+                        Effacer
+                      </button>
+                    )}
+                  </div>
+                  <DateRangeFilter
+                    startDate={filterStartDate}
+                    endDate={filterEndDate}
+                    onDateChange={(start, end) => {
+                      setFilterStartDate(start);
+                      setFilterEndDate(end);
+                    }}
+                    variant="emerald"
+                    compact
+                  />
+                </div>
+              )}
+            </div>
+          </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
+        {/* Right: Actions */}
+        <div className="flex items-center gap-2">
           {onRefresh && (
             <button
               onClick={onRefresh}
               disabled={isLoading}
-              className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-300 transition shadow-xs disabled:opacity-50"
-              title="Recharger les bons de livraison"
+              className="p-1.5 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-300 transition active:scale-95 disabled:opacity-50"
+              title="Actualiser"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin text-emerald-600' : ''}`} />
-              <span>Actualiser</span>
             </button>
           )}
 
@@ -317,281 +469,26 @@ export const BonsLivraisonView: React.FC<BonsLivraisonViewProps> = ({
             <button
               onClick={() => {
                 if (!isSingleClientSelected) {
-                  alert('Veuillez sélectionner des BLs appartenant au même client pour générer une facture consolidée.');
+                  alert('Veuillez sélectionner des BLs appartenant au même client pour générer une facture.');
                   return;
                 }
                 onBatchInvoiceSelected(selectedBlIds);
               }}
               disabled={!isSingleClientSelected}
-              className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs transition active:scale-95 disabled:opacity-50"
             >
-              <FileText className="w-4 h-4" />
-              Facturer les {selectedBlIds.length} BL sélectionnés • {formatCurrency(selectedBlsTotals.totalTtc)}
-              <ArrowRight className="w-3.5 h-3.5" />
+              <FileText className="w-3.5 h-3.5" />
+              Facturer ({selectedBlIds.length}) • {formatCurrency(selectedBlsTotals.totalTtc)}
             </button>
           )}
 
           <button
             onClick={onOpenNewBl}
-            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs transition active:scale-95"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs transition active:scale-95"
           >
-            <Plus className="w-4 h-4" />
-            + Nouveau Bon de Livraison
+            <Plus className="w-3.5 h-3.5" />
+            <span>Nouveau BL</span>
           </button>
-        </div>
-      </div>
-
-      {/* Floating Selection & Addition Banner */}
-      {selectedBlIds.length > 0 && (
-        <div className="sticky bottom-16 lg:bottom-4 z-20 bg-indigo-950 text-white p-3 sm:p-4 rounded-xl shadow-xl border border-indigo-700 flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in slide-in-from-bottom-2">
-          <div className="flex items-center gap-2.5 sm:gap-3">
-            <span className="p-2 rounded-lg bg-indigo-800 text-indigo-200 shrink-0">
-              <CheckSquare className="w-5 h-5" />
-            </span>
-            <div className="min-w-0">
-              <div className="text-xs font-bold flex flex-wrap items-center gap-1.5 sm:gap-2">
-                <span>{selectedBlIds.length} BL sélectionné{selectedBlIds.length > 1 ? 's' : ''}</span>
-                {selectedBlsObjects[0] && (
-                  <span className="px-2 py-0.5 rounded bg-indigo-800/80 text-indigo-200 font-medium truncate max-w-[200px]">
-                    Client : {selectedBlsObjects[0].client_nom}
-                  </span>
-                )}
-              </div>
-              <div className="text-xs text-indigo-300 font-mono mt-0.5 truncate">
-                Total : <span className="font-extrabold text-emerald-400 text-sm">{formatCurrency(selectedBlsTotals.totalTtc)}</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2 shrink-0">
-            <button
-              onClick={() => setSelectedBlIds([])}
-              className="px-3 py-1.5 text-xs text-indigo-200 hover:text-white hover:bg-indigo-900 rounded-lg transition"
-            >
-              Désélectionner
-            </button>
-            <button
-              onClick={() => {
-                if (!isSingleClientSelected) {
-                  alert('Veuillez sélectionner des BLs appartenant au même client pour générer une facture consolidée.');
-                  return;
-                }
-                onBatchInvoiceSelected(selectedBlIds);
-              }}
-              disabled={!isSingleClientSelected}
-              className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white shadow transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <FileText className="w-4 h-4" />
-              <span>Générer Facture</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* ========================================================================= */}
-      {/* 2. MOBILE SEARCH & QUICK FILTER CHIPS (md:hidden) */}
-      {/* ========================================================================= */}
-      <div className="space-y-2 md:hidden">
-        {/* Search input + Filter toggle button */}
-        <div className="flex items-center gap-2">
-          <div className="relative flex-1">
-            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-            <input
-              type="text"
-              placeholder="Rechercher BL, Client, Facture..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-8 pr-7 py-2 text-xs bg-white text-slate-800 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-xs"
-            />
-            {searchQuery && (
-              <button
-                type="button"
-                onClick={() => setSearchQuery('')}
-                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-            )}
-          </div>
-
-          <button
-            type="button"
-            onClick={() => setShowMobileFilters(!showMobileFilters)}
-            className={`flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-xl border transition shadow-xs shrink-0 ${
-              showMobileFilters || filterStartDate || filterEndDate
-                ? 'bg-emerald-50 border-emerald-300 text-emerald-700'
-                : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
-            }`}
-          >
-            <SlidersHorizontal className="w-3.5 h-3.5" />
-            <span>Filtres</span>
-            {(filterStartDate || filterEndDate) && (
-              <span className="w-2 h-2 rounded-full bg-emerald-600" />
-            )}
-          </button>
-        </div>
-
-        {/* 1-Tap horizontal filter pills */}
-        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5 text-xs whitespace-nowrap">
-          <button
-            onClick={() => setFilterStatut('ALL')}
-            className={`px-3 py-1 rounded-full text-xs font-medium transition shrink-0 ${
-              filterStatut === 'ALL'
-                ? 'bg-slate-900 text-white shadow-xs'
-                : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
-            }`}
-          >
-            Tous ({counts.all})
-          </button>
-          <button
-            onClick={() => setFilterStatut('VALIDE')}
-            className={`px-3 py-1 rounded-full text-xs font-medium transition shrink-0 flex items-center gap-1 ${
-              filterStatut === 'VALIDE'
-                ? 'bg-emerald-600 text-white shadow-xs font-bold'
-                : 'bg-white text-emerald-700 border border-emerald-200 hover:bg-emerald-50'
-            }`}
-          >
-            Validés ({counts.valide})
-          </button>
-          <button
-            onClick={() => setFilterStatut('ATTENTE')}
-            className={`px-3 py-1 rounded-full text-xs font-medium transition shrink-0 flex items-center gap-1 ${
-              filterStatut === 'ATTENTE'
-                ? 'bg-amber-500 text-white shadow-xs font-bold'
-                : 'bg-white text-amber-800 border border-amber-200 hover:bg-amber-50'
-            }`}
-          >
-            ⏳ À facturer ({counts.attente})
-          </button>
-          <button
-            onClick={() => setFilterStatut('BROUILLON')}
-            className={`px-3 py-1 rounded-full text-xs font-medium transition shrink-0 flex items-center gap-1 ${
-              filterStatut === 'BROUILLON'
-                ? 'bg-slate-700 text-white shadow-xs font-bold'
-                : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50'
-            }`}
-          >
-            Brouillons ({counts.brouillon})
-          </button>
-          <button
-            onClick={() => setFilterStatut('ANNULE')}
-            className={`px-3 py-1 rounded-full text-xs font-medium transition shrink-0 flex items-center gap-1 ${
-              filterStatut === 'ANNULE'
-                ? 'bg-rose-600 text-white shadow-xs font-bold'
-                : 'bg-white text-rose-700 border border-rose-200 hover:bg-rose-50'
-            }`}
-          >
-            Annulés ({counts.annule})
-          </button>
-        </div>
-
-        {/* Expandable Mobile Date Filter Sheet */}
-        {showMobileFilters && (
-          <div className="p-3 bg-white rounded-xl border border-slate-200 shadow-xs space-y-2.5 animate-in fade-in duration-150">
-            <div className="flex items-center justify-between text-xs font-bold text-slate-700 border-b border-slate-100 pb-1.5">
-              <span>Filtrer par date</span>
-              <button
-                onClick={() => setShowMobileFilters(false)}
-                className="text-slate-400 hover:text-slate-600 p-0.5"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-            <DateRangeFilter
-              startDate={filterStartDate}
-              endDate={filterEndDate}
-              onDateChange={(start, end) => {
-                setFilterStartDate(start);
-                setFilterEndDate(end);
-              }}
-              variant="emerald"
-            />
-          </div>
-        )}
-      </div>
-
-      {/* ========================================================================= */}
-      {/* 3. DESKTOP FILTER BAR (hidden md:flex) */}
-      {/* ========================================================================= */}
-      <div className="hidden md:flex flex-col lg:flex-row lg:items-center justify-between gap-3 bg-white p-3 rounded-xl border border-slate-200 shadow-xs">
-        <div className="flex items-center gap-1.5 text-xs overflow-x-auto pb-1 lg:pb-0 no-scrollbar whitespace-nowrap">
-          <button
-            onClick={() => setFilterStatut('ALL')}
-            className={`px-3 py-1.5 rounded-lg font-medium transition shrink-0 ${
-              filterStatut === 'ALL'
-                ? 'bg-slate-900 text-white shadow-xs'
-                : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200'
-            }`}
-          >
-            Tous ({counts.all})
-          </button>
-          <button
-            onClick={() => setFilterStatut('VALIDE')}
-            className={`px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1.5 shrink-0 ${
-              filterStatut === 'VALIDE'
-                ? 'bg-emerald-600 text-white shadow-xs'
-                : 'bg-white text-emerald-700 hover:bg-emerald-50 border border-emerald-200'
-            }`}
-          >
-            <CheckCircle2 className="w-3.5 h-3.5" />
-            Validés ({counts.valide})
-          </button>
-          <button
-            onClick={() => setFilterStatut('BROUILLON')}
-            className={`px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1.5 shrink-0 ${
-              filterStatut === 'BROUILLON'
-                ? 'bg-slate-700 text-white shadow-xs'
-                : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-300'
-            }`}
-          >
-            <Clock className="w-3.5 h-3.5" />
-            Brouillons ({counts.brouillon})
-          </button>
-          <button
-            onClick={() => setFilterStatut('ANNULE')}
-            className={`px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1.5 shrink-0 ${
-              filterStatut === 'ANNULE'
-                ? 'bg-rose-600 text-white shadow-xs'
-                : 'bg-white text-rose-700 hover:bg-rose-50 border border-rose-200'
-            }`}
-          >
-            <Ban className="w-3.5 h-3.5" />
-            Annulés ({counts.annule})
-          </button>
-          <button
-            onClick={() => setFilterStatut('ATTENTE')}
-            className={`px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1.5 shrink-0 ${
-              filterStatut === 'ATTENTE'
-                ? 'bg-amber-500 text-white shadow-xs'
-                : 'bg-white text-amber-700 hover:bg-amber-50 border border-amber-200'
-            }`}
-          >
-            <Clock className="w-3.5 h-3.5" />
-            En attente ({counts.attente})
-          </button>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2.5">
-          <DateRangeFilter
-            startDate={filterStartDate}
-            endDate={filterEndDate}
-            onDateChange={(start, end) => {
-              setFilterStartDate(start);
-              setFilterEndDate(end);
-            }}
-            variant="emerald"
-          />
-
-          <div className="w-full sm:w-56">
-            <input
-              type="text"
-              placeholder="Rechercher BL, Client, Facture..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-3 py-1.5 text-xs bg-slate-50 text-slate-800 rounded-lg border border-slate-300 focus:outline-none focus:bg-white focus:ring-2 focus:ring-emerald-500"
-            />
-          </div>
         </div>
       </div>
 

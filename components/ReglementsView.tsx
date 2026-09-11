@@ -148,10 +148,26 @@ export const ReglementsView: React.FC<ReglementsViewProps> = ({
     document.body.removeChild(link);
   };
 
+  // Date popover state
+  const [showDatePopup, setShowDatePopup] = useState(false);
+  const datePopoverRef = React.useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (datePopoverRef.current && !datePopoverRef.current.contains(e.target as Node)) {
+        setShowDatePopup(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const hasActiveDateFilter = Boolean(filterStartDate || filterEndDate);
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-2.5">
       {/* ========================================================================= */}
-      {/* 1. TOP HEADER (Compact on mobile, full on desktop) */}
+      {/* 1. TOP HEADER (Compact on mobile, unified toolbar on desktop) */}
       {/* ========================================================================= */}
       {/* Mobile Top Header (sm:hidden) */}
       <div className="flex items-center justify-between gap-2 p-3 bg-white rounded-xl border border-slate-200 shadow-xs sm:hidden">
@@ -177,127 +193,92 @@ export const ReglementsView: React.FC<ReglementsViewProps> = ({
         </div>
       </div>
 
-      {/* Desktop Top Header (hidden sm:flex) */}
-      <div className="hidden sm:flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
-        <div>
-          <h2 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
-            <CreditCard className="w-5 h-5 text-emerald-600" />
-            Journal des Règlements & Encaissements
-            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-              {filtered.length} encaissements
-            </span>
-          </h2>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Suivi des paiements reçus par chèque, virement bancaire, traite ou espèces
-          </p>
-        </div>
-
-        <button
-          onClick={onOpenNewPayment}
-          className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs transition active:scale-95"
-        >
-          <Plus className="w-4 h-4" />
-          + Encaisser un Règlement
-        </button>
-      </div>
-
-      {/* ========================================================================= */}
-      {/* 2. MOBILE SEARCH & QUICK FILTER CHIPS (md:hidden) */}
-      {/* ========================================================================= */}
-      <div className="space-y-2 md:hidden">
-        <div className="flex items-center gap-2">
-          <div className="relative flex-1">
-            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-            <input
-              type="text"
-              placeholder="Rechercher client, N° facture, chèque..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-8 pr-7 py-2 text-xs bg-white text-slate-800 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-xs"
-            />
-            {search && (
-              <button
-                type="button"
-                onClick={() => setSearch('')}
-                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-            )}
-          </div>
-
-          <button
-            type="button"
-            onClick={() => setShowMobileFilters(!showMobileFilters)}
-            className={`flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-xl border transition shadow-xs shrink-0 ${
-              showMobileFilters || filterStartDate || filterEndDate
-                ? 'bg-emerald-50 border-emerald-300 text-emerald-700'
-                : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
-            }`}
-          >
-            <SlidersHorizontal className="w-3.5 h-3.5" />
-            <span>Filtres</span>
-            {(filterStartDate || filterEndDate) && (
-              <span className="w-2 h-2 rounded-full bg-emerald-600" />
-            )}
-          </button>
-        </div>
-
-        {/* Expandable Mobile Date Filter Sheet */}
-        {showMobileFilters && (
-          <div className="p-3 bg-white rounded-xl border border-slate-200 shadow-xs space-y-2.5 animate-in fade-in duration-150">
-            <div className="flex items-center justify-between text-xs font-bold text-slate-700 border-b border-slate-100 pb-1.5">
-              <span>Filtrer par date</span>
-              <button
-                onClick={() => setShowMobileFilters(false)}
-                className="text-slate-400 hover:text-slate-600 p-0.5"
-              >
-                <X className="w-4 h-4" />
-              </button>
+      {/* Desktop Top Unified Toolbar (hidden sm:flex) */}
+      <div className="hidden sm:flex items-center justify-between gap-3 bg-white px-3.5 py-2 rounded-xl border border-slate-200 shadow-2xs">
+        {/* Left: Title + Count + Date Popover */}
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <CreditCard className="w-5 h-5 text-emerald-600 shrink-0" />
+            <div className="flex items-center gap-2">
+              <h2 className="text-sm font-bold text-slate-900 tracking-tight whitespace-nowrap">
+                Encaissements Clients
+              </h2>
+              <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 whitespace-nowrap">
+                {filtered.length} reçus
+              </span>
             </div>
-            <DateRangeFilter
-              startDate={filterStartDate}
-              endDate={filterEndDate}
-              onDateChange={(start, end) => {
-                setFilterStartDate(start);
-                setFilterEndDate(end);
-              }}
-              variant="emerald"
-            />
           </div>
-        )}
-      </div>
 
-      {/* ========================================================================= */}
-      {/* 3. DESKTOP SEARCH & SUMMARY BAR (hidden md:block) */}
-      {/* ========================================================================= */}
-      <div className="hidden md:flex bg-white p-3 rounded-xl border border-slate-200 shadow-xs flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
-        <div className="relative max-w-sm">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            placeholder="Rechercher client, N° facture, chèque..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-3 py-1.5 text-xs bg-slate-50 text-slate-800 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-          />
+          <div className="h-4 w-px bg-slate-200" />
+
+          {/* Date Popover */}
+          <div className="relative" ref={datePopoverRef}>
+            <button
+              type="button"
+              onClick={() => setShowDatePopup((prev) => !prev)}
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold rounded-lg border transition shadow-2xs ${
+                hasActiveDateFilter
+                  ? 'bg-emerald-50 border-emerald-300 text-emerald-700'
+                  : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+              }`}
+            >
+              <span>Date / Période</span>
+              {hasActiveDateFilter && (
+                <span className="w-2 h-2 rounded-full bg-emerald-600" />
+              )}
+              <span className="text-[10px] text-slate-400">▾</span>
+            </button>
+
+            {showDatePopup && (
+              <div className="absolute left-0 mt-2 z-50 bg-white rounded-xl border border-slate-200 shadow-xl p-3.5 w-auto min-w-[320px] animate-in fade-in zoom-in-95 duration-150">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-2 mb-2.5">
+                  <span className="text-xs font-bold text-slate-800">Filtrer par date d'encaissement</span>
+                  {hasActiveDateFilter && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFilterStartDate('');
+                        setFilterEndDate('');
+                      }}
+                      className="text-[11px] text-rose-600 hover:text-rose-700 font-medium"
+                    >
+                      Effacer
+                    </button>
+                  )}
+                </div>
+                <DateRangeFilter
+                  startDate={filterStartDate}
+                  endDate={filterEndDate}
+                  onDateChange={(start, end) => {
+                    setFilterStartDate(start);
+                    setFilterEndDate(end);
+                  }}
+                  variant="emerald"
+                  compact
+                />
+              </div>
+            )}
+          </div>
         </div>
 
-        <div className="flex items-center gap-4">
-          <div className="text-xs font-semibold text-slate-700">
-            Total encaissé affiché :{' '}
-            <span className="font-mono text-emerald-700 text-sm font-bold">
+        {/* Right: Total Encaissement KPI + Action */}
+        <div className="flex items-center gap-3">
+          <div className="text-xs font-medium text-slate-600 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200">
+            Total affiché :{' '}
+            <span className="font-mono text-emerald-700 text-xs font-extrabold">
               {formatCurrency(totalEncaisse)}
             </span>
           </div>
 
-          <DateRangeFilter
-            startDate={filterStartDate}
-            endDate={filterEndDate}
-            onDateChange={(start, end) => {
-              setFilterStartDate(start);
-              setFilterEndDate(end);
-            }}
+          <button
+            onClick={onOpenNewPayment}
+            className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs transition active:scale-95"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>+ Encaisser</span>
+          </button>
+        </div>
+      </div>
             variant="emerald"
             compact
           />

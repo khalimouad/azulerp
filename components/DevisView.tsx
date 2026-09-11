@@ -143,10 +143,26 @@ export const DevisView: React.FC<DevisViewProps> = ({
     { totalHt: 0, totalTva: 0, totalTtc: 0 }
   ), [filteredDevis]);
 
+  // Popover state for dates
+  const [showDatePopup, setShowDatePopup] = useState(false);
+  const datePopoverRef = React.useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (datePopoverRef.current && !datePopoverRef.current.contains(e.target as Node)) {
+        setShowDatePopup(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const hasActiveDateFilter = Boolean(filterStartDate || filterEndDate);
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-2.5">
       {/* ========================================================================= */}
-      {/* 1. TOP HEADER (Compact on mobile, full on desktop) */}
+      {/* 1. TOP HEADER & COMPACT UNIFIED TOOLBAR */}
       {/* ========================================================================= */}
       {/* Mobile Top Header (sm:hidden) */}
       <div className="flex items-center justify-between gap-2 p-3 bg-white rounded-xl border border-slate-200 shadow-xs sm:hidden">
@@ -154,7 +170,7 @@ export const DevisView: React.FC<DevisViewProps> = ({
           <FileSpreadsheet className="w-5 h-5 text-indigo-600 shrink-0" />
           <div className="min-w-0">
             <h2 className="font-bold text-slate-900 text-sm truncate flex items-center gap-1.5">
-              Offres & Devis
+              Devis
               <span className="text-[11px] font-semibold px-1.5 py-0.2 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
                 {filteredDevis.length}
               </span>
@@ -172,121 +188,84 @@ export const DevisView: React.FC<DevisViewProps> = ({
         </div>
       </div>
 
-      {/* Desktop Top Header (hidden sm:flex) */}
-      <div className="hidden sm:flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
-        <div>
-          <h2 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
-            <FileSpreadsheet className="w-5 h-5 text-indigo-600" />
-            Offres de Prix & Devis
-            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
-              {filteredDevis.length} devis
-            </span>
-          </h2>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Émission et impression d'offres de prix et propositions commerciales (sans impact sur les stocks)
-          </p>
-        </div>
-
-        <button
-          onClick={onOpenNewDevis}
-          className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs transition active:scale-95"
-        >
-          <Plus className="w-4 h-4" />
-          + Nouveau Devis
-        </button>
-      </div>
-
-      {/* ========================================================================= */}
-      {/* 2. MOBILE SEARCH & QUICK FILTER CHIPS (md:hidden) */}
-      {/* ========================================================================= */}
-      <div className="space-y-2 md:hidden">
-        <div className="flex items-center gap-2">
-          <div className="relative flex-1">
-            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-            <input
-              type="text"
-              placeholder="Rechercher devis, client..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-8 pr-7 py-2 text-xs bg-white text-slate-800 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-xs"
-            />
-            {searchQuery && (
-              <button
-                type="button"
-                onClick={() => setSearchQuery('')}
-                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-            )}
+      {/* Desktop Top Unified Toolbar (hidden sm:flex) */}
+      <div className="hidden sm:flex items-center justify-between gap-3 bg-white px-3.5 py-2 rounded-xl border border-slate-200 shadow-2xs">
+        {/* Left: Title + Document Count + Date Popover */}
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <FileSpreadsheet className="w-5 h-5 text-indigo-600 shrink-0" />
+            <div className="flex items-center gap-2">
+              <h2 className="text-sm font-bold text-slate-900 tracking-tight whitespace-nowrap">
+                Offres & Devis
+              </h2>
+              <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 whitespace-nowrap">
+                {filteredDevis.length} devis
+              </span>
+            </div>
           </div>
 
-          <button
-            type="button"
-            onClick={() => setShowMobileFilters(!showMobileFilters)}
-            className={`flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-xl border transition shadow-xs shrink-0 ${
-              showMobileFilters || filterStartDate || filterEndDate
-                ? 'bg-indigo-50 border-indigo-300 text-indigo-700'
-                : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
-            }`}
-          >
-            <SlidersHorizontal className="w-3.5 h-3.5" />
-            <span>Filtres</span>
-            {(filterStartDate || filterEndDate) && (
-              <span className="w-2 h-2 rounded-full bg-indigo-600" />
+          <div className="h-4 w-px bg-slate-200" />
+
+          {/* Date Range Popover */}
+          <div className="relative" ref={datePopoverRef}>
+            <button
+              type="button"
+              onClick={() => setShowDatePopup((prev) => !prev)}
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold rounded-lg border transition shadow-2xs ${
+                hasActiveDateFilter
+                  ? 'bg-indigo-50 border-indigo-300 text-indigo-700'
+                  : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+              }`}
+            >
+              <span>Date / Période</span>
+              {hasActiveDateFilter && (
+                <span className="w-2 h-2 rounded-full bg-indigo-600" />
+              )}
+              <span className="text-[10px] text-slate-400">▾</span>
+            </button>
+
+            {showDatePopup && (
+              <div className="absolute left-0 mt-2 z-50 bg-white rounded-xl border border-slate-200 shadow-xl p-3.5 w-auto min-w-[320px] animate-in fade-in zoom-in-95 duration-150">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-2 mb-2.5">
+                  <span className="text-xs font-bold text-slate-800">Filtrer par dates</span>
+                  {hasActiveDateFilter && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFilterStartDate('');
+                        setFilterEndDate('');
+                      }}
+                      className="text-[11px] text-rose-600 hover:text-rose-700 font-medium"
+                    >
+                      Effacer
+                    </button>
+                  )}
+                </div>
+                <DateRangeFilter
+                  startDate={filterStartDate}
+                  endDate={filterEndDate}
+                  onDateChange={(start, end) => {
+                    setFilterStartDate(start);
+                    setFilterEndDate(end);
+                  }}
+                  variant="indigo"
+                  compact
+                />
+              </div>
             )}
+          </div>
+        </div>
+
+        {/* Right: Actions */}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={onOpenNewDevis}
+            className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs transition active:scale-95"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>Nouveau Devis</span>
           </button>
         </div>
-
-        {/* Expandable Mobile Date Filter Sheet */}
-        {showMobileFilters && (
-          <div className="p-3 bg-white rounded-xl border border-slate-200 shadow-xs space-y-2.5 animate-in fade-in duration-150">
-            <div className="flex items-center justify-between text-xs font-bold text-slate-700 border-b border-slate-100 pb-1.5">
-              <span>Filtrer par date</span>
-              <button
-                onClick={() => setShowMobileFilters(false)}
-                className="text-slate-400 hover:text-slate-600 p-0.5"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-            <DateRangeFilter
-              startDate={filterStartDate}
-              endDate={filterEndDate}
-              onDateChange={(start, end) => {
-                setFilterStartDate(start);
-                setFilterEndDate(end);
-              }}
-              variant="indigo"
-            />
-          </div>
-        )}
-      </div>
-
-      {/* ========================================================================= */}
-      {/* 3. DESKTOP SEARCH & DATE FILTER BAR (hidden md:block) */}
-      {/* ========================================================================= */}
-      <div className="hidden md:flex bg-white p-3 rounded-xl border border-slate-200 shadow-xs flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
-        <div className="relative max-w-sm">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            placeholder="Rechercher devis, client..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-3 py-1.5 text-xs bg-slate-50 text-slate-800 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          />
-        </div>
-        <DateRangeFilter
-          startDate={filterStartDate}
-          endDate={filterEndDate}
-          onDateChange={(start, end) => {
-            setFilterStartDate(start);
-            setFilterEndDate(end);
-          }}
-          variant="indigo"
-          compact
-        />
       </div>
 
       {/* ========================================================================= */}

@@ -404,27 +404,28 @@ export const ClientsView: React.FC<ClientsViewProps> = ({
       </div>
 
       {/* Desktop Top Header (hidden sm:flex) */}
-      <div className="hidden sm:flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
-        <div>
-          <h2 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
-            <Building className="w-5 h-5 text-blue-600" />
-            Gestion des Clients & Grilles Tarifaires Personnalisées
-            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
-              {clients.length} comptes clients
-            </span>
-          </h2>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Sélectionnez un client à gauche pour gérer ses coordonnées et configurer ses prix et remises négociés à droite.
-          </p>
+      <div className="hidden sm:flex items-center justify-between gap-3 bg-white px-3.5 py-2 rounded-xl border border-slate-200 shadow-2xs">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <Building className="w-5 h-5 text-blue-600 shrink-0" />
+            <div className="flex items-center gap-2">
+              <h2 className="text-sm font-bold text-slate-900 tracking-tight whitespace-nowrap">
+                Clients & Tarifs
+              </h2>
+              <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 whitespace-nowrap">
+                {clients.length} comptes
+              </span>
+            </div>
+          </div>
         </div>
 
         <div className="flex items-center gap-2">
           <button
             onClick={onOpenNewClient}
-            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg bg-blue-600 hover:bg-blue-700 text-white shadow-xs transition active:scale-95"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold rounded-lg bg-blue-600 hover:bg-blue-700 text-white shadow-xs transition active:scale-95"
           >
-            <Plus className="w-4 h-4" />
-            + Nouveau Client
+            <Plus className="w-3.5 h-3.5" />
+            <span>Nouveau Client</span>
           </button>
         </div>
       </div>
