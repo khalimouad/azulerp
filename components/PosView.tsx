@@ -2377,7 +2377,18 @@ export const PosView: React.FC<PosViewProps> = ({
                   )
                   .map((sale) => (
                     <tr key={sale.id} className="hover:bg-blue-50/40 transition divide-x divide-slate-200 border-b border-slate-200">
-                      <td className="py-2.5 px-3 font-mono font-medium text-blue-600 hover:text-blue-800 underline cursor-pointer" onClick={() => setSelectedSale(sale)}>{sale.numero_ticket}</td>
+                      <td
+                        className="py-2.5 px-3 font-mono font-medium text-blue-600 hover:text-blue-800 underline cursor-pointer"
+                        onClick={() => {
+                          printPosTicket(sale, companyInfo, 'DUPLICATA').then((res) => {
+                            if (res.success) {
+                              showToast(`Duplicata Ticket #${sale.numero_ticket} imprimé.`);
+                            }
+                          });
+                        }}
+                      >
+                        {sale.numero_ticket}
+                      </td>
                       <td className="py-2.5 px-3 text-slate-500">{sale.date_vente}</td>
                       <td className="py-2.5 px-3 font-medium text-slate-800">{sale.table_numero}</td>
                       <td className="py-2.5 px-3 text-slate-600">{sale.nb_couverts}</td>
