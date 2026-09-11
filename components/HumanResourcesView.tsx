@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Employee, PayrollSlip, LeaveRequest } from '@/lib/types';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { calculateMoroccanPayroll, getSampleMoroccanEmployees } from '@/lib/moroccan-payroll';
