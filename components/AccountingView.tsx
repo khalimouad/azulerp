@@ -4,6 +4,8 @@ import React, { useState, useMemo, useEffect } from 'react';
 import {
   JournalEntry,
   PlanAccount,
+  AccountType,
+  AccountClassId,
   AccountingJournal,
   FixedAsset,
   Facture,
