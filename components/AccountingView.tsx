@@ -46,13 +46,15 @@ import {
   AlertCircle,
   Clock,
   Layers,
-  FileText,
   Calendar,
   Eye,
   X,
   Printer,
-  Edit
+  Edit,
+  ChevronDown,
+  SlidersHorizontal,
 } from 'lucide-react';
+import { DateRangeFilter } from '@/components/DateRangeFilter';
 
 export type AccountingTab = 'JOURNAL' | 'PCGM' | 'BALANCE' | 'SYNTHESE' | 'FISCALITE' | 'IMMOBILISATIONS' | 'EXPORT';
 
@@ -66,6 +68,7 @@ interface AccountingViewProps {
   initialTab?: AccountingTab;
   onNavigateTab?: (tab: string) => void;
   onRefresh?: () => void;
+  onUpdateAccounts?: (accounts: PlanAccount[]) => void;
   onCreateEntry?: () => void;
   onEditEntry?: (entry: JournalEntry) => void;
   onCreateAsset?: () => void;
@@ -82,12 +85,18 @@ export function AccountingView({
   initialTab = 'JOURNAL',
   onNavigateTab,
   onRefresh,
+  onUpdateAccounts,
   onCreateEntry,
   onEditEntry,
   onCreateAsset,
   onEditAsset,
 }: AccountingViewProps) {
   const [currentTab, setCurrentTab] = useState<AccountingTab>(initialTab || 'JOURNAL');
+  const [localAccounts, setLocalAccounts] = useState<PlanAccount[]>(accounts);
+
+  useEffect(() => {
+    setLocalAccounts(accounts);
+  }, [accounts]);
 
   useEffect(() => {
     if (initialTab && initialTab !== currentTab) {
@@ -116,6 +125,105 @@ export function AccountingView({
   const [pcgmSearch, setPcgmSearch] = useState<string>('');
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
   const [syncFeedback, setSyncFeedback] = useState<string | null>(null);
+
+  // Date and KPI popups
+  const [filterStartDate, setFilterStartDate] = useState<string>('');
+  const [filterEndDate, setFilterEndDate] = useState<string>('');
+  const [showDatePopup, setShowDatePopup] = useState<boolean>(false);
+  const [showKpiPopup, setShowKpiPopup] = useState<boolean>(false);
+  const datePopoverRef = React.useRef<HTMLDivElement>(null);
+  const kpiPopoverRef = React.useRef<HTMLDivElement>(null);
+
+  // Plan Comptable Edit Modal State
+  const [showAccountModal, setShowAccountModal] = useState<boolean>(false);
+  const [editingAccount, setEditingAccount] = useState<PlanAccount | null>(null);
+  const [accountCode, setAccountCode] = useState<string>('');
+  const [accountLibelle, setAccountLibelle] = useState<string>('');
+  const [accountLibelleAr, setAccountLibelleAr] = useState<string>('');
+  const [accountClasse, setAccountClasse] = useState<1 | 2 | 3 | 4 | 5 | 6 | 7>(1);
+  const [accountType, setAccountType] = useState<AccountType>('asset');
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (datePopoverRef.current && !datePopoverRef.current.contains(e.target as Node)) {
+        setShowDatePopup(false);
+      }
+      if (kpiPopoverRef.current && !kpiPopoverRef.current.contains(e.target as Node)) {
+        setShowKpiPopup(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const openNewAccountModal = () => {
+    setEditingAccount(null);
+    setAccountCode(`${pcgmClasse}111`);
+    setAccountLibelle('');
+    setAccountLibelleAr('');
+    setAccountClasse(pcgmClasse as any);
+    setAccountType(
+      pcgmClasse === 1 || pcgmClasse === 4 ? 'liability' : pcgmClasse === 6 ? 'expense' : pcgmClasse === 7 ? 'revenue' : 'asset'
+    );
+    setShowAccountModal(true);
+  };
+
+  const openEditAccountModal = (acc: PlanAccount) => {
+    setEditingAccount(acc);
+    setAccountCode(acc.code);
+    setAccountLibelle(acc.libelle);
+    setAccountLibelleAr(acc.libelle_ar || '');
+    setAccountClasse(acc.classe);
+    setAccountType(acc.type);
+    setShowAccountModal(true);
+  };
+
+  const handleSaveAccount = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!accountCode.trim() || !accountLibelle.trim()) return;
+
+    let updated: PlanAccount[];
+    if (editingAccount) {
+      updated = localAccounts.map((a) =>
+        a.code === editingAccount.code
+          ? {
+              ...a,
+              code: accountCode.trim(),
+              libelle: accountLibelle.trim(),
+              libelle_ar: accountLibelleAr.trim() || undefined,
+              classe: accountClasse,
+              type: accountType,
+            }
+          : a
+      );
+    } else {
+      const exists = localAccounts.some((a) => a.code === accountCode.trim());
+      if (exists) {
+        alert(`Le compte ${accountCode.trim()} existe déjà.`);
+        return;
+      }
+      const newAcc: PlanAccount = {
+        code: accountCode.trim(),
+        libelle: accountLibelle.trim(),
+        libelle_ar: accountLibelleAr.trim() || undefined,
+        classe: accountClasse,
+        type: accountType,
+        allow_entry: true,
+      };
+      updated = [...localAccounts, newAcc].sort((a, b) => a.code.localeCompare(b.code));
+    }
+    setLocalAccounts(updated);
+    if (onUpdateAccounts) onUpdateAccounts(updated);
+    setShowAccountModal(false);
+  };
+
+  const handleDeleteAccount = (code: string) => {
+    if (confirm(`Confirmer la suppression du compte ${code} ?`)) {
+      const updated = localAccounts.filter((a) => a.code !== code);
+      setLocalAccounts(updated);
+      if (onUpdateAccounts) onUpdateAccounts(updated);
+    }
+  };
 
   // Modals state
   const [showEntryModal, setShowEntryModal] = useState<boolean>(false);
@@ -186,13 +294,18 @@ export function AccountingView({
         e.numero?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         e.libelle?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         e.reference?.toLowerCase().includes(searchTerm.toLowerCase());
-      return matchJournal && matchSearch;
+      
+      const docDate = e.date ? e.date.slice(0, 10) : '';
+      const matchDateStart = !filterStartDate || docDate >= filterStartDate;
+      const matchDateEnd = !filterEndDate || docDate <= filterEndDate;
+
+      return matchJournal && matchSearch && matchDateStart && matchDateEnd;
     });
-  }, [entries, selectedJournal, searchTerm]);
+  }, [entries, selectedJournal, searchTerm, filterStartDate, filterEndDate]);
 
   // Filtered PCGM Accounts
   const filteredAccounts = useMemo(() => {
-    return accounts.filter(a => {
+    return localAccounts.filter(a => {
       const matchClasse = a.classe === pcgmClasse;
       const matchSearch = !pcgmSearch ||
         a.code.includes(pcgmSearch) ||
@@ -200,7 +313,7 @@ export function AccountingView({
         (a.libelle_ar && a.libelle_ar.includes(pcgmSearch));
       return matchClasse && matchSearch;
     });
-  }, [accounts, pcgmClasse, pcgmSearch]);
+  }, [localAccounts, pcgmClasse, pcgmSearch]);
 
   // Handle Syncing all operational entries
   const handleSyncOperational = async () => {
@@ -312,142 +425,251 @@ export function AccountingView({
 
   return (
     <div className="space-y-4">
-      {/* Compact Top Header Strip */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-3 sm:p-3.5 text-white shadow-md relative overflow-hidden">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-          <div className="min-w-0">
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg bg-indigo-600/30 text-indigo-400 border border-indigo-500/30 flex items-center justify-center shrink-0">
-                <Scale className="w-4 h-4" />
-              </div>
-              <h1 className="text-base sm:text-lg font-bold tracking-tight text-white truncate">
-                Comptabilité Générale & Liasse Fiscale
-              </h1>
-              <span className="hidden sm:inline-flex px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 rounded-full items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                Temps Réel
-              </span>
-              <span className="hidden sm:inline-flex px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-indigo-500/15 text-indigo-300 border border-indigo-500/30 rounded-full">
-                PCGM 2026
-              </span>
-            </div>
-            <p className="text-slate-400 text-xs mt-0.5 truncate hidden sm:block">
-              Grand Livre, Balance 6 colonnes, Bilan & CPC (CGNC) et déclarations DGI
-            </p>
+      {/* Top Unified Accounting Toolbar */}
+      <div className="bg-white px-3.5 py-2 rounded-xl border border-slate-200 shadow-2xs flex flex-wrap items-center justify-between gap-2.5">
+        {/* Left: Title + Multi-page Sub-Tabs */}
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <Scale className="w-5 h-5 text-indigo-600 shrink-0" />
+            <h2 className="text-sm font-bold text-slate-900 tracking-tight whitespace-nowrap">
+              Comptabilité (PCGM)
+            </h2>
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
-            <button
-              onClick={handleSyncOperational}
-              disabled={isSyncing}
-              title="Vérifier et forcer la synchronisation manuelle des écritures"
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 disabled:opacity-50 text-slate-200 rounded-lg font-medium transition text-xs"
-            >
-              <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin text-indigo-400' : ''}`} />
-              <span className="hidden sm:inline">Synchroniser</span>
-            </button>
+          <div className="h-4 w-px bg-slate-200" />
 
+          {/* Quick Sub-page Pills */}
+          <div className="flex items-center gap-1 overflow-x-auto py-0.5 no-scrollbar">
+            {[
+              { id: 'JOURNAL', label: 'Journal', icon: BookOpen },
+              { id: 'PCGM', label: 'Plan PCGM', icon: Layers },
+              { id: 'BALANCE', label: 'Balance', icon: Scale },
+              { id: 'SYNTHESE', label: 'Bilan / CPC', icon: FileSpreadsheet },
+              { id: 'IMMOBILISATIONS', label: 'Immobilisations', icon: TrendingUp },
+              { id: 'FISCALITE', label: 'Fiscalité', icon: Building },
+            ].map((tab) => {
+              const Icon = tab.icon;
+              const isActive = currentTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => handleTabChange(tab.id as AccountingTab)}
+                  className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold transition whitespace-nowrap ${
+                    isActive
+                      ? 'bg-indigo-600 text-white shadow-xs'
+                      : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border border-slate-200'
+                  }`}
+                >
+                  <Icon className="w-3 h-3" />
+                  <span>{tab.label}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Popover Buttons: Période & KPIs */}
+          <div className="flex items-center gap-1.5">
+            {/* DATE / PERIODE POPUP */}
+            <div className="relative" ref={datePopoverRef}>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowDatePopup((prev) => !prev);
+                  setShowKpiPopup(false);
+                }}
+                className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-lg border transition shadow-2xs ${
+                  filterStartDate || filterEndDate
+                    ? 'bg-indigo-50 border-indigo-300 text-indigo-700'
+                    : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                }`}
+              >
+                <Calendar className="w-3.5 h-3.5 text-indigo-600" />
+                <span className="truncate max-w-[150px]">
+                  {filterStartDate && filterEndDate ? `${formatDate(filterStartDate)} - ${formatDate(filterEndDate)}` : 'Période'}
+                </span>
+                <ChevronDown className="w-3 h-3 text-slate-400" />
+              </button>
+
+              {showDatePopup && (
+                <div className="absolute left-0 mt-2 z-50 bg-white rounded-xl border border-slate-200 shadow-xl p-3.5 w-auto min-w-[320px] animate-in fade-in zoom-in-95 duration-150">
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-2 mb-2">
+                    <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                      <Calendar className="w-3.5 h-3.5 text-indigo-600" />
+                      Période comptable
+                    </span>
+                    {(filterStartDate || filterEndDate) && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFilterStartDate('');
+                          setFilterEndDate('');
+                        }}
+                        className="text-[11px] text-rose-600 hover:text-rose-800 font-semibold"
+                      >
+                        Effacer
+                      </button>
+                    )}
+                  </div>
+                  <DateRangeFilter
+                    startDate={filterStartDate}
+                    endDate={filterEndDate}
+                    onDateChange={(start, end) => {
+                      setFilterStartDate(start);
+                      setFilterEndDate(end);
+                    }}
+                    variant="indigo"
+                  />
+                  <div className="pt-2 mt-2 border-t border-slate-100 flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => setShowDatePopup(false)}
+                      className="px-3 py-1 bg-slate-900 text-white text-xs font-semibold rounded-lg hover:bg-slate-800 shadow-xs"
+                    >
+                      Fermer
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* FINANCIAL KPIS POPUP */}
+            <div className="relative" ref={kpiPopoverRef}>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowKpiPopup((prev) => !prev);
+                  setShowDatePopup(false);
+                }}
+                className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-lg border transition shadow-2xs ${
+                  ecartBalance === 0
+                    ? 'bg-emerald-50 border-emerald-300 text-emerald-800'
+                    : 'bg-rose-50 border-rose-300 text-rose-800'
+                }`}
+              >
+                <Scale className="w-3.5 h-3.5" />
+                <span>
+                  {ecartBalance === 0 ? 'Équilibré (0.00)' : `Écart: ${formatCurrency(ecartBalance)}`}
+                </span>
+                <ChevronDown className="w-3 h-3 text-slate-400" />
+              </button>
+
+              {showKpiPopup && (
+                <div className="absolute left-0 mt-2 z-50 bg-white rounded-xl border border-slate-200 shadow-xl p-3.5 w-[300px] space-y-2.5 animate-in fade-in zoom-in-95 duration-150">
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-1.5">
+                    <span className="text-xs font-bold text-slate-800">Indicateurs Financiers</span>
+                    <button
+                      type="button"
+                      onClick={() => setShowKpiPopup(false)}
+                      className="text-slate-400 hover:text-slate-600"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="bg-slate-50 p-2 rounded-lg border border-slate-200">
+                      <span className="text-[10px] text-slate-400 uppercase font-bold block">Total Débit</span>
+                      <span className="font-mono font-bold text-slate-900">{formatCurrency(totalDebitAll)}</span>
+                    </div>
+                    <div className="bg-slate-50 p-2 rounded-lg border border-slate-200">
+                      <span className="text-[10px] text-slate-400 uppercase font-bold block">Total Crédit</span>
+                      <span className="font-mono font-bold text-slate-900">{formatCurrency(totalCreditAll)}</span>
+                    </div>
+                    <div className="bg-slate-50 p-2 rounded-lg border border-slate-200 col-span-2 flex justify-between items-center">
+                      <span className="text-[10px] text-slate-400 uppercase font-bold">Résultat Net :</span>
+                      <span className={`font-mono font-bold ${cpc.resultat_net >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                        {formatCurrency(cpc.resultat_net)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Right: Actions */}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleSyncOperational}
+            disabled={isSyncing}
+            className="flex items-center gap-1 px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 rounded-lg text-xs font-medium transition shadow-2xs disabled:opacity-50"
+            title="Synchroniser"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin text-indigo-600' : ''}`} />
+            <span className="hidden xl:inline">Synchroniser</span>
+          </button>
+
+          {currentTab === 'PCGM' ? (
+            <button
+              onClick={openNewAccountModal}
+              className="flex items-center gap-1 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold shadow-xs transition"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>+ Compte</span>
+            </button>
+          ) : currentTab === 'IMMOBILISATIONS' ? (
+            <button
+              onClick={() => (onCreateAsset ? onCreateAsset() : setShowAssetModal(true))}
+              className="flex items-center gap-1 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold shadow-xs transition"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>+ Immobilisation</span>
+            </button>
+          ) : (
             <button
               onClick={() => (onCreateEntry ? onCreateEntry() : setShowEntryModal(true))}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-semibold transition shadow-xs text-xs active:scale-95"
+              className="flex items-center gap-1 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold shadow-xs transition active:scale-95"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>+ Écriture</span>
             </button>
-          </div>
-        </div>
-
-        {syncFeedback && (
-          <div className="mt-2.5 p-2 bg-emerald-500/10 border border-emerald-500/30 rounded-lg text-emerald-300 text-xs flex items-center justify-between">
-            <span>{syncFeedback}</span>
-            <button onClick={() => setSyncFeedback(null)} className="text-emerald-400 hover:text-white">
-              <X className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        )}
-
-        {/* Compact Key Figures Strip */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2.5 pt-2.5 border-t border-slate-800/80">
-          <div className="bg-slate-800/40 rounded-lg p-2 border border-slate-800">
-            <p className="text-[10px] text-slate-400 uppercase font-semibold">Total Débit</p>
-            <p className="text-sm sm:text-base font-mono font-bold text-white mt-0.5">{formatCurrency(totalDebitAll)}</p>
-          </div>
-          <div className="bg-slate-800/40 rounded-lg p-2 border border-slate-800">
-            <p className="text-[10px] text-slate-400 uppercase font-semibold">Total Crédit</p>
-            <p className="text-sm sm:text-base font-mono font-bold text-white mt-0.5">{formatCurrency(totalCreditAll)}</p>
-          </div>
-          <div className="bg-slate-800/40 rounded-lg p-2 border border-slate-800">
-            <p className="text-[10px] text-slate-400 uppercase font-semibold">Équilibre Comptable</p>
-            <p className={`text-sm sm:text-base font-mono font-bold mt-0.5 flex items-center gap-1 ${ecartBalance === 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-              {ecartBalance === 0 ? (
-                <>
-                  <CheckCircle2 className="w-3.5 h-3.5 shrink-0" /> Équilibré (0.00)
-                </>
-              ) : (
-                <>
-                  <AlertCircle className="w-3.5 h-3.5 shrink-0" /> Écart : {formatCurrency(ecartBalance)}
-                </>
-              )}
-            </p>
-          </div>
-          <div className="bg-slate-800/40 rounded-lg p-2 border border-slate-800">
-            <p className="text-[10px] text-slate-400 uppercase font-semibold">Résultat Net Provisoire</p>
-            <p className={`text-sm sm:text-base font-mono font-bold mt-0.5 ${cpc.resultat_net >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-              {formatCurrency(cpc.resultat_net)}
-            </p>
-          </div>
+          )}
         </div>
       </div>
 
-      {/* Navigation Tabs */}
-      <div className="flex border-b border-slate-200 dark:border-slate-800 overflow-x-auto gap-1.5 pb-1 no-scrollbar">
-        {[
-          { id: 'JOURNAL', label: 'Journal & Grand Livre', icon: BookOpen },
-          { id: 'BALANCE', label: 'Balance Générale (6 Col)', icon: Scale },
-          { id: 'SYNTHESE', label: 'Bilan & CPC (CGNC)', icon: FileSpreadsheet },
-          { id: 'FISCALITE', label: 'SIMPL-TVA & IS', icon: Building },
-          { id: 'IMMOBILISATIONS', label: 'Immobilisations', icon: TrendingUp },
-          { id: 'PCGM', label: 'Plan PCGM', icon: Layers },
-          { id: 'EXPORT', label: 'Export FEC / CSV', icon: Download },
-        ].map(tab => {
-          const Icon = tab.icon;
-          const isActive = currentTab === tab.id;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => handleTabChange(tab.id as AccountingTab)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-semibold text-xs transition-all whitespace-nowrap ${
-                isActive
-                  ? 'bg-indigo-600 text-white shadow-xs'
-                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800'
-              }`}
-            >
-              <Icon className="w-3.5 h-3.5" />
-              {tab.label}
-            </button>
-          );
-        })}
-      </div>
+      {syncFeedback && (
+        <div className="p-2 bg-emerald-500/10 border border-emerald-500/30 rounded-lg text-emerald-700 text-xs flex items-center justify-between">
+          <span>{syncFeedback}</span>
+          <button onClick={() => setSyncFeedback(null)} className="text-emerald-700 hover:text-emerald-900">
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
 
       {/* TAB 1: JOURNAL & GRAND LIVRE */}
       {currentTab === 'JOURNAL' && (
-        <div className="space-y-4">
-          {/* Filters Bar */}
-          <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-3 w-full md:w-auto">
-              <div className="relative flex-1 md:w-72">
-                <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  placeholder="Rechercher écriture, libellé, réf..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"
-                />
-              </div>
+        <div className="space-y-2.5">
+          {/* Streamlined Filter Bar */}
+          <div className="bg-white px-3 py-1.5 rounded-xl border border-slate-200 flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-1 overflow-x-auto no-scrollbar">
+              <span className="text-[10px] font-bold text-slate-400 uppercase mr-1">Journal:</span>
+              {['ALL', 'VTE', 'ACH', 'BNQ', 'CA', 'OD', 'PAIE', 'IMM'].map(j => (
+                <button
+                  key={j}
+                  onClick={() => setSelectedJournal(j)}
+                  className={`px-2 py-0.5 rounded text-[11px] font-semibold transition ${
+                    selectedJournal === j
+                      ? 'bg-indigo-600 text-white'
+                      : 'text-slate-600 hover:bg-slate-100'
+                  }`}
+                >
+                  {j === 'ALL' ? 'Tous' : j}
+                </button>
+              ))}
+            </div>
 
-              {/* Journal Filter Buttons */}
-              <div className="flex items-center gap-1 overflow-x-auto py-1">
+            <div className="relative w-48">
+              <Search className="w-3 h-3 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                placeholder="Rechercher libellé, réf..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-7 pr-2 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none"
+              />
+            </div>
+          </div>
                 <button
                   onClick={() => setSelectedJournal('ALL')}
                   className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
@@ -605,26 +827,26 @@ export function AccountingView({
 
       {/* TAB 2: PCGM (PLAN COMPTABLE) */}
       {currentTab === 'PCGM' && (
-        <div className="space-y-4">
-          <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="space-y-2.5">
+          <div className="bg-white p-2.5 rounded-xl border border-slate-200 flex flex-wrap items-center justify-between gap-2">
             {/* Class Selector 1 to 7 */}
-            <div className="flex items-center gap-1.5 overflow-x-auto py-1 w-full md:w-auto">
+            <div className="flex items-center gap-1 overflow-x-auto py-0.5 no-scrollbar">
               {[
-                { cl: 1, label: 'Classe 1 : Financement Permanent' },
-                { cl: 2, label: 'Classe 2 : Actif Immobilisé' },
-                { cl: 3, label: 'Classe 3 : Actif Circulant' },
-                { cl: 4, label: 'Classe 4 : Passif Circulant' },
-                { cl: 5, label: 'Classe 5 : Trésorerie' },
-                { cl: 6, label: 'Classe 6 : Charges' },
-                { cl: 7, label: 'Classe 7 : Produits' },
+                { cl: 1, label: 'Cl. 1 : Financement' },
+                { cl: 2, label: 'Cl. 2 : Actif Immob.' },
+                { cl: 3, label: 'Cl. 3 : Actif Circ.' },
+                { cl: 4, label: 'Cl. 4 : Passif Circ.' },
+                { cl: 5, label: 'Cl. 5 : Trésorerie' },
+                { cl: 6, label: 'Cl. 6 : Charges' },
+                { cl: 7, label: 'Cl. 7 : Produits' },
               ].map(item => (
                 <button
                   key={item.cl}
                   onClick={() => setPcgmClasse(item.cl)}
-                  className={`px-3 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap ${
+                  className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition whitespace-nowrap border ${
                     pcgmClasse === item.cl
-                      ? 'bg-indigo-600 text-white shadow'
-                      : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200'
+                      ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
+                      : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
                   }`}
                 >
                   {item.label}
@@ -632,15 +854,26 @@ export function AccountingView({
               ))}
             </div>
 
-            <div className="relative w-full md:w-64">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                placeholder="Filtrer comptes..."
-                value={pcgmSearch}
-                onChange={(e) => setPcgmSearch(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"
-              />
+            <div className="flex items-center gap-2">
+              <div className="relative w-48">
+                <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  placeholder="Filtrer comptes..."
+                  value={pcgmSearch}
+                  onChange={(e) => setPcgmSearch(e.target.value)}
+                  className="w-full pl-8 pr-2.5 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                />
+              </div>
+
+              <button
+                type="button"
+                onClick={openNewAccountModal}
+                className="flex items-center gap-1 px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold shadow-xs transition whitespace-nowrap"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>+ Compte</span>
+              </button>
             </div>
           </div>
 
@@ -651,8 +884,9 @@ export function AccountingView({
                   <th className="py-2.5 px-3 w-28">N° Compte</th>
                   <th className="py-2.5 px-3">Intitulé Officiel (Français)</th>
                   <th className="py-2.5 px-3 text-right font-arabic">الاسم المحاسبي (العربية)</th>
-                  <th className="py-2.5 px-3">Classe</th>
-                  <th className="py-2.5 px-3">Type</th>
+                  <th className="py-2.5 px-3 w-28">Classe</th>
+                  <th className="py-2.5 px-3 w-28">Type</th>
+                  <th className="py-2.5 px-3 text-right w-24">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
@@ -661,21 +895,41 @@ export function AccountingView({
                     <td className="py-2.5 px-3 font-mono font-medium text-blue-600">
                       {acc.code}
                     </td>
-                    <td className="py-3 px-4 font-medium text-slate-900 dark:text-white">
+                    <td className="py-2.5 px-3 font-medium text-slate-900">
                       {acc.libelle}
                     </td>
-                    <td className="py-3 px-4 text-right text-slate-500 dark:text-slate-400 font-arabic text-sm" dir="rtl">
+                    <td className="py-2.5 px-3 text-right text-slate-500 font-arabic text-xs" dir="rtl">
                       {acc.libelle_ar || '-'}
                     </td>
-                    <td className="py-3 px-4">
-                      <span className="text-xs px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-medium">
+                    <td className="py-2.5 px-3">
+                      <span className="text-[11px] px-2 py-0.5 rounded bg-slate-100 text-slate-600 font-medium">
                         Classe {acc.classe}
                       </span>
                     </td>
-                    <td className="py-3 px-4">
-                      <span className="text-xs capitalize text-slate-500">
+                    <td className="py-2.5 px-3">
+                      <span className="text-[11px] capitalize text-slate-500 font-mono">
                         {acc.type}
                       </span>
+                    </td>
+                    <td className="py-2.5 px-3 text-right">
+                      <div className="flex items-center justify-end gap-1">
+                        <button
+                          type="button"
+                          onClick={() => openEditAccountModal(acc)}
+                          className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                          title="Modifier ce compte"
+                        >
+                          <Edit className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteAccount(acc.code)}
+                          className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded"
+                          title="Supprimer ce compte"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -1450,6 +1704,115 @@ export function AccountingView({
                 Fermer
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Account Add/Edit Modal */}
+      {showAccountModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-md w-full p-5 space-y-4 animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                <Layers className="w-4 h-4 text-indigo-600" />
+                {editingAccount ? `Modifier Compte ${editingAccount.code}` : 'Ajouter un Compte PCGM'}
+              </h3>
+              <button
+                type="button"
+                onClick={() => setShowAccountModal(false)}
+                className="text-slate-400 hover:text-slate-600 p-1"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveAccount} className="space-y-3 text-xs">
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">Numéro de Compte (Code)</label>
+                <input
+                  type="text"
+                  required
+                  value={accountCode}
+                  onChange={(e) => setAccountCode(e.target.value)}
+                  placeholder="Ex: 61111"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg font-mono font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">Intitulé Officiel (Français)</label>
+                <input
+                  type="text"
+                  required
+                  value={accountLibelle}
+                  onChange={(e) => setAccountLibelle(e.target.value)}
+                  placeholder="Ex: Achats de matières consommables"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">Intitulé en Arabe (Optionnel)</label>
+                <input
+                  type="text"
+                  dir="rtl"
+                  value={accountLibelleAr}
+                  onChange={(e) => setAccountLibelleAr(e.target.value)}
+                  placeholder="الاسم المحاسبي..."
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 text-right font-arabic focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Classe PCGM</label>
+                  <select
+                    value={accountClasse}
+                    onChange={(e) => setAccountClasse(Number(e.target.value) as any)}
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  >
+                    <option value={1}>Classe 1 - Financement</option>
+                    <option value={2}>Classe 2 - Actif Immob.</option>
+                    <option value={3}>Classe 3 - Actif Circulant</option>
+                    <option value={4}>Classe 4 - Passif Circulant</option>
+                    <option value={5}>Classe 5 - Trésorerie</option>
+                    <option value={6}>Classe 6 - Charges</option>
+                    <option value={7}>Classe 7 - Produits</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Nature / Type</label>
+                  <select
+                    value={accountType}
+                    onChange={(e) => setAccountType(e.target.value as any)}
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  >
+                    <option value="asset">Actif</option>
+                    <option value="liability">Passif</option>
+                    <option value="equity">Capitaux Propres</option>
+                    <option value="expense">Charge</option>
+                    <option value="revenue">Produit</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowAccountModal(false)}
+                  className="px-3.5 py-1.5 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 font-semibold"
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-semibold shadow-xs"
+                >
+                  {editingAccount ? 'Mettre à jour' : 'Enregistrer le compte'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

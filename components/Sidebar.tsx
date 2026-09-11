@@ -31,6 +31,7 @@ import {
   Factory,
   Search,
   ChevronRight,
+  Calendar,
 } from 'lucide-react';
 import { AppUser } from '@/lib/types';
 
@@ -171,25 +172,37 @@ export const Sidebar: React.FC<SidebarProps> = ({
       title: 'Comptabilité & Finance',
       items: [
         {
-          id: 'accounting',
-          label: 'Comptabilité Générale',
+          id: 'accounting-journal',
+          label: 'Journal & Écritures',
           icon: Scale,
           highlight: true,
           badge: 'PCGM',
           badgeColor: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40',
         },
+        {
+          id: 'accounting-pcgm',
+          label: 'Plan Comptable (PCGM)',
+          icon: Layers,
+          badge: 'Éditable',
+          badgeColor: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40',
+        },
+        { id: 'accounting-balance', label: 'Balance Générale & FEC', icon: BarChart3 },
+        { id: 'accounting-cpc', label: 'Compte de Résultat (CPC)', icon: FileText },
+        { id: 'accounting-assets', label: 'Immobilisations', icon: Building2 },
       ],
     },
     {
       title: 'Ressources Humaines',
       items: [
         {
-          id: 'hr',
+          id: 'hr-employees',
           label: 'Personnel & Salariés',
           icon: Users,
           badge: 'LF 2026',
           badgeColor: 'bg-teal-500/20 text-teal-300 border-teal-500/40',
         },
+        { id: 'hr-payroll', label: 'Bulletins de Paie', icon: FileSpreadsheet },
+        { id: 'hr-leaves', label: 'Congés & Absences', icon: Calendar },
       ],
     },
     {

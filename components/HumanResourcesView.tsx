@@ -33,12 +33,15 @@ import {
   Check,
   Briefcase,
   Edit,
-  Ban
+  Ban,
+  ChevronDown,
+  SlidersHorizontal,
 } from 'lucide-react';
 
 export type HRTab = 'EMPLOYEES' | 'PAYROLL' | 'LEAVES';
 
 interface HumanResourcesViewProps {
+  initialTab?: HRTab;
   employees?: Employee[];
   payrolls?: PayrollSlip[];
   leaves?: LeaveRequest[];
@@ -47,9 +50,11 @@ interface HumanResourcesViewProps {
   onEditEmployee?: (employee: Employee) => void;
   onCreateLeave?: () => void;
   onEditLeave?: (leave: LeaveRequest) => void;
+  onNavigateTab?: (tab: string) => void;
 }
 
 export function HumanResourcesView({
+  initialTab = 'EMPLOYEES',
   employees = [],
   payrolls = [],
   leaves = [],
@@ -58,14 +63,53 @@ export function HumanResourcesView({
   onEditEmployee,
   onCreateLeave,
   onEditLeave,
+  onNavigateTab,
 }: HumanResourcesViewProps) {
-  const [currentTab, setCurrentTab] = useState<HRTab>('EMPLOYEES');
+  const [currentTab, setCurrentTab] = useState<HRTab>(initialTab || 'EMPLOYEES');
+
+  useEffect(() => {
+    if (initialTab && initialTab !== currentTab) {
+      setCurrentTab(initialTab);
+    }
+  }, [initialTab]);
+
+  const handleTabChange = (newTab: HRTab) => {
+    setCurrentTab(newTab);
+    if (onNavigateTab) {
+      const tabMap: Record<HRTab, string> = {
+        EMPLOYEES: 'hr-employees',
+        PAYROLL: 'hr-payroll',
+        LEAVES: 'hr-leaves',
+      };
+      onNavigateTab(tabMap[newTab] || 'hr-employees');
+    }
+  };
+
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [selectedDept, setSelectedDept] = useState<string>('ALL');
 
   // Month & Year for payroll
   const [periodeMois, setPeriodeMois] = useState<number>(new Date().getMonth() + 1);
   const [periodeAnnee, setPeriodeAnnee] = useState<number>(new Date().getFullYear());
+
+  // Popups for filters & KPIs
+  const [showFilterPopup, setShowFilterPopup] = useState<boolean>(false);
+  const [showKpiPopup, setShowKpiPopup] = useState<boolean>(false);
+  const hrFilterRef = React.useRef<HTMLDivElement>(null);
+  const hrKpiRef = React.useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (hrFilterRef.current && !hrFilterRef.current.contains(e.target as Node)) {
+        setShowFilterPopup(false);
+      }
+      if (hrKpiRef.current && !hrKpiRef.current.contains(e.target as Node)) {
+        setShowKpiPopup(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Modals
   const [showEmployeeModal, setShowEmployeeModal] = useState<boolean>(false);
@@ -191,125 +235,245 @@ export function HumanResourcesView({
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header Banner */}
-      <div className="bg-gradient-to-r from-slate-900 via-teal-950 to-slate-900 border border-slate-800 rounded-2xl p-6 text-white shadow-xl relative overflow-hidden">
-        <div className="absolute right-0 top-0 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20"></div>
-
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <span className="px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wider bg-teal-500/20 text-teal-300 border border-teal-500/30 rounded-full">
-                Code du Travail Marocain
-              </span>
-              <span className="px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded-full">
-                Barème IR & CNSS 2026
-              </span>
-            </div>
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-white flex items-center gap-3">
-              <Users className="w-8 h-8 text-teal-400" />
-              Ressources Humaines & Paie Marocaine
-            </h1>
-            <p className="text-slate-400 text-sm mt-1">
-              Fiches collaborateurs, calcul légal des bulletins de paie (CNSS, AMO, CIMR, IR) et intégration comptable directe
-            </p>
+    <div className="space-y-2.5">
+      {/* Top Unified HR Toolbar */}
+      <div className="bg-white px-3.5 py-2 rounded-xl border border-slate-200 shadow-2xs flex flex-wrap items-center justify-between gap-2.5">
+        {/* Left: Title + Multi-page Sub-Tabs */}
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <Users className="w-5 h-5 text-teal-600 shrink-0" />
+            <h2 className="text-sm font-bold text-slate-900 tracking-tight whitespace-nowrap">
+              Ressources Humaines
+            </h2>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="h-4 w-px bg-slate-200" />
+
+          {/* Quick Sub-page Pills */}
+          <div className="flex items-center gap-1 overflow-x-auto py-0.5 no-scrollbar">
+            {[
+              { id: 'EMPLOYEES', label: 'Salariés', icon: Users, count: employees.length },
+              { id: 'PAYROLL', label: 'Paie LF 2026', icon: CreditCard, count: currentPayrolls.length },
+              { id: 'LEAVES', label: 'Congés', icon: Calendar, count: leaves.length },
+            ].map((tab) => {
+              const Icon = tab.icon;
+              const isActive = currentTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => handleTabChange(tab.id as HRTab)}
+                  className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold transition whitespace-nowrap ${
+                    isActive
+                      ? 'bg-teal-600 text-white shadow-xs'
+                      : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border border-slate-200'
+                  }`}
+                >
+                  <Icon className="w-3 h-3" />
+                  <span>{tab.label}</span>
+                  <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${isActive ? 'bg-teal-700 text-white' : 'bg-slate-200 text-slate-700'}`}>
+                    {tab.count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Popovers: Filtres & Indicateurs */}
+          <div className="flex items-center gap-1.5">
+            {/* Popover 1: FILTRES RH */}
+            <div className="relative" ref={hrFilterRef}>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowFilterPopup((prev) => !prev);
+                  setShowKpiPopup(false);
+                }}
+                className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-lg border transition shadow-2xs ${
+                  selectedDept !== 'ALL'
+                    ? 'bg-teal-50 border-teal-300 text-teal-700'
+                    : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                }`}
+              >
+                <SlidersHorizontal className="w-3.5 h-3.5 text-slate-500" />
+                <span>Filtres</span>
+                <ChevronDown className="w-3 h-3 text-slate-400" />
+              </button>
+
+              {showFilterPopup && (
+                <div className="absolute left-0 mt-2 z-50 bg-white rounded-xl border border-slate-200 shadow-xl p-3.5 w-[300px] space-y-3 animate-in fade-in zoom-in-95 duration-150">
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-1.5">
+                    <span className="text-xs font-bold text-slate-800">Filtres RH</span>
+                    <button
+                      type="button"
+                      onClick={() => setShowFilterPopup(false)}
+                      className="text-slate-400 hover:text-slate-600"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+
+                  {currentTab === 'EMPLOYEES' && (
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase">Département</label>
+                      <select
+                        value={selectedDept}
+                        onChange={(e) => setSelectedDept(e.target.value)}
+                        className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs"
+                      >
+                        <option value="ALL">Tous les départements</option>
+                        <option value="Production & Cuisine">Production & Cuisine</option>
+                        <option value="Salle & Service">Salle & Service</option>
+                        <option value="Logistique & Magasin">Logistique & Magasin</option>
+                        <option value="Administration & Comptabilité">Administration & Comptabilité</option>
+                        <option value="Direction Générale">Direction Générale</option>
+                      </select>
+                    </div>
+                  )}
+
+                  {currentTab === 'PAYROLL' && (
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-400 uppercase">Mois</label>
+                        <select
+                          value={periodeMois}
+                          onChange={(e) => setPeriodeMois(Number(e.target.value))}
+                          className="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs"
+                        >
+                          {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
+                            <option key={m} value={m}>Mois {m}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-400 uppercase">Année</label>
+                        <input
+                          type="number"
+                          value={periodeAnnee}
+                          onChange={(e) => setPeriodeAnnee(Number(e.target.value))}
+                          className="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="pt-2 border-t border-slate-100 flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => setShowFilterPopup(false)}
+                      className="px-3 py-1 bg-slate-900 text-white text-xs font-semibold rounded-lg hover:bg-slate-800"
+                    >
+                      Appliquer
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Popover 2: KPIS RH */}
+            <div className="relative" ref={hrKpiRef}>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowKpiPopup((prev) => !prev);
+                  setShowFilterPopup(false);
+                }}
+                className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 shadow-2xs"
+              >
+                <DollarSign className="w-3.5 h-3.5 text-teal-600" />
+                <span>Masse Salariale</span>
+                <ChevronDown className="w-3 h-3 text-slate-400" />
+              </button>
+
+              {showKpiPopup && (
+                <div className="absolute left-0 mt-2 z-50 bg-white rounded-xl border border-slate-200 shadow-xl p-3.5 w-[300px] space-y-2.5 animate-in fade-in zoom-in-95 duration-150">
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-1.5">
+                    <span className="text-xs font-bold text-slate-800">Indicateurs Sociaux (LF 2026)</span>
+                    <button
+                      type="button"
+                      onClick={() => setShowKpiPopup(false)}
+                      className="text-slate-400 hover:text-slate-600"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="bg-slate-50 p-2 rounded-lg border border-slate-200">
+                      <span className="text-[10px] text-slate-400 uppercase font-bold block">Salariés Actifs</span>
+                      <span className="font-bold text-slate-900">{employees.length} employés</span>
+                    </div>
+                    <div className="bg-slate-50 p-2 rounded-lg border border-slate-200">
+                      <span className="text-[10px] text-slate-400 uppercase font-bold block">Masse Brute</span>
+                      <span className="font-mono font-bold text-slate-900">
+                        {formatCurrency(totalSalairesBruts || employees.reduce((s, e) => s + (e.salaire_base || 0), 0))}
+                      </span>
+                    </div>
+                    <div className="bg-slate-50 p-2 rounded-lg border border-slate-200">
+                      <span className="text-[10px] text-slate-400 uppercase font-bold block">Net à Virer</span>
+                      <span className="font-mono font-bold text-emerald-700">{formatCurrency(totalNetAPayer)}</span>
+                    </div>
+                    <div className="bg-slate-50 p-2 rounded-lg border border-slate-200">
+                      <span className="text-[10px] text-slate-400 uppercase font-bold block">Coût Entreprise</span>
+                      <span className="font-mono font-bold text-teal-700">{formatCurrency(totalCoutEmployeur)}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Right: Actions */}
+        <div className="flex items-center gap-2">
+          {currentTab === 'EMPLOYEES' ? (
             <button
               onClick={() => (onCreateEmployee ? onCreateEmployee() : setShowEmployeeModal(true))}
-              className="flex items-center gap-2 px-4 py-2.5 bg-teal-600 hover:bg-teal-500 text-white rounded-xl font-medium transition shadow-lg shadow-teal-600/30 text-sm"
+              className="flex items-center gap-1 px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded-lg text-xs font-semibold shadow-xs transition"
             >
-              <Plus className="w-4 h-4" />
-              Nouveau Collaborateur
+              <Plus className="w-3.5 h-3.5" />
+              <span>+ Collaborateur</span>
             </button>
+          ) : currentTab === 'PAYROLL' ? (
             <button
               onClick={() => setShowPayrollModal(true)}
-              className="flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-medium transition shadow-lg shadow-emerald-600/30 text-sm"
+              className="flex items-center gap-1 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold shadow-xs transition"
             >
-              <DollarSign className="w-4 h-4" />
-              Calculer la Paie
+              <DollarSign className="w-3.5 h-3.5" />
+              <span>Calculer la Paie</span>
             </button>
-          </div>
-        </div>
-
-        {/* Global Summary KPIs */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6 pt-6 border-t border-slate-800">
-          <div className="bg-slate-800/50 backdrop-blur rounded-xl p-3 border border-slate-700/50">
-            <p className="text-xs text-slate-400 uppercase font-medium">Collaborateurs Actifs</p>
-            <p className="text-lg font-bold text-white mt-1">{employees.length} employés</p>
-          </div>
-          <div className="bg-slate-800/50 backdrop-blur rounded-xl p-3 border border-slate-700/50">
-            <p className="text-xs text-slate-400 uppercase font-medium">Masse Salariale Brute</p>
-            <p className="text-lg font-bold text-white mt-1">{formatCurrency(totalSalairesBruts || employees.reduce((s, e) => s + (e.salaire_base || 0), 0))}</p>
-          </div>
-          <div className="bg-slate-800/50 backdrop-blur rounded-xl p-3 border border-slate-700/50">
-            <p className="text-xs text-slate-400 uppercase font-medium">Total Net à Virer</p>
-            <p className="text-lg font-bold text-emerald-400 mt-1">{formatCurrency(totalNetAPayer)}</p>
-          </div>
-          <div className="bg-slate-800/50 backdrop-blur rounded-xl p-3 border border-slate-700/50">
-            <p className="text-xs text-slate-400 uppercase font-medium">Coût Total Entreprise</p>
-            <p className="text-lg font-bold text-teal-400 mt-1">{formatCurrency(totalCoutEmployeur)}</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Tabs */}
-      <div className="flex border-b border-slate-200 dark:border-slate-800 gap-2 pb-1">
-        {[
-          { id: 'EMPLOYEES', label: 'Collaborateurs & Contrats', icon: Users },
-          { id: 'PAYROLL', label: 'Bulletins de Paie (LF 2026)', icon: CreditCard },
-          { id: 'LEAVES', label: 'Congés & Absences', icon: Calendar },
-        ].map(tab => {
-          const Icon = tab.icon;
-          const isActive = currentTab === tab.id;
-          return (
+          ) : (
             <button
-              key={tab.id}
-              onClick={() => setCurrentTab(tab.id as HRTab)}
-              className={`flex items-center gap-2 px-4 py-3 rounded-xl font-medium text-sm transition-all ${
-                isActive
-                  ? 'bg-teal-600 text-white shadow-md shadow-teal-600/20'
-                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60'
-              }`}
+              onClick={() => (onCreateLeave ? onCreateLeave() : setShowLeaveModal(true))}
+              className="flex items-center gap-1 px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded-lg text-xs font-semibold shadow-xs transition"
             >
-              <Icon className="w-4 h-4" />
-              {tab.label}
+              <Plus className="w-3.5 h-3.5" />
+              <span>+ Demande Congé</span>
             </button>
-          );
-        })}
+          )}
+        </div>
       </div>
 
       {/* TAB 1: EMPLOYEES */}
       {currentTab === 'EMPLOYEES' && (
-        <div className="space-y-4">
-          {/* Filters */}
-          <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="relative w-full md:w-72">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+        <div className="space-y-2.5">
+          {/* Streamlined Search Bar */}
+          <div className="bg-white px-3 py-1.5 rounded-xl border border-slate-200 flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs font-bold text-slate-800">Liste des Salariés</span>
+              <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-teal-50 text-teal-700 border border-teal-200">
+                {filteredEmployees.length} collaborateurs
+              </span>
+            </div>
+
+            <div className="relative w-56">
+              <Search className="w-3 h-3 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 placeholder="Rechercher nom, CIN, matricule..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 dark:text-white"
+                className="w-full pl-7 pr-2 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none"
               />
-            </div>
-
-            <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto">
-              {['ALL', 'Production & Cuisine', 'Commercial & Vente', 'Comptabilité & Finance'].map(dept => (
-                <button
-                  key={dept}
-                  onClick={() => setSelectedDept(dept)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition whitespace-nowrap ${
-                    selectedDept === dept
-                      ? 'bg-teal-600 text-white'
-                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
-                  }`}
-                >
-                  {dept === 'ALL' ? 'Tous les Départements' : dept}
-                </button>
-              ))}
             </div>
           </div>
 

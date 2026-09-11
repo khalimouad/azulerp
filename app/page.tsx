@@ -191,6 +191,20 @@ export default function Home() {
   // Comptabilité, RH & Fabrication
   const [journalEntries, setJournalEntries] = useState<JournalEntry[]>([]);
   const [chartOfAccounts, setChartOfAccounts] = useState<PlanAccount[]>(OFFICIAL_PCGM_ACCOUNTS);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('azulerp_pcgm_accounts');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setChartOfAccounts(parsed);
+          }
+        } catch {}
+      }
+    }
+  }, []);
   const [accountingJournals, setAccountingJournals] = useState<AccountingJournal[]>(MOROCCAN_JOURNALS);
 
   const [fixedAssets, setFixedAssets] = useState<FixedAsset[]>([]);
@@ -1273,6 +1287,12 @@ export default function Home() {
               reglements={reglements}
               onNavigateTab={navigateTo}
               onRefresh={reloadCoreData}
+              onUpdateAccounts={(updated) => {
+                setChartOfAccounts(updated);
+                if (typeof window !== 'undefined') {
+                  localStorage.setItem('azulerp_pcgm_accounts', JSON.stringify(updated));
+                }
+              }}
               onCreateEntry={() => {
                 setJournalEntryToEdit(null);
                 navigateTo('create-journal-entry');
@@ -1292,12 +1312,23 @@ export default function Home() {
             />
           )}
 
-          {/* RESSOURCES HUMAINES & PAIE (LOI DE FINANCES 2026) */}
-          {currentTab === 'hr' && (
+          {/* RESSOURCES HUMAINES & PAIE (LOI DE FINANCES 2026) - MULTIPAGE */}
+          {(currentTab === 'hr' ||
+            currentTab === 'hr-employees' ||
+            currentTab === 'hr-payroll' ||
+            currentTab === 'hr-leaves') && (
             <HumanResourcesView
+              initialTab={
+                currentTab === 'hr-payroll'
+                  ? 'PAYROLL'
+                  : currentTab === 'hr-leaves'
+                  ? 'LEAVES'
+                  : 'EMPLOYEES'
+              }
               employees={employees}
               payrolls={payrolls}
               leaves={leaves}
+              onNavigateTab={navigateTo}
               onRefresh={reloadCoreData}
               onCreateEmployee={() => {
                 setEmployeeToEdit(null);
