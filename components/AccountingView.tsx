@@ -669,38 +669,8 @@ export function AccountingView({
                 className="w-full pl-7 pr-2 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none"
               />
             </div>
-          </div>
-                <button
-                  onClick={() => setSelectedJournal('ALL')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
-                    selectedJournal === 'ALL'
-                      ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900'
-                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200'
-                  }`}
-                >
-                  Tous ({entries.length})
-                </button>
-                {journals.map(j => {
-                  const count = entries.filter(e => e.journal_code === j.code).length;
-                  return (
-                    <button
-                      key={j.code}
-                      onClick={() => setSelectedJournal(j.code)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition whitespace-nowrap ${
-                        selectedJournal === j.code
-                          ? 'bg-indigo-600 text-white'
-                          : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200'
-                      }`}
-                    >
-                      {j.code} ({count})
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-              {filteredEntries.length} écriture(s) affichée(s)
+            <div className="text-xs text-slate-500 font-medium">
+              {filteredEntries.length} écriture(s)
             </div>
           </div>
 

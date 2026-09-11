@@ -279,11 +279,6 @@ export const ReglementsView: React.FC<ReglementsViewProps> = ({
           </button>
         </div>
       </div>
-            variant="emerald"
-            compact
-          />
-        </div>
-      </div>
 
       {/* ========================================================================= */}
       {/* 4. MOBILE CARDS LIST (md:hidden) */}
