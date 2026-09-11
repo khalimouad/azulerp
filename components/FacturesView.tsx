@@ -29,6 +29,7 @@ import {
   CheckSquare,
   Square,
   Download,
+  Calendar,
 } from 'lucide-react';
 import { SortableTh } from '@/components/SortableTh';
 import { TableBulkActionBar } from '@/components/TableBulkActionBar';
@@ -71,6 +72,27 @@ export const FacturesView: React.FC<FacturesViewProps> = ({
   const [selectedFactureId, setSelectedFactureId] = useState<number | null>(null);
   const [showMobileKpiDetails, setShowMobileKpiDetails] = useState(false);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
+
+  // Popup states for top toolbar
+  const [showFilterPopup, setShowFilterPopup] = useState(false);
+  const [showDatePopup, setShowDatePopup] = useState(false);
+  const filterPopoverRef = React.useRef<HTMLDivElement>(null);
+  const datePopoverRef = React.useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (filterPopoverRef.current && !filterPopoverRef.current.contains(e.target as Node)) {
+        setShowFilterPopup(false);
+      }
+      if (datePopoverRef.current && !datePopoverRef.current.contains(e.target as Node)) {
+        setShowDatePopup(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const hasActiveFilters = filterEtat !== 'ALL' || filterStatutPaiement !== 'ALL';
 
   // Sorting & Bulk selection states
   const [sortKey, setSortKey] = useState<string>('numero');
@@ -234,7 +256,7 @@ export const FacturesView: React.FC<FacturesViewProps> = ({
   }, [factures]);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-2.5">
       {/* ========================================================================= */}
       {/* 1. TOP HEADER (Compact on mobile, full on desktop) */}
       {/* ========================================================================= */}
@@ -279,44 +301,285 @@ export const FacturesView: React.FC<FacturesViewProps> = ({
         </div>
       </div>
 
-      {/* Desktop Top Header (hidden sm:flex) */}
-      <div className="hidden sm:flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
-        <div>
-          <h2 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
-            <FileText className="w-5 h-5 text-blue-600" />
-            Liste des Factures Clients (2026)
-            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
-              {filteredFactures.length} factures • {totalLines} lignes
-            </span>
-          </h2>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Gestion du cycle de vie en 3 états (Brouillon, Validé, Annulé), TVA marocaine, encaissements et restes à payer
-          </p>
+      {/* Desktop Top Unified Toolbar (hidden sm:flex) */}
+      <div className="hidden sm:flex items-center justify-between gap-3 bg-white px-3.5 py-2 rounded-xl border border-slate-200 shadow-2xs">
+        {/* Left: Title + Document Count + Popup Filter Buttons */}
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <FileText className="w-5 h-5 text-blue-600 shrink-0" />
+            <div className="flex items-center gap-2">
+              <h2 className="text-sm font-bold text-slate-900 tracking-tight whitespace-nowrap">
+                Factures Clients (2026)
+              </h2>
+              <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 whitespace-nowrap">
+                {filteredFactures.length} factures
+              </span>
+            </div>
+          </div>
+
+          <div className="h-4 w-px bg-slate-200" />
+
+          {/* Popup Controls: Filtres & Date */}
+          <div className="flex items-center gap-2">
+            {/* 1. FILTERS POPUP BUTTON */}
+            <div className="relative" ref={filterPopoverRef}>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowFilterPopup((prev) => !prev);
+                  setShowDatePopup(false);
+                }}
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold rounded-lg border transition shadow-2xs ${
+                  hasActiveFilters
+                    ? 'bg-blue-50 border-blue-300 text-blue-700'
+                    : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                }`}
+              >
+                <SlidersHorizontal className="w-3.5 h-3.5 text-slate-500" />
+                <span>Filtres</span>
+                {hasActiveFilters && (
+                  <span className="w-2 h-2 rounded-full bg-blue-600" />
+                )}
+                <ChevronDown className="w-3 h-3 text-slate-400" />
+              </button>
+
+              {/* Filters Popover Menu */}
+              {showFilterPopup && (
+                <div className="absolute left-0 mt-2 z-50 bg-white rounded-xl border border-slate-200 shadow-xl p-3.5 w-[320px] space-y-3 animate-in fade-in zoom-in-95 duration-150">
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                    <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                      <SlidersHorizontal className="w-3.5 h-3.5 text-blue-600" />
+                      Filtres de statut
+                    </span>
+                    {hasActiveFilters && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFilterEtat('ALL');
+                          setFilterStatutPaiement('ALL');
+                        }}
+                        className="text-[11px] text-blue-600 hover:text-blue-800 font-semibold"
+                      >
+                        Réinitialiser
+                      </button>
+                    )}
+                  </div>
+
+                  {/* État pills */}
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                      État
+                    </label>
+                    <div className="grid grid-cols-2 gap-1.5 text-xs">
+                      <button
+                        type="button"
+                        onClick={() => setFilterEtat('ALL')}
+                        className={`px-2 py-1.5 rounded-lg text-xs font-medium transition text-left border ${
+                          filterEtat === 'ALL'
+                            ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
+                            : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                        }`}
+                      >
+                        Toutes ({counts.all})
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setFilterEtat('VALIDE')}
+                        className={`px-2 py-1.5 rounded-lg text-xs font-medium transition text-left border flex items-center gap-1 ${
+                          filterEtat === 'VALIDE'
+                            ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs font-bold'
+                            : 'bg-emerald-50/50 text-emerald-800 border-emerald-200 hover:bg-emerald-50'
+                        }`}
+                      >
+                        <CheckCircle2 className="w-3 h-3" />
+                        Validées ({counts.valide})
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setFilterEtat('BROUILLON')}
+                        className={`px-2 py-1.5 rounded-lg text-xs font-medium transition text-left border flex items-center gap-1 ${
+                          filterEtat === 'BROUILLON'
+                            ? 'bg-slate-700 text-white border-slate-700 shadow-xs font-bold'
+                            : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                        }`}
+                      >
+                        <Clock className="w-3 h-3" />
+                        Brouillons ({counts.brouillon})
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setFilterEtat('ANNULE')}
+                        className={`px-2 py-1.5 rounded-lg text-xs font-medium transition text-left border flex items-center gap-1 ${
+                          filterEtat === 'ANNULE'
+                            ? 'bg-rose-600 text-white border-rose-600 shadow-xs font-bold'
+                            : 'bg-rose-50/50 text-rose-800 border-rose-200 hover:bg-rose-50'
+                        }`}
+                      >
+                        <Ban className="w-3 h-3" />
+                        Annulées ({counts.annule})
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Règlement pills */}
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                      Règlement
+                    </label>
+                    <div className="grid grid-cols-2 gap-1.5 text-xs">
+                      <button
+                        type="button"
+                        onClick={() => setFilterStatutPaiement('ALL')}
+                        className={`px-2 py-1.5 rounded-lg text-xs font-medium transition text-left border ${
+                          filterStatutPaiement === 'ALL'
+                            ? 'bg-blue-600 text-white border-blue-600 shadow-xs font-bold'
+                            : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                        }`}
+                      >
+                        Tous
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setFilterStatutPaiement('SOLDE')}
+                        className={`px-2 py-1.5 rounded-lg text-xs font-medium transition text-left border ${
+                          filterStatutPaiement === 'SOLDE'
+                            ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs font-bold'
+                            : 'bg-emerald-50/50 text-emerald-800 border-emerald-200 hover:bg-emerald-50'
+                        }`}
+                      >
+                        Soldées ({counts.solde})
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setFilterStatutPaiement('PARTIEL')}
+                        className={`px-2 py-1.5 rounded-lg text-xs font-medium transition text-left border ${
+                          filterStatutPaiement === 'PARTIEL'
+                            ? 'bg-purple-600 text-white border-purple-600 shadow-xs font-bold'
+                            : 'bg-purple-50/50 text-purple-800 border-purple-200 hover:bg-purple-50'
+                        }`}
+                      >
+                        Partielles ({counts.partiel})
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setFilterStatutPaiement('IMPAYE')}
+                        className={`px-2 py-1.5 rounded-lg text-xs font-medium transition text-left border ${
+                          filterStatutPaiement === 'IMPAYE'
+                            ? 'bg-rose-600 text-white border-rose-600 shadow-xs font-bold'
+                            : 'bg-rose-50/50 text-rose-800 border-rose-200 hover:bg-rose-50'
+                        }`}
+                      >
+                        Impayées ({counts.impaye})
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="pt-2 border-t border-slate-100 flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => setShowFilterPopup(false)}
+                      className="px-3 py-1 bg-slate-900 text-white text-xs font-semibold rounded-lg hover:bg-slate-800 shadow-xs"
+                    >
+                      Fermer
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* 2. DATE RANGE POPUP BUTTON */}
+            <div className="relative" ref={datePopoverRef}>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowDatePopup((prev) => !prev);
+                  setShowFilterPopup(false);
+                }}
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold rounded-lg border transition shadow-2xs ${
+                  filterStartDate || filterEndDate
+                    ? 'bg-blue-50 border-blue-300 text-blue-700'
+                    : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                }`}
+              >
+                <Calendar className="w-3.5 h-3.5 text-blue-600" />
+                <span className="truncate max-w-[190px]">
+                  {filterStartDate && filterEndDate
+                    ? `${formatDate(filterStartDate)} - ${formatDate(filterEndDate)}`
+                    : 'Date / Période'}
+                </span>
+                <ChevronDown className="w-3 h-3 text-slate-400" />
+              </button>
+
+              {showDatePopup && (
+                <div className="absolute left-0 mt-2 z-50 bg-white rounded-xl border border-slate-200 shadow-xl p-3 w-auto min-w-[320px] animate-in fade-in zoom-in-95 duration-150">
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-2 mb-2">
+                    <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                      <Calendar className="w-3.5 h-3.5 text-blue-600" />
+                      Période
+                    </span>
+                    {(filterStartDate || filterEndDate) && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFilterStartDate('');
+                          setFilterEndDate('');
+                        }}
+                        className="text-[11px] text-rose-600 hover:text-rose-800 font-semibold"
+                      >
+                        Effacer
+                      </button>
+                    )}
+                  </div>
+
+                  <DateRangeFilter
+                    startDate={filterStartDate}
+                    endDate={filterEndDate}
+                    onDateChange={(start, end) => {
+                      setFilterStartDate(start);
+                      setFilterEndDate(end);
+                    }}
+                    variant="blue"
+                  />
+
+                  <div className="pt-2 mt-2 border-t border-slate-100 flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => setShowDatePopup(false)}
+                      className="px-3 py-1 bg-slate-900 text-white text-xs font-semibold rounded-lg hover:bg-slate-800 shadow-xs"
+                    >
+                      Fermer
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
+        {/* Right: Actions */}
+        <div className="flex items-center gap-2">
           {onRefresh && (
             <button
               onClick={onRefresh}
               disabled={isLoading}
-              className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-300 transition shadow-xs disabled:opacity-50"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-300 transition shadow-2xs disabled:opacity-50"
               title="Recharger les factures"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin text-blue-600' : ''}`} />
-              <span>Actualiser</span>
+              <span className="hidden lg:inline">Actualiser</span>
             </button>
           )}
           <button
             onClick={onOpenBatchInvoicing}
-            className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100 transition shadow-xs"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100 transition shadow-2xs whitespace-nowrap"
           >
             🔄 Facturer des BLs en lot
           </button>
           <button
             onClick={onOpenNewFacture}
-            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition shadow-xs active:scale-95"
+            className="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition shadow-xs active:scale-95 whitespace-nowrap"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-3.5 h-3.5" />
             + Ajouter une Facture
           </button>
         </div>
@@ -517,118 +780,7 @@ export const FacturesView: React.FC<FacturesViewProps> = ({
         )}
       </div>
 
-      {/* ========================================================================= */}
-      {/* 4. DESKTOP FILTER BAR (Full WinDev layout - hidden md:flex) */}
-      {/* ========================================================================= */}
-      <div className="hidden md:flex flex-col xl:flex-row xl:items-center justify-between gap-3 bg-white p-3 rounded-xl border border-slate-200 shadow-xs">
-        <div className="flex flex-col md:flex-row md:items-center gap-2.5">
-          {/* State tabs */}
-          <div className="flex items-center gap-1.5 text-xs overflow-x-auto pb-1 md:pb-0 no-scrollbar whitespace-nowrap">
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mr-1 shrink-0">État :</span>
-            <button
-              onClick={() => setFilterEtat('ALL')}
-              className={`px-2.5 py-1.5 rounded-lg font-medium transition shrink-0 ${
-                filterEtat === 'ALL'
-                  ? 'bg-slate-900 text-white shadow-xs'
-                  : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200'
-              }`}
-            >
-              Toutes ({counts.all})
-            </button>
-            <button
-              onClick={() => setFilterEtat('VALIDE')}
-              className={`px-2.5 py-1.5 rounded-lg font-medium transition flex items-center gap-1 shrink-0 ${
-                filterEtat === 'VALIDE'
-                  ? 'bg-emerald-600 text-white shadow-xs'
-                  : 'bg-white text-emerald-700 hover:bg-emerald-50 border border-emerald-200'
-              }`}
-            >
-              <CheckCircle2 className="w-3.5 h-3.5" />
-              Validées ({counts.valide})
-            </button>
-            <button
-              onClick={() => setFilterEtat('BROUILLON')}
-              className={`px-2.5 py-1.5 rounded-lg font-medium transition flex items-center gap-1 shrink-0 ${
-                filterEtat === 'BROUILLON'
-                  ? 'bg-slate-700 text-white shadow-xs'
-                  : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-300'
-              }`}
-            >
-              <Clock className="w-3.5 h-3.5" />
-              Brouillons ({counts.brouillon})
-            </button>
-            <button
-              onClick={() => setFilterEtat('ANNULE')}
-              className={`px-2.5 py-1.5 rounded-lg font-medium transition flex items-center gap-1 shrink-0 ${
-                filterEtat === 'ANNULE'
-                  ? 'bg-rose-600 text-white shadow-xs'
-                  : 'bg-white text-rose-700 hover:bg-rose-50 border border-rose-200'
-              }`}
-            >
-              <Ban className="w-3.5 h-3.5" />
-              Annulées ({counts.annule})
-            </button>
-          </div>
 
-          {/* Payment tabs */}
-          <div className="flex items-center gap-1 text-xs border-t md:border-t-0 md:border-l border-slate-200 pt-2 md:pt-0 md:pl-3 overflow-x-auto pb-1 md:pb-0 no-scrollbar whitespace-nowrap">
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mr-1 shrink-0">Règlement :</span>
-            <button
-              onClick={() => setFilterStatutPaiement('ALL')}
-              className={`px-2 py-1 rounded text-xs transition shrink-0 ${
-                filterStatutPaiement === 'ALL'
-                  ? 'bg-blue-100 text-blue-800 font-bold'
-                  : 'text-slate-600 hover:bg-slate-100'
-              }`}
-            >
-              Tous
-            </button>
-            <button
-              onClick={() => setFilterStatutPaiement('SOLDE')}
-              className={`px-2 py-1 rounded text-xs transition shrink-0 ${
-                filterStatutPaiement === 'SOLDE'
-                  ? 'bg-emerald-100 text-emerald-800 font-bold'
-                  : 'text-slate-600 hover:bg-slate-100'
-              }`}
-            >
-              Soldées ({counts.solde})
-            </button>
-            <button
-              onClick={() => setFilterStatutPaiement('PARTIEL')}
-              className={`px-2 py-1 rounded text-xs transition shrink-0 ${
-                filterStatutPaiement === 'PARTIEL'
-                  ? 'bg-purple-100 text-purple-800 font-bold'
-                  : 'text-slate-600 hover:bg-slate-100'
-              }`}
-            >
-              Partielles ({counts.partiel})
-            </button>
-            <button
-              onClick={() => setFilterStatutPaiement('IMPAYE')}
-              className={`px-2 py-1 rounded text-xs transition shrink-0 ${
-                filterStatutPaiement === 'IMPAYE'
-                  ? 'bg-rose-100 text-rose-800 font-bold'
-                  : 'text-slate-600 hover:bg-slate-100'
-              }`}
-            >
-              Impayées ({counts.impaye})
-            </button>
-          </div>
-        </div>
-
-        {/* Date Range Filter */}
-        <div className="flex items-center">
-          <DateRangeFilter
-            startDate={filterStartDate}
-            endDate={filterEndDate}
-            onDateChange={(start, end) => {
-              setFilterStartDate(start);
-              setFilterEndDate(end);
-            }}
-            variant="blue"
-          />
-        </div>
-      </div>
 
       {/* ========================================================================= */}
       {/* 1. MOBILE CARD LIST (Smartphone View - block md:hidden) */}
