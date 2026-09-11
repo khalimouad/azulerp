@@ -24,7 +24,9 @@ import {
   Sparkles,
   Play,
   FileSpreadsheet,
-  PackageCheck
+  PackageCheck,
+  ChevronDown,
+  SlidersHorizontal,
 } from 'lucide-react';
 
 interface BOMManagementViewProps {
@@ -51,6 +53,25 @@ export function BOMManagementView({
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'ACTIVE' | 'INACTIVE'>('ALL');
   const [previewBom, setPreviewBom] = useState<BOM | null>(null);
+
+  // Popover state
+  const [showBomKpiPopup, setShowBomKpiPopup] = useState(false);
+  const [showBomFilterPopup, setShowBomFilterPopup] = useState(false);
+  const bomKpiRef = React.useRef<HTMLDivElement>(null);
+  const bomFilterRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (bomKpiRef.current && !bomKpiRef.current.contains(e.target as Node)) {
+        setShowBomKpiPopup(false);
+      }
+      if (bomFilterRef.current && !bomFilterRef.current.contains(e.target as Node)) {
+        setShowBomFilterPopup(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Navigate to Create Page
   const handleOpenCreate = () => {
@@ -151,159 +172,135 @@ export function BOMManagementView({
   }, [boms]);
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-200">
-      {/* Top Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs">
+    <div className="space-y-2.5 animate-in fade-in duration-200">
+      {/* ========================================================================= */}
+      {/* UNIFIED COMPACT 42PX TOOLBAR (BOM / Nomenclatures) */}
+      {/* ========================================================================= */}
+      <div className="flex items-center justify-between gap-3 bg-white dark:bg-slate-900 px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-2xs">
+        {/* Left: Title + Count + Popover Controls */}
         <div className="flex items-center gap-3">
-          <div className="p-3 bg-gradient-to-tr from-indigo-600 to-indigo-700 text-white rounded-xl shadow-md">
-            <Layers className="w-6 h-6" />
-          </div>
-          <div>
-            <h1 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-              Nomenclatures & Formules de Fabrication (BOM)
-              <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-950/60 text-indigo-800 dark:text-indigo-300 font-semibold">
-                {boms.length} formules
+          <div className="flex items-center gap-2">
+            <Layers className="w-5 h-5 text-indigo-600 shrink-0" />
+            <div className="flex items-center gap-2">
+              <h2 className="text-sm font-bold text-slate-900 dark:text-white tracking-tight whitespace-nowrap">
+                Nomenclatures (BOM)
+              </h2>
+              <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 whitespace-nowrap">
+                {filteredBoms.length} formules
               </span>
-            </h1>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-              Gestion industrielle multi-matières (intrants), multi-produits finis (extrants), valorisation des coproduits et analyse du rendement
-            </p>
+            </div>
+          </div>
+
+          <div className="h-4 w-px bg-slate-200 dark:bg-slate-800" />
+
+          {/* Popover 1: Filtres Statut */}
+          <div className="relative" ref={bomFilterRef}>
+            <button
+              type="button"
+              onClick={() => setShowBomFilterPopup((p) => !p)}
+              className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-lg border transition shadow-2xs ${
+                statusFilter !== 'ALL'
+                  ? 'bg-indigo-50 border-indigo-300 text-indigo-700'
+                  : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50'
+              }`}
+            >
+              <SlidersHorizontal className="w-3.5 h-3.5 text-slate-500" />
+              <span>Filtres : {statusFilter === 'ALL' ? 'Toutes' : statusFilter === 'ACTIVE' ? 'Actives' : 'Inactives'}</span>
+              <ChevronDown className="w-3 h-3 text-slate-400" />
+            </button>
+
+            {showBomFilterPopup && (
+              <div className="absolute left-0 mt-2 z-50 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xl p-3 w-56 space-y-2 animate-in fade-in zoom-in-95 duration-150">
+                <div className="text-xs font-bold text-slate-800 dark:text-white border-b border-slate-100 dark:border-slate-800 pb-1 flex justify-between items-center">
+                  <span>Statut Nomenclature</span>
+                  <button type="button" onClick={() => setShowBomFilterPopup(false)} className="text-slate-400 hover:text-slate-600 text-xs">✕</button>
+                </div>
+                <div className="flex flex-col gap-1 text-xs">
+                  <button
+                    type="button"
+                    onClick={() => { setStatusFilter('ALL'); setShowBomFilterPopup(false); }}
+                    className={`text-left px-2.5 py-1.5 rounded-lg font-semibold ${statusFilter === 'ALL' ? 'bg-indigo-50 text-indigo-700 font-bold' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50'}`}
+                  >
+                    Toutes ({boms.length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setStatusFilter('ACTIVE'); setShowBomFilterPopup(false); }}
+                    className={`text-left px-2.5 py-1.5 rounded-lg font-semibold ${statusFilter === 'ACTIVE' ? 'bg-emerald-50 text-emerald-700 font-bold' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50'}`}
+                  >
+                    Actives ({stats.activeCount})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setStatusFilter('INACTIVE'); setShowBomFilterPopup(false); }}
+                    className={`text-left px-2.5 py-1.5 rounded-lg font-semibold ${statusFilter === 'INACTIVE' ? 'bg-amber-50 text-amber-700 font-bold' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50'}`}
+                  >
+                    Inactives ({stats.totalCount - stats.activeCount})
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Popover 2: Rendement & Coût de Revient */}
+          <div className="relative" ref={bomKpiRef}>
+            <button
+              type="button"
+              onClick={() => setShowBomKpiPopup((p) => !p)}
+              className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 shadow-2xs"
+            >
+              <TrendingUp className="w-3.5 h-3.5 text-emerald-600" />
+              <span className="hidden md:inline">Rendement :</span>
+              <span className="font-bold text-blue-600">{stats.avgYield}%</span>
+              <ChevronDown className="w-3 h-3 text-slate-400" />
+            </button>
+
+            {showBomKpiPopup && (
+              <div className="absolute left-0 mt-2 z-50 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xl p-3.5 w-72 space-y-2.5 animate-in fade-in zoom-in-95 duration-150">
+                <div className="text-xs font-bold text-slate-800 dark:text-white border-b border-slate-100 dark:border-slate-800 pb-1.5 flex justify-between items-center">
+                  <span>Indicateurs Industriels & Coûts</span>
+                  <button type="button" onClick={() => setShowBomKpiPopup(false)} className="text-slate-400 hover:text-slate-600 text-xs">✕</button>
+                </div>
+                <div className="space-y-2 text-xs">
+                  <div className="flex items-center justify-between p-2 rounded-lg bg-blue-50/60 border border-blue-100">
+                    <span className="text-blue-900 font-medium">Rendement Matière Moyen</span>
+                    <span className="font-bold text-blue-700">{stats.avgYield}%</span>
+                  </div>
+                  <div className="flex items-center justify-between p-2 rounded-lg bg-emerald-50/60 border border-emerald-100">
+                    <span className="text-emerald-900 font-medium">Coût Revient Moyen</span>
+                    <span className="font-bold font-mono text-emerald-700">{formatCurrency(stats.avgCost)}</span>
+                  </div>
+                  <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50 border border-slate-100">
+                    <span className="text-slate-600 font-medium">Nomenclatures Actives</span>
+                    <span className="font-bold text-slate-900">{stats.activeCount} / {stats.totalCount}</span>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        {/* Right: Actions */}
+        <div className="flex items-center gap-2 shrink-0">
           {onRefresh && (
             <button
               type="button"
               onClick={onRefresh}
-              className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition active:scale-95 cursor-pointer"
-              title="Rafraîchir les données"
+              className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition"
+              title="Actualiser"
             >
-              <RefreshCw className="w-4 h-4" />
+              <RefreshCw className="w-3.5 h-3.5" />
             </button>
           )}
 
           <button
             type="button"
             onClick={handleOpenCreate}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md transition active:scale-95 cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-xs transition active:scale-95 whitespace-nowrap"
           >
-            <Plus className="w-4 h-4" />
-            <span>Nouvelle Nomenclature</span>
+            <Plus className="w-3.5 h-3.5" />
+            <span>+ Nouvelle Formule</span>
           </button>
-        </div>
-      </div>
-
-      {/* KPI Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-2xs">
-          <div className="flex items-center justify-between text-slate-500 text-xs font-medium mb-1">
-            <span>Nomenclatures Actives</span>
-            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-          </div>
-          <div className="text-2xl font-bold text-slate-900 dark:text-white">
-            {stats.activeCount} <span className="text-xs text-slate-400 font-normal">/ {stats.totalCount}</span>
-          </div>
-          <div className="text-[11px] text-slate-500 mt-1">Prêtes pour lancement en production</div>
-        </div>
-
-        <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-2xs">
-          <div className="flex items-center justify-between text-slate-500 text-xs font-medium mb-1">
-            <span>Rendement Matière Moyen</span>
-            <Percent className="w-4 h-4 text-blue-600" />
-          </div>
-          <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-            {stats.avgYield}%
-          </div>
-          <div className="text-[11px] text-slate-500 mt-1">Efficacité de conversion industrielle</div>
-        </div>
-
-        <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-2xs">
-          <div className="flex items-center justify-between text-slate-500 text-xs font-medium mb-1">
-            <span>Coût Revient Moyen</span>
-            <TrendingUp className="w-4 h-4 text-emerald-600" />
-          </div>
-          <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
-            {formatCurrency(stats.avgCost)}
-          </div>
-          <div className="text-[11px] text-slate-500 mt-1">Matières + main d'œuvre + atelier</div>
-        </div>
-
-        <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-2xs">
-          <div className="flex items-center justify-between text-slate-500 text-xs font-medium mb-1">
-            <span>Ordres de Fabrication</span>
-            <Factory className="w-4 h-4 text-purple-600" />
-          </div>
-          <button
-            type="button"
-            onClick={() => onNavigateTab && onNavigateTab('manufacturing-orders')}
-            className="text-xs font-bold text-purple-600 hover:text-purple-700 flex items-center gap-1 mt-1 cursor-pointer"
-          >
-            <span>Voir le suivi des OF</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </button>
-          <div className="text-[11px] text-slate-400 mt-1">Gérer les ordres et consommations</div>
-        </div>
-      </div>
-
-      {/* Filters and Search Bar */}
-      <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3">
-        <div className="relative w-full sm:w-80">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input
-            type="text"
-            placeholder="Rechercher par code, nom, produit fini..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 text-xs font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-hidden"
-          />
-          {searchTerm && (
-            <button
-              type="button"
-              onClick={() => setSearchTerm('')}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-            >
-              <X className="w-3.5 h-3.5" />
-            </button>
-          )}
-        </div>
-
-        <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
-          <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-lg text-xs font-semibold">
-            <button
-              type="button"
-              onClick={() => setStatusFilter('ALL')}
-              className={`px-3 py-1 rounded-md transition ${
-                statusFilter === 'ALL'
-                  ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-2xs font-bold'
-                  : 'text-slate-600 dark:text-slate-400'
-              }`}
-            >
-              Toutes ({boms.length})
-            </button>
-            <button
-              type="button"
-              onClick={() => setStatusFilter('ACTIVE')}
-              className={`px-3 py-1 rounded-md transition ${
-                statusFilter === 'ACTIVE'
-                  ? 'bg-white dark:bg-slate-700 text-emerald-700 dark:text-emerald-400 shadow-2xs font-bold'
-                  : 'text-slate-600 dark:text-slate-400'
-              }`}
-            >
-              Actives ({boms.filter((b) => b.actif).length})
-            </button>
-            <button
-              type="button"
-              onClick={() => setStatusFilter('INACTIVE')}
-              className={`px-3 py-1 rounded-md transition ${
-                statusFilter === 'INACTIVE'
-                  ? 'bg-white dark:bg-slate-700 text-amber-700 dark:text-amber-400 shadow-2xs font-bold'
-                  : 'text-slate-600 dark:text-slate-400'
-              }`}
-            >
-              Inactives ({boms.filter((b) => !b.actif).length})
-            </button>
-          </div>
         </div>
       </div>
 

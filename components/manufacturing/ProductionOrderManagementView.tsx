@@ -28,7 +28,9 @@ import {
   RefreshCw,
   X,
   Boxes,
-  Edit
+  Edit,
+  ChevronDown,
+  SlidersHorizontal,
 } from 'lucide-react';
 
 interface ProductionOrderManagementViewProps {
@@ -52,6 +54,25 @@ export function ProductionOrderManagementView({
 }: ProductionOrderManagementViewProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
+
+  // Popovers
+  const [showOfStatusPopup, setShowOfStatusPopup] = useState(false);
+  const [showOfKpiPopup, setShowOfKpiPopup] = useState(false);
+  const ofStatusRef = React.useRef<HTMLDivElement>(null);
+  const ofKpiRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (ofStatusRef.current && !ofStatusRef.current.contains(e.target as Node)) {
+        setShowOfStatusPopup(false);
+      }
+      if (ofKpiRef.current && !ofKpiRef.current.contains(e.target as Node)) {
+        setShowOfKpiPopup(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Modals
   const [showNewOfModal, setShowNewOfModal] = useState(false);
@@ -157,145 +178,168 @@ export function ProductionOrderManagementView({
   const completed = productionOrders.filter(o => o.status === 'termine').length;
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-slate-50 dark:bg-slate-950 overflow-y-auto">
-      {/* Header */}
-      <div className="p-6 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
+    <div className="space-y-2.5 animate-in fade-in duration-200">
+      {/* ========================================================================= */}
+      {/* UNIFIED COMPACT 42PX TOOLBAR (Ordres de Fabrication OF) */}
+      {/* ========================================================================= */}
+      <div className="flex items-center justify-between gap-3 bg-white dark:bg-slate-900 px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-2xs">
+        {/* Left: Title + Count + Popover Controls */}
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <Factory className="w-5 h-5 text-blue-600 shrink-0" />
             <div className="flex items-center gap-2">
-              <span className="p-2 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800">
-                <Factory className="w-5 h-5" />
-              </span>
-              <h1 className="text-2xl font-black text-slate-900 dark:text-white">
+              <h2 className="text-sm font-bold text-slate-900 dark:text-white tracking-tight whitespace-nowrap">
                 Ordres de Fabrication (OF)
-              </h1>
+              </h2>
+              <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 whitespace-nowrap">
+                {filteredOrders.length} OF
+              </span>
             </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-              Lancement de production, suivi des consommations matières, contrôle des stocks et imputation automatique des produits finis.
-            </p>
           </div>
 
-          <div className="flex items-center gap-2.5">
-            {onNavigateTab && (
-              <button
-                type="button"
-                onClick={() => onNavigateTab('manufacturing-boms')}
-                className="px-3.5 py-2 rounded-xl text-xs font-bold border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-100 flex items-center gap-1.5 cursor-pointer"
-              >
-                <Layers className="w-3.5 h-3.5 text-emerald-500" />
-                <span>Voir les Nomenclatures (BOM)</span>
-              </button>
-            )}
+          <div className="h-4 w-px bg-slate-200 dark:bg-slate-800" />
+
+          {/* Popover 1: Filtres Statut */}
+          <div className="relative" ref={ofStatusRef}>
             <button
               type="button"
-              onClick={() => {
-                if (onCreateNew) {
-                  onCreateNew();
-                } else if (onNavigateTab) {
-                  onNavigateTab('create-production-order');
-                } else {
-                  setShowNewOfModal(true);
-                }
-              }}
-              className="px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white shadow-md shadow-blue-600/20 flex items-center gap-2 cursor-pointer transition active:scale-95"
+              onClick={() => setShowOfStatusPopup((p) => !p)}
+              className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-lg border transition shadow-2xs ${
+                statusFilter !== 'ALL'
+                  ? 'bg-blue-50 border-blue-300 text-blue-700'
+                  : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50'
+              }`}
             >
-              <Plus className="w-4 h-4" />
-              <span>Créer un Ordre de Fabrication</span>
+              <SlidersHorizontal className="w-3.5 h-3.5 text-slate-500" />
+              <span>
+                Statut : {statusFilter === 'ALL' ? 'Tous' : statusFilter === 'en_cours' ? 'En cours' : statusFilter === 'termine' ? 'Terminés' : 'Confirmés'}
+              </span>
+              <ChevronDown className="w-3 h-3 text-slate-400" />
             </button>
-          </div>
-        </div>
 
-        {/* KPI Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6">
-          <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60">
-            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Total Ordres</span>
-            <div className="text-xl font-black text-slate-900 dark:text-white mt-0.5">{totalOrders}</div>
+            {showOfStatusPopup && (
+              <div className="absolute left-0 mt-2 z-50 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xl p-3 w-52 space-y-2 animate-in fade-in zoom-in-95 duration-150">
+                <div className="text-xs font-bold text-slate-800 dark:text-white border-b border-slate-100 dark:border-slate-800 pb-1 flex justify-between items-center">
+                  <span>Filtrer par Statut OF</span>
+                  <button type="button" onClick={() => setShowOfStatusPopup(false)} className="text-slate-400 hover:text-slate-600 text-xs">✕</button>
+                </div>
+                <div className="flex flex-col gap-1 text-xs">
+                  <button
+                    type="button"
+                    onClick={() => { setStatusFilter('ALL'); setShowOfStatusPopup(false); }}
+                    className={`text-left px-2.5 py-1.5 rounded-lg font-semibold ${statusFilter === 'ALL' ? 'bg-blue-50 text-blue-700 font-bold' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50'}`}
+                  >
+                    Tous les ordres ({totalOrders})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setStatusFilter('confirme'); setShowOfStatusPopup(false); }}
+                    className={`text-left px-2.5 py-1.5 rounded-lg font-semibold ${statusFilter === 'confirme' ? 'bg-amber-50 text-amber-700 font-bold' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50'}`}
+                  >
+                    Confirmés
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setStatusFilter('en_cours'); setShowOfStatusPopup(false); }}
+                    className={`text-left px-2.5 py-1.5 rounded-lg font-semibold ${statusFilter === 'en_cours' ? 'bg-blue-50 text-blue-700 font-bold' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50'}`}
+                  >
+                    En cours ({inProgress})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setStatusFilter('termine'); setShowOfStatusPopup(false); }}
+                    className={`text-left px-2.5 py-1.5 rounded-lg font-semibold ${statusFilter === 'termine' ? 'bg-emerald-50 text-emerald-700 font-bold' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50'}`}
+                  >
+                    Terminés ({completed})
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
-          <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60">
-            <span className="text-[11px] font-bold text-blue-600 uppercase tracking-wider">En Cours / Confirmés</span>
-            <div className="text-xl font-black text-blue-600 dark:text-blue-400 mt-0.5">{inProgress}</div>
-          </div>
-          <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60">
-            <span className="text-[11px] font-bold text-emerald-600 uppercase tracking-wider">Terminés / Entrés en Stock</span>
-            <div className="text-xl font-black text-emerald-600 dark:text-emerald-400 mt-0.5">{completed}</div>
-          </div>
-          <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60">
-            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Écritures Comptables</span>
-            <div className="text-xl font-black text-slate-900 dark:text-white mt-0.5">Automatiques</div>
-          </div>
-        </div>
-      </div>
 
-      {/* Filter and Search Bar */}
-      <div className="p-6 pb-2">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div className="relative w-full sm:w-80">
-            <Search className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
-            <input
-              type="text"
-              placeholder="Rechercher par N° OF, article ou formule..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs focus:ring-2 focus:ring-blue-500 outline-none"
-            />
-          </div>
+          {/* Popover 2: KPIs & Synthèse Atelier */}
+          <div className="relative" ref={ofKpiRef}>
+            <button
+              type="button"
+              onClick={() => setShowOfKpiPopup((p) => !p)}
+              className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 shadow-2xs"
+            >
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+              <span className="hidden md:inline">En cours :</span>
+              <span className="font-bold text-blue-600">{inProgress}</span>
+              <ChevronDown className="w-3 h-3 text-slate-400" />
+            </button>
 
-          <div className="flex items-center gap-2 w-full sm:w-auto">
-            <div className="flex items-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-1 rounded-xl text-xs">
-              <button
-                type="button"
-                onClick={() => setStatusFilter('ALL')}
-                className={`px-3 py-1.5 rounded-lg font-bold transition cursor-pointer ${
-                  statusFilter === 'ALL' ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900' : 'text-slate-500'
-                }`}
-              >
-                Tous
-              </button>
-              <button
-                type="button"
-                onClick={() => setStatusFilter('confirme')}
-                className={`px-3 py-1.5 rounded-lg font-bold transition cursor-pointer ${
-                  statusFilter === 'confirme' ? 'bg-amber-600 text-white' : 'text-slate-500'
-                }`}
-              >
-                Confirmés
-              </button>
-              <button
-                type="button"
-                onClick={() => setStatusFilter('en_cours')}
-                className={`px-3 py-1.5 rounded-lg font-bold transition cursor-pointer ${
-                  statusFilter === 'en_cours' ? 'bg-blue-600 text-white' : 'text-slate-500'
-                }`}
-              >
-                En cours
-              </button>
-              <button
-                type="button"
-                onClick={() => setStatusFilter('termine')}
-                className={`px-3 py-1.5 rounded-lg font-bold transition cursor-pointer ${
-                  statusFilter === 'termine' ? 'bg-emerald-600 text-white' : 'text-slate-500'
-                }`}
-              >
-                Terminés
-              </button>
-            </div>
-            {onRefresh && (
-              <button
-                type="button"
-                onClick={onRefresh}
-                title="Actualiser"
-                className="p-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-600 hover:text-slate-900 dark:text-slate-300 cursor-pointer"
-              >
-                <RefreshCw className="w-4 h-4" />
-              </button>
+            {showOfKpiPopup && (
+              <div className="absolute left-0 mt-2 z-50 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xl p-3.5 w-64 space-y-2 animate-in fade-in zoom-in-95 duration-150">
+                <div className="text-xs font-bold text-slate-800 dark:text-white border-b border-slate-100 dark:border-slate-800 pb-1.5 flex justify-between items-center">
+                  <span>Synthèse de Production</span>
+                  <button type="button" onClick={() => setShowOfKpiPopup(false)} className="text-slate-400 hover:text-slate-600 text-xs">✕</button>
+                </div>
+                <div className="space-y-1.5 text-xs">
+                  <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50 border border-slate-100">
+                    <span className="text-slate-600">Total Ordres de Fabrication</span>
+                    <span className="font-bold text-slate-900">{totalOrders}</span>
+                  </div>
+                  <div className="flex items-center justify-between p-2 rounded-lg bg-blue-50/60 border border-blue-100">
+                    <span className="text-blue-900 font-medium">En Cours / Confirmés</span>
+                    <span className="font-bold text-blue-700">{inProgress}</span>
+                  </div>
+                  <div className="flex items-center justify-between p-2 rounded-lg bg-emerald-50/60 border border-emerald-100">
+                    <span className="text-emerald-900 font-medium">Terminés (Entrés en Stock)</span>
+                    <span className="font-bold text-emerald-700">{completed}</span>
+                  </div>
+                </div>
+              </div>
             )}
           </div>
         </div>
+
+        {/* Right: Actions */}
+        <div className="flex items-center gap-2 shrink-0">
+          {onNavigateTab && (
+            <button
+              type="button"
+              onClick={() => onNavigateTab('manufacturing-boms')}
+              className="px-2.5 py-1.5 rounded-lg text-xs font-semibold border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-100 flex items-center gap-1 cursor-pointer whitespace-nowrap"
+            >
+              <Layers className="w-3.5 h-3.5 text-emerald-500" />
+              <span>Nomenclatures (BOM)</span>
+            </button>
+          )}
+
+          {onRefresh && (
+            <button
+              type="button"
+              onClick={onRefresh}
+              className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition"
+              title="Actualiser"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+            </button>
+          )}
+
+          <button
+            type="button"
+            onClick={() => {
+              if (onCreateNew) {
+                onCreateNew();
+              } else if (onNavigateTab) {
+                onNavigateTab('create-production-order');
+              } else {
+                setShowNewOfModal(true);
+              }
+            }}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-xs transition active:scale-95 whitespace-nowrap"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>+ Lancer un OF</span>
+          </button>
+        </div>
       </div>
 
-      {/* Orders Table */}
-      <div className="p-6 pt-2">
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-xs">
+      {/* Orders Table View */}
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-xs">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>

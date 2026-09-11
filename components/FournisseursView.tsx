@@ -50,6 +50,8 @@ import {
   HelpCircle,
   Eye,
   FileSpreadsheet,
+  ChevronDown,
+  SlidersHorizontal,
 } from 'lucide-react';
 
 export type SupplierSubPage = 'FOURNISSEURS' | 'FACTURES' | 'PAIEMENTS' | 'ALERTES' | 'RAPPROCHEMENT';
@@ -143,6 +145,25 @@ export const FournisseursView: React.FC<FournisseursViewProps> = ({
   const [payEcheanceDepot, setPayEcheanceDepot] = useState(() => getFutureIso(3));
   const [payStatutCheque, setPayStatutCheque] = useState<'En attente' | 'Déposé / Débité' | 'Annulé'>('En attente');
   const [payNotes, setPayNotes] = useState('');
+
+  // Compact Toolbar Popovers
+  const [showSupplierKpiPopup, setShowSupplierKpiPopup] = useState(false);
+  const [showSupplierFilterPopup, setShowSupplierFilterPopup] = useState(false);
+  const supplierKpiRef = React.useRef<HTMLDivElement>(null);
+  const supplierFilterRef = React.useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (supplierKpiRef.current && !supplierKpiRef.current.contains(e.target as Node)) {
+        setShowSupplierKpiPopup(false);
+      }
+      if (supplierFilterRef.current && !supplierFilterRef.current.contains(e.target as Node)) {
+        setShowSupplierFilterPopup(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Load all supplier data from SQLite
   const reloadData = React.useCallback(async () => {
@@ -539,172 +560,169 @@ export const FournisseursView: React.FC<FournisseursViewProps> = ({
       )}
 
       {/* ========================================================================= */}
-      {/* SUB-PAGES NAVIGATION TABS BAR */}
+      {/* UNIFIED COMPACT 42PX TOOLBAR (With Situation & KPIs popover + subpage switch) */}
       {/* ========================================================================= */}
-      <div className="bg-white p-2.5 rounded-xl border border-slate-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 text-xs no-scrollbar">
-          <button
-            onClick={() => handleTabChange('FOURNISSEURS')}
-            className={`flex items-center gap-1.5 px-3.5 py-2 rounded-lg font-bold transition whitespace-nowrap ${
-              activeTab === 'FOURNISSEURS'
-                ? 'bg-slate-900 text-white shadow-xs'
-                : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border border-slate-200'
-            }`}
-          >
-            <Building2 className="w-3.5 h-3.5" />
-            <span>Répertoire Fournisseurs</span>
-            <span className="ml-1 px-1.5 py-0.2 bg-slate-700 text-white text-[10px] rounded-full">
-              {fournisseurs.length}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 bg-white px-3.5 py-2 rounded-xl border border-slate-200 shadow-2xs">
+        {/* Left: Module Title & Subpage Tabs */}
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
+          <div className="flex items-center gap-2 shrink-0 pr-2 border-r border-slate-200">
+            <Building2 className="w-5 h-5 text-blue-600 shrink-0" />
+            <span className="font-bold text-slate-900 text-sm tracking-tight whitespace-nowrap">
+              Achats & Fournisseurs
             </span>
-          </button>
+          </div>
 
-          <button
-            onClick={() => handleTabChange('FACTURES')}
-            className={`flex items-center gap-1.5 px-3.5 py-2 rounded-lg font-bold transition whitespace-nowrap ${
-              activeTab === 'FACTURES'
-                ? 'bg-indigo-600 text-white shadow-xs'
-                : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border border-slate-200'
-            }`}
-          >
-            <Receipt className="w-3.5 h-3.5" />
-            <span>Factures d'Achats</span>
-            <span className="ml-1 px-1.5 py-0.2 bg-indigo-800 text-white text-[10px] rounded-full">
-              {facturesFournisseurs.length}
-            </span>
-          </button>
-
-          <button
-            onClick={() => handleTabChange('PAIEMENTS')}
-            className={`flex items-center gap-1.5 px-3.5 py-2 rounded-lg font-bold transition whitespace-nowrap ${
-              activeTab === 'PAIEMENTS'
-                ? 'bg-emerald-600 text-white shadow-xs'
-                : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border border-slate-200'
-            }`}
-          >
-            <CreditCard className="w-3.5 h-3.5" />
-            <span>Paiements & Chèques</span>
-            <span className="ml-1 px-1.5 py-0.2 bg-emerald-800 text-white text-[10px] rounded-full">
-              {paiementsFournisseurs.length}
-            </span>
-          </button>
-
-          <button
-            onClick={() => handleTabChange('ALERTES')}
-            className={`flex items-center gap-1.5 px-3.5 py-2 rounded-lg font-bold transition whitespace-nowrap ${
-              activeTab === 'ALERTES'
-                ? 'bg-amber-600 text-white shadow-xs'
-                : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border border-slate-200'
-            }`}
-          >
-            <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
-            <span>Alertes Échéances</span>
-            {chequeAlerts.length > 0 && (
-              <span className="ml-1 px-1.5 py-0.2 bg-amber-700 text-white text-[10px] font-black rounded-full animate-pulse">
-                {chequeAlerts.length}
+          {/* Subpage Pills */}
+          <div className="flex items-center gap-1 shrink-0 text-xs">
+            <button
+              onClick={() => handleTabChange('FOURNISSEURS')}
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg font-semibold transition whitespace-nowrap ${
+                activeTab === 'FOURNISSEURS'
+                  ? 'bg-slate-900 text-white shadow-2xs font-bold'
+                  : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200'
+              }`}
+            >
+              <span>Répertoire</span>
+              <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-slate-700 text-white font-mono">
+                {fournisseurs.length}
               </span>
-            )}
-          </button>
+            </button>
 
-          <button
-            onClick={() => handleTabChange('RAPPROCHEMENT')}
-            className={`flex items-center gap-1.5 px-3.5 py-2 rounded-lg font-bold transition whitespace-nowrap ${
-              activeTab === 'RAPPROCHEMENT'
-                ? 'bg-blue-600 text-white shadow-xs'
-                : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border border-slate-200'
-            }`}
-          >
-            <Layers className="w-3.5 h-3.5" />
-            <span>Situation & Rapprochement</span>
-          </button>
+            <button
+              onClick={() => handleTabChange('FACTURES')}
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg font-semibold transition whitespace-nowrap ${
+                activeTab === 'FACTURES'
+                  ? 'bg-indigo-600 text-white shadow-2xs font-bold'
+                  : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200'
+              }`}
+            >
+              <Receipt className="w-3 h-3" />
+              <span>Factures</span>
+              <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-indigo-800 text-white font-mono">
+                {facturesFournisseurs.length}
+              </span>
+            </button>
+
+            <button
+              onClick={() => handleTabChange('PAIEMENTS')}
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg font-semibold transition whitespace-nowrap ${
+                activeTab === 'PAIEMENTS'
+                  ? 'bg-emerald-600 text-white shadow-2xs font-bold'
+                  : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200'
+              }`}
+            >
+              <CreditCard className="w-3 h-3" />
+              <span>Règlements</span>
+              <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-emerald-800 text-white font-mono">
+                {paiementsFournisseurs.length}
+              </span>
+            </button>
+
+            <button
+              onClick={() => handleTabChange('ALERTES')}
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg font-semibold transition whitespace-nowrap ${
+                activeTab === 'ALERTES'
+                  ? 'bg-amber-600 text-white shadow-2xs font-bold'
+                  : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200'
+              }`}
+            >
+              <AlertTriangle className="w-3 h-3 text-amber-500" />
+              <span>Alertes</span>
+              {chequeAlerts.length > 0 && (
+                <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-amber-700 text-white font-black animate-pulse">
+                  {chequeAlerts.length}
+                </span>
+              )}
+            </button>
+          </div>
+
+          <div className="h-4 w-px bg-slate-200 shrink-0 hidden md:block" />
+
+          {/* Situation & KPIs Popover Button */}
+          <div className="relative shrink-0" ref={supplierKpiRef}>
+            <button
+              type="button"
+              onClick={() => setShowSupplierKpiPopup((p) => !p)}
+              className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-lg border transition shadow-2xs ${
+                showSupplierKpiPopup ? 'bg-amber-50 border-amber-300 text-amber-900' : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+              }`}
+            >
+              <DollarSign className="w-3.5 h-3.5 text-amber-600" />
+              <span className="hidden md:inline">Solde Dû :</span>
+              <span className="font-mono font-bold text-rose-600">{formatCurrency(globalStats.soldeDu)}</span>
+              <ChevronDown className="w-3 h-3 text-slate-400" />
+            </button>
+
+            {showSupplierKpiPopup && (
+              <div className="absolute left-0 mt-2 z-50 bg-white rounded-xl border border-slate-200 shadow-xl p-3.5 w-[300px] space-y-2.5 animate-in fade-in zoom-in-95 duration-150">
+                <div className="text-xs font-bold text-slate-800 border-b border-slate-100 pb-1.5 flex items-center justify-between">
+                  <span>Indicateurs Achats & Trésorerie</span>
+                  <button type="button" onClick={() => setShowSupplierKpiPopup(false)} className="text-slate-400 hover:text-slate-600 text-xs">✕</button>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50 border border-slate-100 text-xs">
+                    <span className="text-slate-500 font-medium">Total Achats (TTC)</span>
+                    <span className="font-mono font-bold text-slate-900">{formatCurrency(globalStats.totalAchats)}</span>
+                  </div>
+                  <div className="flex items-center justify-between p-2 rounded-lg bg-emerald-50/60 border border-emerald-100 text-xs">
+                    <span className="text-emerald-800 font-medium">Règlements Émis</span>
+                    <span className="font-mono font-bold text-emerald-700">{formatCurrency(globalStats.totalPaye)}</span>
+                  </div>
+                  <div className="flex items-center justify-between p-2 rounded-lg bg-rose-50/60 border border-rose-100 text-xs">
+                    <span className="text-rose-800 font-medium">Solde Restant Dû</span>
+                    <span className="font-mono font-bold text-rose-700">{formatCurrency(globalStats.soldeDu)}</span>
+                  </div>
+                  <div className="flex items-center justify-between p-2 rounded-lg bg-amber-50/60 border border-amber-100 text-xs">
+                    <span className="text-amber-900 font-medium">Chèques en Circulation</span>
+                    <span className="font-mono font-bold text-amber-700">{formatCurrency(globalStats.montantChequesAttente)}</span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Action buttons for quick entries */}
-        <div className="flex items-center gap-1.5 shrink-0">
+        {/* Right: Primary Action Button */}
+        <div className="flex items-center gap-1.5 shrink-0 justify-end">
           {activeTab === 'FACTURES' && (
             <button
               onClick={() => handleOpenNewInvoice()}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs transition active:scale-95"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs transition active:scale-95 whitespace-nowrap"
             >
               <Plus className="w-3.5 h-3.5" />
-              + Facture d'Achat
+              <span>+ Facture d'Achat</span>
             </button>
           )}
 
           {activeTab === 'PAIEMENTS' && (
             <button
               onClick={() => handleOpenNewPayment()}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs transition active:scale-95"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs transition active:scale-95 whitespace-nowrap"
             >
               <Plus className="w-3.5 h-3.5" />
-              + Paiement / Chèque
+              <span>+ Paiement / Chèque</span>
             </button>
           )}
 
           {activeTab === 'FOURNISSEURS' && (
             <button
               onClick={onOpenNewFournisseur}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg bg-blue-600 hover:bg-blue-700 text-white shadow-xs transition active:scale-95"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg bg-blue-600 hover:bg-blue-700 text-white shadow-xs transition active:scale-95 whitespace-nowrap"
             >
               <Plus className="w-3.5 h-3.5" />
-              + Nouveau Fournisseur
+              <span>+ Fournisseur</span>
             </button>
           )}
 
           {(activeTab === 'ALERTES' || activeTab === 'RAPPROCHEMENT') && (
             <button
               onClick={() => handleOpenNewPayment()}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs transition active:scale-95"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs transition active:scale-95 whitespace-nowrap"
             >
               <Plus className="w-3.5 h-3.5" />
-              + Règlement
+              <span>+ Règlement</span>
             </button>
           )}
-        </div>
-      </div>
-
-      {/* ========================================================================= */}
-      {/* KEY KPIS / RECONCILIATION SUMMARY TILES */}
-      {/* ========================================================================= */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-2.5">
-        <div className="bg-white p-2 sm:p-2.5 rounded-lg border border-slate-200 shadow-xs">
-          <div className="text-[10px] font-bold uppercase text-slate-500">Achats Facturés (TTC)</div>
-          <div className="text-sm sm:text-base font-mono font-bold text-slate-900 mt-0.5">
-            {formatCurrency(globalStats.totalAchats)}
-          </div>
-          <div className="text-[10px] text-slate-400 mt-0.5 truncate">
-            {facturesFournisseurs.length} factures d'achat
-          </div>
-        </div>
-
-        <div className="bg-white p-2 sm:p-2.5 rounded-lg border border-slate-200 shadow-xs">
-          <div className="text-[10px] font-bold uppercase text-slate-500">Règlements Émis</div>
-          <div className="text-sm sm:text-base font-mono font-bold text-emerald-700 mt-0.5">
-            {formatCurrency(globalStats.totalPaye)}
-          </div>
-          <div className="text-[10px] text-slate-400 mt-0.5 truncate">
-            {paiementsFournisseurs.length} paiements émis
-          </div>
-        </div>
-
-        <div className="bg-white p-2 sm:p-2.5 rounded-lg border border-rose-200 bg-rose-50/20 shadow-xs">
-          <div className="text-[10px] font-bold uppercase text-rose-800">Solde Dû Fournisseurs</div>
-          <div className="text-sm sm:text-base font-mono font-bold text-rose-700 mt-0.5">
-            {formatCurrency(globalStats.soldeDu)}
-          </div>
-          <div className="text-[10px] text-rose-600 mt-0.5 font-medium truncate">
-            Engagements à régler
-          </div>
-        </div>
-
-        <div className="bg-white p-2 sm:p-2.5 rounded-lg border border-amber-200 bg-amber-50/20 shadow-xs">
-          <div className="text-[10px] font-bold uppercase text-amber-800">Chèques en Circulation</div>
-          <div className="text-sm sm:text-base font-mono font-bold text-amber-700 mt-0.5">
-            {formatCurrency(globalStats.montantChequesAttente)}
-          </div>
-          <div className="text-[10px] text-amber-800 mt-0.5 font-semibold flex items-center gap-1 truncate">
-            <Clock className="w-3 h-3 shrink-0" />
-            <span>{globalStats.chequesEnAttenteCount} chèques en attente</span>
-          </div>
         </div>
       </div>
 
@@ -713,22 +731,21 @@ export const FournisseursView: React.FC<FournisseursViewProps> = ({
       {/* ========================================================================= */}
       {activeTab === 'FOURNISSEURS' && (
         <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
-          <div className="p-3 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-            <div className="relative w-full max-w-md">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+          {/* Quick filter input inline */}
+          <div className="p-2.5 bg-slate-50/60 border-b border-slate-200 flex items-center justify-between gap-2">
+            <div className="relative w-full max-w-sm">
+              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
-                placeholder="Recherche fournisseur (Nom, Contact, Ville, ICE, Téléphone, Email)..."
+                placeholder="Filtrer nom, ICE, ville, contact..."
                 value={searchFournisseur}
                 onChange={(e) => setSearchFournisseur(e.target.value)}
-                className="w-full pl-9 pr-3 py-1.5 text-xs bg-slate-50 text-slate-800 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full pl-8 pr-3 py-1 text-xs bg-white text-slate-800 rounded-lg border border-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-slate-500 hidden sm:inline">
-                {filteredFournisseurs.length} / {fournisseurs.length} fournisseurs
-              </span>
-            </div>
+            <span className="text-[11px] font-semibold text-slate-500 shrink-0">
+              {filteredFournisseurs.length} / {fournisseurs.length} fournisseurs
+            </span>
           </div>
 
           {/* ========================================================================= */}

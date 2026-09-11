@@ -194,11 +194,29 @@ export const ProduitsStockView: React.FC<ProduitsStockViewProps> = ({
     return stockMouvements.slice(start, start + mvtPageSize);
   }, [stockMouvements, currentMvtPage, mvtPageSize]);
 
+  // Popover state for filters and dates
+  const [showStockFilterPopup, setShowStockFilterPopup] = useState(false);
+  const [showStockKpiPopup, setShowStockKpiPopup] = useState(false);
+  const stockFilterRef = React.useRef<HTMLDivElement>(null);
+  const stockKpiRef = React.useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (stockFilterRef.current && !stockFilterRef.current.contains(e.target as Node)) {
+        setShowStockFilterPopup(false);
+      }
+      if (stockKpiRef.current && !stockKpiRef.current.contains(e.target as Node)) {
+        setShowStockKpiPopup(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const hasActiveStockFilters = selectedGroupe !== 'ALL' || selectedFamille !== 'ALL' || stockStatus !== 'ALL';
+
   return (
-    <div className="space-y-4">
-      {/* ========================================================================= */}
-      {/* 1. TOP HEADER (Compact on mobile, full on desktop) */}
-      {/* ========================================================================= */}
+    <div className="space-y-2.5">
       {/* Mobile Top Header (sm:hidden) */}
       <div className="flex items-center justify-between gap-2 p-3 bg-white rounded-xl border border-slate-200 shadow-xs sm:hidden">
         <div className="flex items-center gap-2 min-w-0">
@@ -215,14 +233,6 @@ export const ProduitsStockView: React.FC<ProduitsStockViewProps> = ({
         <div className="flex items-center gap-1.5 shrink-0">
           <button
             type="button"
-            onClick={() => setActiveTab(activeTab === 'CATALOG' ? 'MOUVEMENTS' : 'CATALOG')}
-            className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition"
-            title={activeTab === 'CATALOG' ? 'Voir Mouvements' : 'Voir Catalogue'}
-          >
-            <History className="w-4 h-4" />
-          </button>
-          <button
-            type="button"
             onClick={onOpenNewProduit}
             className="flex items-center gap-1 px-3 py-1.5 text-xs font-bold rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition shadow-xs active:scale-95"
           >
@@ -232,156 +242,204 @@ export const ProduitsStockView: React.FC<ProduitsStockViewProps> = ({
         </div>
       </div>
 
-      {/* Top Header & AeroTrack Sub-Navigation */}
-      <div className="flex flex-col gap-3">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 shrink-0">
-              <Package className="w-5 h-5" />
-            </div>
-            <div>
-              <h2 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight flex items-center gap-2">
-                Inventaire & Catalogue Articles
-                <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
-                  {produits.length} articles
-                </span>
+      {/* Desktop Top Unified Toolbar (hidden sm:flex) */}
+      <div className="hidden sm:flex items-center justify-between gap-3 bg-white px-3.5 py-2 rounded-xl border border-slate-200 shadow-2xs">
+        {/* Left: Title + Document Count + Popovers */}
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <Package className="w-5 h-5 text-blue-600 shrink-0" />
+            <div className="flex items-center gap-2">
+              <h2 className="text-sm font-bold text-slate-900 tracking-tight whitespace-nowrap">
+                Articles & Stocks
               </h2>
-              <p className="text-xs text-slate-500">
-                Gestion d'inventaire, valorisation en temps réel, tarifs HT et traçabilité des stocks
-              </p>
+              <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 whitespace-nowrap">
+                {filteredProduits.length} articles
+              </span>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="h-4 w-px bg-slate-200" />
+
+          {/* Sub-view switcher pills */}
+          <div className="flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200 text-xs">
             <button
-              onClick={onOpenNewProduit}
-              className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg bg-blue-600 hover:bg-blue-700 text-white shadow-xs transition active:scale-95 cursor-pointer"
+              type="button"
+              onClick={() => setActiveTab('CATALOG')}
+              className={`px-3 py-1 rounded-md font-semibold transition ${
+                activeTab === 'CATALOG'
+                  ? 'bg-white text-blue-900 shadow-2xs font-bold'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
             >
-              <Plus className="w-4 h-4" />
-              <span>+ Ajouter un Produit</span>
+              Inventaire en Stock
             </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('MOUVEMENTS')}
+              className={`px-3 py-1 rounded-md font-semibold transition ${
+                activeTab === 'MOUVEMENTS'
+                  ? 'bg-white text-blue-900 shadow-2xs font-bold'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              Historique Mouvements ({stockMouvements.length})
+            </button>
+          </div>
+
+          <div className="h-4 w-px bg-slate-200" />
+
+          {/* 1. Filter Popover (Group, Family, Status) */}
+          <div className="relative" ref={stockFilterRef}>
+            <button
+              type="button"
+              onClick={() => {
+                setShowStockFilterPopup((prev) => !prev);
+                setShowStockKpiPopup(false);
+              }}
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold rounded-lg border transition shadow-2xs ${
+                hasActiveStockFilters
+                  ? 'bg-blue-50 border-blue-300 text-blue-700'
+                  : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+              }`}
+            >
+              <SlidersHorizontal className="w-3.5 h-3.5 text-slate-500" />
+              <span>Filtres</span>
+              {hasActiveStockFilters && (
+                <span className="w-2 h-2 rounded-full bg-blue-600" />
+              )}
+              <span className="text-[10px] text-slate-400">▾</span>
+            </button>
+
+            {showStockFilterPopup && (
+              <div className="absolute left-0 mt-2 z-50 bg-white rounded-xl border border-slate-200 shadow-xl p-3.5 w-[300px] space-y-3 animate-in fade-in zoom-in-95 duration-150">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                  <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                    <SlidersHorizontal className="w-3.5 h-3.5 text-blue-600" />
+                    Filtres Articles
+                  </span>
+                  {hasActiveStockFilters && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedGroupe('ALL');
+                        setSelectedFamille('ALL');
+                        setStockStatus('ALL');
+                      }}
+                      className="text-[11px] text-rose-600 hover:text-rose-700 font-medium"
+                    >
+                      Réinitialiser
+                    </button>
+                  )}
+                </div>
+
+                <div className="space-y-2 text-xs">
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-600 mb-1 block">Groupe</label>
+                    <select
+                      value={selectedGroupe}
+                      onChange={(e) => setSelectedGroupe(e.target.value)}
+                      className="w-full px-2 py-1.5 text-xs rounded-lg border border-slate-200 bg-slate-50"
+                    >
+                      <option value="ALL">Tous les Groupes</option>
+                      {groupes.map((grp) => (
+                        <option key={grp} value={grp}>{grp}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-600 mb-1 block">Famille</label>
+                    <select
+                      value={selectedFamille}
+                      onChange={(e) => setSelectedFamille(e.target.value)}
+                      className="w-full px-2 py-1.5 text-xs rounded-lg border border-slate-200 bg-slate-50"
+                    >
+                      <option value="ALL">Toutes les Familles</option>
+                      {familles.map((fam) => (
+                        <option key={fam} value={fam}>{fam}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-600 mb-1 block">Niveau de Stock</label>
+                    <select
+                      value={stockStatus}
+                      onChange={(e) => setStockStatus(e.target.value as any)}
+                      className="w-full px-2 py-1.5 text-xs rounded-lg border border-slate-200 bg-slate-50"
+                    >
+                      <option value="ALL">Tous les Niveaux</option>
+                      <option value="IN_STOCK">En Stock uniquement</option>
+                      <option value="ALERT">Alerte Rupture / Stock Bas</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* 2. Valorisation & KPIs Popover */}
+          <div className="relative" ref={stockKpiRef}>
+            <button
+              type="button"
+              onClick={() => {
+                setShowStockKpiPopup((prev) => !prev);
+                setShowStockFilterPopup(false);
+              }}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 transition shadow-2xs"
+            >
+              <TrendingUp className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Valorisation Stock</span>
+              <span className="text-[10px] text-slate-400">▾</span>
+            </button>
+
+            {showStockKpiPopup && (
+              <div className="absolute left-0 mt-2 z-50 bg-white rounded-xl border border-slate-200 shadow-xl p-3.5 w-[320px] space-y-2.5 animate-in fade-in zoom-in-95 duration-150">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                  <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                    <TrendingUp className="w-3.5 h-3.5 text-emerald-600" />
+                    Valorisation & Statistiques
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div className="p-2 bg-slate-50 rounded-lg border border-slate-100">
+                    <span className="text-[10px] text-slate-500 block">Unités en stock</span>
+                    <span className="font-bold text-slate-900 text-sm font-mono mt-0.5 block">
+                      {totalStockUnits.toLocaleString('fr-FR', { maximumFractionDigits: 1 })}
+                    </span>
+                  </div>
+                  <div className="p-2 bg-emerald-50 rounded-lg border border-emerald-100">
+                    <span className="text-[10px] text-emerald-800 font-bold block">Valeur Achat Réel</span>
+                    <span className="font-extrabold text-emerald-700 text-sm font-mono mt-0.5 block">
+                      {formatCurrency(totalStockValuation)}
+                    </span>
+                  </div>
+                  <div className="p-2 bg-rose-50 rounded-lg border border-rose-100 col-span-2">
+                    <span className="text-[10px] text-rose-800 font-bold block">Alertes Rupture / Stock Min</span>
+                    <span className="font-bold text-rose-700 text-xs font-mono mt-0.5 block">
+                      {produits.filter((p) => p.stock_actuel <= p.stock_min).length} articles sous le seuil d'alerte
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* AeroTrack Sub-Navigation Pills */}
+        {/* Right: Actions */}
         <div className="flex items-center gap-2">
           <button
-            type="button"
-            onClick={() => setActiveTab('MOUVEMENTS')}
-            className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs transition cursor-pointer ${
-              activeTab === 'MOUVEMENTS'
-                ? 'bg-white border border-slate-300 text-slate-900 shadow-xs font-semibold'
-                : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100 font-medium'
-            }`}
+            onClick={onOpenNewProduit}
+            className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold rounded-lg bg-blue-600 hover:bg-blue-700 text-white shadow-xs transition active:scale-95"
           >
-            <History className="w-3.5 h-3.5 text-slate-400" />
-            <span>Historique des Mouvements</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('CATALOG')}
-            className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs transition cursor-pointer ${
-              activeTab === 'CATALOG'
-                ? 'bg-white border border-slate-300 text-slate-900 shadow-xs font-semibold'
-                : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100 font-medium'
-            }`}
-          >
-            <Package className="w-3.5 h-3.5 text-slate-700" />
-            <span>Inventaire en Stock</span>
+            <Plus className="w-3.5 h-3.5" />
+            <span>+ Ajouter un Produit</span>
           </button>
         </div>
       </div>
 
       {activeTab === 'CATALOG' ? (
         <>
-          {/* Global Inventory Valuation & KPIs Bar */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-2.5 bg-white p-2.5 rounded-xl border border-slate-200 shadow-2xs">
-            <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100">
-              <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider block">Articles Référencés</span>
-              <span className="text-sm sm:text-base font-bold text-slate-900 mt-0.5 block">{produits.length} références</span>
-            </div>
-            <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100">
-              <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider block">Unités en Stock</span>
-              <span className="text-sm sm:text-base font-mono font-bold text-slate-900 mt-0.5 block">
-                {totalStockUnits.toLocaleString('fr-FR', { maximumFractionDigits: 1 })}
-              </span>
-            </div>
-            <div className="p-2.5 rounded-lg bg-emerald-50/70 border border-emerald-100">
-              <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider block flex items-center gap-1">
-                <TrendingUp className="w-3 h-3 text-emerald-600" />
-                Valorisation Stock (Coût Réel)
-              </span>
-              <span className="text-sm sm:text-base font-mono font-extrabold text-emerald-700 mt-0.5 block">
-                {formatCurrency(totalStockValuation)}
-              </span>
-            </div>
-            <div className="p-2.5 rounded-lg bg-rose-50/70 border border-rose-100">
-              <span className="text-[10px] font-bold text-rose-800 uppercase tracking-wider block flex items-center gap-1">
-                <AlertTriangle className="w-3 h-3 text-rose-600" />
-                Alertes Rupture / Réappro
-              </span>
-              <span className="text-sm sm:text-base font-mono font-bold text-rose-700 mt-0.5 block">
-                {produits.filter((p) => p.stock_actuel <= p.stock_min).length} articles
-              </span>
-            </div>
-          </div>
-
-          {/* AeroTrack Filter Toolbar Row */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 bg-white p-2.5 rounded-xl border border-slate-200 shadow-2xs">
-            <input
-              type="text"
-              placeholder="Code..."
-              value={filterCode}
-              onChange={(e) => setFilterCode(e.target.value)}
-              className="h-9 px-3 text-xs bg-white text-slate-800 rounded-lg border border-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 shadow-2xs"
-            />
-            <input
-              type="text"
-              placeholder="Libellé / Désignation..."
-              value={filterLibelle}
-              onChange={(e) => setFilterLibelle(e.target.value)}
-              className="h-9 px-3 text-xs bg-white text-slate-800 rounded-lg border border-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 shadow-2xs"
-            />
-            <select
-              value={selectedGroupe}
-              onChange={(e) => setSelectedGroupe(e.target.value)}
-              className="h-9 px-2.5 text-xs bg-white text-slate-700 rounded-lg border border-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500 shadow-2xs cursor-pointer"
-            >
-              <option value="ALL">Tous les Groupes</option>
-              {groupes.map((grp) => (
-                <option key={grp} value={grp}>{grp}</option>
-              ))}
-            </select>
-            <select
-              value={selectedFamille}
-              onChange={(e) => setSelectedFamille(e.target.value)}
-              className="h-9 px-2.5 text-xs bg-white text-slate-700 rounded-lg border border-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500 shadow-2xs cursor-pointer"
-            >
-              <option value="ALL">Toutes les Familles</option>
-              {familles.map((fam) => (
-                <option key={fam} value={fam}>{fam}</option>
-              ))}
-            </select>
-            <select
-              value={stockStatus}
-              onChange={(e) => setStockStatus(e.target.value as any)}
-              className="h-9 px-2.5 text-xs bg-white text-slate-700 rounded-lg border border-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500 shadow-2xs cursor-pointer"
-            >
-              <option value="ALL">Tous les États</option>
-              <option value="IN_STOCK">En Stock uniquement</option>
-              <option value="ALERT">Alerte Stock Bas ({produits.filter((p) => p.stock_actuel <= p.stock_min).length})</option>
-            </select>
-            <div className="relative">
-              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-              <input
-                type="text"
-                placeholder="Recherche globale..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full h-9 pl-8 pr-3 text-xs bg-white text-slate-800 rounded-lg border border-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500 shadow-2xs"
-              />
-            </div>
-          </div>
 
           {/* ========================================================================= */}
           {/* MOBILE PRODUCT CARDS (md:hidden space-y-3) */}

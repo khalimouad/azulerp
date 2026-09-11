@@ -2335,20 +2335,28 @@ export const PosView: React.FC<PosViewProps> = ({
 
       {/* 2. HISTORIQUE DES ADDITIONS & TICKETS */}
       {activeSubTab === 'TICKETS' && (
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-            <div>
-              <h3 className="text-sm font-bold text-slate-900">Historique des Ventes & Additions</h3>
-              <p className="text-xs text-slate-500">Consultez, réimprimez ou annulez les tickets de caisse.</p>
+        <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
+          <div className="flex items-center justify-between gap-3 px-3.5 py-2 border-b border-slate-200 bg-white">
+            <div className="flex items-center gap-2">
+              <Receipt className="w-5 h-5 text-emerald-600 shrink-0" />
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-bold text-slate-900 tracking-tight whitespace-nowrap">
+                  Ventes & Additions
+                </h3>
+                <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 whitespace-nowrap">
+                  {sales.length} tickets
+                </span>
+              </div>
             </div>
-            <div className="relative w-full sm:w-64">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+
+            <div className="relative w-64">
+              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
-                placeholder="Rechercher ticket, table..."
+                placeholder="Filtrer ticket, table..."
                 value={salesSearch}
                 onChange={(e) => setSalesSearch(e.target.value)}
-                className="w-full pl-9 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs"
+                className="w-full pl-8 pr-3 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:bg-white outline-none"
               />
             </div>
           </div>
