@@ -197,23 +197,28 @@ export const GlobalSearchView: React.FC<GlobalSearchViewProps> = ({
 
   const filteredCompta = useMemo(() => {
     if (!cleanQuery) return journalEntries.slice(0, 8);
-    return journalEntries.filter(
-      (j) =>
-        j.reference_piece?.toLowerCase().includes(cleanQuery) ||
-        j.libelle_ecriture?.toLowerCase().includes(cleanQuery) ||
-        j.journal_code?.toLowerCase().includes(cleanQuery) ||
-        j.lignes?.some((l) => l.compte_numero?.includes(cleanQuery) || l.compte_libelle?.toLowerCase().includes(cleanQuery))
-    );
+    return journalEntries.filter((j) => {
+      const num = j.numero?.toLowerCase() || '';
+      const lib = (j.libelle || j.libelle_ecriture || '').toLowerCase();
+      const ref = (j.reference || j.reference_piece || '').toLowerCase();
+      const code = String(j.journal_code || '').toLowerCase();
+      const matchLines = (j.lines || j.lignes || []).some((l) => {
+        const cNum = (l.compte_code || l.compte_numero || l.account_code || '').toLowerCase();
+        const cLib = (l.compte_libelle || l.account_label || l.libelle || '').toLowerCase();
+        return cNum.includes(cleanQuery) || cLib.includes(cleanQuery);
+      });
+      return num.includes(cleanQuery) || lib.includes(cleanQuery) || ref.includes(cleanQuery) || code.includes(cleanQuery) || matchLines;
+    });
   }, [journalEntries, cleanQuery]);
 
   const filteredOf = useMemo(() => {
     if (!cleanQuery) return productionOrders.slice(0, 8);
-    return productionOrders.filter(
-      (o) =>
-        o.numero?.toLowerCase().includes(cleanQuery) ||
-        o.designation?.toLowerCase().includes(cleanQuery) ||
-        o.statut?.toLowerCase().includes(cleanQuery)
-    );
+    return productionOrders.filter((o) => {
+      const num = o.numero?.toLowerCase() || '';
+      const des = (o.produit_fini_nom || o.designation || '').toLowerCase();
+      const stat = String(o.status || o.statut || '').toLowerCase();
+      return num.includes(cleanQuery) || des.includes(cleanQuery) || stat.includes(cleanQuery);
+    });
   }, [productionOrders, cleanQuery]);
 
   const totalResultsCount =
@@ -907,9 +912,9 @@ export const GlobalSearchView: React.FC<GlobalSearchViewProps> = ({
             </div>
 
             <div className="divide-y divide-slate-100">
-              {filteredCompta.slice(0, activeCategory === 'ALL' ? 4 : 50).map((j) => (
+              {filteredCompta.slice(0, activeCategory === 'ALL' ? 4 : 50).map((j, idx) => (
                 <div
-                  key={j.id}
+                  key={j.id || `${j.numero}-${idx}`}
                   className="p-4 hover:bg-slate-50/80 transition flex items-center justify-between gap-3"
                 >
                   <div className="space-y-0.5">
@@ -917,10 +922,10 @@ export const GlobalSearchView: React.FC<GlobalSearchViewProps> = ({
                       <span className="font-mono font-bold text-xs text-sky-700 bg-sky-50 px-2 py-0.5 rounded border border-sky-200">
                         {j.journal_code}
                       </span>
-                      <span className="font-bold text-xs text-slate-900">{j.libelle_ecriture}</span>
+                      <span className="font-bold text-xs text-slate-900">{j.libelle || j.libelle_ecriture || j.numero}</span>
                     </div>
                     <p className="text-[11px] text-slate-500">
-                      Pièce: {j.reference_piece} • Date: {j.date} • Total Débit: {formatCurrency(j.total_debit)}
+                      {(j.reference || j.reference_piece) ? `Réf: ${j.reference || j.reference_piece} • ` : ''}Date: {j.date} • Total Débit: {formatCurrency(j.total_debit)}
                     </p>
                   </div>
                   <button
@@ -957,9 +962,9 @@ export const GlobalSearchView: React.FC<GlobalSearchViewProps> = ({
             </div>
 
             <div className="divide-y divide-slate-100">
-              {filteredOf.slice(0, activeCategory === 'ALL' ? 4 : 50).map((o) => (
+              {filteredOf.slice(0, activeCategory === 'ALL' ? 4 : 50).map((o, idx) => (
                 <div
-                  key={o.id}
+                  key={o.id || `${o.numero}-${idx}`}
                   className="p-4 hover:bg-slate-50/80 transition flex items-center justify-between gap-3"
                 >
                   <div className="space-y-0.5">
@@ -967,10 +972,10 @@ export const GlobalSearchView: React.FC<GlobalSearchViewProps> = ({
                       <span className="font-mono font-bold text-xs text-violet-700 bg-violet-50 px-2 py-0.5 rounded border border-violet-200">
                         {o.numero}
                       </span>
-                      <span className="font-bold text-xs text-slate-900">{o.designation}</span>
+                      <span className="font-bold text-xs text-slate-900">{o.produit_fini_nom || o.designation}</span>
                     </div>
                     <p className="text-[11px] text-slate-500">
-                      Quantité: {o.quantite_lancee} • Statut: {o.statut}
+                      Quantité: {o.quantite_prevue ?? o.quantite_lancee ?? 0} {o.unite || ''} • Statut: {o.status || o.statut}
                     </p>
                   </div>
                   <button

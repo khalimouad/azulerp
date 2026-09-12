@@ -658,6 +658,7 @@ export interface JournalEntryLine {
   account_code?: string;
   account_label?: string;
   compte_code?: string;
+  compte_numero?: string;
   compte_libelle?: string;
   debit: number;
   credit: number;
@@ -673,12 +674,15 @@ export interface JournalEntry {
   journal_code: JournalCode;
   libelle: string;
   reference?: string;
+  reference_piece?: string;
+  libelle_ecriture?: string;
   status: 'brouillon' | 'valide' | 'cloture';
   total_debit: number;
   total_credit: number;
   source_type?: 'facture_vente' | 'facture_achat' | 'reglement_client' | 'paiement_fournisseur' | 'paie' | 'production' | 'amortissement' | 'manuel';
   source_id?: number | string;
   lines: JournalEntryLine[];
+  lignes?: JournalEntryLine[];
   created_at?: string;
   updated_at?: string;
 }
@@ -891,7 +895,9 @@ export interface ProductionOrder {
   bom_nom?: string;
   produit_fini_id?: number;
   produit_fini_nom: string;
+  designation?: string;
   quantite_prevue: number;
+  quantite_lancee?: number;
   quantite_reelle?: number;
   unite: string;
   date_lancement: string;
@@ -900,6 +906,7 @@ export interface ProductionOrder {
   responsable?: string;
   atelier?: string;
   status: ProductionOrderStatus;
+  statut?: string;
   inputs?: BOMInputLine[];
   outputs?: ProductionOrderOutput[];
   composants_consommes: ProductionOrderComponent[];
