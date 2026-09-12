@@ -178,7 +178,8 @@ export const GlobalSearchView: React.FC<GlobalSearchViewProps> = ({
         p.libelle?.toLowerCase().includes(cleanQuery) ||
         p.code?.toLowerCase().includes(cleanQuery) ||
         p.famille?.toLowerCase().includes(cleanQuery) ||
-        p.categorie?.toLowerCase().includes(cleanQuery)
+        p.groupe?.toLowerCase().includes(cleanQuery) ||
+        (p.categorie && p.categorie.toLowerCase().includes(cleanQuery))
     );
   }, [produits, cleanQuery]);
 

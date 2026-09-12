@@ -202,6 +202,7 @@ export interface Produit {
   libelle: string;
   groupe?: string;
   famille?: string;
+  categorie?: string;
   unite?: string; // KG, U, UN, L, PACK, MTR
   taux_tva: number; // 0, 10, 20
   prix_ht: number;
