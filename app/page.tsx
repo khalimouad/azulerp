@@ -1132,6 +1132,7 @@ export default function Home() {
               initialSubPage="FOURNISSEURS"
               fournisseurs={fournisseurs}
               produits={produits}
+              company={company}
               onNavigateTab={navigateTo}
               onOpenNewFournisseur={() => {
                 setFournisseurToEdit(null);
@@ -1154,6 +1155,7 @@ export default function Home() {
               initialSubPage="FACTURES"
               fournisseurs={fournisseurs}
               produits={produits}
+              company={company}
               onNavigateTab={navigateTo}
               onOpenNewFournisseur={() => {
                 setFournisseurToEdit(null);
@@ -1176,6 +1178,7 @@ export default function Home() {
               initialSubPage="PAIEMENTS"
               fournisseurs={fournisseurs}
               produits={produits}
+              company={company}
               onNavigateTab={navigateTo}
               onOpenNewFournisseur={() => {
                 setFournisseurToEdit(null);
@@ -1198,6 +1201,7 @@ export default function Home() {
               initialSubPage="RAPPROCHEMENT"
               fournisseurs={fournisseurs}
               produits={produits}
+              company={company}
               onNavigateTab={navigateTo}
               onOpenNewFournisseur={() => {
                 setFournisseurToEdit(null);
@@ -1220,6 +1224,7 @@ export default function Home() {
               initialSubPage="ALERTES"
               fournisseurs={fournisseurs}
               produits={produits}
+              company={company}
               onNavigateTab={navigateTo}
               onOpenNewFournisseur={() => {
                 setFournisseurToEdit(null);

@@ -8,11 +8,14 @@ import {
   ChequeFournisseurAlert,
   SupplierReconciliation,
   Produit,
+  CompanyInfo,
+  DocumentState,
 } from '@/lib/types';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import {
   fetchFacturesFournisseurs,
   createFactureFournisseur,
+  updateFactureFournisseur,
   deleteFactureFournisseur,
   fetchPaiementsFournisseurs,
   createPaiementFournisseur,
@@ -22,6 +25,9 @@ import {
   fetchSupplierReconciliation,
   updateFournisseur,
 } from '@/lib/postgres-service';
+import { generateFactureFournisseurPdf } from '@/lib/pdf-generator';
+import { CreateFactureFournisseurView } from '@/components/CreateFactureFournisseurView';
+import { SupplierPaymentView } from '@/components/SupplierPaymentView';
 import {
   Plus,
   Search,
@@ -52,6 +58,8 @@ import {
   FileSpreadsheet,
   ChevronDown,
   SlidersHorizontal,
+  Printer,
+  Sparkles,
 } from 'lucide-react';
 
 export type SupplierSubPage = 'FOURNISSEURS' | 'FACTURES' | 'PAIEMENTS' | 'ALERTES' | 'RAPPROCHEMENT';
@@ -66,6 +74,7 @@ const getFutureIso = (days: number) => {
 interface FournisseursViewProps {
   fournisseurs: Fournisseur[];
   produits?: Produit[];
+  company?: CompanyInfo;
   initialSubPage?: SupplierSubPage;
   onNavigateTab?: (tab: string) => void;
   onOpenNewFournisseur: () => void;
@@ -77,6 +86,7 @@ interface FournisseursViewProps {
 export const FournisseursView: React.FC<FournisseursViewProps> = ({
   fournisseurs = [],
   produits = [],
+  company,
   initialSubPage = 'FOURNISSEURS',
   onNavigateTab,
   onOpenNewFournisseur,
@@ -101,10 +111,25 @@ export const FournisseursView: React.FC<FournisseursViewProps> = ({
   const [chequeAlerts, setChequeAlerts] = useState<ChequeFournisseurAlert[]>([]);
   const [reconciliations, setReconciliations] = useState<SupplierReconciliation[]>([]);
 
+  // Full Invoice / Payment creation subviews
+  const [isCreatingInvoice, setIsCreatingInvoice] = useState(false);
+  const [invoiceToEdit, setInvoiceToEdit] = useState<FactureFournisseur | null>(null);
+  const [preSelectedSupplierId, setPreSelectedSupplierId] = useState<number | undefined>(undefined);
+
+  const [isCreatingPayment, setIsCreatingPayment] = useState(false);
+  const [paymentSupplier, setPaymentSupplier] = useState<Fournisseur | undefined>(undefined);
+  const [paymentInvoice, setPaymentInvoice] = useState<FactureFournisseur | undefined>(undefined);
+
+  // Viewing invoice detail modal
+  const [viewingInvoice, setViewingInvoice] = useState<FactureFournisseur | null>(null);
+
   // Filters & Search states
   const [searchFournisseur, setSearchFournisseur] = useState('');
   const [searchFacture, setSearchFacture] = useState('');
   const [filterFactureStatus, setFilterFactureStatus] = useState<'TOUS' | 'Impayée' | 'Partiel' | 'Payée'>('TOUS');
+  const [filterFactureEtat, setFilterFactureEtat] = useState<'TOUS' | DocumentState>('TOUS');
+  const [filterFactureStartDate, setFilterFactureStartDate] = useState('');
+  const [filterFactureEndDate, setFilterFactureEndDate] = useState('');
   const [filterFactureSupplier, setFilterFactureSupplier] = useState<number | 'TOUS'>('TOUS');
 
   const [searchPaiement, setSearchPaiement] = useState('');
@@ -248,8 +273,17 @@ export const FournisseursView: React.FC<FournisseursViewProps> = ({
     if (filterFactureStatus !== 'TOUS') {
       list = list.filter((f) => f.statut === filterFactureStatus);
     }
+    if (filterFactureEtat !== 'TOUS') {
+      list = list.filter((f) => (f.etat || 'Validé') === filterFactureEtat);
+    }
     if (filterFactureSupplier !== 'TOUS') {
       list = list.filter((f) => f.fournisseur_id === filterFactureSupplier);
+    }
+    if (filterFactureStartDate) {
+      list = list.filter((f) => f.date_facture >= filterFactureStartDate);
+    }
+    if (filterFactureEndDate) {
+      list = list.filter((f) => f.date_facture <= filterFactureEndDate);
     }
     if (searchFacture) {
       const q = searchFacture.toLowerCase();
@@ -265,7 +299,28 @@ export const FournisseursView: React.FC<FournisseursViewProps> = ({
       });
     }
     return [...list].sort((a, b) => new Date(b.date_facture).getTime() - new Date(a.date_facture).getTime() || b.id - a.id);
-  }, [facturesFournisseurs, searchFacture, filterFactureStatus, filterFactureSupplier]);
+  }, [facturesFournisseurs, searchFacture, filterFactureStatus, filterFactureEtat, filterFactureSupplier, filterFactureStartDate, filterFactureEndDate]);
+
+  // Facture stats KPI calculation
+  const factureStats = useMemo(() => {
+    const list = facturesFournisseurs;
+    const totalHt = list.reduce((s, f) => s + (f.total_ht || 0), 0);
+    const totalTva = list.reduce((s, f) => s + (f.total_tva || 0), 0);
+    const totalTtc = list.reduce((s, f) => s + (f.total_ttc || 0), 0);
+    const totalPaye = list.reduce((s, f) => s + (f.montant_paye || 0), 0);
+    const totalReste = list.reduce((s, f) => s + (f.reste_a_payer || 0), 0);
+    return {
+      totalHt,
+      totalTva,
+      totalTtc,
+      totalPaye,
+      totalReste,
+      countTotal: list.length,
+      countImpayees: list.filter((f) => f.statut === 'Impayée' || f.statut === 'A payer').length,
+      countPartiel: list.filter((f) => f.statut === 'Partiel').length,
+      countPayees: list.filter((f) => f.statut === 'Payée').length,
+    };
+  }, [facturesFournisseurs]);
 
   // Filtered supplier payments
   const filteredPaiements = useMemo(() => {
@@ -310,42 +365,83 @@ export const FournisseursView: React.FC<FournisseursViewProps> = ({
   }, [reconciliations, searchReconciliation]);
 
   // Open invoice creation for specific supplier
-  const handleOpenNewInvoice = (supplier?: Fournisseur) => {
-    if (supplier) setInvSupplierId(supplier.id);
-    else if (fournisseurs.length > 0) setInvSupplierId(fournisseurs[0].id);
-    setInvNumero('');
-    setInvDate(new Date().toISOString().split('T')[0]);
-    setInvDateEcheance(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]);
-    setInvDesignation('');
-    setInvTotalHt('');
-    setInvTva20('');
-    setInvTva10('');
-    setInvTva7('');
-    setInvNotes('');
-    setIsInvoiceModalOpen(true);
+  const handleOpenNewInvoice = (supplier?: Fournisseur, invoice?: FactureFournisseur) => {
+    setInvoiceToEdit(invoice || null);
+    setPreSelectedSupplierId(supplier ? supplier.id : undefined);
+    setIsCreatingInvoice(true);
   };
 
   // Open payment creation for specific supplier
   const handleOpenNewPayment = (supplier?: Fournisseur, invoice?: FactureFournisseur) => {
-    if (supplier) setPaySupplierId(supplier.id);
-    else if (fournisseurs.length > 0) setPaySupplierId(fournisseurs[0].id);
+    setPaymentSupplier(supplier);
+    setPaymentInvoice(invoice);
+    setIsCreatingPayment(true);
+  };
 
-    if (invoice) {
-      setPayFactureId(invoice.id);
-      setPayMontant(String(invoice.reste_a_payer));
+  // Full invoice save handler
+  const handleSaveInvoiceFull = async (data: {
+    numero?: string;
+    fournisseur_id: number;
+    fournisseur_nom: string;
+    fournisseur_ice?: string;
+    date_facture: string;
+    date_echeance?: string;
+    mode_reglement?: string;
+    notes?: string;
+    etat: DocumentState;
+    total_ht: number;
+    tva_20: number;
+    tva_10: number;
+    tva_7: number;
+    total_tva: number;
+    total_ttc: number;
+    lignes: Array<{
+      produit_id?: number;
+      designation: string;
+      quantite: number;
+      prix_achat_ht: number;
+      taux_tva: number;
+      remise_pct?: number;
+      total_ht: number;
+      total_tva: number;
+      total_ttc: number;
+    }>;
+  }) => {
+    if (invoiceToEdit && invoiceToEdit.id) {
+      await updateFactureFournisseur(invoiceToEdit.id, data, data.lignes);
     } else {
-      setPayFactureId('');
-      setPayMontant('');
+      await createFactureFournisseur(data, data.lignes);
     }
+    setIsCreatingInvoice(false);
+    setInvoiceToEdit(null);
+    setPreSelectedSupplierId(undefined);
+    await reloadData();
+    if (onRefreshData) onRefreshData();
+  };
 
-    setPayDate(new Date().toISOString().split('T')[0]);
-    setPayMode('Chèque');
-    setPayChequeRef('');
-    setPayBanque('Attijariwafa Bank');
-    setPayEcheanceDepot(new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]);
-    setPayStatutCheque('En attente');
-    setPayNotes('');
-    setIsPaymentModalOpen(true);
+  // Full supplier payment save handler (with multi & partial allocations)
+  const handleSavePaymentFull = async (paymentData: {
+    facture_fournisseur_id?: number;
+    facture_numero?: string;
+    fournisseur_id: number;
+    fournisseur_nom: string;
+    date_paiement: string;
+    montant: number;
+    mode_paiement: 'Chèque' | 'Virement' | 'Traite / Effet' | 'Espèces' | 'Prélèvement';
+    numero_cheque_ref?: string;
+    banque_emettrice?: string;
+    date_echeance_depot?: string;
+    statut_cheque?: 'En attente' | 'Déposé / Débité' | 'Annulé';
+    notes?: string;
+    allocations?: Array<{ facture_fournisseur_id: number; montant: number }>;
+  }) => {
+    const { allocations, ...paiementObj } = paymentData;
+    await createPaiementFournisseur(paiementObj, allocations);
+    setIsCreatingPayment(false);
+    setPaymentSupplier(undefined);
+    setPaymentInvoice(undefined);
+    await reloadData();
+    if (onRefreshData) onRefreshData();
   };
 
   // Submit new invoice
@@ -524,6 +620,40 @@ export const FournisseursView: React.FC<FournisseursViewProps> = ({
       };
     });
   }, [statementSupplier, facturesFournisseurs, paiementsFournisseurs]);
+
+  if (isCreatingInvoice) {
+    return (
+      <CreateFactureFournisseurView
+        fournisseurs={safeFournisseurs}
+        produits={produits}
+        preSelectedSupplierId={preSelectedSupplierId}
+        factureToEdit={invoiceToEdit}
+        onBack={() => {
+          setIsCreatingInvoice(false);
+          setInvoiceToEdit(null);
+          setPreSelectedSupplierId(undefined);
+        }}
+        onSave={handleSaveInvoiceFull}
+      />
+    );
+  }
+
+  if (isCreatingPayment) {
+    return (
+      <SupplierPaymentView
+        fournisseurs={safeFournisseurs}
+        facturesFournisseurs={facturesFournisseurs}
+        fournisseur={paymentSupplier}
+        facture={paymentInvoice}
+        onBack={() => {
+          setIsCreatingPayment(false);
+          setPaymentSupplier(undefined);
+          setPaymentInvoice(undefined);
+        }}
+        onSave={handleSavePaymentFull}
+      />
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -964,246 +1094,478 @@ export const FournisseursView: React.FC<FournisseursViewProps> = ({
       {/* SUB-PAGE 2: FACTURES FOURNISSEURS (ACHATS) */}
       {/* ========================================================================= */}
       {activeTab === 'FACTURES' && (
-        <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
-          <div className="p-3 border-b border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-2.5">
-            <div className="flex flex-wrap items-center gap-2 flex-1">
-              <div className="relative min-w-[220px] flex-1 max-w-sm">
-                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  placeholder="Rechercher facture (N°, Fournisseur, ICE)..."
-                  value={searchFacture}
-                  onChange={(e) => setSearchFacture(e.target.value)}
-                  className="w-full pl-9 pr-3 py-1.5 text-xs bg-slate-50 text-slate-800 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                />
+        <div className="space-y-3.5">
+          {/* Top 5 KPI Summary Cards */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
+            <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-2xs">
+              <div className="flex items-center justify-between text-slate-500 mb-1">
+                <span className="text-[11px] font-semibold">Total Achats HT</span>
+                <FileText className="w-3.5 h-3.5 text-slate-400" />
               </div>
-
-              {/* Filter by Status */}
-              <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg border border-slate-200 text-xs">
-                {(['TOUS', 'Impayée', 'Partiel', 'Payée'] as const).map((st) => (
-                  <button
-                    key={st}
-                    onClick={() => setFilterFactureStatus(st)}
-                    className={`px-2.5 py-1 rounded-md font-semibold transition ${
-                      filterFactureStatus === st
-                        ? 'bg-white text-indigo-900 shadow-2xs font-bold'
-                        : 'text-slate-600 hover:text-slate-900'
-                    }`}
-                  >
-                    {st === 'TOUS' ? 'Tous statuts' : st}
-                  </button>
-                ))}
+              <div className="font-mono font-bold text-base text-slate-900 truncate">
+                {formatCurrency(factureStats.totalHt)}
               </div>
-
-              {/* Filter by Supplier */}
-              <select
-                value={filterFactureSupplier}
-                onChange={(e) => setFilterFactureSupplier(e.target.value === 'TOUS' ? 'TOUS' : Number(e.target.value))}
-                className="px-2.5 py-1.5 text-xs bg-slate-50 text-slate-700 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              >
-                <option value="TOUS">Tous les fournisseurs</option>
-                {fournisseurs.map((f) => (
-                  <option key={f.id} value={f.id}>
-                    {f.nom}
-                  </option>
-                ))}
-              </select>
+              <div className="text-[10px] text-slate-500 mt-0.5 font-medium">
+                {factureStats.countTotal} facture{factureStats.countTotal > 1 ? 's' : ''} au total
+              </div>
             </div>
 
-            <button
-              onClick={() => handleOpenNewInvoice()}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs transition shrink-0"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              + Enregistrer Facture d'Achat
-            </button>
+            <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-2xs">
+              <div className="flex items-center justify-between text-indigo-600 mb-1">
+                <span className="text-[11px] font-semibold">TVA Déductible</span>
+                <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
+              </div>
+              <div className="font-mono font-bold text-base text-indigo-700 truncate">
+                {formatCurrency(factureStats.totalTva)}
+              </div>
+              <div className="text-[10px] text-indigo-600/80 mt-0.5 font-medium">
+                Récupérable sur achats
+              </div>
+            </div>
+
+            <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-2xs">
+              <div className="flex items-center justify-between text-slate-600 mb-1">
+                <span className="text-[11px] font-semibold">Total Achats TTC</span>
+                <DollarSign className="w-3.5 h-3.5 text-slate-400" />
+              </div>
+              <div className="font-mono font-black text-base text-slate-900 truncate">
+                {formatCurrency(factureStats.totalTtc)}
+              </div>
+              <div className="text-[10px] text-slate-500 mt-0.5 font-medium">
+                Engagement global
+              </div>
+            </div>
+
+            <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-2xs">
+              <div className="flex items-center justify-between text-emerald-600 mb-1">
+                <span className="text-[11px] font-semibold">Total Déjà Réglé</span>
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+              </div>
+              <div className="font-mono font-bold text-base text-emerald-700 truncate">
+                {formatCurrency(factureStats.totalPaye)}
+              </div>
+              <div className="text-[10px] text-emerald-600 mt-0.5 font-medium">
+                {factureStats.countPayees} payée{factureStats.countPayees > 1 ? 's' : ''} • {factureStats.countPartiel} partiel
+              </div>
+            </div>
+
+            <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-2xs bg-gradient-to-br from-white to-rose-50/30">
+              <div className="flex items-center justify-between text-rose-600 mb-1">
+                <span className="text-[11px] font-semibold">Reste à Payer</span>
+                <AlertCircle className="w-3.5 h-3.5 text-rose-500" />
+              </div>
+              <div className="font-mono font-black text-base text-rose-700 truncate">
+                {formatCurrency(factureStats.totalReste)}
+              </div>
+              <div className="text-[10px] text-rose-600 font-medium mt-0.5">
+                {factureStats.countImpayees} impayée{factureStats.countImpayees > 1 ? 's' : ''}
+              </div>
+            </div>
           </div>
 
-          {/* ========================================================================= */}
-          {/* MOBILE INVOICE CARDS (md:hidden space-y-3 p-3) */}
-          {/* ========================================================================= */}
-          <div className="md:hidden space-y-3 p-3">
-            {filteredFactures.length === 0 ? (
-              <div className="p-8 text-center text-slate-400 text-xs bg-slate-50 rounded-xl border border-slate-200">
-                Aucune facture fournisseur correspondant aux critères.
-              </div>
-            ) : (
-              filteredFactures.map((f) => (
-                <div key={f.id} className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
-                  <div className="p-3.5 pb-2.5 border-b border-slate-100 flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="font-mono font-extrabold text-sm text-slate-900">
-                          {f.numero}
-                        </span>
-                        <span className="text-[10px] text-slate-400 font-mono">
-                          {formatDate(f.date_facture)}
-                        </span>
-                      </div>
-                      <div className="text-[11px] text-slate-500 font-medium">
-                        Échéance : {f.date_echeance ? formatDate(f.date_echeance) : 'Non définie'}
-                      </div>
-                    </div>
-
-                    <span
-                      className={`px-2 py-0.5 rounded-full text-[10px] font-bold shrink-0 ${
-                        f.statut === 'Payée'
-                          ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
-                          : f.statut === 'Partiel'
-                          ? 'bg-blue-100 text-blue-800 border border-blue-300'
-                          : 'bg-rose-100 text-rose-800 border border-rose-300'
-                      }`}
-                    >
-                      {f.statut}
-                    </span>
+          {/* Factures Table Container */}
+          <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
+            {/* Filter and Actions Bar */}
+            <div className="p-3 border-b border-slate-200 flex flex-col gap-2.5">
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-2.5">
+                <div className="flex flex-wrap items-center gap-2 flex-1">
+                  {/* Search Input */}
+                  <div className="relative min-w-[200px] flex-1 max-w-sm">
+                    <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="text"
+                      placeholder="Rechercher facture (N°, Fournisseur, ICE, Objet)..."
+                      value={searchFacture}
+                      onChange={(e) => setSearchFacture(e.target.value)}
+                      className="w-full pl-9 pr-3 py-1.5 text-xs bg-slate-50 text-slate-800 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
                   </div>
 
-                  <div className="p-3.5 space-y-2">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0 flex-1">
-                        <span className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">
-                          Fournisseur
-                        </span>
-                        <div className="font-bold text-slate-900 text-xs truncate">
-                          {f.fournisseur_nom}
-                        </div>
-                        {f.designation_achat && (
-                          <div className="text-[11px] text-slate-500 mt-0.5 truncate">
-                            {f.designation_achat}
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="text-right shrink-0">
-                        <span className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">
-                          Reste à Payer
-                        </span>
-                        <div className="font-mono font-black text-base text-rose-700">
-                          {formatCurrency(f.reste_a_payer)}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500 font-mono">
-                      <span>Total TTC: {formatCurrency(f.total_ttc)}</span>
-                      <span>Déjà réglé: {formatCurrency(f.montant_paye)}</span>
-                    </div>
-                  </div>
-
-                  <div className="bg-slate-50/90 px-3 py-2 border-t border-slate-100 flex items-center justify-between gap-1">
-                    {f.reste_a_payer > 0 ? (
+                  {/* Filter by Status */}
+                  <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg border border-slate-200 text-xs">
+                    {(['TOUS', 'Impayée', 'Partiel', 'Payée'] as const).map((st) => (
                       <button
-                        type="button"
-                        onClick={() => {
-                          const sup = fournisseurs.find((four) => four.id === f.fournisseur_id);
-                          handleOpenNewPayment(sup, f);
-                        }}
-                        className="flex items-center gap-1.5 px-3 min-h-[36px] rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-2xs transition active:scale-95 touch-manipulation"
+                        key={st}
+                        onClick={() => setFilterFactureStatus(st)}
+                        className={`px-2.5 py-1 rounded-md font-semibold transition ${
+                          filterFactureStatus === st
+                            ? 'bg-white text-indigo-900 shadow-2xs font-bold'
+                            : 'text-slate-600 hover:text-slate-900'
+                        }`}
                       >
-                        <CreditCard className="w-3.5 h-3.5" />
-                        <span>Régler cette facture</span>
+                        {st === 'TOUS' ? 'Tous règlements' : st}
                       </button>
-                    ) : (
-                      <span className="text-emerald-700 text-xs font-semibold flex items-center gap-1">
-                        <CheckCircle2 className="w-3.5 h-3.5" />
-                        Facture soldée
-                      </span>
-                    )}
+                    ))}
+                  </div>
 
+                  {/* Filter by État */}
+                  <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg border border-slate-200 text-xs">
+                    {(['TOUS', 'Validé', 'Brouillon', 'Annulé'] as const).map((et) => (
+                      <button
+                        key={et}
+                        onClick={() => setFilterFactureEtat(et)}
+                        className={`px-2 py-1 rounded-md font-semibold transition ${
+                          filterFactureEtat === et
+                            ? 'bg-white text-slate-900 shadow-2xs font-bold'
+                            : 'text-slate-600 hover:text-slate-900'
+                        }`}
+                      >
+                        {et === 'TOUS' ? 'Tous états' : et}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Filter by Supplier */}
+                  <select
+                    value={filterFactureSupplier}
+                    onChange={(e) => setFilterFactureSupplier(e.target.value === 'TOUS' ? 'TOUS' : Number(e.target.value))}
+                    className="px-2.5 py-1.5 text-xs bg-slate-50 text-slate-700 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  >
+                    <option value="TOUS">Tous les fournisseurs</option>
+                    {safeFournisseurs.map((f) => (
+                      <option key={f.id} value={f.id}>
+                        {f.nom}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => handleOpenNewInvoice()}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs transition shrink-0 self-start lg:self-auto active:scale-95"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  + Nouvelle Facture d'Achat
+                </button>
+              </div>
+
+              {/* Secondary filter row: Dates */}
+              <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-slate-100 text-xs text-slate-600">
+                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Date émission :</span>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[11px]">Du</span>
+                  <input
+                    type="date"
+                    value={filterFactureStartDate}
+                    onChange={(e) => setFilterFactureStartDate(e.target.value)}
+                    className="px-2 py-1 text-xs bg-slate-50 text-slate-800 rounded border border-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  />
+                  <span className="text-[11px]">Au</span>
+                  <input
+                    type="date"
+                    value={filterFactureEndDate}
+                    onChange={(e) => setFilterFactureEndDate(e.target.value)}
+                    className="px-2 py-1 text-xs bg-slate-50 text-slate-800 rounded border border-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  />
+                  {(filterFactureStartDate || filterFactureEndDate) && (
                     <button
                       type="button"
-                      onClick={() => handleDeleteInvoice(f.id, f.numero)}
-                      className="min-h-[36px] min-w-[36px] flex items-center justify-center rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition active:scale-95 touch-manipulation"
-                      title="Supprimer"
+                      onClick={() => {
+                        setFilterFactureStartDate('');
+                        setFilterFactureEndDate('');
+                      }}
+                      className="text-[11px] text-indigo-600 hover:text-indigo-800 font-semibold underline ml-1"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      Effacer dates
                     </button>
-                  </div>
+                  )}
                 </div>
-              ))
-            )}
-          </div>
+              </div>
+            </div>
 
-          {/* Desktop Invoices Table (hidden md:block) */}
-          <div className="hidden md:block overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse">
-              <thead>
-                <tr className="bg-slate-50 text-slate-700 font-semibold divide-x divide-slate-200 border-b border-slate-200 text-xs sticky top-0 z-10">
-                  <th className="py-2.5 px-3">N° Facture</th>
-                  <th className="py-2.5 px-3">Fournisseur</th>
-                  <th className="py-2.5 px-3">Date Facture</th>
-                  <th className="py-2.5 px-3">Échéance</th>
-                  <th className="py-2.5 px-3">Désignation</th>
-                  <th className="py-2.5 px-3 text-right">Total HT</th>
-                  <th className="py-2.5 px-3 text-right">Total TVA</th>
-                  <th className="py-2.5 px-3 text-right">Total TTC</th>
-                  <th className="py-2.5 px-3 text-right">Payé</th>
-                  <th className="py-2.5 px-3 text-right">Reste à Payer</th>
-                  <th className="py-2.5 px-3 text-center">Statut</th>
-                  <th className="py-2.5 px-2 text-center">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-200">
-                {filteredFactures.length === 0 ? (
-                  <tr>
-                    <td colSpan={12} className="py-12 text-center text-slate-400">
-                      Aucune facture fournisseur correspondant aux critères.
-                    </td>
-                  </tr>
-                ) : (
-                  filteredFactures.map((f) => (
-                    <tr key={f.id} className="hover:bg-blue-50/40 transition divide-x divide-slate-200 border-b border-slate-200 even:bg-slate-50/30">
-                      <td className="py-2 px-3 font-mono font-medium text-blue-600 hover:text-blue-800 underline cursor-pointer">{f.numero}</td>
-                      <td className="py-2 px-3 font-semibold text-slate-900">{f.fournisseur_nom}</td>
-                      <td className="py-2 px-3 text-slate-600">{formatDate(f.date_facture)}</td>
-                      <td className="py-2 px-3 text-slate-600">{f.date_echeance ? formatDate(f.date_echeance) : '-'}</td>
-                      <td className="py-2 px-3 text-slate-700 max-w-xs truncate">{f.designation_achat || '-'}</td>
-                      <td className="py-2 px-3 text-right font-mono text-slate-700">{formatCurrency(f.total_ht)}</td>
-                      <td className="py-2 px-3 text-right font-mono text-indigo-700">{formatCurrency(f.total_tva)}</td>
-                      <td className="py-2 px-3 text-right font-mono font-bold text-slate-900">{formatCurrency(f.total_ttc)}</td>
-                      <td className="py-2 px-3 text-right font-mono text-emerald-700">{formatCurrency(f.montant_paye)}</td>
-                      <td className="py-2 px-3 text-right font-mono font-bold text-rose-700">{formatCurrency(f.reste_a_payer)}</td>
-                      <td className="py-2 px-3 text-center">
-                        <span
-                          className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                            f.statut === 'Payée'
-                              ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
-                              : f.statut === 'Partiel'
-                              ? 'bg-blue-100 text-blue-800 border border-blue-300'
-                              : 'bg-rose-100 text-rose-800 border border-rose-300'
-                          }`}
-                        >
-                          {f.statut}
-                        </span>
-                      </td>
-                      <td className="py-1.5 px-2 text-center">
-                        <div className="flex items-center justify-center gap-1">
-                          {f.reste_a_payer > 0 && (
-                            <button
-                              onClick={() => {
-                                const sup = fournisseurs.find((four) => four.id === f.fournisseur_id);
-                                handleOpenNewPayment(sup, f);
-                              }}
-                              className="px-2 py-1 text-[10px] font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded shadow-2xs transition"
-                              title="Payer cette facture"
-                            >
-                              Régler
-                            </button>
-                          )}
-                          <button
-                            onClick={() => handleDeleteInvoice(f.id, f.numero)}
-                            className="p-1 hover:bg-rose-100 text-slate-400 hover:text-rose-600 rounded transition"
-                            title="Supprimer"
+            {/* ========================================================================= */}
+            {/* MOBILE INVOICE CARDS (md:hidden space-y-3 p-3) */}
+            {/* ========================================================================= */}
+            <div className="md:hidden space-y-3 p-3">
+              {filteredFactures.length === 0 ? (
+                <div className="p-8 text-center text-slate-400 text-xs bg-slate-50 rounded-xl border border-slate-200">
+                  Aucune facture fournisseur correspondant aux critères.
+                </div>
+              ) : (
+                filteredFactures.map((f) => (
+                  <div key={f.id} className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
+                    <div className="p-3.5 pb-2.5 border-b border-slate-100 flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span
+                            onClick={() => setViewingInvoice(f)}
+                            className="font-mono font-extrabold text-sm text-indigo-600 hover:text-indigo-800 underline cursor-pointer"
                           >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
+                            {f.numero}
+                          </span>
+                          <span className="text-[10px] text-slate-400 font-mono">
+                            {formatDate(f.date_facture)}
+                          </span>
+                          <span className={`text-[10px] px-1.5 py-0.2 rounded font-semibold ${
+                            (f.etat || 'Validé') === 'Validé' ? 'bg-emerald-100 text-emerald-800' :
+                            f.etat === 'Brouillon' ? 'bg-amber-100 text-amber-800' :
+                            'bg-rose-100 text-rose-800'
+                          }`}>
+                            {f.etat || 'Validé'}
+                          </span>
                         </div>
+                        <div className="text-[11px] text-slate-500 font-medium mt-0.5">
+                          Échéance : {f.date_echeance ? formatDate(f.date_echeance) : 'Non définie'}
+                        </div>
+                      </div>
+
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-[10px] font-bold shrink-0 ${
+                          f.statut === 'Payée'
+                            ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                            : f.statut === 'Partiel'
+                            ? 'bg-blue-100 text-blue-800 border border-blue-300'
+                            : 'bg-rose-100 text-rose-800 border border-rose-300'
+                        }`}
+                      >
+                        {f.statut}
+                      </span>
+                    </div>
+
+                    <div className="p-3.5 space-y-2">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0 flex-1">
+                          <span className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">
+                            Fournisseur
+                          </span>
+                          <div className="font-bold text-slate-900 text-xs truncate">
+                            {f.fournisseur_nom}
+                          </div>
+                          {f.designation_achat && (
+                            <div className="text-[11px] text-slate-500 mt-0.5 truncate">
+                              {f.designation_achat}
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="text-right shrink-0">
+                          <span className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">
+                            Reste à Payer
+                          </span>
+                          <div className="font-mono font-black text-base text-rose-700">
+                            {formatCurrency(f.reste_a_payer)}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500 font-mono">
+                        <span>Total TTC: {formatCurrency(f.total_ttc)}</span>
+                        <span>Déjà réglé: {formatCurrency(f.montant_paye)}</span>
+                      </div>
+                    </div>
+
+                    {/* Mobile Action buttons */}
+                    <div className="bg-slate-50/90 px-3 py-2 border-t border-slate-100 flex items-center justify-between gap-1 flex-wrap">
+                      <div className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={() => setViewingInvoice(f)}
+                          className="p-1.5 rounded-lg bg-white border border-slate-200 text-slate-600 hover:text-slate-900 transition"
+                          title="Consulter"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const sup = safeFournisseurs.find((four) => four.id === f.fournisseur_id);
+                            handleOpenNewInvoice(sup, f);
+                          }}
+                          className="p-1.5 rounded-lg bg-white border border-slate-200 text-indigo-600 hover:text-indigo-800 transition"
+                          title="Modifier"
+                        >
+                          <Edit className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => generateFactureFournisseurPdf(f, company)}
+                          className="p-1.5 rounded-lg bg-white border border-slate-200 text-slate-700 hover:text-slate-900 transition"
+                          title="Télécharger PDF"
+                        >
+                          <Printer className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+
+                      <div className="flex items-center gap-1">
+                        {f.reste_a_payer > 0 ? (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const sup = safeFournisseurs.find((four) => four.id === f.fournisseur_id);
+                              handleOpenNewPayment(sup, f);
+                            }}
+                            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-2xs transition active:scale-95"
+                          >
+                            <CreditCard className="w-3.5 h-3.5" />
+                            <span>Régler</span>
+                          </button>
+                        ) : (
+                          <span className="text-emerald-700 text-xs font-semibold flex items-center gap-1">
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                            Soldée
+                          </span>
+                        )}
+
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteInvoice(f.id, f.numero)}
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition"
+                          title="Supprimer"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Desktop Invoices Table (hidden md:block) */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="bg-slate-50 text-slate-700 font-semibold divide-x divide-slate-200 border-b border-slate-200 text-xs sticky top-0 z-10">
+                    <th className="py-2.5 px-3">N° Facture</th>
+                    <th className="py-2.5 px-3">Fournisseur</th>
+                    <th className="py-2.5 px-3">Date Facture</th>
+                    <th className="py-2.5 px-3">Échéance</th>
+                    <th className="py-2.5 px-3">Désignation</th>
+                    <th className="py-2.5 px-3 text-right">Total HT</th>
+                    <th className="py-2.5 px-3 text-right">Total TVA</th>
+                    <th className="py-2.5 px-3 text-right">Total TTC</th>
+                    <th className="py-2.5 px-3 text-right">Payé</th>
+                    <th className="py-2.5 px-3 text-right">Reste à Payer</th>
+                    <th className="py-2.5 px-2 text-center">État</th>
+                    <th className="py-2.5 px-2 text-center">Statut</th>
+                    <th className="py-2.5 px-2 text-center min-w-[130px]">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-200">
+                  {filteredFactures.length === 0 ? (
+                    <tr>
+                      <td colSpan={13} className="py-12 text-center text-slate-400">
+                        Aucune facture fournisseur correspondant aux critères.
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                  ) : (
+                    filteredFactures.map((f) => (
+                      <tr key={f.id} className="hover:bg-blue-50/40 transition divide-x divide-slate-200 border-b border-slate-200 even:bg-slate-50/30">
+                        <td
+                          className="py-2 px-3 font-mono font-bold text-indigo-600 hover:text-indigo-800 underline cursor-pointer"
+                          onClick={() => setViewingInvoice(f)}
+                          title="Consulter le détail"
+                        >
+                          {f.numero}
+                        </td>
+                        <td className="py-2 px-3 font-semibold text-slate-900">
+                          <div>{f.fournisseur_nom}</div>
+                          {f.fournisseur_ice && (
+                            <div className="text-[10px] text-slate-500 font-mono">ICE: {f.fournisseur_ice}</div>
+                          )}
+                        </td>
+                        <td className="py-2 px-3 text-slate-600">{formatDate(f.date_facture)}</td>
+                        <td className="py-2 px-3 text-slate-600">{f.date_echeance ? formatDate(f.date_echeance) : '-'}</td>
+                        <td className="py-2 px-3 text-slate-700 max-w-xs truncate">{f.designation_achat || '-'}</td>
+                        <td className="py-2 px-3 text-right font-mono text-slate-700">{formatCurrency(f.total_ht)}</td>
+                        <td className="py-2 px-3 text-right font-mono text-indigo-700">{formatCurrency(f.total_tva)}</td>
+                        <td className="py-2 px-3 text-right font-mono font-bold text-slate-900">{formatCurrency(f.total_ttc)}</td>
+                        <td className="py-2 px-3 text-right font-mono text-emerald-700">{formatCurrency(f.montant_paye)}</td>
+                        <td className="py-2 px-3 text-right font-mono font-bold text-rose-700">{formatCurrency(f.reste_a_payer)}</td>
+                        <td className="py-2 px-2 text-center">
+                          <span
+                            className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${
+                              (f.etat || 'Validé') === 'Validé'
+                                ? 'bg-emerald-100 text-emerald-800'
+                                : f.etat === 'Brouillon'
+                                ? 'bg-amber-100 text-amber-800'
+                                : 'bg-rose-100 text-rose-800'
+                            }`}
+                          >
+                            {f.etat || 'Validé'}
+                          </span>
+                        </td>
+                        <td className="py-2 px-2 text-center">
+                          <span
+                            className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                              f.statut === 'Payée'
+                                ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                                : f.statut === 'Partiel'
+                                ? 'bg-blue-100 text-blue-800 border border-blue-300'
+                                : 'bg-rose-100 text-rose-800 border border-rose-300'
+                            }`}
+                          >
+                            {f.statut}
+                          </span>
+                        </td>
+                        <td className="py-1.5 px-2 text-center">
+                          <div className="flex items-center justify-center gap-1">
+                            {/* Consulter */}
+                            <button
+                              onClick={() => setViewingInvoice(f)}
+                              className="p-1 hover:bg-slate-100 text-slate-600 hover:text-slate-900 rounded transition"
+                              title="Consulter"
+                            >
+                              <Eye className="w-3.5 h-3.5" />
+                            </button>
+
+                            {/* Modifier */}
+                            <button
+                              onClick={() => {
+                                const sup = safeFournisseurs.find((four) => four.id === f.fournisseur_id);
+                                handleOpenNewInvoice(sup, f);
+                              }}
+                              className="p-1 hover:bg-indigo-100 text-indigo-600 hover:text-indigo-800 rounded transition"
+                              title="Modifier la facture"
+                            >
+                              <Edit className="w-3.5 h-3.5" />
+                            </button>
+
+                            {/* Régler */}
+                            {f.reste_a_payer > 0 ? (
+                              <button
+                                onClick={() => {
+                                  const sup = safeFournisseurs.find((four) => four.id === f.fournisseur_id);
+                                  handleOpenNewPayment(sup, f);
+                                }}
+                                className="px-2 py-0.5 text-[10px] font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded shadow-2xs transition flex items-center gap-0.5"
+                                title="Payer cette facture"
+                              >
+                                <CreditCard className="w-3 h-3" />
+                                <span>Régler</span>
+                              </button>
+                            ) : (
+                              <span className="p-1 text-emerald-600" title="Facture soldée">
+                                <CheckCircle2 className="w-3.5 h-3.5" />
+                              </span>
+                            )}
+
+                            {/* Imprimer PDF */}
+                            <button
+                              onClick={() => generateFactureFournisseurPdf(f, company)}
+                              className="p-1 hover:bg-slate-100 text-slate-600 hover:text-slate-900 rounded transition"
+                              title="Imprimer / Télécharger PDF"
+                            >
+                              <Printer className="w-3.5 h-3.5" />
+                            </button>
+
+                            {/* Supprimer */}
+                            <button
+                              onClick={() => handleDeleteInvoice(f.id, f.numero)}
+                              className="p-1 hover:bg-rose-100 text-slate-400 hover:text-rose-600 rounded transition"
+                              title="Supprimer"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}
@@ -2092,6 +2454,194 @@ export const FournisseursView: React.FC<FournisseursViewProps> = ({
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* MODAL: DETAIL / CONSULTATION FACTURE FOURNISSEUR */}
+      {/* ========================================================================= */}
+      {viewingInvoice && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+            {/* Header */}
+            <div className="p-4 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-white/10 rounded-xl">
+                  <Receipt className="w-5 h-5 text-indigo-300" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold flex items-center gap-2">
+                    Facture d'Achat : {viewingInvoice.numero}
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${
+                      (viewingInvoice.etat || 'Validé') === 'Validé' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-400/30' :
+                      viewingInvoice.etat === 'Brouillon' ? 'bg-amber-500/20 text-amber-300 border border-amber-400/30' :
+                      'bg-rose-500/20 text-rose-300 border border-rose-400/30'
+                    }`}>
+                      {viewingInvoice.etat || 'Validé'}
+                    </span>
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
+                      viewingInvoice.statut === 'Payée' ? 'bg-emerald-500 text-white' :
+                      viewingInvoice.statut === 'Partiel' ? 'bg-blue-500 text-white' :
+                      'bg-rose-500 text-white'
+                    }`}>
+                      {viewingInvoice.statut}
+                    </span>
+                  </h3>
+                  <p className="text-xs text-slate-300 mt-0.5">
+                    Émise le {formatDate(viewingInvoice.date_facture)} • Échéance : {viewingInvoice.date_echeance ? formatDate(viewingInvoice.date_echeance) : 'Non précisée'}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setViewingInvoice(null)}
+                className="text-white/70 hover:text-white p-1.5 rounded-lg hover:bg-white/10 transition"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-5 overflow-y-auto space-y-4 flex-1 text-xs">
+              {/* Supplier info banner */}
+              <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">Fournisseur</span>
+                  <div className="font-bold text-slate-900 text-sm">{viewingInvoice.fournisseur_nom}</div>
+                  {viewingInvoice.fournisseur_ice && (
+                    <div className="text-[11px] text-slate-600 font-mono mt-0.5">ICE: {viewingInvoice.fournisseur_ice}</div>
+                  )}
+                </div>
+                {viewingInvoice.designation_achat && (
+                  <div className="sm:text-right">
+                    <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">Objet / Désignation</span>
+                    <div className="text-slate-700 font-medium">{viewingInvoice.designation_achat}</div>
+                  </div>
+                )}
+              </div>
+
+              {/* Invoice Lines Table (if any) */}
+              {viewingInvoice.lignes && viewingInvoice.lignes.length > 0 ? (
+                <div className="rounded-xl border border-slate-200 overflow-hidden">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
+                      <tr>
+                        <th className="py-2 px-3">Désignation</th>
+                        <th className="py-2 px-2 text-center">Qté</th>
+                        <th className="py-2 px-3 text-right">P.U. HT</th>
+                        <th className="py-2 px-2 text-center">TVA</th>
+                        <th className="py-2 px-2 text-center">Remise</th>
+                        <th className="py-2 px-3 text-right">Total HT</th>
+                        <th className="py-2 px-3 text-right">Total TTC</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {viewingInvoice.lignes.map((l, idx) => (
+                        <tr key={idx} className="hover:bg-slate-50">
+                          <td className="py-2 px-3 font-medium text-slate-800">{l.designation}</td>
+                          <td className="py-2 px-2 text-center font-mono">{l.quantite}</td>
+                          <td className="py-2 px-3 text-right font-mono">{formatCurrency(l.prix_achat_ht)}</td>
+                          <td className="py-2 px-2 text-center font-mono text-indigo-700 font-semibold">{l.taux_tva}%</td>
+                          <td className="py-2 px-2 text-center font-mono">{l.remise_pct ? `${l.remise_pct}%` : '-'}</td>
+                          <td className="py-2 px-3 text-right font-mono font-medium">{formatCurrency(l.total_ht)}</td>
+                          <td className="py-2 px-3 text-right font-mono font-bold text-slate-900">{formatCurrency(l.total_ttc)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 text-slate-500 italic text-center">
+                  Aucun détail article enregistré (facture globale)
+                </div>
+              )}
+
+              {/* Totals Breakdown */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                <div className="p-3 bg-indigo-50/50 rounded-xl border border-indigo-100 space-y-1">
+                  <span className="text-[10px] uppercase font-bold text-indigo-700 tracking-wider block">Ventilation TVA Déductible</span>
+                  <div className="space-y-1 text-slate-700 font-mono text-[11px]">
+                    <div className="flex justify-between"><span>TVA 20% :</span><span>{formatCurrency(viewingInvoice.tva_20 || 0)}</span></div>
+                    <div className="flex justify-between"><span>TVA 10% :</span><span>{formatCurrency(viewingInvoice.tva_10 || 0)}</span></div>
+                    <div className="flex justify-between"><span>TVA 7% :</span><span>{formatCurrency(viewingInvoice.tva_7 || 0)}</span></div>
+                    <div className="flex justify-between font-bold text-indigo-900 pt-1 border-t border-indigo-200">
+                      <span>Total TVA :</span><span>{formatCurrency(viewingInvoice.total_tva || 0)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1.5 font-mono">
+                  <div className="flex justify-between text-slate-600"><span>Total HT :</span><span className="font-bold">{formatCurrency(viewingInvoice.total_ht)}</span></div>
+                  <div className="flex justify-between text-slate-600"><span>Total TVA :</span><span className="font-bold text-indigo-700">{formatCurrency(viewingInvoice.total_tva || 0)}</span></div>
+                  <div className="flex justify-between text-base font-black text-slate-900 pt-1 border-t border-slate-200">
+                    <span>Total TTC :</span><span>{formatCurrency(viewingInvoice.total_ttc)}</span>
+                  </div>
+                  <div className="flex justify-between text-emerald-700 font-bold"><span>Déjà Réglé :</span><span>{formatCurrency(viewingInvoice.montant_paye)}</span></div>
+                  <div className="flex justify-between text-rose-700 font-black text-sm pt-1 border-t border-dashed border-slate-200">
+                    <span>Reste à Payer :</span><span>{formatCurrency(viewingInvoice.reste_a_payer)}</span>
+                  </div>
+                </div>
+              </div>
+
+              {viewingInvoice.notes && (
+                <div className="p-3 bg-amber-50/50 rounded-xl border border-amber-200 text-amber-900">
+                  <span className="text-[10px] uppercase font-bold text-amber-700 block">Notes / Remarques :</span>
+                  <p className="mt-0.5 whitespace-pre-wrap">{viewingInvoice.notes}</p>
+                </div>
+              )}
+            </div>
+
+            {/* Footer buttons */}
+            <div className="p-4 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2 shrink-0">
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => generateFactureFournisseurPdf(viewingInvoice, company)}
+                  className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold rounded-xl bg-slate-900 hover:bg-slate-800 text-white shadow-xs transition cursor-pointer"
+                >
+                  <Printer className="w-3.5 h-3.5" />
+                  Imprimer PDF (A5)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const sup = safeFournisseurs.find((s) => s.id === viewingInvoice.fournisseur_id);
+                    const inv = viewingInvoice;
+                    setViewingInvoice(null);
+                    handleOpenNewInvoice(sup, inv);
+                  }}
+                  className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 transition cursor-pointer"
+                >
+                  <Edit className="w-3.5 h-3.5" />
+                  Modifier
+                </button>
+              </div>
+
+              <div className="flex items-center gap-2">
+                {viewingInvoice.reste_a_payer > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const sup = safeFournisseurs.find((s) => s.id === viewingInvoice.fournisseur_id);
+                      const inv = viewingInvoice;
+                      setViewingInvoice(null);
+                      handleOpenNewPayment(sup, inv);
+                    }}
+                    className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs transition cursor-pointer"
+                  >
+                    <CreditCard className="w-3.5 h-3.5" />
+                    Régler cette facture
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setViewingInvoice(null)}
+                  className="px-4 py-2 text-xs font-semibold rounded-xl bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 transition cursor-pointer"
+                >
+                  Fermer
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

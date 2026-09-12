@@ -770,8 +770,12 @@ export async function deleteDevis(id: number): Promise<void> {
 // REGLEMENTS
 // ----------------------------------------------------------------------------
 
-export async function createReglement(reglement: Partial<Reglement>): Promise<number> {
-  const res = await apiCall('create_reglement', { reglement }, 0);
+export async function createReglement(
+  reglement: Partial<Reglement> & { allocations?: Array<{ facture_id: number; montant: number }> },
+  allocations?: Array<{ facture_id: number; montant: number }>
+): Promise<number> {
+  const allocs = allocations || reglement.allocations;
+  const res = await apiCall('create_reglement', { reglement, allocations: allocs }, 0);
   await fetchAllData();
   return res.id;
 }
@@ -1393,8 +1397,13 @@ export async function createFactureFournisseur(facture: any, lignes?: any[]): Pr
   return res?.id || 1;
 }
 
-export async function createPaiementFournisseur(paiement: any): Promise<number> {
-  const res = await apiCall('create_paiement_fournisseur', { paiement });
+export async function updateFactureFournisseur(id: number, facture: any, lignes?: any[]): Promise<void> {
+  await apiCall('update_facture_fournisseur', { id, facture, lignes });
+}
+
+export async function createPaiementFournisseur(paiement: any, allocations?: any[]): Promise<number> {
+  const allocs = allocations || paiement.allocations;
+  const res = await apiCall('create_paiement_fournisseur', { paiement, allocations: allocs });
   return res?.id || 1;
 }
 

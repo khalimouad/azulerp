@@ -1200,13 +1200,148 @@ export async function POST(req: NextRequest) {
             );
           }
 
-          let factureId = reglement.facture_id ? Number(reglement.facture_id) : null;
-          let factureNumero = String(reglement.facture_numero || '');
+          const rawAllocations: Array<{ facture_id?: number; montant: number }> =
+            Array.isArray(payload.allocations) && payload.allocations.length > 0
+              ? payload.allocations
+              : Array.isArray(reglement.allocations) && reglement.allocations.length > 0
+              ? reglement.allocations
+              : [];
+
+          const allocations = rawAllocations.filter((a) => a && num(a.montant) > 0);
+
           let clientId = Number(reglement.client_id || 0);
           let clientNom = String(reglement.client_nom || '');
+          const paymentMode = reglement.mode_reglement || reglement.mode || 'Virement';
+          let primaryRegId = 0;
 
-          // The invoice is the source of truth for the customer. This prevents a
-          // payment selected for one invoice from being saved on another customer.
+          if (allocations.length > 0) {
+            // Multi-invoice or structured allocation
+            let totalAllocated = 0;
+
+            for (const alloc of allocations) {
+              const facId = Number(alloc.facture_id);
+              const allocMontant = num(alloc.montant);
+              if (allocMontant <= 0 || !facId) continue;
+
+              const linkedFacture: any = await sql`
+                SELECT id, numero, client_id, client_nom, total_ttc,
+                       GREATEST(COALESCE(reste_a_payer, total_ttc - COALESCE(montant_regle, 0)), 0) AS reste
+                FROM factures
+                WHERE id = ${facId};
+              `;
+              if (!linkedFacture.length) continue;
+
+              const facNum = linkedFacture[0].numero;
+              const curClientId = Number(linkedFacture[0].client_id);
+              const curClientNom = linkedFacture[0].client_nom;
+              if (!clientId) clientId = curClientId;
+              if (!clientNom) clientNom = curClientNom;
+
+              const maxIdRes: any = await sql`SELECT COALESCE(MAX(id), 0) + 1 as next_id FROM reglements;`;
+              const currentRegId = maxIdRes[0]?.next_id || 1;
+              if (!primaryRegId) primaryRegId = currentRegId;
+
+              await sql`
+                INSERT INTO reglements (
+                  id, facture_id, facture_numero, client_id, client_nom, date, montant,
+                  mode_reglement, mode, reference_paiement, banque, notes
+                ) VALUES (
+                  ${currentRegId}, ${facId}, ${facNum}, ${curClientId}, ${curClientNom}, ${reglement.date},
+                  ${allocMontant}, ${paymentMode}, ${paymentMode}, ${reglement.reference_paiement || ''},
+                  ${reglement.banque || ''}, ${reglement.notes || ''}
+                );
+              `;
+
+              // Recalculate invoice remaining and paid amounts
+              const paidSumRes: any = await sql`
+                SELECT COALESCE(SUM(r.montant), 0) AS total_paid
+                FROM reglements r
+                WHERE r.facture_id = ${facId};
+              `;
+              const totalPaid = num(paidSumRes[0]?.total_paid);
+              const totalTtc = num(linkedFacture[0].total_ttc);
+              const newReste = Math.max(0, totalTtc - totalPaid);
+              const newStatut = newReste <= 0.01 ? 'Soldé' : totalPaid > 0 ? 'Partiel' : 'Impayé';
+
+              await sql`
+                UPDATE factures
+                SET montant_regle = ${totalPaid}, reste_a_payer = ${newReste}, statut_paiement = ${newStatut}
+                WHERE id = ${facId};
+              `;
+
+              totalAllocated += allocMontant;
+
+              // Accounting entry per allocated piece
+              try {
+                const acctEntry = generateClientPaymentJournalEntry({
+                  id: currentRegId,
+                  facture_numero: facNum,
+                  client_nom: curClientNom,
+                  date: reglement.date,
+                  montant: allocMontant,
+                  mode_reglement: paymentMode,
+                  reference_paiement: reglement.reference_paiement,
+                } as any);
+                await sql`
+                  INSERT INTO journal_entries (
+                    numero, date, journal_code, libelle, reference, status,
+                    total_debit, total_credit, source_type, source_id, lines
+                  ) VALUES (
+                    ${acctEntry.numero}, ${acctEntry.date}, ${acctEntry.journal_code},
+                    ${acctEntry.libelle}, ${acctEntry.reference || `REG-${currentRegId}`},
+                    'valide', ${num(acctEntry.total_debit)}, ${num(acctEntry.total_credit)},
+                    'REGLEMENT_CLIENT', ${currentRegId}, ${JSON.stringify(acctEntry.lines)}::jsonb
+                  ) ON CONFLICT (numero) DO NOTHING;
+                `.catch(() => {});
+              } catch (acctErr) {
+                console.warn('[Accounting] Auto-post payment error:', acctErr);
+              }
+            }
+
+            // If payment amount is greater than total allocated, save remaining balance as unallocated advance/acompte
+            const unallocatedRemainder = Math.round((amount - totalAllocated) * 100) / 100;
+            if (unallocatedRemainder > 0.009) {
+              const maxIdRes: any = await sql`SELECT COALESCE(MAX(id), 0) + 1 as next_id FROM reglements;`;
+              const advRegId = maxIdRes[0]?.next_id || 1;
+              if (!primaryRegId) primaryRegId = advRegId;
+
+              await sql`
+                INSERT INTO reglements (
+                  id, facture_id, facture_numero, client_id, client_nom, date, montant,
+                  mode_reglement, mode, reference_paiement, banque, notes
+                ) VALUES (
+                  ${advRegId}, NULL, NULL, ${clientId}, ${clientNom}, ${reglement.date},
+                  ${unallocatedRemainder}, ${paymentMode}, ${paymentMode}, ${reglement.reference_paiement || ''},
+                  ${reglement.banque || ''}, ${((reglement.notes || '') + ' (Acompte non affecté)').trim()}
+                );
+              `;
+            }
+
+            // Update client balance
+            if (clientId) {
+              await sql`
+                UPDATE clients c
+                SET solde = COALESCE((
+                  SELECT ROUND(SUM(GREATEST(COALESCE(f.reste_a_payer, COALESCE(f.total_ttc, 0) - COALESCE(f.montant_regle, 0)), 0))::numeric, 2)
+                  FROM factures f
+                  WHERE f.client_id = c.id
+                    AND GREATEST(COALESCE(f.reste_a_payer, COALESCE(f.total_ttc, 0) - COALESCE(f.montant_regle, 0)), 0) > 0.009
+                ), 0)
+                WHERE c.id = ${clientId};
+              `;
+            }
+
+            return NextResponse.json({
+              success: true,
+              id: primaryRegId || 1,
+              message: 'Règlement et lettrage enregistrés avec succès',
+            });
+          }
+
+          // Single invoice or general unlinked payment fallback
+          let factureId = reglement.facture_id ? Number(reglement.facture_id) : null;
+          let factureNumero = String(reglement.facture_numero || '');
+
           if (factureId) {
             const linkedFacture: any = await sql`
               SELECT id, numero, client_id, client_nom,
@@ -1240,7 +1375,7 @@ export async function POST(req: NextRequest) {
             clientNom = clientRes[0].nom;
           }
 
-          // A short idempotency window makes an automatic network retry safe.
+          // Idempotency check
           const duplicateRes: any = await sql`
             SELECT id
             FROM reglements
@@ -1264,7 +1399,6 @@ export async function POST(req: NextRequest) {
 
           const maxIdRes: any = await sql`SELECT COALESCE(MAX(id), 0) + 1 as next_id FROM reglements;`;
           const regId = maxIdRes[0]?.next_id || 1;
-          const paymentMode = reglement.mode_reglement || reglement.mode || 'Virement';
 
           await sql`
             INSERT INTO reglements (
@@ -1289,7 +1423,7 @@ export async function POST(req: NextRequest) {
               const totalTtc = num(factRes[0].total_ttc);
               const newPaid = num(factRes[0].total_paid);
               const newReste = Math.max(0, totalTtc - newPaid);
-              const newStatut = newReste <= 0.01 ? 'Payé' : newPaid > 0 ? 'Partiel' : 'Impayé';
+              const newStatut = newReste <= 0.01 ? 'Soldé' : newPaid > 0 ? 'Partiel' : 'Impayé';
 
               await sql`
                 UPDATE factures 
@@ -1970,32 +2104,315 @@ export async function POST(req: NextRequest) {
             console.warn('[Accounting] Auto-post supplier invoice error:', acctErr);
           }
 
+          // Recalculate supplier debt & purchases
+          try {
+            await sql`
+              UPDATE fournisseurs f
+              SET solde_du = COALESCE((
+                SELECT ROUND(SUM(GREATEST(COALESCE(ff.reste_a_payer, COALESCE(ff.total_ttc, 0) - COALESCE(ff.montant_paye, 0)), 0))::numeric, 2)
+                FROM factures_fournisseurs ff
+                WHERE ff.fournisseur_id = f.id
+              ), 0),
+              total_achats = COALESCE((
+                SELECT ROUND(SUM(ff.total_ttc)::numeric, 2)
+                FROM factures_fournisseurs ff
+                WHERE ff.fournisseur_id = f.id AND ff.etat != 'Annulé'
+              ), 0)
+              WHERE f.id = ${facture.fournisseur_id};
+            `;
+          } catch (supErr) {
+            console.warn('[Supplier] Error syncing supplier solde:', supErr);
+          }
+
           return NextResponse.json({ success: true, id: facId });
+        }
+
+        case 'update_facture_fournisseur': {
+          const { id, facture, lignes } = payload;
+          const facId = Number(id);
+
+          await sql`
+            UPDATE factures_fournisseurs SET
+              numero = ${facture.numero},
+              fournisseur_id = ${facture.fournisseur_id},
+              fournisseur_nom = ${facture.fournisseur_nom},
+              fournisseur_ice = ${facture.fournisseur_ice || ''},
+              date_facture = ${facture.date_facture},
+              date_echeance = ${facture.date_echeance || ''},
+              total_ht = ${num(facture.total_ht)},
+              tva_20 = ${num(facture.tva_20)},
+              tva_10 = ${num(facture.tva_10)},
+              tva_7 = ${num(facture.tva_7)},
+              total_tva = ${num(facture.total_tva)},
+              total_ttc = ${num(facture.total_ttc)},
+              montant_paye = ${num(facture.montant_paye, 0)},
+              reste_a_payer = ${num(facture.reste_a_payer || (facture.total_ttc - (facture.montant_paye || 0)))},
+              statut = ${facture.statut || 'A payer'},
+              etat = ${facture.etat || 'Validé'},
+              designation_achat = ${facture.designation_achat || ''},
+              notes = ${facture.notes || ''}
+            WHERE id = ${facId};
+          `;
+
+          await sql`DELETE FROM factures_fournisseurs_lignes WHERE facture_fournisseur_id = ${facId};`;
+
+          if (Array.isArray(lignes) && lignes.length > 0) {
+            const lineMaxIdRes: any = await sql`SELECT COALESCE(MAX(id), 0) + 1 as next_id FROM factures_fournisseurs_lignes;`;
+            const firstLineId = Number(lineMaxIdRes[0]?.next_id || 1);
+            for (let i = 0; i < lignes.length; i++) {
+              const l = lignes[i];
+              await sql`
+                INSERT INTO factures_fournisseurs_lignes (
+                  id, facture_fournisseur_id, produit_id, designation, quantite,
+                  prix_achat_ht, taux_tva, total_ht, total_tva, total_ttc
+                ) VALUES (
+                  ${firstLineId + i}, ${facId}, ${l.produit_id || null}, ${l.designation},
+                  ${num(l.quantite, 1)}, ${num(l.prix_achat_ht)}, ${num(l.taux_tva, 20)},
+                  ${num(l.total_ht)}, ${num(l.total_tva)}, ${num(l.total_ttc)}
+                );
+              `;
+            }
+          }
+
+          // Recalculate supplier balance
+          try {
+            await sql`
+              UPDATE fournisseurs f
+              SET solde_du = COALESCE((
+                SELECT ROUND(SUM(GREATEST(COALESCE(ff.reste_a_payer, COALESCE(ff.total_ttc, 0) - COALESCE(ff.montant_paye, 0)), 0))::numeric, 2)
+                FROM factures_fournisseurs ff
+                WHERE ff.fournisseur_id = f.id
+              ), 0),
+              total_achats = COALESCE((
+                SELECT ROUND(SUM(ff.total_ttc)::numeric, 2)
+                FROM factures_fournisseurs ff
+                WHERE ff.fournisseur_id = f.id AND ff.etat != 'Annulé'
+              ), 0)
+              WHERE f.id = ${facture.fournisseur_id};
+            `;
+          } catch (supErr) {
+            console.warn('[Supplier] Error syncing supplier solde:', supErr);
+          }
+
+          return NextResponse.json({ success: true, message: 'Facture fournisseur mise à jour' });
         }
 
         case 'delete_facture_fournisseur': {
           const { id } = payload;
+          const facRes: any = await sql`SELECT fournisseur_id FROM factures_fournisseurs WHERE id = ${id};`;
+          const supId = facRes[0]?.fournisseur_id;
+
           await sql`DELETE FROM factures_fournisseurs_lignes WHERE facture_fournisseur_id = ${id};`;
+          await sql`DELETE FROM paiements_fournisseurs WHERE facture_fournisseur_id = ${id};`;
           await sql`DELETE FROM factures_fournisseurs WHERE id = ${id};`;
+
+          if (supId) {
+            await sql`
+              UPDATE fournisseurs f
+              SET solde_du = COALESCE((
+                SELECT ROUND(SUM(GREATEST(COALESCE(ff.reste_a_payer, COALESCE(ff.total_ttc, 0) - COALESCE(ff.montant_paye, 0)), 0))::numeric, 2)
+                FROM factures_fournisseurs ff
+                WHERE ff.fournisseur_id = f.id
+              ), 0),
+              total_achats = COALESCE((
+                SELECT ROUND(SUM(ff.total_ttc)::numeric, 2)
+                FROM factures_fournisseurs ff
+                WHERE ff.fournisseur_id = f.id AND ff.etat != 'Annulé'
+              ), 0)
+              WHERE f.id = ${supId};
+            `;
+          }
+
           return NextResponse.json({ success: true, message: 'Facture fournisseur supprimée' });
         }
 
         case 'create_paiement_fournisseur': {
           const { paiement } = payload;
+          const amount = num(paiement.montant);
+          const rawAllocations: Array<{ facture_fournisseur_id?: number; montant: number }> =
+            Array.isArray(payload.allocations) && payload.allocations.length > 0
+              ? payload.allocations
+              : Array.isArray(paiement.allocations) && paiement.allocations.length > 0
+              ? paiement.allocations
+              : [];
+
+          const allocations = rawAllocations.filter((a) => a && num(a.montant) > 0);
+          let supId = Number(paiement.fournisseur_id || 0);
+          let supNom = String(paiement.fournisseur_nom || '');
+          let primaryPayId = 0;
+
+          if (allocations.length > 0) {
+            let totalAllocated = 0;
+
+            for (const alloc of allocations) {
+              const facId = Number(alloc.facture_fournisseur_id);
+              const allocMontant = num(alloc.montant);
+              if (allocMontant <= 0 || !facId) continue;
+
+              const linkedFacture: any = await sql`
+                SELECT id, numero, fournisseur_id, fournisseur_nom, total_ttc,
+                       GREATEST(COALESCE(reste_a_payer, total_ttc - COALESCE(montant_paye, 0)), 0) AS reste
+                FROM factures_fournisseurs
+                WHERE id = ${facId};
+              `;
+              if (!linkedFacture.length) continue;
+
+              const facNum = linkedFacture[0].numero;
+              const curSupId = Number(linkedFacture[0].fournisseur_id);
+              const curSupNom = linkedFacture[0].fournisseur_nom;
+              if (!supId) supId = curSupId;
+              if (!supNom) supNom = curSupNom;
+
+              const payMaxIdRes: any = await sql`SELECT COALESCE(MAX(id), 0) + 1 as next_id FROM paiements_fournisseurs;`;
+              const currentPayId = Number(payMaxIdRes[0]?.next_id || 1);
+              if (!primaryPayId) primaryPayId = currentPayId;
+
+              await sql`
+                INSERT INTO paiements_fournisseurs (
+                  id, fournisseur_id, fournisseur_nom, facture_fournisseur_id, facture_numero,
+                  date_paiement, montant, mode_paiement, numero_cheque_ref, banque_emettrice,
+                  date_echeance_depot, statut_cheque, notes
+                ) VALUES (
+                  ${currentPayId}, ${curSupId}, ${curSupNom}, ${facId},
+                  ${facNum}, ${paiement.date_paiement}, ${allocMontant},
+                  ${paiement.mode_paiement || 'Chèque'}, ${paiement.numero_cheque_ref || ''}, ${paiement.banque_emettrice || ''},
+                  ${paiement.date_echeance_depot || ''}, ${paiement.statut_cheque || 'En attente'}, ${paiement.notes || ''}
+                );
+              `;
+
+              // Recalculate invoice paid amount and remaining balance
+              const paidSumRes: any = await sql`
+                SELECT COALESCE(SUM(p.montant), 0) AS total_paid
+                FROM paiements_fournisseurs p
+                WHERE p.facture_fournisseur_id = ${facId};
+              `;
+              const totalPaid = num(paidSumRes[0]?.total_paid);
+              const totalTtc = num(linkedFacture[0].total_ttc);
+              const newReste = Math.max(0, totalTtc - totalPaid);
+              const newStatut = newReste <= 0.01 ? 'Payée' : totalPaid > 0 ? 'Partiel' : 'A payer';
+
+              await sql`
+                UPDATE factures_fournisseurs
+                SET montant_paye = ${totalPaid}, reste_a_payer = ${newReste}, statut = ${newStatut}
+                WHERE id = ${facId};
+              `;
+
+              totalAllocated += allocMontant;
+
+              // Accounting entry per payment piece
+              try {
+                const acctEntry = generateSupplierPaymentJournalEntry({
+                  id: currentPayId,
+                  fournisseur_nom: curSupNom,
+                  date_paiement: paiement.date_paiement,
+                  montant: allocMontant,
+                  mode_paiement: paiement.mode_paiement,
+                  numero_cheque_ref: paiement.numero_cheque_ref,
+                } as any);
+                await sql`
+                  INSERT INTO journal_entries (
+                    numero, date, journal_code, libelle, reference, status,
+                    total_debit, total_credit, source_type, source_id, lines
+                  ) VALUES (
+                    ${acctEntry.numero}, ${acctEntry.date}, ${acctEntry.journal_code},
+                    ${acctEntry.libelle}, ${acctEntry.reference || `PAY-${currentPayId}`},
+                    'valide', ${num(acctEntry.total_debit)}, ${num(acctEntry.total_credit)},
+                    'PAIEMENT_FOURNISSEUR', ${currentPayId}, ${JSON.stringify(acctEntry.lines)}::jsonb
+                  ) ON CONFLICT (numero) DO NOTHING;
+                `.catch(() => {});
+              } catch (acctErr) {
+                console.warn('[Accounting] Auto-post supplier payment error:', acctErr);
+              }
+            }
+
+            // Unallocated remainder recorded as general advance
+            const unallocatedRemainder = Math.round((amount - totalAllocated) * 100) / 100;
+            if (unallocatedRemainder > 0.009) {
+              const payMaxIdRes: any = await sql`SELECT COALESCE(MAX(id), 0) + 1 as next_id FROM paiements_fournisseurs;`;
+              const advPayId = Number(payMaxIdRes[0]?.next_id || 1);
+              if (!primaryPayId) primaryPayId = advPayId;
+
+              await sql`
+                INSERT INTO paiements_fournisseurs (
+                  id, fournisseur_id, fournisseur_nom, facture_fournisseur_id, facture_numero,
+                  date_paiement, montant, mode_paiement, numero_cheque_ref, banque_emettrice,
+                  date_echeance_depot, statut_cheque, notes
+                ) VALUES (
+                  ${advPayId}, ${supId}, ${supNom}, NULL,
+                  NULL, ${paiement.date_paiement}, ${unallocatedRemainder},
+                  ${paiement.mode_paiement || 'Chèque'}, ${paiement.numero_cheque_ref || ''}, ${paiement.banque_emettrice || ''},
+                  ${paiement.date_echeance_depot || ''}, ${paiement.statut_cheque || 'En attente'}, ${((paiement.notes || '') + ' (Acompte non affecté)').trim()}
+                );
+              `;
+            }
+
+            // Recalculate supplier balance
+            if (supId) {
+              await sql`
+                UPDATE fournisseurs f
+                SET solde_du = COALESCE((
+                  SELECT ROUND(SUM(GREATEST(COALESCE(ff.reste_a_payer, COALESCE(ff.total_ttc, 0) - COALESCE(ff.montant_paye, 0)), 0))::numeric, 2)
+                  FROM factures_fournisseurs ff
+                  WHERE ff.fournisseur_id = f.id
+                ), 0)
+                WHERE f.id = ${supId};
+              `;
+            }
+
+            return NextResponse.json({ success: true, id: primaryPayId || 1 });
+          }
+
+          // Single invoice or general unlinked payment fallback
           const payMaxIdRes: any = await sql`SELECT COALESCE(MAX(id), 0) + 1 as next_id FROM paiements_fournisseurs;`;
           const payId = Number(payMaxIdRes[0]?.next_id || 1);
+          const facId = paiement.facture_fournisseur_id ? Number(paiement.facture_fournisseur_id) : null;
+
           await sql`
             INSERT INTO paiements_fournisseurs (
               id, fournisseur_id, fournisseur_nom, facture_fournisseur_id, facture_numero,
               date_paiement, montant, mode_paiement, numero_cheque_ref, banque_emettrice,
               date_echeance_depot, statut_cheque, notes
             ) VALUES (
-              ${payId}, ${paiement.fournisseur_id}, ${paiement.fournisseur_nom}, ${paiement.facture_fournisseur_id || null},
+              ${payId}, ${paiement.fournisseur_id}, ${paiement.fournisseur_nom}, ${facId},
               ${paiement.facture_numero || ''}, ${paiement.date_paiement}, ${num(paiement.montant)},
               ${paiement.mode_paiement || 'Chèque'}, ${paiement.numero_cheque_ref || ''}, ${paiement.banque_emettrice || ''},
               ${paiement.date_echeance_depot || ''}, ${paiement.statut_cheque || 'En attente'}, ${paiement.notes || ''}
             );
           `;
+
+          if (facId) {
+            const paidSumRes: any = await sql`
+              SELECT COALESCE(SUM(p.montant), 0) AS total_paid
+              FROM paiements_fournisseurs p
+              WHERE p.facture_fournisseur_id = ${facId};
+            `;
+            const totalPaid = num(paidSumRes[0]?.total_paid);
+            const facRow: any = await sql`SELECT total_ttc FROM factures_fournisseurs WHERE id = ${facId};`;
+            if (facRow.length > 0) {
+              const totalTtc = num(facRow[0].total_ttc);
+              const newReste = Math.max(0, totalTtc - totalPaid);
+              const newStatut = newReste <= 0.01 ? 'Payée' : totalPaid > 0 ? 'Partiel' : 'A payer';
+
+              await sql`
+                UPDATE factures_fournisseurs
+                SET montant_paye = ${totalPaid}, reste_a_payer = ${newReste}, statut = ${newStatut}
+                WHERE id = ${facId};
+              `;
+            }
+          }
+
+          // Recalculate supplier balance
+          if (paiement.fournisseur_id) {
+            await sql`
+              UPDATE fournisseurs f
+              SET solde_du = COALESCE((
+                SELECT ROUND(SUM(GREATEST(COALESCE(ff.reste_a_payer, COALESCE(ff.total_ttc, 0) - COALESCE(ff.montant_paye, 0)), 0))::numeric, 2)
+                FROM factures_fournisseurs ff
+                WHERE ff.fournisseur_id = f.id
+              ), 0)
+              WHERE f.id = ${paiement.fournisseur_id};
+            `;
+          }
 
           // Real-time automatic accounting posting (PCGM)
           try {
@@ -2027,7 +2444,45 @@ export async function POST(req: NextRequest) {
 
         case 'delete_paiement_fournisseur': {
           const { id } = payload;
+          const payRes: any = await sql`SELECT fournisseur_id, facture_fournisseur_id FROM paiements_fournisseurs WHERE id = ${id};`;
+          const supId = payRes[0]?.fournisseur_id;
+          const facId = payRes[0]?.facture_fournisseur_id;
+
           await sql`DELETE FROM paiements_fournisseurs WHERE id = ${id};`;
+
+          if (facId) {
+            const paidSumRes: any = await sql`
+              SELECT COALESCE(SUM(p.montant), 0) AS total_paid
+              FROM paiements_fournisseurs p
+              WHERE p.facture_fournisseur_id = ${facId};
+            `;
+            const totalPaid = num(paidSumRes[0]?.total_paid);
+            const facRow: any = await sql`SELECT total_ttc FROM factures_fournisseurs WHERE id = ${facId};`;
+            if (facRow.length > 0) {
+              const totalTtc = num(facRow[0].total_ttc);
+              const newReste = Math.max(0, totalTtc - totalPaid);
+              const newStatut = newReste <= 0.01 ? 'Payée' : totalPaid > 0 ? 'Partiel' : 'A payer';
+
+              await sql`
+                UPDATE factures_fournisseurs
+                SET montant_paye = ${totalPaid}, reste_a_payer = ${newReste}, statut = ${newStatut}
+                WHERE id = ${facId};
+              `;
+            }
+          }
+
+          if (supId) {
+            await sql`
+              UPDATE fournisseurs f
+              SET solde_du = COALESCE((
+                SELECT ROUND(SUM(GREATEST(COALESCE(ff.reste_a_payer, COALESCE(ff.total_ttc, 0) - COALESCE(ff.montant_paye, 0)), 0))::numeric, 2)
+                FROM factures_fournisseurs ff
+                WHERE ff.fournisseur_id = f.id
+              ), 0)
+              WHERE f.id = ${supId};
+            `;
+          }
+
           return NextResponse.json({ success: true, message: 'Paiement fournisseur supprimé' });
         }
 

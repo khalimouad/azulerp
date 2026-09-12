@@ -1,13 +1,13 @@
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { Facture, Client, Reglement } from '@/lib/types';
+import { FactureFournisseur, Fournisseur, PaiementFournisseur } from '@/lib/types';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import {
   ArrowLeft,
   CreditCard,
   Save,
-  Building,
+  Building2,
   Calendar,
   DollarSign,
   FileText,
@@ -17,51 +17,64 @@ import {
   Sparkles,
   CheckCircle2,
   AlertCircle,
+  AlertTriangle,
   Clock,
   Layers,
 } from 'lucide-react';
 
-interface PaymentViewProps {
-  facture?: Facture | null;
-  paymentToEdit?: Reglement | null;
-  factures: Facture[];
-  clients: Client[];
+interface SupplierPaymentViewProps {
+  fournisseur?: Fournisseur | null;
+  facture?: FactureFournisseur | null;
+  paymentToEdit?: PaiementFournisseur | null;
+  facturesFournisseurs: FactureFournisseur[];
+  fournisseurs: Fournisseur[];
   onBack: () => void;
   onSave: (paymentData: {
-    facture_id?: number;
+    facture_fournisseur_id?: number;
     facture_numero?: string;
-    client_id: number;
-    client_nom: string;
-    date: string;
+    fournisseur_id: number;
+    fournisseur_nom: string;
+    date_paiement: string;
     montant: number;
-    mode_reglement: string;
-    reference_paiement?: string;
-    banque?: string;
+    mode_paiement: 'Chèque' | 'Virement' | 'Traite / Effet' | 'Espèces' | 'Prélèvement';
+    numero_cheque_ref?: string;
+    banque_emettrice?: string;
+    date_echeance_depot?: string;
+    statut_cheque?: 'En attente' | 'Déposé / Débité' | 'Annulé';
     notes?: string;
-    allocations?: Array<{ facture_id: number; montant: number }>;
+    allocations?: Array<{ facture_fournisseur_id: number; montant: number }>;
   }) => Promise<void>;
 }
 
-interface InvoiceAllocationRow {
-  facture: Facture;
+interface SupplierInvoiceAllocationRow {
+  facture: FactureFournisseur;
   selected: boolean;
   allocMontant: number;
   resteInitial: number;
 }
 
-export const PaymentView: React.FC<PaymentViewProps> = ({
+const getFutureIso = (days: number) => {
+  const d = new Date();
+  d.setDate(d.getDate() + days);
+  return d.toISOString().split('T')[0];
+};
+
+export const SupplierPaymentView: React.FC<SupplierPaymentViewProps> = ({
+  fournisseur,
   facture,
   paymentToEdit,
-  factures,
-  clients,
+  facturesFournisseurs,
+  fournisseurs,
   onBack,
   onSave,
 }) => {
   const isEditing = Boolean(paymentToEdit);
-  const [clientId, setClientId] = useState<number>(
-    paymentToEdit?.client_id || facture?.client_id || clients[0]?.id || 0
+  const [supplierId, setSupplierId] = useState<number>(
+    paymentToEdit?.fournisseur_id || facture?.fournisseur_id || fournisseur?.id || fournisseurs[0]?.id || 0
   );
-  const [date, setDate] = useState(paymentToEdit?.date || new Date().toISOString().split('T')[0]);
+  const [datePaiement, setDatePaiement] = useState(
+    paymentToEdit?.date_paiement || new Date().toISOString().split('T')[0]
+  );
   const [montant, setMontant] = useState<number>(() => {
     if (paymentToEdit) return Number(paymentToEdit.montant || 0);
     if (facture) {
@@ -70,53 +83,61 @@ export const PaymentView: React.FC<PaymentViewProps> = ({
     }
     return 0;
   });
-  const [mode, setMode] = useState<string>(
-    paymentToEdit?.mode_reglement || paymentToEdit?.mode || 'Virement'
+  const [mode, setMode] = useState<'Chèque' | 'Virement' | 'Traite / Effet' | 'Espèces' | 'Prélèvement'>(
+    paymentToEdit?.mode_paiement || 'Chèque'
   );
-  const [banque, setBanque] = useState<string>(paymentToEdit?.banque || 'Attijariwafa Bank');
-  const [refPaiement, setRefPaiement] = useState<string>(paymentToEdit?.reference_paiement || '');
+  const [banque, setBanque] = useState<string>(paymentToEdit?.banque_emettrice || 'Attijariwafa Bank');
+  const [refPaiement, setRefPaiement] = useState<string>(paymentToEdit?.numero_cheque_ref || '');
+  const [echeanceDepot, setEcheanceDepot] = useState<string>(
+    paymentToEdit?.date_echeance_depot || getFutureIso(3)
+  );
+  const [statutCheque, setStatutCheque] = useState<'En attente' | 'Déposé / Débité' | 'Annulé'>(
+    paymentToEdit?.statut_cheque || 'En attente'
+  );
   const [notes, setNotes] = useState<string>(paymentToEdit?.notes || '');
-  const [clientQuery, setClientQuery] = useState('');
+  const [supplierQuery, setSupplierQuery] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
-  // Allocations state per invoice ID: { [factureId]: { selected: boolean, allocMontant: number } }
+  // Allocations state per supplier invoice ID: { [facId]: { selected: boolean, montant: number } }
   const [allocationMap, setAllocationMap] = useState<Record<number, { selected: boolean; montant: number }>>({});
 
-  const selectedClient = clients.find((c) => Number(c.id) === Number(clientId));
+  const selectedSupplier = fournisseurs.find((f) => Number(f.id) === Number(supplierId));
 
-  const visibleClients = useMemo(() => {
-    const query = clientQuery.trim().toLocaleLowerCase('fr');
-    if (!query) return clients;
-    return clients.filter((client) =>
-      `${client.nom} ${client.code || ''} ${client.ville || ''} ${client.ice || ''}`
+  const visibleSuppliers = useMemo(() => {
+    const query = supplierQuery.trim().toLocaleLowerCase('fr');
+    if (!query) return fournisseurs;
+    return fournisseurs.filter((sup) =>
+      `${sup.nom} ${sup.code || ''} ${sup.ville || ''} ${sup.ice || ''}`
         .toLocaleLowerCase('fr')
         .includes(query)
     );
-  }, [clientQuery, clients]);
+  }, [supplierQuery, fournisseurs]);
 
-  // All eligible unpaid or partially paid invoices for the selected customer
-  const clientUnpaidFactures = useMemo(() => {
-    return factures
+  // Unpaid invoices for selected supplier
+  const supplierUnpaidFactures = useMemo(() => {
+    return facturesFournisseurs
       .filter((item) => {
-        if (Number(item.client_id) !== Number(clientId)) return false;
+        if (Number(item.fournisseur_id) !== Number(supplierId)) return false;
         if (item.etat === 'Annulé') return false;
         const reste = Number(item.reste_a_payer || 0);
-        const isCurrentLinked = Number(paymentToEdit?.facture_id) === Number(item.id) || Number(facture?.id) === Number(item.id);
+        const isCurrentLinked =
+          Number(paymentToEdit?.facture_fournisseur_id) === Number(item.id) ||
+          Number(facture?.id) === Number(item.id);
         return reste > 0.009 || isCurrentLinked;
       })
-      .sort((a, b) => a.date.localeCompare(b.date) || Number(a.id) - Number(b.id)); // Oldest first for FIFO
-  }, [clientId, factures, paymentToEdit, facture]);
+      .sort((a, b) => a.date_facture.localeCompare(b.date_facture) || Number(a.id) - Number(b.id)); // Oldest first
+  }, [supplierId, facturesFournisseurs, paymentToEdit, facture]);
 
-  // Initialize or update allocations when clientUnpaidFactures change
+  // Initialize or update allocations map when supplier invoices change
   useEffect(() => {
     setAllocationMap((prev) => {
       const nextMap: Record<number, { selected: boolean; montant: number }> = {};
 
-      for (const item of clientUnpaidFactures) {
+      for (const item of supplierUnpaidFactures) {
         const existing = prev[item.id];
         const reste = Number(item.reste_a_payer || 0);
         const available = Number(item.reste_a_payer || 0) +
-          (Number(paymentToEdit?.facture_id) === Number(item.id) ? Number(paymentToEdit?.montant || 0) : 0);
+          (Number(paymentToEdit?.facture_fournisseur_id) === Number(item.id) ? Number(paymentToEdit?.montant || 0) : 0);
 
         if (existing) {
           nextMap[item.id] = {
@@ -124,8 +145,7 @@ export const PaymentView: React.FC<PaymentViewProps> = ({
             montant: Math.min(existing.montant, available > 0 ? available : Number(item.total_ttc)),
           };
         } else {
-          // If a specific facture was targeted via props, select it by default
-          const isTargeted = Number(facture?.id) === Number(item.id) || Number(paymentToEdit?.facture_id) === Number(item.id);
+          const isTargeted = Number(facture?.id) === Number(item.id) || Number(paymentToEdit?.facture_fournisseur_id) === Number(item.id);
           const initialAlloc = isTargeted
             ? (paymentToEdit ? Number(paymentToEdit.montant) : (reste > 0 ? reste : Number(item.total_ttc)))
             : 0;
@@ -139,14 +159,14 @@ export const PaymentView: React.FC<PaymentViewProps> = ({
 
       return nextMap;
     });
-  }, [clientUnpaidFactures, facture, paymentToEdit]);
+  }, [supplierUnpaidFactures, facture, paymentToEdit]);
 
   // Compute live allocation rows
-  const allocationRows: InvoiceAllocationRow[] = useMemo(() => {
-    return clientUnpaidFactures.map((fac) => {
+  const allocationRows: SupplierInvoiceAllocationRow[] = useMemo(() => {
+    return supplierUnpaidFactures.map((fac) => {
       const entry = allocationMap[fac.id];
       const reste = Number(fac.reste_a_payer || 0);
-      const isLinkedToEdit = Number(paymentToEdit?.facture_id) === Number(fac.id);
+      const isLinkedToEdit = Number(paymentToEdit?.facture_fournisseur_id) === Number(fac.id);
       const resteInitial = isLinkedToEdit ? reste + Number(paymentToEdit?.montant || 0) : reste;
 
       return {
@@ -156,16 +176,15 @@ export const PaymentView: React.FC<PaymentViewProps> = ({
         resteInitial,
       };
     });
-  }, [clientUnpaidFactures, allocationMap, paymentToEdit]);
+  }, [supplierUnpaidFactures, allocationMap, paymentToEdit]);
 
-  // Total allocated across all selected invoices
+  // Total allocated across selected supplier invoices
   const totalAllocated = useMemo(() => {
     return Math.round(
       allocationRows.reduce((sum, row) => (row.selected ? sum + Number(row.allocMontant || 0) : sum), 0) * 100
     ) / 100;
   }, [allocationRows]);
 
-  // Unallocated remainder (surplus / acompte)
   const unallocatedRemainder = Math.round((montant - totalAllocated) * 100) / 100;
 
   // Toggle invoice row selection
@@ -173,7 +192,7 @@ export const PaymentView: React.FC<PaymentViewProps> = ({
     setAllocationMap((prev) => {
       const current = prev[facId];
       const willSelect = !current?.selected;
-      const fac = clientUnpaidFactures.find((f) => f.id === facId);
+      const fac = supplierUnpaidFactures.find((f) => f.id === facId);
       const reste = Number(fac?.reste_a_payer || 0);
 
       let nextMontant = current?.montant || 0;
@@ -192,12 +211,11 @@ export const PaymentView: React.FC<PaymentViewProps> = ({
     });
   };
 
-  // Change allocation amount for an invoice
   const handleSetRowAmount = (facId: number, val: number) => {
     setAllocationMap((prev) => {
-      const fac = clientUnpaidFactures.find((f) => f.id === facId);
+      const fac = supplierUnpaidFactures.find((f) => f.id === facId);
       const maxAvailable = Number(fac?.reste_a_payer || fac?.total_ttc || 0) +
-        (Number(paymentToEdit?.facture_id) === Number(facId) ? Number(paymentToEdit?.montant || 0) : 0);
+        (Number(paymentToEdit?.facture_fournisseur_id) === Number(facId) ? Number(paymentToEdit?.montant || 0) : 0);
       const clamped = Math.max(0, Math.min(maxAvailable, Math.round(val * 100) / 100));
 
       return {
@@ -210,21 +228,19 @@ export const PaymentView: React.FC<PaymentViewProps> = ({
     });
   };
 
-  // Quick set percentage (100% full, 50% partial, 0% clear)
   const handleQuickRatio = (facId: number, ratio: number) => {
-    const fac = clientUnpaidFactures.find((f) => f.id === facId);
+    const fac = supplierUnpaidFactures.find((f) => f.id === facId);
     if (!fac) return;
     const reste = Number(fac.reste_a_payer || fac.total_ttc || 0) +
-      (Number(paymentToEdit?.facture_id) === Number(facId) ? Number(paymentToEdit?.montant || 0) : 0);
+      (Number(paymentToEdit?.facture_fournisseur_id) === Number(facId) ? Number(paymentToEdit?.montant || 0) : 0);
     const calculated = Math.round(reste * ratio * 100) / 100;
     handleSetRowAmount(facId, calculated);
   };
 
-  // Select all or Deselect all
   const handleToggleSelectAll = (select: boolean) => {
     setAllocationMap((prev) => {
       const nextMap = { ...prev };
-      for (const f of clientUnpaidFactures) {
+      for (const f of supplierUnpaidFactures) {
         const reste = Number(f.reste_a_payer || f.total_ttc || 0);
         nextMap[f.id] = {
           selected: select,
@@ -235,7 +251,6 @@ export const PaymentView: React.FC<PaymentViewProps> = ({
     });
   };
 
-  // Solder all checked invoices -> sets master montant to exact sum of selected remaining balances
   const handleSolderSelectedInvoices = () => {
     let sumSelected = 0;
     const nextMap = { ...allocationMap };
@@ -260,19 +275,20 @@ export const PaymentView: React.FC<PaymentViewProps> = ({
     setMontant(Math.round(sumSelected * 100) / 100);
   };
 
-  // FIFO automatic distribution: distributes the entered total montant across invoices from oldest to newest
   const handleFifoAutoDistribute = () => {
     if (montant <= 0) {
-      alert('Veuillez d’abord saisir un montant encaissé supérieur à 0.');
+      alert('Veuillez d’abord saisir un montant de paiement supérieur à 0.');
       return;
     }
 
     let remainingFund = montant;
     const nextMap: Record<number, { selected: boolean; montant: number }> = {};
 
-    for (const f of clientUnpaidFactures) {
-      const isLinkedToEdit = Number(paymentToEdit?.facture_id) === Number(f.id);
-      const reste = isLinkedToEdit ? Number(f.reste_a_payer || 0) + Number(paymentToEdit?.montant || 0) : Number(f.reste_a_payer || f.total_ttc || 0);
+    for (const f of supplierUnpaidFactures) {
+      const isLinkedToEdit = Number(paymentToEdit?.facture_fournisseur_id) === Number(f.id);
+      const reste = isLinkedToEdit
+        ? Number(f.reste_a_payer || 0) + Number(paymentToEdit?.montant || 0)
+        : Number(f.reste_a_payer || f.total_ttc || 0);
 
       if (remainingFund > 0) {
         const toAllocate = Math.min(reste, remainingFund);
@@ -295,38 +311,39 @@ export const PaymentView: React.FC<PaymentViewProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (montant <= 0) {
-      alert('Le montant du règlement doit être supérieur à zéro.');
+      alert('Le montant du paiement doit être supérieur à zéro.');
       return;
     }
-    if (!selectedClient) {
-      alert('Veuillez sélectionner un client valide.');
+    if (!selectedSupplier) {
+      alert('Veuillez sélectionner un fournisseur valide.');
       return;
     }
     if (totalAllocated > montant + 0.009) {
-      alert(`Le total alloué (${formatCurrency(totalAllocated)}) ne peut pas dépasser le montant total encaissé (${formatCurrency(montant)}).`);
+      alert(`Le total alloué (${formatCurrency(totalAllocated)}) ne peut pas dépasser le montant total émis (${formatCurrency(montant)}).`);
       return;
     }
 
-    // Build allocations list
     const activeAllocations = allocationRows
       .filter((r) => r.selected && r.allocMontant > 0)
       .map((r) => ({
-        facture_id: r.facture.id,
+        facture_fournisseur_id: r.facture.id,
         montant: r.allocMontant,
       }));
 
     setIsSaving(true);
     try {
       await onSave({
-        facture_id: activeAllocations.length === 1 ? activeAllocations[0].facture_id : undefined,
-        facture_numero: activeAllocations.length === 1 ? clientUnpaidFactures.find((f) => f.id === activeAllocations[0].facture_id)?.numero : undefined,
-        client_id: selectedClient.id,
-        client_nom: selectedClient.nom,
-        date,
+        facture_fournisseur_id: activeAllocations.length === 1 ? activeAllocations[0].facture_fournisseur_id : undefined,
+        facture_numero: activeAllocations.length === 1 ? supplierUnpaidFactures.find((f) => f.id === activeAllocations[0].facture_fournisseur_id)?.numero : undefined,
+        fournisseur_id: selectedSupplier.id,
+        fournisseur_nom: selectedSupplier.nom,
+        date_paiement: datePaiement,
         montant,
-        mode_reglement: mode,
-        reference_paiement: refPaiement.trim(),
-        banque,
+        mode_paiement: mode,
+        numero_cheque_ref: refPaiement.trim(),
+        banque_emettrice: banque.trim(),
+        date_echeance_depot: (mode === 'Chèque' || mode === 'Traite / Effet') ? echeanceDepot : undefined,
+        statut_cheque: statutCheque,
         notes: notes.trim(),
         allocations: activeAllocations,
       });
@@ -339,7 +356,7 @@ export const PaymentView: React.FC<PaymentViewProps> = ({
 
   return (
     <div className="space-y-5 animate-in fade-in duration-200 max-w-6xl mx-auto pb-12">
-      {/* Top Header & Navigation Bar */}
+      {/* Top Action Bar */}
       <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <button
@@ -348,22 +365,22 @@ export const PaymentView: React.FC<PaymentViewProps> = ({
             className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition active:scale-95"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>Retour aux Règlements</span>
+            <span>Retour aux Règlements Fournisseurs</span>
           </button>
 
           <div className="h-6 w-px bg-slate-200 hidden sm:block" />
 
           <div>
             <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-              <CreditCard className="w-5 h-5 text-emerald-600" />
+              <CreditCard className="w-5 h-5 text-indigo-600" />
               {isEditing
-                ? `Modifier l’encaissement N° ${paymentToEdit?.id}`
+                ? `Modifier le Paiement N° ${paymentToEdit?.id}`
                 : facture
-                ? `Encaisser Facture : ${facture.numero}`
-                : 'Enregistrer un Règlement / Encaissement Client'}
+                ? `Régler Facture Fournisseur : ${facture.numero}`
+                : 'Émettre un Paiement / Chèque Fournisseur'}
             </h2>
             <p className="text-xs text-slate-500">
-              Saisie du règlement client avec lettrage direct : paiement intégral, partiel ou multi-factures
+              Saisie du règlement fournisseur avec lettrage direct : règlement complet, partiel ou multi-factures
             </p>
           </div>
         </div>
@@ -379,87 +396,87 @@ export const PaymentView: React.FC<PaymentViewProps> = ({
           <button
             type="button"
             onClick={handleSubmit}
-            disabled={isSaving || !selectedClient || montant <= 0}
-            className="flex items-center gap-1.5 px-5 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-xs transition active:scale-95 disabled:opacity-50"
+            disabled={isSaving || !selectedSupplier || montant <= 0}
+            className="flex items-center gap-1.5 px-5 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-xs transition active:scale-95 disabled:opacity-50"
           >
             <Save className="w-4 h-4" />
-            {isSaving ? 'Enregistrement...' : isEditing ? 'Enregistrer les modifications' : 'Valider l’Encaissement'}
+            {isSaving ? 'Enregistrement...' : isEditing ? 'Enregistrer les modifications' : 'Valider le Paiement'}
           </button>
         </div>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-5">
         {/* ========================================================================= */}
-        {/* CARD 1: GENERAL PAYMENT DETAILS */}
+        {/* CARD 1: GENERAL SUPPLIER PAYMENT DETAILS */}
         {/* ========================================================================= */}
         <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs space-y-4">
           <div className="flex items-center justify-between pb-3 border-b border-slate-100">
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800 flex items-center gap-2">
-              <DollarSign className="w-4 h-4 text-emerald-600" />
-              Modalités de l'Encaissement
+              <Building2 className="w-4 h-4 text-indigo-600" />
+              Modalités du Règlement Fournisseur
             </h3>
-            {selectedClient && (
+            {selectedSupplier && (
               <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-700">
-                Solde Dû Client : <strong className="text-rose-600">{formatCurrency(selectedClient.solde || 0)}</strong>
+                Solde Dû Fournisseur : <strong className="text-rose-600">{formatCurrency(selectedSupplier.solde_du || 0)}</strong>
               </span>
             )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Client Selector */}
+            {/* Supplier Selector */}
             <div className="md:col-span-1">
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">Client *</label>
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">Fournisseur *</label>
               {!facture && (
                 <div className="relative mb-2">
                   <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
                   <input
                     type="search"
-                    value={clientQuery}
-                    onChange={(e) => setClientQuery(e.target.value)}
-                    placeholder="Filtrer client…"
-                    className="w-full rounded-lg border border-slate-300 bg-white py-1.5 pl-8 pr-3 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    value={supplierQuery}
+                    onChange={(e) => setSupplierQuery(e.target.value)}
+                    placeholder="Filtrer fournisseur…"
+                    className="w-full rounded-lg border border-slate-300 bg-white py-1.5 pl-8 pr-3 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   />
                 </div>
               )}
               <select
-                value={clientId}
-                onChange={(e) => setClientId(Number(e.target.value))}
+                value={supplierId}
+                onChange={(e) => setSupplierId(Number(e.target.value))}
                 disabled={!!facture}
-                className="w-full px-3 py-2 text-xs bg-white rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium disabled:bg-slate-100"
+                className="w-full px-3 py-2 text-xs bg-white rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium disabled:bg-slate-100"
               >
-                {visibleClients.length === 0 && <option value="">Aucun client trouvé</option>}
-                {visibleClients.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.nom} {c.ville ? `(${c.ville})` : ''} - Solde: {formatCurrency(c.solde || 0)}
+                {visibleSuppliers.length === 0 && <option value="">Aucun fournisseur trouvé</option>}
+                {visibleSuppliers.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.nom} {s.ville ? `(${s.ville})` : ''} - Solde: {formatCurrency(s.solde_du || 0)}
                   </option>
                 ))}
               </select>
             </div>
 
-            {/* Date */}
+            {/* Payment Date */}
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1.5 flex items-center gap-1">
                 <Calendar className="w-3.5 h-3.5 text-slate-500" />
-                Date de Règlement *
+                Date d'Émission *
               </label>
               <input
                 type="date"
                 required
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                className="w-full px-3 py-2 text-xs bg-white rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
+                value={datePaiement}
+                onChange={(e) => setDatePaiement(e.target.value)}
+                className="w-full px-3 py-2 text-xs bg-white rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium"
               />
             </div>
 
             {/* Master Payment Amount */}
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1.5 flex items-center justify-between">
-                <span>Montant Total Encaissé (DH) *</span>
+                <span>Montant du Paiement (DH) *</span>
                 {allocationRows.some((r) => r.selected) && (
                   <button
                     type="button"
                     onClick={handleSolderSelectedInvoices}
-                    className="text-[11px] text-emerald-600 hover:text-emerald-800 font-bold underline"
+                    className="text-[11px] text-indigo-600 hover:text-indigo-800 font-bold underline"
                   >
                     Ajuster au solde
                   </button>
@@ -473,33 +490,33 @@ export const PaymentView: React.FC<PaymentViewProps> = ({
                 value={montant || ''}
                 onChange={(e) => setMontant(parseFloat(e.target.value) || 0)}
                 placeholder="0.00"
-                className="w-full px-3 py-1.5 text-base font-mono font-black text-emerald-800 bg-emerald-50/40 rounded-lg border-2 border-emerald-300 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full px-3 py-1.5 text-base font-mono font-black text-indigo-900 bg-indigo-50/40 rounded-lg border-2 border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
             </div>
 
             {/* Mode */}
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">Mode de Paiement *</label>
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">Mode de Règlement *</label>
               <select
                 value={mode}
-                onChange={(e) => setMode(e.target.value)}
-                className="w-full px-3 py-2 text-xs bg-white rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
+                onChange={(e) => setMode(e.target.value as any)}
+                className="w-full px-3 py-2 text-xs bg-white rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium"
               >
+                <option value="Chèque">Chèque Bancaire</option>
+                <option value="Traite / Effet">Traite / Effet de commerce</option>
                 <option value="Virement">Virement bancaire</option>
-                <option value="Chèque">Chèque bancaire</option>
-                <option value="Traite">Traite / Effet de commerce</option>
-                <option value="Espèces">Espèces / Caisse</option>
-                <option value="Carte Bancaire">Carte Bancaire (TPE)</option>
+                <option value="Espèces">Espèces</option>
+                <option value="Prélèvement">Prélèvement automatique</option>
               </select>
             </div>
 
             {/* Banque */}
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">Banque de Domiciliation</label>
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">Banque Émettrice</label>
               <select
                 value={banque}
                 onChange={(e) => setBanque(e.target.value)}
-                className="w-full px-3 py-2 text-xs bg-white rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full px-3 py-2 text-xs bg-white rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               >
                 <option value="Attijariwafa Bank">Attijariwafa Bank</option>
                 <option value="Banque Populaire (BCP)">Banque Populaire (BCP)</option>
@@ -515,42 +532,75 @@ export const PaymentView: React.FC<PaymentViewProps> = ({
             {/* Reference */}
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                N° Chèque / Réf Virement / N° Traite
+                N° Chèque / N° Traite / Référence
               </label>
               <input
                 type="text"
-                placeholder="Ex: CHQ-879410 ou VIR-99214"
+                placeholder="Ex: CHQ-2026/88921"
                 value={refPaiement}
                 onChange={(e) => setRefPaiement(e.target.value)}
-                className="w-full px-3 py-2 text-xs font-mono bg-white rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full px-3 py-2 text-xs font-mono bg-white rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
             </div>
+
+            {/* Check Due Date for Alerts */}
+            {(mode === 'Chèque' || mode === 'Traite / Effet') && (
+              <div>
+                <label className="block text-xs font-bold text-amber-800 mb-1.5 flex items-center gap-1">
+                  <Clock className="w-3.5 h-3.5 text-amber-600" />
+                  Date d'Échéance / Dépôt Prévu *
+                </label>
+                <input
+                  type="date"
+                  required
+                  value={echeanceDepot}
+                  onChange={(e) => setEcheanceDepot(e.target.value)}
+                  className="w-full px-3 py-2 text-xs font-bold bg-amber-50/50 rounded-lg border border-amber-300 focus:outline-none focus:ring-2 focus:ring-amber-500 text-slate-900"
+                />
+              </div>
+            )}
+
+            {/* Check Status */}
+            {(mode === 'Chèque' || mode === 'Traite / Effet') && (
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Statut du Chèque</label>
+                <select
+                  value={statutCheque}
+                  onChange={(e) => setStatutCheque(e.target.value as any)}
+                  className="w-full px-3 py-2 text-xs bg-white rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium"
+                >
+                  <option value="En attente">En attente d'encaissement</option>
+                  <option value="Déposé / Débité">Déposé / Débité</option>
+                  <option value="Annulé">Annulé / Rejeté</option>
+                </select>
+              </div>
+            )}
 
             <div className="md:col-span-3">
               <label className="block text-xs font-semibold text-slate-700 mb-1.5">Notes & Observations</label>
               <input
                 type="text"
-                placeholder="Ex: Règlement factures semaine 36, acompte..."
+                placeholder="Ex: Règlement factures d'engrais et semences..."
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                className="w-full px-3 py-2 text-xs bg-white rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full px-3 py-2 text-xs bg-white rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
             </div>
           </div>
         </div>
 
         {/* ========================================================================= */}
-        {/* CARD 2: MATCHING INVOICES TABLE (LETTRAGE & ALLOCATION) */}
+        {/* CARD 2: MATCHING SUPPLIER INVOICES TABLE (LETTRAGE ACHATS) */}
         {/* ========================================================================= */}
         <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
             <div>
               <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800 flex items-center gap-2">
-                <Layers className="w-4 h-4 text-blue-600" />
-                Lettrage et Affectation aux Factures Impayées
+                <Layers className="w-4 h-4 text-indigo-600" />
+                Lettrage et Affectation aux Factures Fournisseurs Impayées
               </h3>
               <p className="text-xs text-slate-500 mt-0.5">
-                Cochez les factures à régler et ajustez les montants (règlement total, partiel ou multi-factures).
+                Cochez les factures d'achat à solder et allouez le montant (règlement total, partiel ou multi-factures).
               </p>
             </div>
 
@@ -573,9 +623,9 @@ export const PaymentView: React.FC<PaymentViewProps> = ({
               <button
                 type="button"
                 onClick={handleFifoAutoDistribute}
-                className="flex items-center gap-1 px-3 py-1 text-xs font-bold rounded-lg bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 transition shadow-2xs"
+                className="flex items-center gap-1 px-3 py-1 text-xs font-bold rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100 transition shadow-2xs"
               >
-                <Sparkles className="w-3.5 h-3.5 text-blue-600" />
+                <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
                 Répartition FIFO Auto
               </button>
               <button
@@ -589,18 +639,19 @@ export const PaymentView: React.FC<PaymentViewProps> = ({
             </div>
           </div>
 
-          {/* Table of Unpaid Invoices */}
+          {/* Invoices Table */}
           <div className="overflow-x-auto border border-slate-200 rounded-xl">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
                 <tr className="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200 divide-x divide-slate-200">
                   <th className="py-2.5 px-3 text-center w-10">Sélec.</th>
                   <th className="py-2.5 px-3">N° Facture</th>
-                  <th className="py-2.5 px-3">Date</th>
+                  <th className="py-2.5 px-3">Date Facture</th>
+                  <th className="py-2.5 px-3">Échéance</th>
                   <th className="py-2.5 px-3 text-right">Total TTC</th>
-                  <th className="py-2.5 px-3 text-right">Déjà Réglé</th>
+                  <th className="py-2.5 px-3 text-right">Déjà Payé</th>
                   <th className="py-2.5 px-3 text-right">Reste Initial</th>
-                  <th className="py-2.5 px-3 text-center min-w-[200px]">Montant à Régler (DH)</th>
+                  <th className="py-2.5 px-3 text-center min-w-[200px]">Montant à Allouer (DH)</th>
                   <th className="py-2.5 px-3 text-right">Nouveau Reste</th>
                   <th className="py-2.5 px-3 text-center">Statut Prévu</th>
                 </tr>
@@ -608,8 +659,8 @@ export const PaymentView: React.FC<PaymentViewProps> = ({
               <tbody className="divide-y divide-slate-200">
                 {allocationRows.length === 0 ? (
                   <tr>
-                    <td colSpan={9} className="py-8 text-center text-slate-400">
-                      Aucune facture impayée trouvée pour ce client. Le règlement sera enregistré comme acompte sur le compte client.
+                    <td colSpan={10} className="py-8 text-center text-slate-400">
+                      Aucune facture impayée trouvée pour ce fournisseur. Le paiement sera enregistré comme acompte sur le compte fournisseur.
                     </td>
                   </tr>
                 ) : (
@@ -624,7 +675,7 @@ export const PaymentView: React.FC<PaymentViewProps> = ({
                       <tr
                         key={fac.id}
                         className={`transition hover:bg-slate-50/80 divide-x divide-slate-200 ${
-                          row.selected ? 'bg-emerald-50/20' : ''
+                          row.selected ? 'bg-indigo-50/20' : ''
                         }`}
                       >
                         {/* Checkbox */}
@@ -632,10 +683,10 @@ export const PaymentView: React.FC<PaymentViewProps> = ({
                           <button
                             type="button"
                             onClick={() => handleToggleRow(fac.id)}
-                            className="text-slate-600 hover:text-emerald-600"
+                            className="text-slate-600 hover:text-indigo-600"
                           >
                             {row.selected ? (
-                              <CheckSquare className="w-4 h-4 text-emerald-600" />
+                              <CheckSquare className="w-4 h-4 text-indigo-600" />
                             ) : (
                               <Square className="w-4 h-4 text-slate-400" />
                             )}
@@ -649,7 +700,12 @@ export const PaymentView: React.FC<PaymentViewProps> = ({
 
                         {/* Date */}
                         <td className="py-2 px-3 text-slate-600">
-                          {formatDate(fac.date)}
+                          {formatDate(fac.date_facture)}
+                        </td>
+
+                        {/* Echeance */}
+                        <td className="py-2 px-3 text-slate-500 font-mono">
+                          {fac.date_echeance ? formatDate(fac.date_echeance) : '-'}
                         </td>
 
                         {/* Total TTC */}
@@ -657,9 +713,9 @@ export const PaymentView: React.FC<PaymentViewProps> = ({
                           {formatCurrency(fac.total_ttc)}
                         </td>
 
-                        {/* Deja Regle */}
+                        {/* Deja Paye */}
                         <td className="py-2 px-3 text-right font-mono text-slate-500">
-                          {formatCurrency(fac.montant_regle || 0)}
+                          {formatCurrency(fac.montant_paye || 0)}
                         </td>
 
                         {/* Reste Initial */}
@@ -667,7 +723,7 @@ export const PaymentView: React.FC<PaymentViewProps> = ({
                           {formatCurrency(row.resteInitial)}
                         </td>
 
-                        {/* Montant a Regler with Quick Buttons */}
+                        {/* Montant a Allouer */}
                         <td className="py-2 px-3">
                           <div className="flex items-center justify-center gap-1">
                             <input
@@ -681,7 +737,7 @@ export const PaymentView: React.FC<PaymentViewProps> = ({
                               placeholder="0.00"
                               className={`w-28 px-2 py-1 text-xs font-mono font-bold rounded-lg border text-right focus:outline-none focus:ring-2 ${
                                 row.selected
-                                  ? 'bg-white border-emerald-400 text-emerald-900 focus:ring-emerald-500'
+                                  ? 'bg-white border-indigo-400 text-indigo-900 focus:ring-indigo-500'
                                   : 'bg-slate-100 border-slate-200 text-slate-400'
                               }`}
                             />
@@ -694,7 +750,7 @@ export const PaymentView: React.FC<PaymentViewProps> = ({
                                 handleQuickRatio(fac.id, 1);
                               }}
                               className="px-1.5 py-0.5 text-[10px] font-bold rounded bg-emerald-100 text-emerald-800 hover:bg-emerald-200 transition"
-                              title="Payer 100% (Solder)"
+                              title="Solder à 100%"
                             >
                               100%
                             </button>
@@ -705,7 +761,7 @@ export const PaymentView: React.FC<PaymentViewProps> = ({
                                 handleQuickRatio(fac.id, 0.5);
                               }}
                               className="px-1.5 py-0.5 text-[10px] font-bold rounded bg-blue-100 text-blue-800 hover:bg-blue-200 transition"
-                              title="Payer 50% (Acompte)"
+                              title="Payer 50%"
                             >
                               50%
                             </button>
@@ -736,7 +792,7 @@ export const PaymentView: React.FC<PaymentViewProps> = ({
                           {isFullyPaid ? (
                             <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1 justify-center w-fit mx-auto">
                               <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                              Soldée
+                              Payée
                             </span>
                           ) : isPartial ? (
                             <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-300 flex items-center gap-1 justify-center w-fit mx-auto">
@@ -757,17 +813,17 @@ export const PaymentView: React.FC<PaymentViewProps> = ({
             </table>
           </div>
 
-          {/* Live Allocation Summary Recap Bar */}
+          {/* Allocation Recap Bar */}
           <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs">
             <div className="flex items-center gap-6 flex-wrap">
               <div>
-                <span className="text-slate-500 block text-[11px]">Total Paiement Reçu :</span>
+                <span className="text-slate-500 block text-[11px]">Total Paiement Émis :</span>
                 <strong className="text-sm font-mono font-black text-slate-900">{formatCurrency(montant)}</strong>
               </div>
               <div className="h-6 w-px bg-slate-200 hidden sm:block" />
               <div>
                 <span className="text-slate-500 block text-[11px]">Total Alloué aux Factures :</span>
-                <strong className="text-sm font-mono font-black text-emerald-700">{formatCurrency(totalAllocated)}</strong>
+                <strong className="text-sm font-mono font-black text-indigo-700">{formatCurrency(totalAllocated)}</strong>
               </div>
               <div className="h-6 w-px bg-slate-200 hidden sm:block" />
               <div>
@@ -778,29 +834,28 @@ export const PaymentView: React.FC<PaymentViewProps> = ({
               </div>
             </div>
 
-            {/* Status Alert Badge */}
             <div>
               {totalAllocated > montant + 0.009 ? (
                 <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 font-bold">
                   <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
-                  <span>Dépassement : l’allocation excède le paiement de {formatCurrency(totalAllocated - montant)}</span>
+                  <span>Dépassement : l’affectation excède le paiement de {formatCurrency(totalAllocated - montant)}</span>
                 </div>
               ) : unallocatedRemainder > 0.009 ? (
                 <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-50 border border-blue-200 text-blue-800 font-semibold">
                   <CheckCircle2 className="w-4 h-4 text-blue-600 shrink-0" />
-                  <span>{formatCurrency(unallocatedRemainder)} sera conservé en acompte sur le compte client</span>
+                  <span>{formatCurrency(unallocatedRemainder)} sera enregistré en acompte sur le compte fournisseur</span>
                 </div>
               ) : (
                 <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 font-bold">
                   <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                  <span>Lettrage parfait : 100% du montant est affecté</span>
+                  <span>Lettrage équilibré : 100% du montant est affecté aux factures</span>
                 </div>
               )}
             </div>
           </div>
         </div>
 
-        {/* Footer Actions */}
+        {/* Footer */}
         <div className="flex items-center justify-between p-4 bg-white rounded-xl border border-slate-200">
           <button
             type="button"
@@ -812,11 +867,11 @@ export const PaymentView: React.FC<PaymentViewProps> = ({
           <button
             type="button"
             onClick={handleSubmit}
-            disabled={isSaving || !selectedClient || montant <= 0 || totalAllocated > montant + 0.009}
-            className="flex items-center gap-2 px-6 py-2.5 text-xs sm:text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-xs transition active:scale-95 disabled:opacity-50"
+            disabled={isSaving || !selectedSupplier || montant <= 0 || totalAllocated > montant + 0.009}
+            className="flex items-center gap-2 px-6 py-2.5 text-xs sm:text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-xs transition active:scale-95 disabled:opacity-50"
           >
             <Save className="w-4 h-4" />
-            {isSaving ? 'Enregistrement...' : isEditing ? 'Enregistrer les modifications' : 'Enregistrer le Règlement'}
+            {isSaving ? 'Enregistrement...' : isEditing ? 'Enregistrer les modifications' : 'Valider le Règlement Fournisseur'}
           </button>
         </div>
       </form>

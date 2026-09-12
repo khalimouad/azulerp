@@ -1,6 +1,6 @@
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { CompanyInfo, Facture, BonLivraison, BonRetour, Devis } from './types';
+import { CompanyInfo, Facture, BonLivraison, BonRetour, Devis, FactureFournisseur } from './types';
 import { formatCurrency, formatDate, numberToFrenchWords } from './utils';
 import { getTicketPrinterSettings } from './ticket-printer';
 
@@ -993,3 +993,136 @@ export function generateDevisPdf(devis: Devis, company: CompanyInfo) {
   drawVerdeOrtoFooter(doc, company);
   doc.save(`Devis_${devis.numero.replace(/[\/\\]/g, '_')}.pdf`);
 }
+
+export function generateFactureFournisseurPdf(facture: FactureFournisseur, company: CompanyInfo) {
+  const doc = new jsPDF({
+    orientation: 'portrait',
+    unit: 'mm',
+    format: 'a5',
+  });
+
+  drawVerdeOrtoHeader(
+    doc,
+    company,
+    "Facture d'Achat Fournisseur",
+    facture.numero,
+    formatDate(facture.date_facture),
+    facture.fournisseur_nom,
+    facture.fournisseur_ice,
+    undefined,
+    undefined,
+    facture.date_echeance ? [{ label: 'Échéance', value: formatDate(facture.date_echeance) }] : undefined
+  );
+
+  const tableBody = (facture.lignes && facture.lignes.length > 0)
+    ? facture.lignes.map((l) => [
+        l.designation,
+        formatQuantityWithUnit(l.quantite, l.designation),
+        formatCurrency(l.prix_achat_ht, false),
+        `${l.taux_tva ?? 20}`,
+        '',
+        formatCurrency(l.total_ht ?? (l.quantite * l.prix_achat_ht), false),
+      ])
+    : [[
+        facture.designation_achat || 'Marchandises / Prestations',
+        '1 U',
+        formatCurrency(facture.total_ht, false),
+        '20',
+        '',
+        formatCurrency(facture.total_ht, false),
+      ]];
+
+  autoTable(doc, {
+    startY: 56,
+    margin: { left: 8, right: 8 },
+    theme: 'plain',
+    head: [['Désignation', 'Qté.', 'P.U. HT', 'TVA', 'Remise', 'Total HT']],
+    body: tableBody,
+    styles: {
+      fontSize: 6.5,
+      cellPadding: { top: 0.8, bottom: 0.8, left: 1.0, right: 1.0 },
+      textColor: [15, 23, 42],
+      lineWidth: 0.15,
+      lineColor: [203, 213, 225],
+    },
+    headStyles: {
+      fillColor: [241, 245, 249],
+      textColor: [15, 23, 42],
+      fontStyle: 'bold',
+      halign: 'left',
+      lineWidth: 0.25,
+      lineColor: [148, 163, 184],
+    },
+    columnStyles: {
+      0: { halign: 'left', cellWidth: 50 },
+      1: { halign: 'right', cellWidth: 16 },
+      2: { halign: 'right', cellWidth: 18 },
+      3: { halign: 'center', cellWidth: 12 },
+      4: { halign: 'center', cellWidth: 14 },
+      5: { halign: 'right', cellWidth: 22 },
+    },
+  });
+
+  const finalY = (doc as any).lastAutoTable ? (doc as any).lastAutoTable.finalY + 3 : 135;
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(6.2);
+  doc.setTextColor(71, 85, 105);
+  doc.text('Arrêter la présente Facture d\'Achat à la somme de :', 8, finalY + 4);
+
+  doc.setFont('helvetica', 'bolditalic');
+  doc.setFontSize(6.8);
+  doc.setTextColor(15, 23, 42);
+  const words = `${numberToFrenchWords(facture.total_ttc || 0)}.`;
+  doc.text(words.toLowerCase(), 8, finalY + 8, { maxWidth: 68 });
+
+  const rightX = 140;
+  const labelX = 85;
+  let totY = finalY + 3;
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(6.5);
+  doc.setTextColor(71, 85, 105);
+
+  doc.text('Total HT :', labelX, totY);
+  doc.text(`${formatCurrency(facture.total_ht || 0, false)} DH`, rightX, totY, { align: 'right' });
+  totY += 3.2;
+
+  if (Number(facture.tva_7) > 0) {
+    doc.text('Total TVA 7 % :', labelX, totY);
+    doc.text(`${formatCurrency(facture.tva_7, false)} DH`, rightX, totY, { align: 'right' });
+    totY += 3.2;
+  }
+  if (Number(facture.tva_10) > 0) {
+    doc.text('Total TVA 10 % :', labelX, totY);
+    doc.text(`${formatCurrency(facture.tva_10, false)} DH`, rightX, totY, { align: 'right' });
+    totY += 3.2;
+  }
+  if (Number(facture.tva_20) > 0) {
+    doc.text('Total TVA 20 % :', labelX, totY);
+    doc.text(`${formatCurrency(facture.tva_20, false)} DH`, rightX, totY, { align: 'right' });
+    totY += 4.0;
+  } else if (Number(facture.total_tva) > 0) {
+    doc.text('Total TVA :', labelX, totY);
+    doc.text(`${formatCurrency(facture.total_tva, false)} DH`, rightX, totY, { align: 'right' });
+    totY += 4.0;
+  } else {
+    totY += 1.0;
+  }
+
+  doc.setDrawColor(79, 70, 229);
+  doc.setFillColor(238, 242, 255);
+  doc.setLineWidth(0.35);
+  doc.roundedRect(labelX - 2, totY - 3, rightX - labelX + 4, 6.5, 1.2, 1.2, 'FD');
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(7.5);
+  doc.setTextColor(15, 23, 42);
+  doc.text('Net à payer TTC :', labelX, totY + 1.2);
+  doc.setTextColor(49, 46, 129);
+  doc.text(`${formatCurrency(facture.total_ttc || 0, false)} DH`, rightX, totY + 1.2, { align: 'right' });
+
+  drawVerdeOrtoFooter(doc, company);
+  doc.save(`Facture_Fournisseur_${facture.numero.replace(/[\/\\]/g, '_')}.pdf`);
+}
+
