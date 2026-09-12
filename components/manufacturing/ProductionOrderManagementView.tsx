@@ -493,7 +493,6 @@ export function ProductionOrderManagementView({
             </table>
           </div>
         </div>
-      </div>
 
       {/* MODAL: NOUVEL OF AVEC CONTROLE DE STOCK */}
       {showNewOfModal && (
