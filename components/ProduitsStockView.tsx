@@ -4,7 +4,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { Produit, StockMouvement } from '@/lib/types';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { TablePagination } from '@/components/TablePagination';
-import { Plus, Search, Package, AlertTriangle, ArrowUpDown, History, Edit, Trash2, ArrowUpRight, ArrowDownLeft, DollarSign, TrendingUp, Download } from 'lucide-react';
+import { Plus, Search, Package, AlertTriangle, ArrowUpDown, History, Edit, Trash2, ArrowUpRight, ArrowDownLeft, DollarSign, TrendingUp, Download, SlidersHorizontal, ChevronDown } from 'lucide-react';
 import { SortableTh } from '@/components/SortableTh';
 import { TableBulkActionBar } from '@/components/TableBulkActionBar';
 
