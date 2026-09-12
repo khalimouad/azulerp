@@ -90,6 +90,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
       items: [
         { id: 'dashboard', label: 'Tableau de bord', icon: LayoutDashboard },
         {
+          id: 'search',
+          label: 'Recherche Globale & IA',
+          icon: Search,
+          badge: 'Omnibox',
+          badgeColor: 'bg-blue-500/20 text-blue-300 border-blue-500/40',
+        },
+        {
           id: 'ai-copilot',
           label: 'Assistant IA Copilot',
           icon: Sparkles,

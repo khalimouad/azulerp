@@ -37,6 +37,8 @@ import {
   Download,
   AlertTriangle,
   TrendingUp,
+  Sparkles,
+  ArrowRight,
 } from 'lucide-react';
 import { AppUser } from '@/lib/types';
 import { SyncStatusBadge } from './SyncStatusBadge';
@@ -395,6 +397,8 @@ export const Header: React.FC<HeaderProps> = ({
         return { domain: 'Configuration', page: 'Gestion Base Neon' };
       case 'preview-document':
         return { domain: 'Documents', page: 'Aperçu & Impression' };
+      case 'search':
+        return { domain: 'Recherche', page: 'Recherche Globale & IA' };
       default:
         return { domain: 'AzulERP', page: 'Espace de travail' };
     }
@@ -445,30 +449,56 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Center: Global Omnibox Search (Ctrl+K) */}
         <div className="hidden md:flex items-center gap-2 flex-1 max-w-lg mx-3">
           <div className="relative w-full">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <button
+              type="button"
+              onClick={() => onNavigateTab('search')}
+              className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-blue-400 p-1 rounded-md transition cursor-pointer"
+              title="Lancer la recherche globale"
+            >
+              <Search className="w-4 h-4" />
+            </button>
             <input
               ref={searchInputRef}
               id="global-search-desktop"
               type="text"
-              placeholder="Recherche globale (N° BL, Facture, Client, Produit, ICE)..."
+              placeholder="Recherche globale (N° BL, Facture, Client, Produit, ICE, IA)..."
               value={globalSearch}
               onChange={(e) => setGlobalSearch(e.target.value)}
-              className="w-full pl-9 pr-16 py-1.5 text-xs bg-slate-900/90 text-slate-100 placeholder-slate-400 rounded-xl border border-slate-700/80 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition shadow-inner"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  onNavigateTab('search');
+                }
+              }}
+              className="w-full pl-9 pr-24 py-1.5 text-xs bg-slate-900/90 text-slate-100 placeholder-slate-400 rounded-xl border border-slate-700/80 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition shadow-inner"
             />
-            {globalSearch ? (
-              <button
-                type="button"
-                onClick={() => setGlobalSearch('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 hover:text-white p-1 rounded-md cursor-pointer"
-                title="Effacer"
-              >
-                ✕
-              </button>
-            ) : (
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-0.5 text-[10px] font-mono text-slate-400 bg-slate-800 px-1.5 py-0.5 rounded border border-slate-700 pointer-events-none">
-                <Command className="w-2.5 h-2.5" /> K
-              </span>
-            )}
+            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+              {globalSearch ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setGlobalSearch('')}
+                    className="text-xs text-slate-400 hover:text-white p-1 rounded-md cursor-pointer"
+                    title="Effacer"
+                  >
+                    ✕
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onNavigateTab('search')}
+                    className="flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold rounded-lg bg-blue-600 hover:bg-blue-500 text-white shadow-xs transition cursor-pointer"
+                    title="Ouvrir la page de recherche"
+                  >
+                    <Sparkles className="w-2.5 h-2.5" />
+                    <span>Entrée</span>
+                  </button>
+                </>
+              ) : (
+                <span className="flex items-center gap-0.5 text-[10px] font-mono text-slate-400 bg-slate-800 px-1.5 py-0.5 rounded border border-slate-700 pointer-events-none">
+                  <Command className="w-2.5 h-2.5" /> K
+                </span>
+              )}
+            </div>
           </div>
 
           <div className="flex items-center shrink-0">
@@ -861,24 +891,47 @@ export const Header: React.FC<HeaderProps> = ({
       {/* 5. Mobile Search Row */}
       <div className="md:hidden px-3 pb-2.5 pt-1 flex items-center gap-2 border-t border-slate-800/60 bg-slate-950">
         <div className="relative flex-1">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+          <button
+            type="button"
+            onClick={() => onNavigateTab('search')}
+            className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-blue-400 p-1"
+          >
+            <Search className="w-4 h-4" />
+          </button>
           <input
             id="global-search-mobile"
             type="text"
             placeholder="Rechercher BL, Facture, Client..."
             value={globalSearch}
             onChange={(e) => setGlobalSearch(e.target.value)}
-            className="w-full pl-9 pr-9 min-h-[40px] text-xs bg-slate-900 text-slate-100 placeholder-slate-400 rounded-xl border border-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                onNavigateTab('search');
+              }
+            }}
+            className="w-full pl-9 pr-16 min-h-[40px] text-xs bg-slate-900 text-slate-100 placeholder-slate-400 rounded-xl border border-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
-          {globalSearch && (
-            <button
-              type="button"
-              onClick={() => setGlobalSearch('')}
-              className="absolute right-1 top-1/2 -translate-y-1/2 min-w-[36px] min-h-[36px] flex items-center justify-center text-xs text-slate-400 hover:text-white rounded-lg active:scale-95 cursor-pointer"
-            >
-              ✕
-            </button>
-          )}
+          <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
+            {globalSearch ? (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setGlobalSearch('')}
+                  className="min-w-[28px] min-h-[28px] flex items-center justify-center text-xs text-slate-400 hover:text-white rounded-lg active:scale-95 cursor-pointer"
+                >
+                  ✕
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onNavigateTab('search')}
+                  className="min-h-[28px] px-2 flex items-center gap-1 text-[10px] font-bold rounded-lg bg-blue-600 text-white active:scale-95 cursor-pointer"
+                >
+                  <ArrowRight className="w-3 h-3" />
+                </button>
+              </>
+            ) : null}
+          </div>
         </div>
 
         <select

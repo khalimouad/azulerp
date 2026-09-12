@@ -108,6 +108,7 @@ CREATE TABLE IF NOT EXISTS company_info (
   logo_placement VARCHAR(50) DEFAULT 'left',
   banque VARCHAR(100) DEFAULT 'Banque Populaire',
   rib VARCHAR(100) DEFAULT '145 450 21211 2604506 000 4 11',
+  gemini_api_key TEXT,
   created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -1688,9 +1689,10 @@ export async function initNeonPostgresSchema(customUrl?: string) {
     'CREATE INDEX IF NOT EXISTS reglements_client_idx ON reglements (client_id)',
     'CREATE INDEX IF NOT EXISTS reglements_facture_idx ON reglements (facture_id)',
     'CREATE INDEX IF NOT EXISTS client_tarifs_client_idx ON client_tarifs (client_id)',
+    'ALTER TABLE company_info ADD COLUMN IF NOT EXISTS gemini_api_key TEXT',
   ];
   await Promise.all(indexStatements.map((statement) => sql.query(statement, []).catch((err: any) => {
-    console.warn(`Notice création index (${statement}):`, err?.message || err);
+    console.warn(`Notice migration/création index (${statement}):`, err?.message || err);
   })));
 
   // Check if company_info is empty, if so insert default Agro-Atlas Casablanca company info

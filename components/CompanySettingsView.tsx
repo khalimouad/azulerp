@@ -17,6 +17,11 @@ import {
   RefreshCw,
   Sliders,
   Check,
+  EyeOff,
+  Key,
+  AlertCircle,
+  ExternalLink,
+  Bot,
 } from 'lucide-react';
 
 interface CompanySettingsViewProps {
@@ -32,17 +37,61 @@ export const CompanySettingsView: React.FC<CompanySettingsViewProps> = ({
     ...company,
     logo_mode: company.logo_mode || 'both',
     logo_placement: company.logo_placement || 'left',
+    gemini_api_key: company.gemini_api_key || (typeof window !== 'undefined' ? localStorage.getItem('azulerp_gemini_api_key') || '' : ''),
   });
   const [saved, setSaved] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [showApiKey, setShowApiKey] = useState(false);
+  const [testingKey, setTestingKey] = useState(false);
+  const [keyTestStatus, setKeyTestStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [keyTestMsg, setKeyTestMsg] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (form.gemini_api_key && typeof window !== 'undefined') {
+      localStorage.setItem('azulerp_gemini_api_key', form.gemini_api_key.trim());
+    }
     onSaveCompany(form);
     setSaved(true);
     setTimeout(() => setSaved(false), 3500);
+  };
+
+  const handleTestApiKey = async () => {
+    const key = (form.gemini_api_key || '').trim();
+    if (!key) {
+      setKeyTestStatus('error');
+      setKeyTestMsg('Veuillez saisir une clé API Gemini avant de tester.');
+      return;
+    }
+    setTestingKey(true);
+    setKeyTestStatus('idle');
+    setKeyTestMsg('');
+    try {
+      const res = await fetch('/api/ai/copilot', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'chat',
+          prompt: 'Reponds simplement par un mot : Bonjour !',
+          apiKey: key,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setKeyTestStatus('success');
+        setKeyTestMsg('Connexion IA validée avec succès ! Modèle opérationnel.');
+      } else {
+        setKeyTestStatus('error');
+        setKeyTestMsg(data.error || 'Clé invalide ou quota dépassé.');
+      }
+    } catch (err: any) {
+      setKeyTestStatus('error');
+      setKeyTestMsg(err?.message || 'Erreur réseau lors du test.');
+    } finally {
+      setTestingKey(false);
+    }
   };
 
   // Handle Logo File Conversion to Base64
@@ -747,6 +796,104 @@ export const CompanySettingsView: React.FC<CompanySettingsViewProps> = ({
                 className="w-full px-3 py-2 text-xs bg-slate-50 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-slate-900 font-semibold"
               />
             </div>
+          </div>
+        </div>
+
+        {/* Section 7: Intelligence Artificielle & Clé API Google Gemini */}
+        <div className="bg-gradient-to-br from-slate-900 to-indigo-950 p-6 rounded-2xl border border-indigo-900/60 shadow-lg text-white space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-indigo-800/60">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-indigo-600/40 border border-indigo-400/40 flex items-center justify-center">
+                <Sparkles className="w-4 h-4 text-indigo-300 animate-pulse" />
+              </div>
+              <div>
+                <h3 className="text-sm font-extrabold text-white flex items-center gap-2">
+                  7. Intelligence Artificielle & Clé API Google Gemini
+                  <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                    BDD Partagée
+                  </span>
+                </h3>
+                <p className="text-[11px] text-indigo-200/80">
+                  Enregistrée en base de données PostgreSQL pour l'ensemble des collaborateurs (Recherche Globale, Copilot SQL, Chat IA).
+                </p>
+              </div>
+            </div>
+
+            <a
+              href="https://aistudio.google.com/app/apikey"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-800/60 hover:bg-indigo-700/80 text-indigo-200 text-xs font-semibold border border-indigo-700/60 transition"
+            >
+              <span>Obtenir une clé gratuite</span>
+              <ExternalLink className="w-3.5 h-3.5 text-indigo-300" />
+            </a>
+          </div>
+
+          <div className="space-y-3">
+            <div>
+              <label className="block text-xs font-semibold text-indigo-200 mb-1.5 flex items-center justify-between">
+                <span className="flex items-center gap-1.5">
+                  <Key className="w-3.5 h-3.5 text-indigo-400" />
+                  Clé API Google Gemini (AI Studio)
+                </span>
+                {form.gemini_api_key ? (
+                  <span className="text-[10px] text-emerald-400 font-bold flex items-center gap-1">
+                    <CheckCircle2 className="w-3 h-3" /> Clé enregistrée
+                  </span>
+                ) : (
+                  <span className="text-[10px] text-amber-400 font-medium flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3" /> Non configurée
+                  </span>
+                )}
+              </label>
+
+              <div className="relative">
+                <input
+                  type={showApiKey ? 'text' : 'password'}
+                  value={form.gemini_api_key || ''}
+                  onChange={(e) => {
+                    setForm({ ...form, gemini_api_key: e.target.value });
+                    setKeyTestStatus('idle');
+                    setKeyTestMsg('');
+                  }}
+                  placeholder="AIzaSy..."
+                  className="w-full pl-3 pr-24 py-2.5 text-xs bg-slate-950/80 text-white placeholder-slate-500 rounded-xl border border-indigo-700/60 focus:outline-none focus:ring-2 focus:ring-indigo-400 font-mono tracking-wider"
+                />
+                <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => setShowApiKey(!showApiKey)}
+                    className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition"
+                    title={showApiKey ? 'Masquer' : 'Afficher'}
+                  >
+                    {showApiKey ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleTestApiKey}
+                    disabled={testingKey}
+                    className="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white transition disabled:opacity-50 flex items-center gap-1"
+                  >
+                    {testingKey ? <RefreshCw className="w-3 h-3 animate-spin" /> : 'Tester'}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {keyTestStatus === 'success' && (
+              <div className="p-3 bg-emerald-950/60 border border-emerald-500/50 rounded-xl text-xs text-emerald-300 flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span>{keyTestMsg}</span>
+              </div>
+            )}
+
+            {keyTestStatus === 'error' && (
+              <div className="p-3 bg-rose-950/60 border border-rose-500/50 rounded-xl text-xs text-rose-300 flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                <span>{keyTestMsg}</span>
+              </div>
+            )}
           </div>
         </div>
 

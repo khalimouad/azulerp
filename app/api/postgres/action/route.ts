@@ -1567,18 +1567,62 @@ export async function POST(req: NextRequest) {
         // --- COMPANY SETTINGS ---
         case 'update_company_info': {
           const { company } = payload;
-          await sql`
-            UPDATE company_info SET
-              nom = ${company.nom}, forme_juridique = ${company.forme_juridique || 'SARL AU'},
-              capital = ${company.capital || '100 000,00'}, adresse = ${company.adresse || ''},
-              ville = ${company.ville || 'Marrakech'}, telephone = ${company.telephone || ''},
-              email = ${company.email || ''}, ice = ${company.ice || ''},
-              if_fiscal = ${company.if_fiscal || ''}, rc = ${company.rc || ''},
-              cnss = ${company.cnss || ''}, patente = ${company.patente || ''},
-              banque = ${company.banque || ''}, rib = ${company.rib || ''}
-            WHERE id = 1;
-          `;
-          return NextResponse.json({ success: true, message: 'Identifiants société enregistrés' });
+          await sql`ALTER TABLE company_info ADD COLUMN IF NOT EXISTS gemini_api_key TEXT;`.catch(() => {});
+
+          const countRes: any = await sql`SELECT count(*) as count FROM company_info;`.catch(() => [{ count: 0 }]);
+          const hasRow = parseInt(countRes?.[0]?.count || '0', 10) > 0;
+
+          if (!hasRow) {
+            await sql`
+              INSERT INTO company_info (
+                id, nom, forme_juridique, capital, adresse, adresse_detail, code_postal, ville, pays,
+                telephone, fax, email, site_web, ice, if_fiscal, rc, cnss, patente, agrement_onssa,
+                banque, rib, logo_titre, logo_sous_titre, logo_image, logo_mode, logo_placement, gemini_api_key
+              ) VALUES (
+                1, ${company.nom || 'AGRO-ATLAS CASABLANCA SARL'}, ${company.forme_juridique || 'SARL'},
+                ${company.capital || '1 500 000,00'}, ${company.adresse || ''}, ${company.adresse_detail || ''},
+                ${company.code_postal || '20250'}, ${company.ville || 'Casablanca'}, ${company.pays || 'Maroc'},
+                ${company.telephone || ''}, ${company.fax || ''}, ${company.email || ''}, ${company.site_web || ''},
+                ${company.ice || ''}, ${company.if_fiscal || ''}, ${company.rc || ''}, ${company.cnss || ''},
+                ${company.patente || ''}, ${company.agrement_onssa || ''},
+                ${company.banque || ''}, ${company.rib || ''},
+                ${company.logo_titre || ''}, ${company.logo_sous_titre || ''}, ${company.logo_image || ''},
+                ${company.logo_mode || 'both'}, ${company.logo_placement || 'left'}, ${company.gemini_api_key || null}
+              );
+            `;
+          } else {
+            await sql`
+              UPDATE company_info SET
+                nom = ${company.nom || ''},
+                forme_juridique = ${company.forme_juridique || 'SARL'},
+                capital = ${company.capital || '1 500 000,00'},
+                adresse = ${company.adresse || ''},
+                adresse_detail = ${company.adresse_detail || ''},
+                code_postal = ${company.code_postal || ''},
+                ville = ${company.ville || ''},
+                pays = ${company.pays || 'Maroc'},
+                telephone = ${company.telephone || ''},
+                fax = ${company.fax || ''},
+                email = ${company.email || ''},
+                site_web = ${company.site_web || ''},
+                ice = ${company.ice || ''},
+                if_fiscal = ${company.if_fiscal || ''},
+                rc = ${company.rc || ''},
+                cnss = ${company.cnss || ''},
+                patente = ${company.patente || ''},
+                agrement_onssa = ${company.agrement_onssa || ''},
+                banque = ${company.banque || ''},
+                rib = ${company.rib || ''},
+                logo_titre = ${company.logo_titre || ''},
+                logo_sous_titre = ${company.logo_sous_titre || ''},
+                logo_image = ${company.logo_image || ''},
+                logo_mode = ${company.logo_mode || 'both'},
+                logo_placement = ${company.logo_placement || 'left'},
+                gemini_api_key = ${company.gemini_api_key !== undefined ? (company.gemini_api_key || null) : null}
+              WHERE id = 1 OR id = (SELECT id FROM company_info LIMIT 1);
+            `;
+          }
+          return NextResponse.json({ success: true, message: 'Identifiants société et clé IA enregistrés' });
         }
 
         // --- POS RESTAURANT ---

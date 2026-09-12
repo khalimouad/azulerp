@@ -31,6 +31,7 @@ export interface CompanyInfo {
   logo_placement?: 'left' | 'center';
   banque?: string;
   rib: string;
+  gemini_api_key?: string; // Google Gemini API Key saved in DB for all users
 }
 
 export interface Categorie {

@@ -49,11 +49,26 @@ export async function POST(req: NextRequest) {
 
     // Action 1: CHAT with Gemini AI (Text + Multimodal Vision)
     if (action === 'chat') {
-      const apiKey = clientApiKey || process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+      let apiKey = (clientApiKey && typeof clientApiKey === 'string' && clientApiKey.trim())
+        ? clientApiKey.trim()
+        : (process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY || '');
+
+      if (!apiKey) {
+        try {
+          const sql = getNeonSql();
+          const compRes: any = await sql`SELECT gemini_api_key FROM company_info WHERE gemini_api_key IS NOT NULL AND gemini_api_key != '' LIMIT 1;`.catch(() => []);
+          if (compRes?.[0]?.gemini_api_key && typeof compRes[0].gemini_api_key === 'string') {
+            apiKey = compRes[0].gemini_api_key.trim();
+          }
+        } catch (e) {
+          console.warn('Erreur lecture clé API Gemini depuis company_info:', e);
+        }
+      }
+
       if (!apiKey || !apiKey.trim()) {
         return NextResponse.json({
           success: false,
-          error: 'Clé API Gemini manquante. Veuillez saisir votre clé API Google Gemini dans les paramètres de l\'assistant ou configurer GEMINI_API_KEY.'
+          error: 'Clé API Gemini manquante. Veuillez saisir votre clé API Google Gemini dans les paramètres de la société (sauvegardée en BDD pour tous les utilisateurs) ou configurer GEMINI_API_KEY.'
         }, { status: 400 });
       }
 

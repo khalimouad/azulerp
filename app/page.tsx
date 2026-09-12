@@ -95,6 +95,7 @@ import { SqliteConsoleView } from '@/components/SqliteConsoleView';
 import { AiDatabaseCopilotView } from '@/components/AiDatabaseCopilotView';
 import { ReferenceDataLists } from '@/components/ReferenceDataLists';
 import { CompanySettingsView } from '@/components/CompanySettingsView';
+import { GlobalSearchView } from '@/components/GlobalSearchView';
 import { PosView } from '@/components/PosView';
 import { AuthView } from '@/components/AuthView';
 import { UserManagementModal } from '@/components/UserManagementModal';
@@ -859,6 +860,48 @@ export default function Home() {
                 URL.revokeObjectURL(url);
               }}
               onImportSqlite={handleGlobalImportSqlite}
+            />
+          )}
+
+          {/* 1.5 RECHERCHE GLOBALE MULTI-MODULES & IA */}
+          {currentTab === 'search' && (
+            <GlobalSearchView
+              searchQuery={globalSearch}
+              onSearchChange={setGlobalSearch}
+              onNavigateTab={navigateTo}
+              company={company}
+              factures={factures}
+              bonsLivraison={bonsLivraison}
+              bonsRetour={bonsRetour}
+              clients={clients}
+              produits={produits}
+              fournisseurs={fournisseurs}
+              devisList={devisList}
+              journalEntries={journalEntries}
+              productionOrders={productionOrders}
+              onViewFacture={(f) => {
+                setPreviewDocType('FACTURE');
+                setPreviewFacture(f);
+                navigateTo('preview-document');
+              }}
+              onViewBl={(bl) => {
+                setPreviewDocType('BL');
+                setPreviewBl(bl);
+                navigateTo('preview-document');
+              }}
+              onViewDevis={(d) => {
+                setPreviewDocType('DEVIS');
+                setPreviewDevis(d);
+                navigateTo('preview-document');
+              }}
+              onEditClient={(c) => {
+                setClientToEdit(c);
+                navigateTo('create-client');
+              }}
+              onEditProduit={(p) => {
+                setProduitToEdit(p);
+                navigateTo('create-produit');
+              }}
             />
           )}
 
